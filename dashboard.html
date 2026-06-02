@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
         * {
             margin: 0;
@@ -208,17 +209,7 @@
         }
 
         function getDepartmentName(code) {
-            const departments = {
-                'immigration': 'Dept. of Immigration and Citizenship',
-                'corporate': 'Dept. of Corporate Services',
-                'civil': 'Dept. of Civil and National Registration',
-                'osh': 'Dept. of Occupational Health and Safety',
-                'labour': 'Dept. of Labour and Social Security',
-                'employment': 'Dept. of Employment Services',
-                'archives': 'Botswana National Archives and Records Services',
-                'library': 'Botswana National Library Services'
-            };
-            return departments[code] || code;
+            return 'Dept. of Occupational Health and Safety';
         }
 
         async function handleLogout() {

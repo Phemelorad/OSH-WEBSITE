@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
         * {
             margin: 0;
@@ -307,22 +308,6 @@
             </div>
 
             <div class="form-group">
-                <label for="department">Department</label>
-                <select id="department" name="department" required>
-                    <option value="">— Select your department —</option>
-                    <option value="immigration">Dept. of Immigration and Citizenship</option>
-                    <option value="corporate">Dept. of Corporate Services</option>
-                    <option value="civil">Dept. of Civil and National Registration</option>
-                    <option value="osh">Dept. of Occupational Health and Safety</option>
-                    <option value="labour">Dept. of Labour and Social Security</option>
-                    <option value="employment">Dept. of Employment Services</option>
-                    <option value="archives">Botswana National Archives and Records Services</option>
-                    <option value="library">Botswana National Library Services</option>
-                </select>
-                <span class="error-message">Please select a department</span>
-            </div>
-
-            <div class="form-group">
                 <label for="password">Password</label>
                 <div class="password-input-wrapper">
                     <input type="password" id="password" name="password" placeholder="Create a strong password" required>
@@ -441,13 +426,6 @@
                 }
             }
 
-            if (field.id === 'department') {
-                if (value === '') {
-                    field.classList.add('error');
-                    return false;
-                }
-            }
-
             if (value === '') {
                 field.classList.add('error');
                 return false;
@@ -458,7 +436,7 @@
         }
 
         // Add blur event listeners for real-time validation
-        ['firstName', 'surname', 'email', 'department', 'password', 'confirmPassword', 'location'].forEach(id => {
+        ['firstName', 'surname', 'email', 'password', 'confirmPassword', 'location'].forEach(id => {
             document.getElementById(id).addEventListener('blur', function() {
                 validateField(this);
             });
@@ -469,7 +447,7 @@
             e.preventDefault();
 
             // Validate all fields
-            const fields = ['firstName', 'surname', 'email', 'department', 'password', 'confirmPassword', 'location'];
+            const fields = ['firstName', 'surname', 'email', 'password', 'confirmPassword', 'location'];
             let isValid = true;
 
             fields.forEach(id => {
@@ -498,7 +476,7 @@
                 firstName: document.getElementById('firstName').value,
                 surname: document.getElementById('surname').value,
                 email: document.getElementById('email').value,
-                department: document.getElementById('department').value,
+                department: 'osh', // Automatically set to OSH
                 password: document.getElementById('password').value,
                 location: document.getElementById('location').value
             };

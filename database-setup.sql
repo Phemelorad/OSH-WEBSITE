@@ -14,16 +14,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     first_name TEXT NOT NULL,
     surname TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    department TEXT NOT NULL CHECK (department IN (
-        'immigration',
-        'corporate',
-        'civil',
-        'osh',
-        'labour',
-        'employment',
-        'archives',
-        'library'
-    )),
+    department TEXT NOT NULL DEFAULT 'osh' CHECK (department = 'osh'),
     location TEXT NOT NULL,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -55,14 +46,7 @@ CREATE TABLE IF NOT EXISTS departments (
 
 -- Insert department data
 INSERT INTO departments (code, name, description) VALUES
-    ('immigration', 'Dept. of Immigration and Citizenship', 'Handles immigration and citizenship services'),
-    ('corporate', 'Dept. of Corporate Services', 'Manages corporate services and administration'),
-    ('civil', 'Dept. of Civil and National Registration', 'Civil registration and national identification'),
-    ('osh', 'Dept. of Occupational Health and Safety', 'Workplace health and safety regulations'),
-    ('labour', 'Dept. of Labour and Social Security', 'Labor relations and social security'),
-    ('employment', 'Dept. of Employment Services', 'Employment services and job placement'),
-    ('archives', 'Botswana National Archives and Records Services', 'National archives and records management'),
-    ('library', 'Botswana National Library Services', 'National library services')
+    ('osh', 'Dept. of Occupational Health and Safety', 'Workplace health and safety regulations')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================
@@ -153,6 +137,18 @@ ALTER TABLE login_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE password_reset_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can view own login history" ON login_history;
+DROP POLICY IF EXISTS "Users can insert own login history" ON login_history;
+DROP POLICY IF EXISTS "Users can view own password reset requests" ON password_reset_requests;
+DROP POLICY IF EXISTS "Anyone can request password reset" ON password_reset_requests;
+DROP POLICY IF EXISTS "Users can view own activity" ON user_activity_log;
+DROP POLICY IF EXISTS "Users can insert own activity" ON user_activity_log;
+DROP POLICY IF EXISTS "Authenticated users can view departments" ON departments;
 
 -- User Profiles Policies
 -- Users can view their own profile
