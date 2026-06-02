@@ -436,7 +436,7 @@
             document.getElementById('usersContent').style.display = 'none';
 
             try {
-                // Get all user profiles
+                // Get all user profiles (this will work with the RLS policy allowing authenticated users to view all)
                 const { data: profiles, error: profilesError } = await supabaseClient
                     .from('user_profiles')
                     .select('*')
@@ -444,16 +444,12 @@
 
                 if (profilesError) throw profilesError;
 
-                // Get all auth users (admin access required)
-                const { data: { users }, error: usersError } = await supabaseClient.auth.admin.listUsers();
-                
-                // Merge profile and auth data
+                // Since we can't access admin.listUsers, we'll work with profile data only
                 const mergedData = profiles.map(profile => {
-                    const authUser = users ? users.find(u => u.id === profile.user_id) : null;
                     return {
                         ...profile,
-                        email_confirmed: authUser ? authUser.email_confirmed_at !== null : false,
-                        last_sign_in: authUser ? authUser.last_sign_in_at : null
+                        email_confirmed: true, // Assume verified if they have a profile
+                        last_sign_in: null // We don't have this data without admin access
                     };
                 });
 
@@ -469,7 +465,11 @@
             } catch (error) {
                 console.error('Error loading users:', error);
                 document.getElementById('usersLoading').innerHTML = 
-                    '<p style="color: #e74c3c;">Error loading users. You may need admin privileges.</p>';
+                    `<div style="text-align: center; padding: 40px;">
+                        <p style="color: #e74c3c; margin-bottom: 10px;">Error loading users: ${error.message}</p>
+                        <p style="color: #666; font-size: 14px;">Make sure the RLS policy allows viewing all profiles.</p>
+                        <button onclick="loadUsers()" style="margin-top: 20px; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button>
+                    </div>`;
             }
         }
 
@@ -513,7 +513,7 @@
                         </span>
                     </td>
                     <td>${formatDate(user.created_at)}</td>
-                    <td>${user.last_sign_in ? formatDate(user.last_sign_in) : 'Never'}</td>
+                    <td>${user.last_sign_in ? formatDate(user.last_sign_in) : 'N/A'}</td>
                     <td>
                         <button class="action-btn" onclick="viewUser('${user.user_id}')">View</button>
                         <button class="action-btn" onclick="toggleUserStatus('${user.user_id}', ${!user.is_active})">

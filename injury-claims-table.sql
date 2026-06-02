@@ -17,6 +17,7 @@ CREATE TABLE injury_claims (
     
     -- Claimant Information
     name_of_claimant TEXT NOT NULL,
+    gender TEXT NOT NULL CHECK (gender IN ('M', 'F')),
     location TEXT NOT NULL,
     nationality TEXT NOT NULL,
     

@@ -325,17 +325,19 @@
                         <label for="industry">Industry<span class="required">*</span></label>
                         <select id="industry" name="industry" required>
                             <option value="">— Select industry —</option>
-                            <option value="construction">Construction</option>
-                            <option value="manufacturing">Manufacturing</option>
-                            <option value="mining">Mining</option>
-                            <option value="agriculture">Agriculture</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="transportation">Transportation</option>
-                            <option value="retail">Retail</option>
-                            <option value="hospitality">Hospitality</option>
-                            <option value="education">Education</option>
-                            <option value="government">Government</option>
-                            <option value="other">Other</option>
+                            <option value="GOVT">Government</option>
+                            <option value="PARASTATAL">Parastatal</option>
+                            <option value="SERVICE">Service</option>
+                            <option value="SERVICES">Services</option>
+                            <option value="RETAIL">Retail</option>
+                            <option value="CONSTRUCTION">Construction</option>
+                            <option value="MANUFACTURING">Manufacturing</option>
+                            <option value="SECURITY">Security</option>
+                            <option value="TRANSPORT">Transport</option>
+                            <option value="HOTEL">Hotel</option>
+                            <option value="AGRICULTURE">Agriculture</option>
+                            <option value="CATERING">Catering</option>
+                            <option value="RESTAURANT">Restaurant</option>
                         </select>
                         <span class="error-message">Please select an industry</span>
                     </div>
@@ -353,9 +355,13 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="location">Location<span class="required">*</span></label>
-                            <input type="text" id="location" name="location" placeholder="Enter location" required>
-                            <span class="error-message">Location is required</span>
+                            <label for="gender">Gender<span class="required">*</span></label>
+                            <select id="gender" name="gender" required>
+                                <option value="">— Select gender —</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                            <span class="error-message">Please select gender</span>
                         </div>
 
                         <div class="form-group">
@@ -363,6 +369,12 @@
                             <input type="text" id="nationality" name="nationality" placeholder="Enter nationality" required>
                             <span class="error-message">Nationality is required</span>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location<span class="required">*</span></label>
+                        <input type="text" id="location" name="location" placeholder="Enter location" required>
+                        <span class="error-message">Location is required</span>
                     </div>
                 </div>
 
@@ -523,6 +535,7 @@
                     name_of_employer: data.nameOfEmployer,
                     industry: data.industry,
                     name_of_claimant: data.nameOfClaimant,
+                    gender: data.gender,
                     location: data.location,
                     nationality: data.nationality,
                     date_of_injury: data.dateOfInjury,
