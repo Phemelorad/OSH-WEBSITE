@@ -458,6 +458,8 @@
     <script src="supabase-config.js"></script>
     <!-- Role Permissions System -->
     <script src="role-permissions.js"></script>
+    <!-- Custom Modals -->
+    <script src="modal.js"></script>
 
     <script>
         const form = document.getElementById('mainForm');
@@ -540,7 +542,9 @@
             });
 
             if (!isValid) {
-                alert('Please fill in all required fields correctly.');
+                await showAlert('Please fill in all required fields correctly.', {
+                    type: 'warning', title: 'Incomplete Form'
+                });
                 return;
             }
 
@@ -569,7 +573,9 @@
             // Get current user
             getCurrentUser().then(async userResult => {
                 if (!userResult.success || !userResult.user) {
-                    alert('You must be logged in to submit a claim. Redirecting to login...');
+                    await showAlert('You must be logged in to submit a claim.', {
+                        type: 'warning', title: 'Not Authenticated', btnText: 'Go to Login'
+                    });
                     window.location.href = 'index.html';
                     return;
                 }
@@ -605,55 +611,54 @@
                         .insert([claimData])
                         .select();
 
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalText;
-
                     if (insertError) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalText;
                         console.error('Supabase error:', insertError);
-                        alert('Error submitting claim: ' + insertError.message);
+                        await showAlert(insertError.message, { type: 'error', title: 'Submission Failed' });
                         return;
                     }
 
-                    // Show success message
-                    successMessage.classList.add('show');
-                    form.reset();
-                    
-                    // Hide success message and redirect after 3 seconds
-                    setTimeout(() => {
-                        successMessage.classList.remove('show');
-                        window.location.href = 'dashboard.html';
-                    }, 3000);
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
 
-                    // Scroll to top
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Show success and redirect
+                    await showAlert('Your injury claim has been submitted successfully.', {
+                        type: 'success', title: 'Claim Submitted', btnText: 'View Entries'
+                    });
+                    form.reset();
+                    window.location.href = 'entries.html';
 
                 } catch (error) {
                     submitButton.disabled = false;
                     submitButton.textContent = originalText;
                     console.error('Submission error:', error);
-                    alert('Error submitting claim: ' + error.message);
+                    await showAlert(error.message, { type: 'error', title: 'Submission Failed' });
                 }
             });
         });
 
-        // Reset form
-        function resetForm() {
-            if (confirm('Are you sure you want to reset the form?')) {
+        async function resetForm() {
+            const confirmed = await showConfirm('All entered data will be cleared.', {
+                title: 'Reset Form', icon: '🔄', confirmText: 'Reset', danger: true
+            });
+            if (confirmed) {
                 form.reset();
-                formFields.forEach(field => {
-                    field.classList.remove('error');
-                });
+                formFields.forEach(field => field.classList.remove('error'));
                 successMessage.classList.remove('show');
             }
         }
 
         async function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
+            const confirmed = await showConfirm('You will be signed out of the OSH system.', {
+                title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
+            });
+            if (confirmed) {
                 const result = await signOut();
                 if (result.success) {
                     window.location.href = 'index.html';
                 } else {
-                    alert('Logout failed: ' + result.error);
+                    await showAlert('Logout failed: ' + result.error, { type: 'error' });
                 }
             }
         }

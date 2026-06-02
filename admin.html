@@ -414,6 +414,8 @@
     <script src="supabase-config.js"></script>
     <!-- Role Permissions System -->
     <script src="role-permissions.js"></script>
+    <!-- Custom Modals -->
+    <script src="modal.js"></script>
 
     <script>
         const supabaseClient = window.supabaseClient || window.supabase.createClient(
@@ -584,83 +586,69 @@
         }
 
         function viewUser(userId) {
-            alert('User details for: ' + userId);
-            // Implement user detail view
+            showAlert('User detail view coming soon.', { type: 'info', title: 'User Details' });
         }
 
         async function editUserRole(userId, currentRole, userName) {
             const roles = ['viewer', 'officer', 'admin', 'super_admin'];
-            const roleNames = {
-                'viewer': 'Viewer',
-                'officer': 'Officer',
-                'admin': 'Admin',
-                'super_admin': 'Super Admin'
-            };
+            const roleNames = { viewer:'Viewer', officer:'Officer', admin:'Admin', super_admin:'Super Admin' };
 
-            const roleOptions = roles.map((role, idx) => 
-                `${idx + 1}. ${roleNames[role]} - ${role === currentRole ? '(current)' : ''}`
-            ).join('\n');
-
-            const newRole = prompt(
-                `Change role for: ${userName}\n\nCurrent role: ${roleNames[currentRole]}\n\nSelect new role:\n${roleOptions}\n\nEnter: viewer, officer, admin, or super_admin`,
-                currentRole
+            const newRole = await showSelect(
+                `Current role: <strong>${roleNames[currentRole]}</strong>`,
+                roles.map(r => ({ value: r, label: roleNames[r] })),
+                currentRole,
+                { title: `Change Role — ${userName}`, iconKey: 'role', confirmText: 'Save Role' }
             );
 
             if (!newRole || newRole === currentRole) return;
 
-            if (!roles.includes(newRole)) {
-                alert('Invalid role. Please use: viewer, officer, admin, or super_admin');
-                return;
-            }
-
-            // Check if user can manage this role change
             if (!canManageUsers(newRole)) {
-                showPermissionDenied('change roles to super_admin');
+                showPermissionDenied('assign the super_admin role');
                 return;
             }
 
             try {
                 const { error } = await supabaseClient
-                    .from('user_profiles')
-                    .update({ role: newRole })
-                    .eq('user_id', userId);
-
+                    .from('user_profiles').update({ role: newRole }).eq('user_id', userId);
                 if (error) throw error;
-
-                alert(`Role updated successfully to ${roleNames[newRole]}`);
+                showToast(`Role updated to ${roleNames[newRole]}`, 'success');
                 loadUsers();
             } catch (error) {
-                alert('Error updating role: ' + error.message);
+                await showAlert(error.message, { type: 'error', title: 'Update Failed' });
             }
         }
 
         async function toggleUserStatus(userId, newStatus) {
-            if (!confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this user?`)) {
-                return;
-            }
+            const confirmed = await showConfirm(
+                `This user will be ${newStatus ? 'activated' : 'deactivated'}.`,
+                { title: newStatus ? 'Activate User' : 'Deactivate User',
+                  icon: newStatus ? '✅' : '🚫',
+                  confirmText: newStatus ? 'Activate' : 'Deactivate',
+                  danger: !newStatus }
+            );
+            if (!confirmed) return;
 
             try {
                 const { error } = await supabaseClient
-                    .from('user_profiles')
-                    .update({ is_active: newStatus })
-                    .eq('user_id', userId);
-
+                    .from('user_profiles').update({ is_active: newStatus }).eq('user_id', userId);
                 if (error) throw error;
-
-                alert(`User ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                showToast(`User ${newStatus ? 'activated' : 'deactivated'} successfully`, newStatus ? 'success' : 'warning');
                 loadUsers();
             } catch (error) {
-                alert('Error updating user: ' + error.message);
+                await showAlert(error.message, { type: 'error', title: 'Update Failed' });
             }
         }
 
         async function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
+            const confirmed = await showConfirm('You will be signed out of the OSH system.', {
+                title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
+            });
+            if (confirmed) {
                 const result = await signOut();
                 if (result.success) {
                     window.location.href = 'index.html';
                 } else {
-                    alert('Logout failed: ' + result.error);
+                    await showAlert('Logout failed: ' + result.error, { type: 'error' });
                 }
             }
         }

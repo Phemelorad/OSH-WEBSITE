@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspection Report - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-department { font-size: 14px; color: #666; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .site-nav {
+            background: white; padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: flex-start;
+            border-top: 1px solid #e0e0e0;
+        }
+        .site-nav button {
+            background: white; border: none; padding: 18px 35px;
+            font-size: 15px; font-weight: 600; color: #666;
+            cursor: pointer; transition: all 0.3s;
+            border-bottom: 3px solid transparent; font-family: inherit;
+        }
+        .site-nav button:hover { background: #f8f8f8; color: #333; }
+        .site-nav button.active { color: #333; border-bottom: 3px solid #333; background: #fafafa; }
+        .page-container { padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .form-card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px; border: 1px solid #e0e0e0; margin-bottom: 20px;
+        }
+        .form-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #f0f0f0; }
+        .form-header h1 { color: #333; font-size: 26px; margin-bottom: 6px; }
+        .form-header p { color: #666; font-size: 14px; }
+        .section-title {
+            color: #333; font-size: 16px; font-weight: 700;
+            margin-bottom: 16px; padding: 10px 14px;
+            background: #f5f5f5; border-left: 4px solid #333;
+            border-radius: 0 6px 6px 0;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 16px;
+        }
+        .form-row-3 { grid-template-columns: repeat(3, 1fr); }
+        .form-row-4 { grid-template-columns: repeat(4, 1fr); }
+        .form-row-2 { grid-template-columns: repeat(2, 1fr); }
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
+        .form-group { margin-bottom: 4px; }
+        .form-group label {
+            display: block; color: #444; font-weight: 600;
+            margin-bottom: 6px; font-size: 13px;
+        }
+        .req { color: #e74c3c; margin-left: 2px; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 10px 13px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 13px; font-family: inherit; transition: border-color 0.2s;
+            background: #fff;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus { outline: none; border-color: #999; }
+        .form-group input.error,
+        .form-group select.error { border-color: #e74c3c; }
+        .err-msg { color: #e74c3c; font-size: 11px; margin-top: 3px; display: none; }
+        .form-group input.error ~ .err-msg,
+        .form-group select.error ~ .err-msg { display: block; }
+        /* Contraventions grid */
+        .contravention-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px; margin-bottom: 16px;
+        }
+        .contravention-item {
+            background: #f9f9f9; border: 1px solid #e0e0e0;
+            border-radius: 8px; padding: 10px 8px;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .contravention-item label {
+            font-size: 12px; font-weight: 700; color: #333; cursor: pointer; text-align: center;
+        }
+        .contravention-item .section-desc {
+            font-size: 10px; color: #888; text-align: center; line-height: 1.3;
+        }
+        .contravention-item input[type="checkbox"] {
+            width: 18px; height: 18px; cursor: pointer; accent-color: #333;
+        }
+        .contravention-item.checked {
+            background: #fff3cd; border-color: #856404;
+        }
+        /* Summary row */
+        .compliance-summary {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px; margin: 16px 0;
+        }
+        .summary-box {
+            background: #f8f8f8; border-radius: 8px; padding: 14px;
+            text-align: center; border: 1px solid #e0e0e0;
+        }
+        .summary-box .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-box .value { font-size: 22px; font-weight: 700; color: #333; margin-top: 4px; }
+        .summary-box.good .value { color: #155724; }
+        .summary-box.bad  .value { color: #721c24; }
+        /* Plant table */
+        .plant-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .plant-table th {
+            background: #f5f5f5; padding: 10px 12px;
+            text-align: left; font-size: 12px; font-weight: 700;
+            border-bottom: 2px solid #e0e0e0; color: #333;
+        }
+        .plant-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
+        .plant-table tr:hover { background: #fafafa; }
+        .plant-table input, .plant-table select {
+            width: 100%; padding: 7px 10px; border: 1px solid #e0e0e0;
+            border-radius: 6px; font-size: 12px; font-family: inherit;
+        }
+        .add-row-btn {
+            margin-top: 10px; padding: 7px 16px;
+            background: #f5f5f5; border: 1px solid #ddd;
+            border-radius: 6px; cursor: pointer; font-size: 13px;
+            font-family: inherit; font-weight: 600; transition: all 0.2s;
+        }
+        .add-row-btn:hover { background: #eee; }
+        .remove-row-btn {
+            padding: 4px 10px; background: #f8d7da;
+            border: 1px solid #f5c6cb; border-radius: 4px;
+            cursor: pointer; font-size: 12px; color: #721c24; font-family: inherit;
+        }
+        /* Action / Dates */
+        .action-badge {
+            display: inline-block; padding: 4px 12px;
+            border-radius: 12px; font-size: 12px; font-weight: 600;
+            background: #d4edda; color: #155724;
+        }
+        /* Form actions */
+        .form-actions {
+            display: flex; gap: 15px; justify-content: flex-end;
+            padding-top: 20px; border-top: 2px solid #f0f0f0; margin-top: 10px;
+        }
+        .btn {
+            padding: 12px 30px; border-radius: 8px; font-size: 15px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
+            border: 2px solid #ddd; font-family: inherit;
+        }
+        .btn-primary { background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color: #333; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .btn-secondary { background: white; color: #666; }
+        .btn-secondary:hover { background: #f5f5f5; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        @media (max-width: 768px) {
+            .site-nav { flex-wrap: wrap; }
+            .site-nav button { flex: 1 1 45%; min-width: 120px; }
+            .form-card { padding: 20px; }
+            .form-row-3, .form-row-4 { grid-template-columns: 1fr; }
+            .form-row-2 { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3 { grid-column: span 1; }
+            .contravention-grid { grid-template-columns: repeat(3,1fr); }
+            .compliance-summary { grid-template-columns: 1fr; }
+            .form-actions { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Workplace Inspection</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-department" id="userDept"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <nav class="site-nav">
+        <button onclick="location.href='Untitled-1.html'">⌂ Home</button>
+        <button onclick="location.href='form.html'">📋 Submit Claim</button>
+        <button class="active">🔍 Inspection</button>
+        <button onclick="location.href='entries.html'">📊 View Entries</button>
+        <button onclick="location.href='admin.html'">⚙ Admin</button>
+    </nav>
+
+    <div class="page-container">
+      <div class="container">
+        <form id="inspectionForm">
+
+          <!-- ── SECTION 1: IDENTIFICATION ───────────────────────────── -->
+          <div class="form-card">
+            <div class="form-header">
+              <h1>🔍 Inspection Report</h1>
+              <p>Occupational Health and Safety — Workplace Inspection Report</p>
+            </div>
+
+            <div class="section-title">1. Identification</div>
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label>File Number<span class="req">*</span></label>
+                <input type="text" name="file_number" id="fileNumber" placeholder="e.g. OSH-SPRO 4102 I" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Date of Inspection<span class="req">*</span></label>
+                <input type="date" name="inspection_date" id="inspDate" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Date Report Sent to Client</label>
+                <input type="date" name="date_report_sent" id="dateReportSent">
+              </div>
+            </div>
+            <div class="form-row form-row-3">
+              <div class="form-group col-span-2">
+                <label>Factory / Employer Name<span class="req">*</span></label>
+                <input type="text" name="factory_name" id="factoryName" placeholder="Enter full name" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Inspector Name<span class="req">*</span></label>
+                <input type="text" name="inspector_name" id="inspectorName" placeholder="Enter inspector name" required>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group col-span-2">
+                <label>Location / Address<span class="req">*</span></label>
+                <input type="text" name="location" id="location" placeholder="Plot, Street, Town" required>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+            <div class="form-row form-row-4">
+              <div class="form-group">
+                <label>Nature of Work<span class="req">*</span></label>
+                <input type="text" name="nature_of_work" id="natureOfWork" placeholder="e.g. Manufacturing clothing" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Type of Industry<span class="req">*</span></label>
+                <select name="industry_type" id="industryType" required>
+                  <option value="">— Select —</option>
+                  <option>Manufacturing</option>
+                  <option>Services</option>
+                  <option>Construction</option>
+                  <option>Agriculture</option>
+                  <option>Transport</option>
+                  <option>Retail</option>
+                  <option>Government</option>
+                  <option>Parastatal</option>
+                </select>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Registration Status<span class="req">*</span></label>
+                <select name="registration_status" id="regStatus" required>
+                  <option value="">— Select —</option>
+                  <option value="Yes">Registered (Yes)</option>
+                  <option value="No">Not Registered (No)</option>
+                  <option value="N/A">Not Applicable (N/A)</option>
+                </select>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Type of Inspection<span class="req">*</span></label>
+                <select name="inspection_type" id="inspType" required>
+                  <option value="">— Select —</option>
+                  <option>Routine</option>
+                  <option>Follow-up</option>
+                  <option>Query</option>
+                  <option>First Time</option>
+                </select>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>No. of Employees — Male<span class="req">*</span></label>
+                <input type="number" name="employees_male" id="empMale" min="0" placeholder="0" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>No. of Employees — Female<span class="req">*</span></label>
+                <input type="number" name="employees_female" id="empFemale" min="0" placeholder="0" required>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── SECTION 2: COMMON CONTRAVENTIONS ───────────────────── -->
+          <div class="form-card">
+            <div class="section-title">2. Common Contraventions — OSH Act Sections</div>
+            <p style="color:#666;font-size:13px;margin-bottom:16px;">
+              Tick each section that was found to be <strong>non-compliant</strong> during the inspection.
+            </p>
+            <div class="contravention-grid" id="commonGrid">
+              <!-- filled by JS -->
+            </div>
+
+            <!-- Other Contraventions -->
+            <div class="section-title" style="margin-top:20px;">2b. Other Contraventions</div>
+            <div class="contravention-grid" id="otherGrid">
+              <!-- filled by JS -->
+            </div>
+
+            <!-- Live compliance summary -->
+            <div class="compliance-summary" style="margin-top:20px;">
+              <div class="summary-box bad">
+                <div class="label">Contraventions (a)</div>
+                <div class="value" id="totalContraventions">0</div>
+              </div>
+              <div class="summary-box bad">
+                <div class="label">Non-Compliance %</div>
+                <div class="value" id="nonCompliancePct">0%</div>
+              </div>
+              <div class="summary-box good">
+                <div class="label">Compliance Level</div>
+                <div class="value" id="compliancePct">100%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── SECTION 3: PLANT & MACHINERY ──────────────────────── -->
+          <div class="form-card">
+            <div class="section-title">3. Plant and Machinery (with Serial Numbers)</div>
+            <table class="plant-table" id="plantTable">
+              <thead>
+                <tr>
+                  <th style="width:35%">Plant / Machinery Description</th>
+                  <th style="width:25%">Serial Number</th>
+                  <th style="width:20%">Examination Status</th>
+                  <th style="width:15%">Notes</th>
+                  <th style="width:5%"></th>
+                </tr>
+              </thead>
+              <tbody id="plantBody">
+                <tr>
+                  <td><input type="text" name="plant_desc[]" placeholder="e.g. Air Receiver"></td>
+                  <td><input type="text" name="plant_sn[]" placeholder="S/N or NIL"></td>
+                  <td>
+                    <select name="plant_status[]">
+                      <option value="">— Status —</option>
+                      <option>Examined</option>
+                      <option>Not Examined</option>
+                      <option>N/A</option>
+                    </select>
+                  </td>
+                  <td><input type="text" name="plant_notes[]" placeholder="Notes"></td>
+                  <td><button type="button" class="remove-row-btn" onclick="removeRow(this)">✕</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" class="add-row-btn" onclick="addPlantRow()">＋ Add Row</button>
+          </div>
+
+          <!-- ── SECTION 4: ACTION & FOLLOW-UP ─────────────────────── -->
+          <div class="form-card">
+            <div class="section-title">4. Action Taken & Follow-Up</div>
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label>Action Taken<span class="req">*</span></label>
+                <select name="action_taken" id="actionTaken" required>
+                  <option value="">— Select —</option>
+                  <option>Advised to Comply</option>
+                  <option>Warned</option>
+                  <option>Compliance Satisfactory</option>
+                  <option>Prohibition Notice Issued</option>
+                  <option>Improvement Notice Issued</option>
+                  <option>Prosecution Recommended</option>
+                </select>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Days Taken to Respond (Working Days)</label>
+                <input type="number" name="days_to_respond" id="daysRespond" min="0" placeholder="e.g. 4">
+              </div>
+              <div class="form-group">
+                <label>Follow-Up Inspection Required?</label>
+                <select name="follow_up_required" id="followUpReq">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row form-row-2" id="followUpDateRow" style="display:none">
+              <div class="form-group">
+                <label>Follow-Up Inspection Date</label>
+                <input type="date" name="follow_up_date" id="followUpDate">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Summary of Findings / Additional Notes</label>
+                <textarea name="summary_findings" id="summaryFindings" placeholder="Summarise key observations and findings..."></textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Non-Compliance Details</label>
+                <textarea name="non_compliances" id="nonCompliances" placeholder="Detail each non-compliant section found..."></textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Recommendations</label>
+                <textarea name="recommendations" id="recommendations" placeholder="Recommendations to employer..."></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Submit Inspection Report</button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script>
+    // ── Contravention definitions from the Excel sheet ────────────
+    const COMMON_SECTIONS = [
+      { id:'S9',  label:'S9',  desc:'Registration of Factories' },
+      { id:'S13', label:'S13', desc:'Fencing of Machinery' },
+      { id:'S14', label:'S14', desc:'Construction & Maintenance of Fencing' },
+      { id:'S15', label:'S15', desc:'Operations near unfenced machinery' },
+      { id:'S16', label:'S16', desc:'Cleaning moving machinery' },
+      { id:'S18', label:'S18', desc:'Safe working on machinery' },
+      { id:'S41', label:'S41', desc:'General safety of buildings' },
+      { id:'S42', label:'S42', desc:'Floors, passages & stairs' },
+      { id:'S46', label:'S46', desc:'Precautions in case of fire' },
+      { id:'S47', label:'S47', desc:'Fire equipment' },
+      { id:'S48', label:'S48', desc:'Means of escape' },
+      { id:'S49', label:'S49', desc:'Fire drills & notices' },
+      { id:'S52', label:'S52', desc:'Welfare facilities' },
+      { id:'S53', label:'S53', desc:'Washing facilities' },
+      { id:'S62', label:'S62', desc:'First aid' },
+      { id:'S66', label:'S66', desc:'Protective clothing & equipment' },
+      { id:'S67', label:'S67', desc:'Safety officer & committee' },
+    ];
+
+    const OTHER_SECTIONS = [
+      { id:'S17', label:'S17', desc:'Explosive / Highly flammable substances' },
+      { id:'S23', label:'S23', desc:'Chain, ropes & lifting gear' },
+      { id:'S29', label:'S29', desc:'Lifting machines' },
+      { id:'S30', label:'S30', desc:'Cranes & hoists' },
+      { id:'S31', label:'S31', desc:'Boilers & steam receivers' },
+      { id:'S32', label:'S32', desc:'Air receivers' },
+      { id:'S34', label:'S34', desc:'Electrical installations' },
+      { id:'S37', label:'S37', desc:'Dangerous substances' },
+      { id:'S38', label:'S38', desc:'Reporting of accidents' },
+      { id:'S39', label:'S39', desc:'Notification of occupational diseases' },
+      { id:'S51', label:'S51', desc:'Sanitary conveniences' },
+      { id:'S54', label:'S54', desc:'Accommodation for clothing' },
+      { id:'S57', label:'S57', desc:'Lighting' },
+      { id:'S58', label:'S58', desc:'Ventilation' },
+    ];
+
+    const TOTAL_SECTIONS = 17; // denominator for non-compliance %
+
+    // Build a contravention checkbox grid
+    function buildGrid(sections, containerId) {
+      const container = document.getElementById(containerId);
+      sections.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'contravention-item';
+        div.id = 'item_' + s.id;
+        div.innerHTML = `
+          <input type="checkbox" id="chk_${s.id}" name="contraventions[]" value="${s.id}"
+                 onchange="updateCompliance(); toggleChecked(this,'item_${s.id}')">
+          <label for="chk_${s.id}">${s.label}</label>
+          <span class="section-desc">${s.desc}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleChecked(cb, itemId) {
+      document.getElementById(itemId).classList.toggle('checked', cb.checked);
+    }
+
+    function updateCompliance() {
+      const checked = document.querySelectorAll('input[name="contraventions[]"]:checked').length;
+      const nonPct  = Math.round((checked / TOTAL_SECTIONS) * 100);
+      const comPct  = 100 - nonPct;
+      document.getElementById('totalContraventions').textContent = checked;
+      document.getElementById('nonCompliancePct').textContent    = nonPct + '%';
+      document.getElementById('compliancePct').textContent       = comPct + '%';
+    }
+
+    // Plant & Machinery rows
+    function addPlantRow() {
+      const tbody = document.getElementById('plantBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" name="plant_desc[]" placeholder="Description"></td>
+        <td><input type="text" name="plant_sn[]"   placeholder="Serial Number"></td>
+        <td><select name="plant_status[]">
+          <option value="">— Status —</option>
+          <option>Examined</option><option>Not Examined</option><option>N/A</option>
+        </select></td>
+        <td><input type="text" name="plant_notes[]" placeholder="Notes"></td>
+        <td><button type="button" class="remove-row-btn" onclick="removeRow(this)">✕</button></td>`;
+      tbody.appendChild(tr);
+    }
+
+    function removeRow(btn) {
+      const tbody = document.getElementById('plantBody');
+      if (tbody.rows.length > 1) {
+        btn.closest('tr').remove();
+      } else {
+        showToast('At least one row is required.', 'warning');
+      }
+    }
+
+    // Follow-up toggle
+    document.getElementById('followUpReq').addEventListener('change', function() {
+      document.getElementById('followUpDateRow').style.display =
+        this.value === 'Yes' ? '' : 'none';
+    });
+
+    // Auto-fill days taken
+    function calcDays() {
+      const d1 = document.getElementById('inspDate').value;
+      const d2 = document.getElementById('dateReportSent').value;
+      if (d1 && d2) {
+        const diff = Math.round((new Date(d2) - new Date(d1)) / 86400000);
+        if (diff >= 0) document.getElementById('daysRespond').value = diff;
+      }
+    }
+    document.getElementById('inspDate').addEventListener('change', calcDays);
+    document.getElementById('dateReportSent').addEventListener('change', calcDays);
+
+    // Validation
+    function validateRequired() {
+      const fields = document.querySelectorAll('#inspectionForm [required]');
+      let ok = true;
+      fields.forEach(f => {
+        if (!f.value.trim()) {
+          f.classList.add('error'); ok = false;
+        } else {
+          f.classList.remove('error');
+        }
+      });
+      return ok;
+    }
+
+    // Collect plant rows
+    function collectPlant() {
+      const rows = document.querySelectorAll('#plantBody tr');
+      const result = [];
+      rows.forEach(row => {
+        const desc   = row.querySelector('[name="plant_desc[]"]')?.value.trim();
+        const sn     = row.querySelector('[name="plant_sn[]"]')?.value.trim();
+        const status = row.querySelector('[name="plant_status[]"]')?.value;
+        const notes  = row.querySelector('[name="plant_notes[]"]')?.value.trim();
+        if (desc) result.push({ desc, sn, status, notes });
+      });
+      return result;
+    }
+
+    // Collect checked contraventions
+    function collectContraventions() {
+      return [...document.querySelectorAll('input[name="contraventions[]"]:checked')]
+             .map(cb => cb.value);
+    }
+
+    // Form submit
+    document.getElementById('inspectionForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!validateRequired()) {
+        await showAlert('Please fill in all required fields.', { type: 'warning', title: 'Incomplete Form' });
+        document.querySelector('.form-group input.error, .form-group select.error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      try {
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) {
+          await showAlert('You must be logged in to submit an inspection.', { type:'warning', title:'Not Authenticated', btnText:'Go to Login' });
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const contraventions = collectContraventions();
+        const checked = contraventions.length;
+        const nonPct  = Math.round((checked / TOTAL_SECTIONS) * 100);
+
+        const payload = {
+          file_number:        document.getElementById('fileNumber').value.trim(),
+          inspection_date:    document.getElementById('inspDate').value,
+          date_report_sent:   document.getElementById('dateReportSent').value || null,
+          factory_name:       document.getElementById('factoryName').value.trim(),
+          inspector_name:     document.getElementById('inspectorName').value.trim(),
+          location:           document.getElementById('location').value.trim(),
+          nature_of_work:     document.getElementById('natureOfWork').value.trim(),
+          industry_type:      document.getElementById('industryType').value,
+          registration_status:document.getElementById('regStatus').value,
+          inspection_type:    document.getElementById('inspType').value,
+          employees_male:     parseInt(document.getElementById('empMale').value) || 0,
+          employees_female:   parseInt(document.getElementById('empFemale').value) || 0,
+          contraventions:     contraventions,
+          total_contraventions: checked,
+          non_compliance_pct: nonPct,
+          compliance_level:   100 - nonPct,
+          plant_machinery:    JSON.stringify(collectPlant()),
+          action_taken:       document.getElementById('actionTaken').value,
+          days_to_respond:    parseInt(document.getElementById('daysRespond').value) || null,
+          follow_up_required: document.getElementById('followUpReq').value === 'Yes',
+          follow_up_date:     document.getElementById('followUpDate').value || null,
+          summary_findings:   document.getElementById('summaryFindings').value.trim(),
+          non_compliances:    document.getElementById('nonCompliances').value.trim(),
+          recommendations:    document.getElementById('recommendations').value.trim(),
+          submitted_by:       userResult.user.id,
+          status:             'completed'
+        };
+
+        const supabaseClient = window.supabaseClient || window.supabase.createClient(
+          'https://qblogmmknnacaaircrlt.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+        );
+
+        const { error } = await supabaseClient
+          .from('workplace_inspections').insert([payload]);
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Inspection Report';
+
+        if (error) throw error;
+
+        await showAlert('Inspection report submitted successfully!', {
+          type:'success', title:'Report Submitted', btnText:'OK'
+        });
+        document.getElementById('inspectionForm').reset();
+        document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
+        updateCompliance();
+
+      } catch(err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Inspection Report';
+        await showAlert(err.message, { type:'error', title:'Submission Failed' });
+      }
+    });
+
+    async function resetForm() {
+      const ok = await showConfirm('All entered data will be cleared.', {
+        title:'Reset Form', icon:'🔄', confirmText:'Reset', danger:true
+      });
+      if (ok) {
+        document.getElementById('inspectionForm').reset();
+        document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
+        // Reset plant rows to one blank row
+        document.getElementById('plantBody').innerHTML = `
+          <tr>
+            <td><input type="text" name="plant_desc[]" placeholder="e.g. Air Receiver"></td>
+            <td><input type="text" name="plant_sn[]" placeholder="S/N or NIL"></td>
+            <td><select name="plant_status[]">
+              <option value="">— Status —</option>
+              <option>Examined</option><option>Not Examined</option><option>N/A</option>
+            </select></td>
+            <td><input type="text" name="plant_notes[]" placeholder="Notes"></td>
+            <td><button type="button" class="remove-row-btn" onclick="removeRow(this)">✕</button></td>
+          </tr>`;
+        updateCompliance();
+        showToast('Form has been reset.', 'info');
+      }
+    }
+
+    async function handleLogout() {
+      const confirmed = await showConfirm('You will be signed out of the OSH system.', {
+        title:'Logout', icon:'👋', confirmText:'Logout', cancelText:'Stay'
+      });
+      if (confirmed) {
+        const result = await signOut();
+        if (result.success) {
+          window.location.href = 'index.html';
+        } else {
+          await showAlert('Logout failed: ' + result.error, { type:'error' });
+        }
+      }
+    }
+
+    // Init
+    window.addEventListener('load', async function() {
+      const authenticated = await isAuthenticated();
+      if (!authenticated) { window.location.href = 'index.html'; return; }
+
+      await initializeRoleSystem();
+      checkPageAccess();
+
+      const userResult = await getCurrentUser();
+      if (userResult.success && userResult.user) {
+        const profile = await getUserProfile(userResult.user.id);
+        if (profile.success) {
+          document.getElementById('userName').textContent =
+            profile.data.first_name + ' ' + profile.data.surname;
+          document.getElementById('userDept').textContent = 'Inspector';
+          document.getElementById('inspectorName').value =
+            profile.data.first_name + ' ' + profile.data.surname;
+        }
+      }
+
+      // Set today as default inspection date
+      document.getElementById('inspDate').valueAsDate = new Date();
+
+      // Build contravention grids
+      buildGrid(COMMON_SECTIONS, 'commonGrid');
+      buildGrid(OTHER_SECTIONS,  'otherGrid');
+    });
+    </script>
+</body>
+</html>

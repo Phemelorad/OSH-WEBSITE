@@ -429,6 +429,8 @@
     <script src="supabase-config.js"></script>
     <!-- Role Permissions System -->
     <script src="role-permissions.js"></script>
+    <!-- Custom Modals -->
+    <script src="modal.js"></script>
 
     <script>
         const supabaseClient = window.supabaseClient || window.supabase.createClient(
@@ -600,36 +602,40 @@
 
         function viewClaim(claimId) {
             const claim = allClaims.find(c => c.id === claimId);
-            if (claim) {
-                alert(`Claim Details:\n\nFile #: ${claim.file_number}\nClaimant: ${claim.name_of_claimant}\nEmployer: ${claim.name_of_employer}\nCause: ${claim.cause}\nNature: ${claim.nature}\nIncapacity: ${claim.incapacity_percentage}%`);
-            }
+            if (claim) showClaimDetails(claim);
         }
 
         async function editStatus(claimId, currentStatus, claimOwnerId) {
-            // Check if user can edit this claim
             if (!canEditClaims(claimOwnerId)) {
                 showPermissionDenied('edit this claim');
                 return;
             }
 
-            const newStatus = prompt(`Current status: ${currentStatus}\n\nEnter new status:\n- pending\n- under_review\n- approved\n- rejected\n- closed`, currentStatus);
-            
-            if (newStatus && ['pending', 'under_review', 'approved', 'rejected', 'closed'].includes(newStatus)) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('injury_claims')
-                        .update({ status: newStatus })
-                        .eq('id', claimId);
+            const statuses = [
+                { value: 'pending',      label: '🟡 Pending' },
+                { value: 'under_review', label: '🔵 Under Review' },
+                { value: 'approved',     label: '🟢 Approved' },
+                { value: 'rejected',     label: '🔴 Rejected' },
+                { value: 'closed',       label: '⚫ Closed' },
+            ];
 
-                    if (error) throw error;
+            const newStatus = await showSelect(
+                `Current status: <strong>${currentStatus.replace('_',' ').toUpperCase()}</strong>`,
+                statuses,
+                currentStatus,
+                { title: 'Update Claim Status', iconKey: 'status', confirmText: 'Update Status' }
+            );
 
-                    alert('Status updated successfully');
-                    loadClaims();
-                } catch (error) {
-                    alert('Error updating status: ' + error.message);
-                }
-            } else if (newStatus) {
-                alert('Invalid status. Please use: pending, under_review, approved, rejected, or closed');
+            if (!newStatus || newStatus === currentStatus) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('injury_claims').update({ status: newStatus }).eq('id', claimId);
+                if (error) throw error;
+                showToast('Status updated successfully', 'success');
+                loadClaims();
+            } catch (error) {
+                await showAlert(error.message, { type: 'error', title: 'Update Failed' });
             }
         }
 
@@ -668,12 +674,15 @@
         }
 
         async function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
+            const confirmed = await showConfirm('You will be signed out of the OSH system.', {
+                title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
+            });
+            if (confirmed) {
                 const result = await signOut();
                 if (result.success) {
                     window.location.href = 'index.html';
                 } else {
-                    alert('Logout failed: ' + result.error);
+                    await showAlert('Logout failed: ' + result.error, { type: 'error' });
                 }
             }
         }

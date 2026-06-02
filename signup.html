@@ -357,6 +357,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
+    <!-- Custom Modals -->
+    <script src="modal.js"></script>
 
     <script>
         const form = document.getElementById('signupForm');
@@ -457,7 +459,9 @@
             });
 
             if (!document.getElementById('terms').checked) {
-                alert('Please accept the terms and conditions');
+                await showAlert('Please accept the terms and conditions to continue.', {
+                    type: 'warning', title: 'Terms Required'
+                });
                 isValid = false;
             }
 
@@ -465,35 +469,32 @@
                 return;
             }
 
-            // Disable submit button during processing
             const submitButton = document.querySelector('.signup-button');
             const originalText = submitButton.textContent;
             submitButton.disabled = true;
             submitButton.textContent = 'Creating Account...';
 
-            // Get form data
             const formData = {
                 firstName: document.getElementById('firstName').value,
                 surname: document.getElementById('surname').value,
                 email: document.getElementById('email').value,
-                department: 'osh', // Automatically set to OSH
+                department: 'osh',
                 password: document.getElementById('password').value,
                 location: document.getElementById('location').value
             };
 
-            // Call Supabase signup function
             const result = await signUp(formData);
 
-            // Re-enable submit button
             submitButton.disabled = false;
             submitButton.textContent = originalText;
 
             if (result.success) {
-                alert('Account created successfully! Please check your email to verify your account.');
-                // Redirect to login page (index.html)
+                await showAlert('Account created successfully!\nPlease check your email to verify your account.', {
+                    type: 'success', title: 'Account Created', btnText: 'Go to Login'
+                });
                 window.location.href = 'index.html';
             } else {
-                alert('Signup failed: ' + result.error);
+                await showAlert(result.error, { type: 'error', title: 'Signup Failed' });
             }
         });
     </script>

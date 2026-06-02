@@ -234,6 +234,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
+    <!-- Custom Modals -->
+    <script src="modal.js"></script>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -243,47 +245,44 @@
             const password = document.getElementById('password').value;
             const remember = document.getElementById('remember').checked;
 
-            // Disable submit button during processing
             const submitButton = document.querySelector('.login-button');
             const originalText = submitButton.textContent;
             submitButton.disabled = true;
             submitButton.textContent = 'Logging in...';
 
-            // Call Supabase signin function
             const result = await signIn(email, password, remember);
 
-            // Re-enable submit button
             submitButton.disabled = false;
             submitButton.textContent = originalText;
 
             if (result.success) {
-                // Get user profile data
                 const userProfile = await getUserProfile(result.data.user.id);
-                
-                // Store user info in sessionStorage
                 if (userProfile.success) {
                     sessionStorage.setItem('user', JSON.stringify(userProfile.data));
                 }
-                
-                alert('Login successful!');
-                // Redirect to dashboard or home page
-                window.location.href = 'dashboard.html';
+                showToast('Login successful! Redirecting...', 'success', 1800);
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
             } else {
-                alert('Login failed: ' + result.error);
+                await showAlert('Login failed: ' + result.error, { type: 'error', title: 'Login Failed' });
             }
         });
 
         // Handle forgot password
         document.querySelector('.forgot-password').addEventListener('click', async function(e) {
             e.preventDefault();
-            
-            const email = prompt('Please enter your email address:');
-            if (email) {
-                const result = await resetPassword(email);
+            const email = await showPrompt('Enter your email address and we\'ll send you a reset link.', '', {
+                title: 'Reset Password',
+                icon: '🔑',
+                confirmText: 'Send Reset Link'
+            });
+            if (email && email.trim()) {
+                const result = await resetPassword(email.trim());
                 if (result.success) {
-                    alert('Password reset email sent! Please check your inbox.');
+                    await showAlert('Password reset email sent! Please check your inbox.', {
+                        type: 'success', title: 'Email Sent'
+                    });
                 } else {
-                    alert('Error: ' + result.error);
+                    await showAlert(result.error, { type: 'error', title: 'Error' });
                 }
             }
         });
@@ -292,7 +291,6 @@
         window.addEventListener('load', async function() {
             const authenticated = await isAuthenticated();
             if (authenticated) {
-                // Redirect to dashboard if already logged in
                 window.location.href = 'dashboard.html';
             }
         });
