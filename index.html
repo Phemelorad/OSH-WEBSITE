@@ -1,564 +1,300 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terminal Benefits Form — Management Services</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OSH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <!-- ✅ Supabase JS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-  <style>
-    :root {
-      --navy: #0f1f3d;
-      --navy-mid: #1a3260;
-      --gold: #c8a84b;
-      --gold-light: #e8d090;
-      --cream: #f8f5ee;
-      --cream-dark: #ede9df;
-      --ink: #1c1c1c;
-      --muted: #6b6559;
-      --border: #d4cfc4;
-      --success: #2d6a4f;
-      --error: #8b1a1a;
-      --white: #ffffff;
-    }
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border: 1px solid #e0e0e0;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-    body {
-      font-family: 'Source Sans 3', sans-serif;
-      background: var(--cream);
-      color: var(--ink);
-      min-height: 100vh;
-    }
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
 
-    .site-header {
-      background: var(--navy);
-      border-bottom: 3px solid var(--gold);
-    }
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
 
-    .header-top {
-      display: flex;
-      align-items: stretch;
-      min-height: 90px;
-    }
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-    .header-crest {
-      background: var(--navy-mid);
-      width: 90px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      border-right: 1px solid rgba(200,168,75,0.3);
-    }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
 
-    .crest-icon {
-      width: 52px; height: 52px;
-      border: 2px solid var(--gold);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--gold);
-      font-size: 22px;
-    }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
 
-    .header-titles {
-      flex: 1;
-      padding: 18px 28px;
-      display: flex; flex-direction: column; justify-content: center;
-    }
+        .form-group input:focus {
+            outline: none;
+            border-color: #999;
+        }
 
-    .header-titles h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.45rem; font-weight: 700;
-      color: var(--white);
-      letter-spacing: 0.02em; line-height: 1.2;
-    }
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
 
-    .header-titles .tagline {
-      font-size: 0.78rem;
-      color: var(--gold-light);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-top: 4px; font-weight: 300;
-    }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-    .header-user {
-      background: rgba(255,255,255,0.04);
-      border-left: 1px solid rgba(200,168,75,0.25);
-      padding: 14px 24px;
-      display: flex; flex-direction: column;
-      align-items: flex-end; justify-content: center;
-      min-width: 220px;
-    }
+        .remember-me input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
 
-    .user-label { font-size: 0.7rem; color: var(--gold-light); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
-    .user-email { font-size: 0.85rem; color: var(--white); font-weight: 500; margin-bottom: 10px; }
+        .remember-me label {
+            color: #666;
+            cursor: pointer;
+        }
 
-    .btn-logout {
-      background: transparent;
-      border: 1px solid rgba(200,168,75,0.5);
-      color: var(--gold-light);
-      font-family: 'Source Sans 3', sans-serif;
-      font-size: 0.75rem; letter-spacing: 0.08em;
-      padding: 5px 14px; cursor: pointer;
-      transition: all 0.2s; text-transform: uppercase;
-    }
-    .btn-logout:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+        .forgot-password {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
 
-    .site-nav {
-      background: var(--navy-mid);
-      display: flex; padding: 0 90px;
-    }
+        .forgot-password:hover {
+            color: #333;
+            text-decoration: underline;
+        }
 
-    .site-nav button {
-      background: none; border: none;
-      color: rgba(255,255,255,0.65);
-      font-family: 'Source Sans 3', sans-serif;
-      font-size: 0.8rem; font-weight: 500;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 11px 22px; cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-    .site-nav button:hover, .site-nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+        }
 
-    .page-wrapper { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+        }
 
-    .form-id-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 32px; padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .form-id-bar .form-code { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
-    .form-id-bar .form-status { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+        .login-button:active {
+            transform: translateY(0);
+        }
 
-    .form-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-top: 3px solid var(--navy);
-      padding: 40px 48px;
-      margin-bottom: 24px;
-      position: relative;
-    }
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
-    .section-heading {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem; font-weight: 600;
-      color: var(--navy);
-      margin-bottom: 28px; padding-bottom: 10px;
-      border-bottom: 1px solid var(--cream-dark);
-      display: flex; align-items: center; gap: 10px;
-    }
+        .divider {
+            text-align: center;
+            margin: 24px 0;
+            position: relative;
+        }
 
-    .section-num {
-      background: var(--navy); color: var(--gold);
-      font-family: 'Source Sans 3', sans-serif;
-      font-size: 0.7rem; font-weight: 600;
-      letter-spacing: 0.1em; padding: 3px 9px; border-radius: 2px;
-    }
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
 
-    .field-grid { display: grid; gap: 22px 32px; }
-    .field-grid-3 { grid-template-columns: repeat(3, 1fr); }
-    .field-grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .divider span {
+            background: white;
+            padding: 0 12px;
+            color: #999;
+            font-size: 14px;
+            position: relative;
+        }
 
-    .field-group { display: flex; flex-direction: column; gap: 6px; }
+        .signup-link {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
 
-    label {
-      font-size: 0.72rem; font-weight: 600;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted);
-    }
+        .signup-link a {
+            color: #666;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
 
-    input[type="text"], input[type="date"], input[type="number"],
-    select, textarea {
-      width: 100%; padding: 9px 13px;
-      font-family: 'Source Sans 3', sans-serif;
-      font-size: 0.9rem; color: var(--ink);
-      background: var(--cream); border: 1px solid var(--border);
-      border-radius: 0; outline: none;
-      transition: border-color 0.15s, background 0.15s;
-      -webkit-appearance: none; appearance: none;
-    }
+        .signup-link a:hover {
+            color: #333;
+            text-decoration: underline;
+        }
 
-    select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6559' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
-    }
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--navy-mid); background: var(--white);
-      box-shadow: 0 0 0 3px rgba(15,31,61,0.07);
-    }
-
-    input[readonly] { background: var(--cream-dark); color: var(--success); font-weight: 600; cursor: not-allowed; text-align: center; }
-
-    textarea { resize: vertical; min-height: 80px; }
-
-    .delay-label-tag { font-size: 0.68rem; color: #5a8a70; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
-
-    .form-actions {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 28px 48px;
-      background: var(--cream-dark);
-      border: 1px solid var(--border); border-top: none;
-    }
-
-    .form-notice { font-size: 0.75rem; color: var(--muted); max-width: 500px; line-height: 1.5; }
-    .form-notice strong { color: var(--ink); }
-
-    .btn-submit {
-      background: var(--navy); color: var(--white);
-      border: none; font-family: 'Source Sans 3', sans-serif;
-      font-size: 0.85rem; font-weight: 600;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      padding: 13px 40px; cursor: pointer;
-      transition: all 0.2s;
-      border-bottom: 3px solid var(--gold);
-    }
-    .btn-submit:hover:not(:disabled) { background: var(--navy-mid); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(15,31,61,0.2); }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    .toast {
-      position: fixed; bottom: 32px; right: 32px;
-      color: white; padding: 14px 24px;
-      font-family: 'Source Sans 3', sans-serif; font-size: 0.85rem;
-      border-left: 4px solid rgba(0,0,0,0.2);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-      transform: translateY(20px); opacity: 0;
-      transition: all 0.3s ease; pointer-events: none;
-      max-width: 340px; z-index: 999;
-    }
-    .toast.show { transform: translateY(0); opacity: 1; }
-
-    @media (max-width: 768px) {
-      .field-grid-3 { grid-template-columns: 1fr 1fr; }
-      .field-grid-2 { grid-template-columns: 1fr; }
-      .form-card { padding: 28px 20px; }
-      .form-actions { flex-direction: column; gap: 18px; padding: 24px 20px; }
-      .header-user { display: none; }
-    }
-  </style>
+            .login-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-<header class="site-header">
-  <div class="header-top">
-    <div class="header-crest">
-      <div class="crest-icon">⚖</div>
-    </div>
-    <div class="header-titles">
-      <h1>Management Services Terminal Benefits Form</h1>
-      <div class="tagline">Government of Botswana &nbsp;·&nbsp; Human Resource Division</div>
-    </div>
-    <div class="header-user">
-      <div class="user-label">Logged in as</div>
-      <div class="user-email" id="user-email">officer@gov.bw</div>
-      <button class="btn-logout" onclick="logout()">Sign Out</button>
-    </div>
-  </div>
-  <nav class="site-nav">
-    <button onclick="location.href='index.html'">Home</button>
-    <button class="active">Form</button>
-    <button onclick="location.href='status.html'">Entries</button>
-  </nav>
-</header>
-
-<div class="page-wrapper">
-  <div class="form-id-bar">
-    <div class="form-code">Form MST-TB · Terminal Benefits Application</div>
-    <div class="form-status"><div class="status-dot"></div> Draft — Not Submitted</div>
-  </div>
-
-  <form onsubmit="submitApplication(event)">
-
-    <!-- SECTION 1 -->
-    <div class="form-card">
-      <h2 class="section-heading"><span class="section-num">01</span> Basic Personal Information</h2>
-
-      <div class="field-grid field-grid-3" style="margin-bottom:22px">
-        <div class="field-group">
-          <label for="fname">First Name</label>
-          <input type="text" id="fname" placeholder="John / Jane" required>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Welcome Back</h1>
+            <p>Please login to your account</p>
         </div>
-        <div class="field-group">
-          <label for="mname">Middle Name</label>
-          <input type="text" id="mname" placeholder="">
-        </div>
-        <div class="field-group">
-          <label for="surname">Surname</label>
-          <input type="text" id="surname" placeholder="Doe" required>
-        </div>
-      </div>
 
-      <div class="field-grid field-grid-2" style="margin-bottom:22px">
-        <div class="field-group">
-          <label for="designation">Designation</label>
-          <input type="text" id="designation" placeholder="e.g. Senior Officer" required>
-        </div>
-        <div class="field-group">
-          <label for="grade">Grade</label>
-          <input type="text" id="grade" placeholder="e.g. D3" required>
-        </div>
-      </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
 
-      <div class="field-grid field-grid-2">
-        <div class="field-group">
-          <label for="department">Department</label>
-          <select id="department" required>
-            <option value="">— Select Department —</option>
-            <option value="DIC">Department of Immigration and Citizenship</option>
-            <option value="CS">Department of Corporate Services</option>
-            <option value="CNR">Department of Civil and National Registration</option>
-            <option value="OSH">Department of Occupational Health and Safety</option>
-            <option value="LSS">Department of Labour and Social Security</option>
-            <option value="DES">Department of Employment Services</option>
-          </select>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <div class="form-options">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-button">Login</button>
+        </form>
+
+        <div class="divider">
+            <span>OR</span>
         </div>
-        <div class="field-group">
-          <label for="rfl">Reason for Leaving</label>
-          <select id="rfl" required>
-            <option value="">— Select Reason —</option>
-            <option value="Retirement">Retirement</option>
-            <option value="Resignation">Resignation</option>
-            <option value="Dismissal">Dismissal</option>
-            <option value="Death">Death</option>
-          </select>
+
+        <div class="signup-link">
+            Don't have an account? <a href="signup.html">Sign up</a>
         </div>
-      </div>
     </div>
 
-    <!-- SECTION 2 -->
-    <div class="form-card">
-      <h2 class="section-heading"><span class="section-num">02</span> Important Dates &amp; Processing Timeline</h2>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Configuration -->
+    <script src="supabase-config.js"></script>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px 40px;">
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
 
-        <div style="display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end;">
-          <div class="field-group">
-            <label for="dogn">Date Officer Gave Notice</label>
-            <input type="date" id="dogn" required oninput="calcDelays()">
-          </div>
-          <div class="field-group" style="width:90px">
-            <div class="delay-label-tag">Delay</div>
-            <input type="number" id="d1" readonly placeholder="—">
-          </div>
-        </div>
+            // Disable submit button during processing
+            const submitButton = document.querySelector('.login-button');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Logging in...';
 
-        <div style="display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end;">
-          <div class="field-group">
-            <label for="dxs">Date Exited Service</label>
-            <input type="date" id="dxs" required oninput="calcDelays()">
-          </div>
-          <div class="field-group" style="width:90px">
-            <div class="delay-label-tag">Delay</div>
-            <input type="number" id="d2" readonly placeholder="—">
-          </div>
-        </div>
+            // Call Supabase signin function
+            const result = await signIn(email, password, remember);
 
-        <div style="display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end;">
-          <div class="field-group">
-            <label for="dstm">Date Submitted to MFED</label>
-            <input type="date" id="dstm" required oninput="calcDelays()">
-          </div>
-          <div class="field-group" style="width:90px">
-            <div class="delay-label-tag">Delay</div>
-            <input type="number" id="d3" readonly placeholder="—">
-          </div>
-        </div>
+            // Re-enable submit button
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
 
-        <div style="display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end;">
-          <div class="field-group">
-            <label for="dldp">Date Leave Days Paid</label>
-            <input type="date" id="dldp" required oninput="calcDelays()">
-          </div>
-          <div class="field-group" style="width:90px">
-            <div class="delay-label-tag">Delay</div>
-            <input type="number" id="d4" readonly placeholder="—">
-          </div>
-        </div>
+            if (result.success) {
+                // Get user profile data
+                const userProfile = await getUserProfile(result.data.user.id);
+                
+                // Store user info in sessionStorage
+                if (userProfile.success) {
+                    sessionStorage.setItem('user', JSON.stringify(userProfile.data));
+                }
+                
+                alert('Login successful!');
+                // Redirect to dashboard or home page
+                window.location.href = 'dashboard.html';
+            } else {
+                alert('Login failed: ' + result.error);
+            }
+        });
 
-        <div style="display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end;">
-          <div class="field-group">
-            <label for="dstb">Date Submitted to BPOPF</label>
-            <input type="date" id="dstb" required oninput="calcDelays()">
-          </div>
-          <div class="field-group" style="width:90px">
-            <div class="delay-label-tag">Delay</div>
-            <input type="number" id="d5" readonly placeholder="—">
-          </div>
-        </div>
+        // Handle forgot password
+        document.querySelector('.forgot-password').addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const email = prompt('Please enter your email address:');
+            if (email) {
+                const result = await resetPassword(email);
+                if (result.success) {
+                    alert('Password reset email sent! Please check your inbox.');
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            }
+        });
 
-        <div class="field-group">
-          <label for="adp">Actual Date Paid</label>
-          <input type="date" id="adp" required oninput="calcDelays()">
-        </div>
-
-      </div>
-
-      <div class="field-grid field-grid-2" style="margin-top:28px">
-        <div class="field-group">
-          <label for="tpt">TPT</label>
-          <input type="text" id="tpt">
-        </div>
-        <div class="field-group">
-          <label for="holiday">Public Holidays</label>
-          <input type="text" id="holiday">
-        </div>
-      </div>
-    </div>
-
-    <!-- SECTION 3 -->
-    <div class="form-card">
-      <h2 class="section-heading"><span class="section-num">03</span> Additional Comments</h2>
-      <div class="field-group">
-        <label for="comments">Remarks / Notes</label>
-        <textarea id="comments" placeholder="Enter any additional information here…"></textarea>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <div class="form-notice">
-        <strong>Please review all entries before submission.</strong><br>
-        Once submitted this form will be saved to the database for processing.
-      </div>
-      <button type="submit" class="btn-submit" id="submitBtn">Submit Application</button>
-    </div>
-
-  </form>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-  // ══════════════════════════════════════════════════════════
-  //  🔑 SUPABASE CONFIG
-  //  Replace these two values with your own from:
-  //  Supabase Dashboard → Project Settings → API
-  // ══════════════════════════════════════════════════════════
-  const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
-  const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
-
-  const { createClient } = supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-
-  // ── Delay calculator ────────────────────────────────────
-  function calcDelays() {
-    function diff(a, b) {
-      if (!a || !b) return '';
-      return Math.round((new Date(b) - new Date(a)) / 86400000);
-    }
-    const dogn = document.getElementById('dogn').value;
-    const dxs  = document.getElementById('dxs').value;
-    const dstm = document.getElementById('dstm').value;
-    const dldp = document.getElementById('dldp').value;
-    const dstb = document.getElementById('dstb').value;
-    const adp  = document.getElementById('adp').value;
-
-    document.getElementById('d1').value = diff(dogn, dxs);
-    document.getElementById('d2').value = diff(dxs,  dstm);
-    document.getElementById('d3').value = diff(dstm, dldp);
-    document.getElementById('d4').value = diff(dldp, dstb);
-    document.getElementById('d5').value = diff(dstb, adp);
-  }
-
-
-  // ── Toast helper ────────────────────────────────────────
-  function showToast(message, isError = false) {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.style.background = isError ? '#8b1a1a' : '#2d6a4f';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4500);
-  }
-
-
-  // ── Form submit → Supabase ───────────────────────────────
-  async function submitApplication(e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('submitBtn');
-    btn.textContent = 'Submitting…';
-    btn.disabled = true;
-
-    try {
-      // 1. Look up department ID
-      const deptCode = document.getElementById('department').value;
-      const { data: deptData, error: deptErr } = await db
-        .from('departments')
-        .select('id')
-        .eq('code', deptCode)
-        .single();
-      if (deptErr) throw new Error('Department not found: ' + deptErr.message);
-
-      // 2. Look up reason ID
-      const reasonCode = document.getElementById('rfl').value;
-      const { data: reasonData, error: reasonErr } = await db
-        .from('reasons_for_leaving')
-        .select('id')
-        .eq('code', reasonCode)
-        .single();
-      if (reasonErr) throw new Error('Reason not found: ' + reasonErr.message);
-
-      // 3. Insert officer
-      const { data: officerData, error: officerErr } = await db
-        .from('officers')
-        .insert({
-          first_name:    document.getElementById('fname').value.trim(),
-          middle_name:   document.getElementById('mname').value.trim() || null,
-          surname:       document.getElementById('surname').value.trim(),
-          designation:   document.getElementById('designation').value.trim(),
-          grade:         document.getElementById('grade').value.trim(),
-          department_id: deptData.id,
-        })
-        .select('id')
-        .single();
-      if (officerErr) throw new Error('Officer insert failed: ' + officerErr.message);
-
-      // 4. Insert application
-      const { data: appData, error: appErr } = await db
-        .from('applications')
-        .insert({
-          officer_id:                  officerData.id,
-          reason_id:                   reasonData.id,
-          date_officer_gave_notice:    document.getElementById('dogn').value,
-          date_exited_service:         document.getElementById('dxs').value,
-          date_submitted_to_mfed:      document.getElementById('dstm').value,
-          date_leave_days_paid:        document.getElementById('dldp').value,
-          date_submitted_to_bpopf:     document.getElementById('dstb').value,
-          actual_date_paid:            document.getElementById('adp').value,
-          tpt:                         document.getElementById('tpt').value.trim() || null,
-          public_holidays:             document.getElementById('holiday').value.trim() || null,
-          comments:                    document.getElementById('comments').value.trim() || null,
-          submitted_by:                document.getElementById('user-email').textContent.trim(),
-        })
-        .select('id')
-        .single();
-      if (appErr) throw new Error('Application insert failed: ' + appErr.message);
-
-      showToast(`✓ Submitted — Application #${appData.id}`);
-      document.querySelector('form').reset();
-      document.querySelectorAll('input[readonly]').forEach(el => el.value = '');
-
-    } catch (err) {
-      console.error(err);
-      showToast('✗ ' + err.message, true);
-    } finally {
-      btn.textContent = 'Submit Application';
-      btn.disabled = false;
-    }
-  }
-
-  function logout() {
-    // Hook up Supabase Auth signOut here later
-    alert('Signing out…');
-  }
-</script>
-
+        // Check if user is already logged in
+        window.addEventListener('load', async function() {
+            const authenticated = await isAuthenticated();
+            if (authenticated) {
+                // Redirect to dashboard if already logged in
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
 </body>
 </html>
