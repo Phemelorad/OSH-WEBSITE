@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - OSH</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌂</text></svg>">
     <style>
         * {
             margin: 0;
@@ -68,6 +68,40 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .site-nav {
+            background: white;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start;
+            gap: 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .site-nav button {
+            background: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-family: inherit;
+        }
+
+        .site-nav button:hover {
+            background: #f8f8f8;
+            color: #333;
+        }
+
+        .site-nav button.active {
+            color: #333;
+            border-bottom: 3px solid #333;
+            background: #fafafa;
+        }
+
         .container {
             max-width: 1200px;
             margin: 40px auto;
@@ -120,46 +154,6 @@
             font-weight: 600;
         }
 
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #666;
-        }
-
-        .site-nav {
-            background: white;
-            padding: 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: flex-start;
-            gap: 0;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .site-nav button {
-            background: white;
-            border: none;
-            padding: 18px 35px;
-            font-size: 15px;
-            font-weight: 600;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-            font-family: inherit;
-        }
-
-        .site-nav button:hover {
-            background: #f8f8f8;
-            color: #333;
-        }
-
-        .site-nav button.active {
-            color: #333;
-            border-bottom: 3px solid #333;
-            background: #fafafa;
-        }
-
         @media (max-width: 768px) {
             .site-nav {
                 flex-wrap: wrap;
@@ -182,7 +176,6 @@
             </div>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
-        
     </div>
 
     <nav class="site-nav">
