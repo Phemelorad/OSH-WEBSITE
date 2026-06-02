@@ -427,6 +427,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
+    <!-- Role Permissions System -->
+    <script src="role-permissions.js"></script>
 
     <script>
         const supabaseClient = window.supabaseClient || window.supabase.createClient(
@@ -445,8 +447,14 @@
                 return;
             }
 
+            // Initialize role system
+            await initializeRoleSystem();
+
             await loadClaims();
             await populateIndustryFilter();
+            
+            // Enforce permissions
+            enforcePermissions();
         });
 
         async function loadClaims() {
@@ -548,7 +556,12 @@
             }
 
             emptyState.style.display = 'none';
-            tbody.innerHTML = claims.map(claim => `
+            tbody.innerHTML = claims.map(claim => {
+                const canEdit = canEditClaims(claim.submitted_by);
+                const editDisabled = !canEdit ? 'disabled' : '';
+                const editTitle = !canEdit ? 'title="You can only edit your own claims"' : '';
+                
+                return `
                 <tr>
                     <td><strong>${claim.file_number}</strong></td>
                     <td>${claim.name_of_claimant}</td>
@@ -565,10 +578,15 @@
                     <td>${formatDate(claim.created_at)}</td>
                     <td>
                         <button class="action-btn" onclick="viewClaim('${claim.id}')">View</button>
-                        <button class="action-btn" onclick="editStatus('${claim.id}', '${claim.status}')">Status</button>
+                        <button class="action-btn ${editDisabled}" ${editTitle} 
+                            onclick="editStatus('${claim.id}', '${claim.status}', '${claim.submitted_by}')"
+                            ${!canEdit ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            Status
+                        </button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function formatDate(dateString) {
@@ -587,7 +605,13 @@
             }
         }
 
-        async function editStatus(claimId, currentStatus) {
+        async function editStatus(claimId, currentStatus, claimOwnerId) {
+            // Check if user can edit this claim
+            if (!canEditClaims(claimOwnerId)) {
+                showPermissionDenied('edit this claim');
+                return;
+            }
+
             const newStatus = prompt(`Current status: ${currentStatus}\n\nEnter new status:\n- pending\n- under_review\n- approved\n- rejected\n- closed`, currentStatus);
             
             if (newStatus && ['pending', 'under_review', 'approved', 'rejected', 'closed'].includes(newStatus)) {

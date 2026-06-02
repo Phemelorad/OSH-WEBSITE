@@ -290,6 +290,21 @@
             background: #f8d7da;
         }
 
+        .action-btn.disabled,
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+            border-color: #e0e0e0;
+            color: #999;
+        }
+
+        .action-btn.disabled:hover,
+        .action-btn:disabled:hover {
+            background: #f5f5f5;
+            transform: none;
+        }
+
         @media (max-width: 768px) {
             .site-nav {
                 flex-wrap: wrap;
@@ -374,6 +389,7 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Location</th>
+                                <th>Role</th>
                                 <th>Status</th>
                                 <th>Registered</th>
                                 <th>Last Sign In</th>
@@ -396,6 +412,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
+    <!-- Role Permissions System -->
+    <script src="role-permissions.js"></script>
 
     <script>
         const supabaseClient = window.supabaseClient || window.supabase.createClient(
@@ -412,9 +430,20 @@
                 return;
             }
 
+            // Initialize role system
+            await initializeRoleSystem();
+            
+            // Check page access
+            if (!checkPageAccess()) {
+                return;
+            }
+
             // Load admin data
             await loadAdminData();
             await loadUsers();
+            
+            // Enforce permissions
+            enforcePermissions();
         });
 
         async function loadAdminData() {
@@ -499,11 +528,22 @@
             }
 
             emptyState.style.display = 'none';
-            tbody.innerHTML = users.map(user => `
+            tbody.innerHTML = users.map(user => {
+                const roleColor = getRoleColor(user.role || 'viewer');
+                const canManage = canManageUsers(user.role);
+                const disabledClass = !canManage ? 'disabled' : '';
+                const disabledTitle = !canManage ? 'title="You cannot manage this user"' : '';
+                
+                return `
                 <tr>
                     <td><strong>${user.first_name} ${user.surname}</strong></td>
                     <td>${user.email}</td>
                     <td>${user.location}</td>
+                    <td>
+                        <span class="badge" style="background: ${roleColor}; color: #333;">
+                            ${getRoleDisplayName(user.role || 'viewer')}
+                        </span>
+                    </td>
                     <td>
                         <span class="badge ${user.is_active ? 'badge-active' : 'badge-inactive'}">
                             ${user.is_active ? 'Active' : 'Inactive'}
@@ -516,12 +556,20 @@
                     <td>${user.last_sign_in ? formatDate(user.last_sign_in) : 'N/A'}</td>
                     <td>
                         <button class="action-btn" onclick="viewUser('${user.user_id}')">View</button>
-                        <button class="action-btn" onclick="toggleUserStatus('${user.user_id}', ${!user.is_active})">
+                        <button class="action-btn ${disabledClass}" ${disabledTitle} 
+                            onclick="editUserRole('${user.user_id}', '${user.role || 'viewer'}', '${user.first_name} ${user.surname}')"
+                            ${!canManage ? 'disabled' : ''}>
+                            Change Role
+                        </button>
+                        <button class="action-btn ${disabledClass}" ${disabledTitle}
+                            onclick="toggleUserStatus('${user.user_id}', ${!user.is_active})"
+                            ${!canManage ? 'disabled' : ''}>
                             ${user.is_active ? 'Deactivate' : 'Activate'}
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function formatDate(dateString) {
@@ -538,6 +586,52 @@
         function viewUser(userId) {
             alert('User details for: ' + userId);
             // Implement user detail view
+        }
+
+        async function editUserRole(userId, currentRole, userName) {
+            const roles = ['viewer', 'officer', 'admin', 'super_admin'];
+            const roleNames = {
+                'viewer': 'Viewer',
+                'officer': 'Officer',
+                'admin': 'Admin',
+                'super_admin': 'Super Admin'
+            };
+
+            const roleOptions = roles.map((role, idx) => 
+                `${idx + 1}. ${roleNames[role]} - ${role === currentRole ? '(current)' : ''}`
+            ).join('\n');
+
+            const newRole = prompt(
+                `Change role for: ${userName}\n\nCurrent role: ${roleNames[currentRole]}\n\nSelect new role:\n${roleOptions}\n\nEnter: viewer, officer, admin, or super_admin`,
+                currentRole
+            );
+
+            if (!newRole || newRole === currentRole) return;
+
+            if (!roles.includes(newRole)) {
+                alert('Invalid role. Please use: viewer, officer, admin, or super_admin');
+                return;
+            }
+
+            // Check if user can manage this role change
+            if (!canManageUsers(newRole)) {
+                showPermissionDenied('change roles to super_admin');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('user_profiles')
+                    .update({ role: newRole })
+                    .eq('user_id', userId);
+
+                if (error) throw error;
+
+                alert(`Role updated successfully to ${roleNames[newRole]}`);
+                loadUsers();
+            } catch (error) {
+                alert('Error updating role: ' + error.message);
+            }
         }
 
         async function toggleUserStatus(userId, newStatus) {

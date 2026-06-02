@@ -223,7 +223,55 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
+    <!-- Role Permissions System -->
+    <script src="role-permissions.js"></script>
 
+    <script>
+        // Check authentication and load user data
+        window.addEventListener('load', async function() {
+            const authenticated = await isAuthenticated();
+            
+            if (!authenticated) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Initialize role system
+            await initializeRoleSystem();
+
+            // Load user profile
+            const userResult = await getCurrentUser();
+            if (userResult.success && userResult.user) {
+                const profileResult = await getUserProfile(userResult.user.id);
+                
+                if (profileResult.success) {
+                    const profile = profileResult.data;
+                    document.getElementById('userName').textContent = 
+                        `${profile.first_name} ${profile.surname}`;
+                    document.getElementById('userDepartment').textContent = 
+                        profile.department || 'Dept. of Occupational Health and Safety';
+                    document.getElementById('userEmail').textContent = profile.email;
+                    document.getElementById('departmentName').textContent = 
+                        profile.department || 'Dept. of Occupational Health and Safety';
+                    document.getElementById('userLocation').textContent = profile.location;
+                }
+            }
+
+            // Update UI based on role
+            updateUIForRole();
+        });
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                const result = await signOut();
+                if (result.success) {
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Logout failed: ' + result.error);
+                }
+            }
+        }
+    </script>
     
 </body>
 </html>
