@@ -37,7 +37,28 @@
 
             if (authError) throw authError;
 
-            // Insert additional user data into custom users table
+            // Check if user was created successfully
+            if (!authData.user) {
+                throw new Error('User creation failed');
+            }
+
+            // Wait a moment for the session to be established
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Get the current session to ensure we're authenticated
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                // User created but not logged in (email confirmation required)
+                // Return success without creating profile - it will be created on first login
+                return { 
+                    success: true, 
+                    data: authData,
+                    message: 'Please verify your email before logging in'
+                };
+            }
+
+            // User is authenticated, now insert profile
             const { data: profileData, error: profileError } = await supabaseClient
                 .from('user_profiles')
                 .insert([
@@ -50,9 +71,13 @@
                         location: userData.location,
                         created_at: new Date().toISOString()
                     }
-                ]);
+                ])
+                .select();
 
-            if (profileError) throw profileError;
+            if (profileError) {
+                console.warn('Profile creation failed:', profileError);
+                // Don't throw error - profile can be created on first login
+            }
 
             return { success: true, data: authData };
         } catch (error) {
@@ -73,6 +98,37 @@
             // Store session info if "remember me" is checked
             if (remember) {
                 localStorage.setItem('rememberMe', 'true');
+            }
+
+            // Check if user profile exists, create if not
+            if (data.user) {
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('user_id', data.user.id)
+                    .single();
+
+                if (profileError && profileError.code === 'PGRST116') {
+                    // Profile doesn't exist, create it from user metadata
+                    const metadata = data.user.user_metadata;
+                    const { error: insertError } = await supabaseClient
+                        .from('user_profiles')
+                        .insert([
+                            {
+                                user_id: data.user.id,
+                                first_name: metadata.first_name || 'User',
+                                surname: metadata.surname || 'Name',
+                                email: data.user.email,
+                                department: metadata.department || 'osh',
+                                location: metadata.location || 'Not specified',
+                                created_at: new Date().toISOString()
+                            }
+                        ]);
+
+                    if (insertError) {
+                        console.warn('Could not create profile on login:', insertError);
+                    }
+                }
             }
 
             return { success: true, data: data };

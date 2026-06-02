@@ -135,6 +135,7 @@ CREATE POLICY "Users can view own profile"
 
 CREATE POLICY "Users can insert own profile"
     ON user_profiles FOR INSERT
+    TO authenticated
     WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can update own profile"
