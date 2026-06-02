@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-department {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .site-nav {
+            background: white;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start;
+            gap: 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .site-nav button {
+            background: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-family: inherit;
+        }
+
+        .site-nav button:hover {
+            background: #f8f8f8;
+            color: #333;
+        }
+
+        .site-nav button.active {
+            color: #333;
+            border-bottom: 3px solid #333;
+            background: #fafafa;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #333;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            color: #333;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-header h2 {
+            color: #333;
+            font-size: 22px;
+        }
+
+        .refresh-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f8f8;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 15px;
+            color: #666;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-verified {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #333;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 4px;
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .action-btn.delete {
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        .action-btn.delete:hover {
+            background: #f8d7da;
+        }
+
+        @media (max-width: 768px) {
+            .site-nav {
+                flex-wrap: wrap;
+            }
+
+            .site-nav button {
+                flex: 1 1 45%;
+                min-width: 120px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>OSH Admin Panel</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-department">Administrator</div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <nav class="site-nav">
+        <button onclick="location.href='Untitled-1.html'">⌂ Home</button>
+        <button onclick="location.href='form.html'">📋 Submit Claim</button>
+        <button onclick="location.href='entries.html'">📊 View Entries</button>
+        <button class="active">⚙ Admin</button>
+    </nav>
+
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="stat-value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Users</h3>
+                <div class="stat-value" id="activeUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Verification</h3>
+                <div class="stat-value" id="pendingUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>New This Month</h3>
+                <div class="stat-value" id="newUsersMonth">0</div>
+            </div>
+        </div>
+
+        <!-- Registered Users Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📋 Registered Users</h2>
+                <button class="refresh-btn" onclick="loadUsers()">🔄 Refresh</button>
+            </div>
+            
+            <div id="usersLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading users...</p>
+            </div>
+
+            <div id="usersContent" style="display: none;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                                <th>Last Sign In</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p>No users found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Configuration -->
+    <script src="supabase-config.js"></script>
+
+    <script>
+        const supabaseClient = window.supabaseClient || window.supabase.createClient(
+            'https://qblogmmknnacaaircrlt.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+        );
+
+        // Check authentication on page load
+        window.addEventListener('load', async function() {
+            const authenticated = await isAuthenticated();
+            
+            if (!authenticated) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Load admin data
+            await loadAdminData();
+            await loadUsers();
+        });
+
+        async function loadAdminData() {
+            const userResult = await getCurrentUser();
+            
+            if (userResult.success && userResult.user) {
+                const profileResult = await getUserProfile(userResult.user.id);
+                
+                if (profileResult.success) {
+                    const profile = profileResult.data;
+                    document.getElementById('userName').textContent = 
+                        `${profile.first_name} ${profile.surname}`;
+                }
+            }
+        }
+
+        async function loadUsers() {
+            document.getElementById('usersLoading').style.display = 'block';
+            document.getElementById('usersContent').style.display = 'none';
+
+            try {
+                // Get all user profiles
+                const { data: profiles, error: profilesError } = await supabaseClient
+                    .from('user_profiles')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (profilesError) throw profilesError;
+
+                // Get all auth users (admin access required)
+                const { data: { users }, error: usersError } = await supabaseClient.auth.admin.listUsers();
+                
+                // Merge profile and auth data
+                const mergedData = profiles.map(profile => {
+                    const authUser = users ? users.find(u => u.id === profile.user_id) : null;
+                    return {
+                        ...profile,
+                        email_confirmed: authUser ? authUser.email_confirmed_at !== null : false,
+                        last_sign_in: authUser ? authUser.last_sign_in_at : null
+                    };
+                });
+
+                // Update statistics
+                updateStatistics(mergedData);
+
+                // Render users table
+                renderUsersTable(mergedData);
+
+                document.getElementById('usersLoading').style.display = 'none';
+                document.getElementById('usersContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('usersLoading').innerHTML = 
+                    '<p style="color: #e74c3c;">Error loading users. You may need admin privileges.</p>';
+            }
+        }
+
+        function updateStatistics(users) {
+            const total = users.length;
+            const active = users.filter(u => u.is_active).length;
+            const pending = users.filter(u => !u.email_confirmed).length;
+            
+            const now = new Date();
+            const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const newThisMonth = users.filter(u => new Date(u.created_at) >= firstOfMonth).length;
+
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('activeUsers').textContent = active;
+            document.getElementById('pendingUsers').textContent = pending;
+            document.getElementById('newUsersMonth').textContent = newThisMonth;
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('usersTableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            if (users.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td><strong>${user.first_name} ${user.surname}</strong></td>
+                    <td>${user.email}</td>
+                    <td>${user.location}</td>
+                    <td>
+                        <span class="badge ${user.is_active ? 'badge-active' : 'badge-inactive'}">
+                            ${user.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        <span class="badge ${user.email_confirmed ? 'badge-verified' : 'badge-pending'}">
+                            ${user.email_confirmed ? 'Verified' : 'Pending'}
+                        </span>
+                    </td>
+                    <td>${formatDate(user.created_at)}</td>
+                    <td>${user.last_sign_in ? formatDate(user.last_sign_in) : 'Never'}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewUser('${user.user_id}')">View</button>
+                        <button class="action-btn" onclick="toggleUserStatus('${user.user_id}', ${!user.is_active})">
+                            ${user.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function viewUser(userId) {
+            alert('User details for: ' + userId);
+            // Implement user detail view
+        }
+
+        async function toggleUserStatus(userId, newStatus) {
+            if (!confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this user?`)) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('user_profiles')
+                    .update({ is_active: newStatus })
+                    .eq('user_id', userId);
+
+                if (error) throw error;
+
+                alert(`User ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                loadUsers();
+            } catch (error) {
+                alert('Error updating user: ' + error.message);
+            }
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                const result = await signOut();
+                if (result.success) {
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Logout failed: ' + result.error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

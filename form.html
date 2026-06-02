@@ -238,16 +238,66 @@
             .btn {
                 width: 100%;
             }
+
+            .site-nav {
+                flex-wrap: wrap;
+            }
+
+            .site-nav button {
+                flex: 1 1 45%;
+                min-width: 120px;
+            }
+        }
+
+        .site-nav {
+            background: white;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start;
+            gap: 0;
+            border-top: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .site-nav button {
+            background: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-family: inherit;
+        }
+
+        .site-nav button:hover {
+            background: #f8f8f8;
+            color: #333;
+        }
+
+        .site-nav button.active {
+            color: #333;
+            border-bottom: 3px solid #333;
+            background: #fafafa;
         }
     </style>
 </head>
 <body>
+    <nav class="site-nav">
+        <button onclick="location.href='Untitled-1.html'">⌂ Home</button>
+        <button class="active">📋 Submit Claim</button>
+        <button onclick="location.href='entries.html'">📊 View Entries</button>
+        <button onclick="location.href='admin.html'">⚙ Admin</button>
+    </nav>
+
     <div class="container">
         <div class="form-card">
             <div class="form-header">
                 <h1>Injury Claim Form</h1>
                 <p>Occupational Health and Safety - Injury/Claim Report</p>
-                <a href="dashboard.html" style="display: inline-block; margin-top: 10px; color: #666; text-decoration: none; font-size: 14px;">← Back to Dashboard</a>
             </div>
 
             <div class="success-message" id="successMessage">
