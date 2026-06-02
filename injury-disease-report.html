@@ -186,6 +186,7 @@
         <button onclick="location.href='inspection-entries.html'">📁 Inspection Records</button>
         <button onclick="location.href='accident-report.html'">🚨 Accident Report</button>
         <button class="active">🏥 Injury &amp; Disease</button>
+        <button onclick="location.href='worker-profile.html'">👤 Worker Profile</button>
         <button onclick="location.href='admin.html'">⚙ Admin</button>
     </nav>
 
@@ -211,6 +212,16 @@
 
             <!-- ── Worker Details ──────────────────────────── -->
             <div class="section-title">Worker Details</div>
+
+            <!-- ID Lookup widget -->
+            <div style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
+              <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
+                🪪 Look Up Worker by Omang / Passport
+                <span style="font-weight:400;color:#888;font-size:12px"> — auto-fills worker details</span>
+              </label>
+              <div id="wl-container-idr"></div>
+            </div>
+            <input type="hidden" id="idrWorkerRegistryId" name="worker_registry_id">
 
             <div class="form-row form-row-2">
               <div class="form-group col-span-2">
@@ -239,9 +250,11 @@
                 <span class="err-msg">Required</span>
               </div>
               <div class="form-group">
-                <label>ID / Passport Number</label>
+                <label>Omang / Passport Number<span class="req">*</span></label>
                 <input type="text" name="worker_id_number" id="workerIdNumber"
-                       placeholder="National ID or passport number">
+                       placeholder="National ID or passport number" required
+                       style="text-transform:uppercase">
+                <span class="err-msg">Required</span>
               </div>
             </div>
 
@@ -392,6 +405,7 @@
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
+    <script src="worker-lookup.js"></script>
     <script>
     // ── Show next-of-kin question only when Death = Yes ──────
     function toggleNOK() {
@@ -444,11 +458,25 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
+            // Save new worker to registry if not previously found
+            const registryId = await saveWorkerIfNew({
+                full_name:  g('workerName'),
+                address:    g('workerAddress'),
+                occupation: g('occupation'),
+                id_number:  (g('workerIdNumber') || '').toUpperCase()
+            }, {
+                full_name:  'full_name',
+                address:    'address',
+                occupation: 'occupation',
+                id_number:  'id_number'
+            }) || window._resolvedWorkerId || null;
+
             const payload = {
                 worker_name:              g('workerName'),
                 worker_address:           g('workerAddress'),
                 occupation:               g('occupation'),
-                worker_id_number:         g('workerIdNumber'),
+                worker_id_number:         (g('workerIdNumber') || '').toUpperCase(),
+                worker_registry_id:       registryId,
                 incident_date:            g('incidentDate'),
                 place_of_accident:        g('placeOfAccident'),
                 incident_type:            g('incidentType'),
@@ -492,7 +520,6 @@
         }
     });
 
-    // ── Reset ─────────────────────────────────────────────────
     async function resetForm() {
         const ok = await showConfirm('All entered data will be cleared.', {
             title: 'Reset Form', icon: '🔄', confirmText: 'Reset', danger: true
@@ -500,6 +527,20 @@
         if (ok) {
             document.getElementById('injuryDiseaseForm').reset();
             document.getElementById('nokRow').style.display = 'none';
+            // Clear lookup state and re-attach widget
+            window._pendingWorkerId = null;
+            window._resolvedWorkerId = null;
+            document.getElementById('wl-container-idr').innerHTML = '';
+            attachWorkerLookup({
+                containerId: 'wl-container-idr',
+                fields: {
+                    id_number: 'workerIdNumber', full_name: 'workerName',
+                    address: 'workerAddress', occupation: 'occupation',
+                    employer_name: 'employerName', employer_telephone: 'employerTelephone',
+                    worker_registry_id: 'idrWorkerRegistryId'
+                },
+                saveNewWorker: true
+            });
             showToast('Form has been reset.', 'info');
         }
     }
@@ -535,6 +576,21 @@
             }
         }
         document.getElementById('reportDate').valueAsDate = new Date();
+
+        // Attach worker lookup
+        attachWorkerLookup({
+            containerId: 'wl-container-idr',
+            fields: {
+                id_number:          'workerIdNumber',
+                full_name:          'workerName',
+                address:            'workerAddress',
+                occupation:         'occupation',
+                employer_name:      'employerName',
+                employer_telephone: 'employerTelephone',
+                worker_registry_id: 'idrWorkerRegistryId'
+            },
+            saveNewWorker: true
+        });
     });
     </script>
 </body>

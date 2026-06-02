@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Incident Profile - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        /* ── Navbar ─────────────────────────── */
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-department { font-size: 14px; color: #666; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .site-nav {
+            background: white; padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: flex-start; flex-wrap: wrap;
+            border-top: 1px solid #e0e0e0;
+        }
+        .site-nav button {
+            background: white; border: none; padding: 16px 26px;
+            font-size: 14px; font-weight: 600; color: #666;
+            cursor: pointer; transition: all 0.3s;
+            border-bottom: 3px solid transparent; font-family: inherit;
+        }
+        .site-nav button:hover { background: #f8f8f8; color: #333; }
+        .site-nav button.active { color: #333; border-bottom: 3px solid #333; background: #fafafa; }
+
+        /* ── Page layout ─────────────────────── */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+
+        /* ── Search bar ──────────────────────── */
+        .search-card {
+            background: white; border-radius: 12px; padding: 28px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 24px;
+        }
+        .search-card h2 { color: #333; font-size: 18px; margin-bottom: 16px; }
+        .search-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .search-row input {
+            flex: 1; min-width: 220px; padding: 12px 16px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+        }
+        .search-row input:focus { outline: none; border-color: #999; }
+        .search-btn {
+            padding: 12px 28px; background: #333; color: white;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; font-size: 14px; font-family: inherit; transition: all 0.2s;
+        }
+        .search-btn:hover { background: #111; transform: translateY(-1px); }
+        .search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── Suggestions dropdown ────────────── */
+        .search-wrap { position: relative; flex: 1; min-width: 220px; }
+        .suggestions {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 2px solid #e0e0e0; border-top: none;
+            border-radius: 0 0 8px 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            z-index: 100; max-height: 260px; overflow-y: auto; display: none;
+        }
+        .suggestion-item {
+            padding: 11px 16px; cursor: pointer; font-size: 13px;
+            border-bottom: 1px solid #f5f5f5; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .suggestion-item:hover { background: #f8f8f8; }
+        .suggestion-item .s-name { font-weight: 600; color: #333; }
+        .suggestion-item .s-meta { font-size: 11px; color: #888; }
+
+        /* ── Empty / loading states ──────────── */
+        .state-box {
+            background: white; border-radius: 12px; padding: 60px 30px;
+            text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            color: #999;
+        }
+        .state-box .icon { font-size: 48px; margin-bottom: 16px; }
+        .state-box p { font-size: 16px; margin-bottom: 6px; color: #666; }
+        .state-box small { font-size: 13px; }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 36px; height: 36px;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        /* ── Profile header ──────────────────── */
+        .profile-header {
+            background: white; border-radius: 12px; padding: 28px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px;
+            display: flex; align-items: flex-start; gap: 24px;
+        }
+        .avatar {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: #333; color: white; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 700; flex-shrink: 0;
+        }
+        .profile-info { flex: 1; }
+        .profile-info h2 { font-size: 22px; color: #222; margin-bottom: 4px; }
+        .profile-info .meta { font-size: 13px; color: #888; margin-bottom: 12px; }
+        .profile-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag {
+            display: inline-block; padding: 4px 12px; border-radius: 12px;
+            font-size: 12px; font-weight: 600;
+        }
+        .tag-red    { background: #f8d7da; color: #721c24; }
+        .tag-amber  { background: #fff3cd; color: #856404; }
+        .tag-blue   { background: #d1ecf1; color: #0c5460; }
+        .tag-green  { background: #d4edda; color: #155724; }
+        .tag-grey   { background: #e2e3e5; color: #383d41; }
+
+        /* ── Summary stat cards ──────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white; border-radius: 10px; padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-left: 4px solid #333; text-align: center;
+        }
+        .stat-card.red   { border-left-color: #dc3545; }
+        .stat-card.amber { border-left-color: #ffc107; }
+        .stat-card.blue  { border-left-color: #17a2b8; }
+        .stat-card.green { border-left-color: #28a745; }
+        .stat-card h3 { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .stat-card .val { font-size: 26px; font-weight: 700; color: #333; }
+        .stat-card.red   .val { color: #721c24; }
+        .stat-card.amber .val { color: #856404; }
+
+        /* ── Timeline ────────────────────────── */
+        .timeline-card {
+            background: white; border-radius: 12px; padding: 28px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px;
+        }
+        .timeline-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #f0f0f0;
+        }
+        .timeline-header h3 { font-size: 18px; color: #333; }
+        .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pill {
+            padding: 5px 14px; border-radius: 20px; font-size: 12px;
+            font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
+            background: white; color: #666; transition: all 0.2s; font-family: inherit;
+        }
+        .pill.active { background: #333; color: white; border-color: #333; }
+        .pill:hover:not(.active) { background: #f5f5f5; }
+
+        /* ── Individual incident card ─────────── */
+        .incident-list { display: flex; flex-direction: column; gap: 14px; }
+        .incident-card {
+            border: 1px solid #e8e8e8; border-radius: 10px; padding: 18px 20px;
+            display: grid; grid-template-columns: auto 1fr auto;
+            gap: 16px; align-items: start; transition: box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .incident-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        .incident-card.type-accident  { border-left: 4px solid #dc3545; }
+        .incident-card.type-injury    { border-left: 4px solid #fd7e14; }
+        .incident-card.type-disease   { border-left: 4px solid #6f42c1; }
+        .incident-icon {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            flex-shrink: 0;
+        }
+        .icon-accident  { background: #f8d7da; }
+        .icon-injury    { background: #ffe5d0; }
+        .icon-disease   { background: #e8dcf5; }
+        .incident-body h4 { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 4px; }
+        .incident-body .desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 8px; }
+        .incident-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+        .meta-chip {
+            font-size: 11px; color: #888; background: #f5f5f5;
+            padding: 3px 9px; border-radius: 8px;
+        }
+        .incident-date { font-size: 12px; color: #aaa; white-space: nowrap; text-align: right; }
+        .incident-date .date-val { font-size: 14px; font-weight: 700; color: #555; display: block; margin-bottom: 4px; }
+        .no-incidents { text-align: center; padding: 40px; color: #aaa; }
+        .no-incidents p { font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Worker Incident Profile</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-department" id="userDept"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <nav class="site-nav">
+        <button onclick="location.href='Untitled-1.html'">⌂ Home</button>
+        <button onclick="location.href='form.html'">📋 Submit Claim</button>
+        <button onclick="location.href='entries.html'">📊 View Entries</button>
+        <button onclick="location.href='inspection.html'">🔍 Inspection</button>
+        <button onclick="location.href='inspection-entries.html'">📁 Inspection Records</button>
+        <button onclick="location.href='accident-report.html'">🚨 Accident Report</button>
+        <button onclick="location.href='injury-disease-report.html'">🏥 Injury &amp; Disease</button>
+        <button class="active">👤 Worker Profile</button>
+        <button onclick="location.href='admin.html'">⚙ Admin</button>
+    </nav>
+
+    <div class="container">
+
+        <!-- ── Search ─────────────────────────────────────── -->
+        <div class="search-card">
+            <h2>🔍 Search Worker Incident History</h2>
+            <div class="search-row">
+                <div class="search-wrap">
+                    <input type="text" id="searchInput"
+                           placeholder="Type worker name, occupation, or employer…"
+                           oninput="onSearchInput()" autocomplete="off">
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                <button class="search-btn" id="searchBtn" onclick="searchWorker()">Search</button>
+            </div>
+        </div>
+
+        <!-- ── Initial empty state ────────────────────────── -->
+        <div class="state-box" id="emptyState">
+            <div class="icon">👤</div>
+            <p>Search for a worker to view their incident history</p>
+            <small>You can search by name, occupation, or employer name</small>
+        </div>
+
+        <!-- ── Loading state ──────────────────────────────── -->
+        <div class="state-box" id="loadingState" style="display:none">
+            <div class="spinner"></div>
+            <p>Loading worker profile…</p>
+        </div>
+
+        <!-- ── No results state ───────────────────────────── -->
+        <div class="state-box" id="noResultsState" style="display:none">
+            <div class="icon">🔎</div>
+            <p>No records found</p>
+            <small>No accidents or injury/disease reports found for this search</small>
+        </div>
+
+        <!-- ── Profile ────────────────────────────────────── -->
+        <div id="profileView" style="display:none">
+
+            <!-- Profile header -->
+            <div class="profile-header" id="profileHeader"></div>
+
+            <!-- Summary stats -->
+            <div class="stats-row" id="statsRow"></div>
+
+            <!-- Timeline -->
+            <div class="timeline-card">
+                <div class="timeline-header">
+                    <h3>📋 Incident Timeline</h3>
+                    <div class="filter-pills">
+                        <button class="pill active" data-filter="all"    onclick="filterTimeline(this)">All</button>
+                        <button class="pill"         data-filter="accident" onclick="filterTimeline(this)">🚨 Accidents</button>
+                        <button class="pill"         data-filter="injury"   onclick="filterTimeline(this)">🏥 Injuries</button>
+                        <button class="pill"         data-filter="disease"  onclick="filterTimeline(this)">🦠 Diseases</button>
+                    </div>
+                </div>
+                <div class="incident-list" id="incidentList"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script>
+    const SB = window.supabaseClient || window.supabase.createClient(
+        'https://qblogmmknnacaaircrlt.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+    );
+
+    let allIncidents = [];   // merged, sorted timeline
+    let currentFilter = 'all';
+
+    // ── States ───────────────────────────────────────────────
+    function showState(id) {
+        ['emptyState','loadingState','noResultsState','profileView']
+            .forEach(s => document.getElementById(s).style.display = s === id ? 'block' : 'none');
+    }
+    function showFlex(id) {
+        ['emptyState','loadingState','noResultsState','profileView']
+            .forEach(s => document.getElementById(s).style.display = 'none');
+        document.getElementById(id).style.display = id === 'profileView' ? 'block' : 'flex';
+    }
+
+    // ── Live search suggestions ───────────────────────────────
+    let suggestTimer = null;
+    async function onSearchInput() {
+        clearTimeout(suggestTimer);
+        const q = document.getElementById('searchInput').value.trim();
+        const box = document.getElementById('suggestions');
+        if (q.length < 2) { box.style.display = 'none'; return; }
+        suggestTimer = setTimeout(async () => {
+            // Search both tables for matching names
+            const [accRes, injRes] = await Promise.all([
+                SB.from('accident_reports')
+                  .select('injured_name, occupation_at_accident, occupier_name')
+                  .ilike('injured_name', `%${q}%`).limit(8),
+                SB.from('injury_disease_reports')
+                  .select('worker_name, occupation, employer_name')
+                  .ilike('worker_name', `%${q}%`).limit(8),
+            ]);
+            const names = new Map();
+            (accRes.data || []).forEach(r => {
+                if (r.injured_name) names.set(r.injured_name, { occ: r.occupation_at_accident, emp: r.occupier_name });
+            });
+            (injRes.data || []).forEach(r => {
+                if (r.worker_name && !names.has(r.worker_name))
+                    names.set(r.worker_name, { occ: r.occupation, emp: r.employer_name });
+            });
+            if (!names.size) { box.style.display = 'none'; return; }
+            box.innerHTML = [...names.entries()].map(([name, meta]) => `
+                <div class="suggestion-item" onclick="selectSuggestion('${name.replace(/'/g,"\\'")}')">
+                    <div>
+                        <span class="s-name">${name}</span>
+                        ${meta.occ ? `<span style="color:#888;font-size:12px;margin-left:8px">${meta.occ}</span>` : ''}
+                    </div>
+                    <span class="s-meta">${meta.emp || ''}</span>
+                </div>`
+            ).join('');
+            box.style.display = 'block';
+        }, 280);
+    }
+
+    function selectSuggestion(name) {
+        document.getElementById('searchInput').value = name;
+        document.getElementById('suggestions').style.display = 'none';
+        searchWorker();
+    }
+
+    // Hide suggestions on outside click
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.search-wrap'))
+            document.getElementById('suggestions').style.display = 'none';
+    });
+
+    // Allow Enter key
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') searchWorker();
+    });
+
+    // ── Main search ──────────────────────────────────────────
+    async function searchWorker() {
+        const q = document.getElementById('searchInput').value.trim();
+        if (!q) return;
+        document.getElementById('suggestions').style.display = 'none';
+        showState('loadingState');
+
+        try {
+            // Fetch from both tables simultaneously
+            const [accRes, injRes] = await Promise.all([
+                SB.from('accident_reports')
+                  .select('*')
+                  .ilike('injured_name', `%${q}%`)
+                  .order('accident_date', { ascending: false }),
+
+                SB.from('injury_disease_reports')
+                  .select('*')
+                  .ilike('worker_name', `%${q}%`)
+                  .order('incident_date', { ascending: false }),
+            ]);
+
+            const accidents = (accRes.data || []).map(r => ({ ...r, _type: 'accident' }));
+            const injuries  = (injRes.data || []).map(r => ({ ...r, _type: r.incident_type === 'Disease' ? 'disease' : 'injury' }));
+
+            allIncidents = [...accidents, ...injuries].sort((a, b) => {
+                const da = new Date(a.accident_date || a.incident_date || 0);
+                const db = new Date(b.accident_date || b.incident_date || 0);
+                return db - da;   // newest first
+            });
+
+            if (!allIncidents.length) { showState('noResultsState'); return; }
+
+            buildProfile(q, allIncidents);
+            showState('profileView');
+
+        } catch (err) {
+            showState('emptyState');
+            await showAlert('Error loading data: ' + err.message, { type: 'error', title: 'Load Failed' });
+        }
+    }
+
+    // ── Build profile view ───────────────────────────────────
+    function buildProfile(searchTerm, incidents) {
+        // Use the most specific name found
+        const rep = incidents.find(i => i.injured_name || i.worker_name);
+        const workerName   = rep?.injured_name || rep?.worker_name || searchTerm;
+        const occupation   = rep?.occupation_at_accident || rep?.usual_occupation || rep?.occupation || '—';
+        const employer     = rep?.occupier_name || rep?.employer_name || '—';
+
+        const accidents  = incidents.filter(i => i._type === 'accident');
+        const injuries   = incidents.filter(i => i._type === 'injury');
+        const diseases   = incidents.filter(i => i._type === 'disease');
+        const fatalities = incidents.filter(i => i.injury_fatal === 'Fatal' || i.resulted_death === 'Yes');
+        const permIncap  = incidents.filter(i => i.permanent_incapacity === 'Yes');
+        const tempIncap  = incidents.filter(i => i.disabled_three_days === 'Yes' || i.temporary_incapacity === 'Yes');
+        const dates      = incidents.map(i => new Date(i.accident_date || i.incident_date)).sort((a,b) => a-b);
+        const firstDate  = dates[0];
+        const lastDate   = dates[dates.length - 1];
+
+        // ── Profile header
+        const initials = workerName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+        const tags = [];
+        if (fatalities.length) tags.push(`<span class="tag tag-red">⚠ ${fatalities.length} Fatal</span>`);
+        if (permIncap.length)  tags.push(`<span class="tag tag-amber">♿ Permanent Incapacity</span>`);
+        if (accidents.length)  tags.push(`<span class="tag tag-grey">🚨 ${accidents.length} Accident${accidents.length>1?'s':''}</span>`);
+        if (injuries.length)   tags.push(`<span class="tag tag-blue">🏥 ${injuries.length} Injury Record${injuries.length>1?'s':''}</span>`);
+        if (diseases.length)   tags.push(`<span class="tag tag-grey">🦠 ${diseases.length} Disease Record${diseases.length>1?'s':''}</span>`);
+
+        document.getElementById('profileHeader').innerHTML = `
+            <div class="avatar">${initials}</div>
+            <div class="profile-info">
+                <h2>${workerName}</h2>
+                <div class="meta">
+                    ${occupation !== '—' ? `<strong>Occupation:</strong> ${occupation} &nbsp;·&nbsp; ` : ''}
+                    <strong>Employer:</strong> ${employer}
+                    ${firstDate ? ` &nbsp;·&nbsp; <strong>First incident:</strong> ${fmtDate(firstDate)}` : ''}
+                    ${lastDate && dates.length > 1 ? ` &nbsp;·&nbsp; <strong>Last incident:</strong> ${fmtDate(lastDate)}` : ''}
+                </div>
+                <div class="profile-tags">${tags.join('') || '<span class="tag tag-green">✅ No severe outcomes</span>'}</div>
+            </div>`;
+
+        // ── Stats row
+        document.getElementById('statsRow').innerHTML = `
+            <div class="stat-card ${incidents.length ? '' : 'green'}">
+                <h3>Total Incidents</h3>
+                <div class="val">${incidents.length}</div>
+            </div>
+            <div class="stat-card ${accidents.length ? 'red' : ''}">
+                <h3>Accidents (Form 60)</h3>
+                <div class="val">${accidents.length}</div>
+            </div>
+            <div class="stat-card ${injuries.length ? 'amber' : ''}">
+                <h3>Injury Reports</h3>
+                <div class="val">${injuries.length}</div>
+            </div>
+            <div class="stat-card ${diseases.length ? 'blue' : ''}">
+                <h3>Disease Reports</h3>
+                <div class="val">${diseases.length}</div>
+            </div>
+            <div class="stat-card ${fatalities.length ? 'red' : 'green'}">
+                <h3>Fatal Outcomes</h3>
+                <div class="val">${fatalities.length}</div>
+            </div>
+            <div class="stat-card ${permIncap.length ? 'amber' : ''}">
+                <h3>Permanent Incapacity</h3>
+                <div class="val">${permIncap.length}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Temporary Incapacity</h3>
+                <div class="val">${tempIncap.length}</div>
+            </div>`;
+
+        renderTimeline(currentFilter);
+    }
+
+    // ── Timeline render ──────────────────────────────────────
+    function filterTimeline(pill) {
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentFilter = pill.dataset.filter;
+        renderTimeline(currentFilter);
+    }
+
+    function renderTimeline(filter) {
+        const list = document.getElementById('incidentList');
+        const filtered = filter === 'all'
+            ? allIncidents
+            : allIncidents.filter(i => i._type === filter);
+
+        if (!filtered.length) {
+            list.innerHTML = `<div class="no-incidents"><p>No ${filter === 'all' ? '' : filter} records found.</p></div>`;
+            return;
+        }
+
+        list.innerHTML = filtered.map(incident => incidentCard(incident)).join('');
+    }
+
+    function incidentCard(i) {
+        const isAccident = i._type === 'accident';
+        const isDisease  = i._type === 'disease';
+        const date       = i.accident_date || i.incident_date;
+        const title      = isAccident
+            ? `Accident — ${i.accident_place || i.premises_address || '—'}`
+            : `${isDisease ? 'Disease' : 'Injury'} Report — ${i.place_of_accident || '—'}`;
+        const desc = isAccident
+            ? (i.accident_description || i.nature_of_injuries || '—')
+            : (i.nature_of_injuries || '—');
+        const truncDesc = desc.length > 180 ? desc.substring(0,180) + '…' : desc;
+
+        const severity = isAccident
+            ? (i.injury_fatal === 'Fatal' ? 'Fatal' : (i.disabled_three_days === 'Yes' ? 'Disabled 3+ days' : 'Non-fatal'))
+            : (i.resulted_death === 'Yes' ? 'Fatal' : i.permanent_incapacity === 'Yes' ? 'Permanent Incapacity' : 'Temporary Incapacity');
+
+        const severityTag = severity === 'Fatal'
+            ? 'tag-red' : severity === 'Permanent Incapacity'
+            ? 'tag-amber' : 'tag-grey';
+
+        const chips = [
+            isAccident ? `📂 OHS Form 60` : `📂 BL Form 43/10`,
+            isAccident ? (i.industry_sector || '—') : (i.incident_type || '—'),
+            isAccident ? (i.occupier_name || '—') : (i.employer_name || '—'),
+            i.injury_fatal === 'Fatal' || i.resulted_death === 'Yes'
+                ? '⚰ Fatal'
+                : i.permanent_incapacity === 'Yes' ? '♿ Permanent Incapacity'
+                : i.disabled_three_days === 'Yes' || i.temporary_incapacity === 'Yes'
+                ? '🩹 Temporary Incapacity' : '',
+            i.machinery_involved && i.machinery_involved !== 'NIL' ? `⚙ ${i.machinery_involved}` : '',
+        ].filter(Boolean);
+
+        const iconClass  = isAccident ? 'icon-accident' : isDisease ? 'icon-disease' : 'icon-injury';
+        const cardClass  = isAccident ? 'type-accident' : isDisease ? 'type-disease' : 'type-injury';
+        const icon       = isAccident ? '🚨' : isDisease ? '🦠' : '🏥';
+
+        return `
+        <div class="incident-card ${cardClass}" onclick="viewIncidentDetail('${i.id}','${i._type}')">
+            <div class="incident-icon ${iconClass}">${icon}</div>
+            <div class="incident-body">
+                <h4>${title}</h4>
+                <div class="desc">${truncDesc}</div>
+                <div class="incident-meta">
+                    ${chips.map(c => `<span class="meta-chip">${c}</span>`).join('')}
+                    <span class="tag ${severityTag}" style="font-size:11px;padding:3px 10px">${severity}</span>
+                </div>
+            </div>
+            <div class="incident-date">
+                <span class="date-val">${fmtDate(date)}</span>
+                <span style="font-size:11px;color:#bbb">Click to view</span>
+            </div>
+        </div>`;
+    }
+
+    // ── Incident detail modal ─────────────────────────────────
+    async function viewIncidentDetail(id, type) {
+        const i = allIncidents.find(x => x.id === id);
+        if (!i) return;
+        const isAccident = type === 'accident';
+
+        const fields = isAccident ? [
+            ['Form',              'OHS Form 60 — Notification of Accident'],
+            ['Occupier / Employer', i.occupier_name],
+            ['Premises Address',  i.premises_address],
+            ['Industry',          i.nature_of_industry + (i.industry_sector ? ` (${i.industry_sector})` : '')],
+            ['Injured Person',    i.injured_name],
+            ['Age',               i.injured_age],
+            ['Sex',               i.injured_sex],
+            ['ID / Passport',     i.injured_id_number],
+            ['Occupation (at time)', i.occupation_at_accident],
+            ['Normal Occupation', i.usual_occupation],
+            ['Experience Level',  i.experience_level],
+            ['Date of Accident',  fmtDate(i.accident_date)],
+            ['Time',              i.accident_time],
+            ['Place',             i.accident_place],
+            ['Description',       i.accident_description],
+            ['Machinery Involved',i.machinery_involved],
+            ['Fatal?',            i.injury_fatal],
+            ['Disabled 3+ days',  i.disabled_three_days],
+            ['Hourly Pay (BWP)',   i.hourly_pay],
+            ['Medical Practitioner', i.medical_practitioner],
+            ['Dangerous Occ. Date', i.dangerous_date ? fmtDate(i.dangerous_date) : null],
+            ['Dangerous Occ. Description', i.dangerous_description],
+            ['Damage / Financial Loss', i.dangerous_damage],
+            ['Employees Injured', i.employees_injured],
+            ['Reporter',          i.reporter_name + (i.reporter_designation ? ` (${i.reporter_designation})` : '')],
+            ['Report Date',       fmtDate(i.report_date)],
+            ['Causation No.',     i.causation_number],
+            ['Investigation',     i.investigation_status],
+            ['Official Action',   i.official_action],
+        ] : [
+            ['Form',              'BL Form 43/10 — Injury and Disease Report'],
+            ['Worker',            i.worker_name],
+            ['Address',           i.worker_address],
+            ['Occupation',        i.occupation],
+            ['ID / Passport',     i.worker_id_number],
+            ['Incident Date',     fmtDate(i.incident_date)],
+            ['Place',             i.place_of_accident],
+            ['Type',              i.incident_type],
+            ['Nature of Injuries / Disease', i.nature_of_injuries],
+            ['Resulted in Death', i.resulted_death],
+            ['Permanent Incapacity', i.permanent_incapacity],
+            ['Temporary Incapacity', i.temporary_incapacity],
+            ['Next of Kin Informed', i.nok_informed],
+            ['Employer',          i.employer_name],
+            ['Employer Tel',      i.employer_telephone],
+            ['Signatory',         i.signatory_name + (i.signatory_designation ? ` (${i.signatory_designation})` : '')],
+            ['Report Date',       fmtDate(i.report_date)],
+        ];
+
+        const rowsHTML = fields.filter(([,v]) => v != null && v !== '' && v !== '—').map(([label, value]) =>
+            `<div style="display:flex;justify-content:space-between;padding:7px 0;
+                         border-bottom:1px solid #f5f5f5;gap:16px;">
+                <span style="color:#888;font-size:13px;min-width:160px;flex-shrink:0">${label}</span>
+                <span style="color:#333;font-size:13px;text-align:right;line-height:1.4">${value}</span>
+            </div>`
+        ).join('');
+
+        const icon = isAccident ? '🚨' : type === 'disease' ? '🦠' : '🏥';
+
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+            overlay.innerHTML = `
+                <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);
+                            width:100%;max-width:540px;max-height:85vh;overflow-y:auto;
+                            padding:28px 26px;font-family:'Segoe UI',sans-serif;">
+                    <div style="font-size:32px;text-align:center;margin-bottom:8px">${icon}</div>
+                    <h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:4px">
+                        ${isAccident ? 'Accident Report' : `${type === 'disease' ? 'Disease' : 'Injury'} Report`}
+                    </h2>
+                    <p style="text-align:center;font-size:12px;color:#aaa;margin-bottom:18px">
+                        ${fmtDate(i.accident_date || i.incident_date)}
+                    </p>
+                    ${rowsHTML}
+                    <div style="margin-top:20px;text-align:center">
+                        <button id="closeDetail" style="padding:10px 28px;background:#333;color:#fff;border:none;
+                            border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+                            Close
+                        </button>
+                    </div>
+                </div>`;
+            overlay.querySelector('#closeDetail').addEventListener('click', () => { overlay.remove(); resolve(); });
+            overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(); } });
+            document.body.appendChild(overlay);
+        });
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    async function handleLogout() {
+        const ok = await showConfirm('You will be signed out of the OSH system.', {
+            title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
+        });
+        if (ok) {
+            const r = await signOut();
+            if (r.success) window.location.href = 'index.html';
+            else await showAlert('Logout failed: ' + r.error, { type: 'error' });
+        }
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    window.addEventListener('load', async function () {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+
+        const ur = await getCurrentUser();
+        if (ur.success && ur.user) {
+            const p = await getUserProfile(ur.user.id);
+            if (p.success) {
+                document.getElementById('userName').textContent = p.data.first_name + ' ' + p.data.surname;
+                document.getElementById('userDept').textContent = getRoleDisplayName(p.data.role || 'viewer');
+            }
+        }
+
+        // Check if a worker name was passed via URL (from another page linking directly)
+        const params = new URLSearchParams(window.location.search);
+        const prefill = params.get('worker');
+        if (prefill) {
+            document.getElementById('searchInput').value = decodeURIComponent(prefill);
+            searchWorker();
+        }
+    });
+    </script>
+</body>
+</html>

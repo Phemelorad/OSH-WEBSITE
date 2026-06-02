@@ -315,6 +315,7 @@
         <button onclick="location.href='inspection-entries.html'">📁 Inspection Records</button>
         <button onclick="location.href='accident-report.html'">🚨 Accident Report</button>
         <button onclick="location.href='injury-disease-report.html'">🏥 Injury &amp; Disease</button>
+        <button onclick="location.href='worker-profile.html'">👤 Worker Profile</button>
         <button onclick="location.href='admin.html'">⚙ Admin</button>
     </nav>
 
@@ -372,6 +373,25 @@
                 <!-- Claimant Information Section -->
                 <div class="form-section">
                     <h2 class="section-title">Claimant Information</h2>
+
+                    <!-- ── ID Lookup widget ── -->
+                    <div class="form-group" style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
+                        <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
+                            🪪 Look Up Claimant by Omang / Passport
+                            <span style="font-weight:400;color:#888;font-size:12px"> — auto-fills claimant details</span>
+                        </label>
+                        <div id="wl-container"></div>
+                    </div>
+                    <!-- Hidden registry FK -->
+                    <input type="hidden" id="workerRegistryId" name="workerRegistryId">
+
+                    <div class="form-group">
+                        <label for="claimantIdNumber">Omang / Passport Number<span class="required">*</span></label>
+                        <input type="text" id="claimantIdNumber" name="claimantIdNumber"
+                               placeholder="Enter Omang or passport number" required
+                               style="text-transform:uppercase">
+                        <span class="error-message">ID number is required</span>
+                    </div>
 
                     <div class="form-group">
                         <label for="nameOfClaimant">Name of the Claimant<span class="required">*</span></label>
@@ -464,6 +484,8 @@
     <script src="role-permissions.js"></script>
     <!-- Custom Modals -->
     <script src="modal.js"></script>
+    <!-- Worker Lookup -->
+    <script src="worker-lookup.js"></script>
 
     <script>
         const form = document.getElementById('mainForm');
@@ -472,22 +494,24 @@
         // Check authentication and permissions on page load
         window.addEventListener('load', async function() {
             const authenticated = await isAuthenticated();
-            
-            if (!authenticated) {
-                window.location.href = 'index.html';
-                return;
-            }
-
-            // Initialize role system
+            if (!authenticated) { window.location.href = 'index.html'; return; }
             await initializeRoleSystem();
-            
-            // Check page access
-            if (!checkPageAccess()) {
-                return;
-            }
-            
-            // Enforce permissions
+            if (!checkPageAccess()) return;
             enforcePermissions();
+
+            // Attach worker lookup — maps registry columns → form field IDs
+            attachWorkerLookup({
+                containerId: 'wl-container',
+                fields: {
+                    id_number:   'claimantIdNumber',
+                    full_name:   'nameOfClaimant',
+                    sex:         'gender',
+                    nationality: 'nationality',
+                    address:     'location',
+                    worker_registry_id: 'workerRegistryId'
+                },
+                saveNewWorker: true
+            });
         });
 
         // Form validation
@@ -534,15 +558,14 @@
         });
 
         // Form submission
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             // Validate all fields
             let isValid = true;
+            const formFields = form.querySelectorAll('input[required], select[required], textarea[required]');
             formFields.forEach(field => {
-                if (!validateField(field)) {
-                    isValid = false;
-                }
+                if (!validateField(field)) isValid = false;
             });
 
             if (!isValid) {
@@ -552,30 +575,13 @@
                 return;
             }
 
-            // Disable submit button
             const submitButton = form.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
 
-            // Get form data
-            const formData = new FormData(form);
-            const data = {};
-            formData.forEach((value, key) => {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) {
-                        data[key] = [data[key]];
-                    }
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            });
-
-            console.log('Form Data:', data);
-
-            // Get current user
-            getCurrentUser().then(async userResult => {
+            try {
+                const userResult = await getCurrentUser();
                 if (!userResult.success || !userResult.user) {
                     await showAlert('You must be logged in to submit a claim.', {
                         type: 'warning', title: 'Not Authenticated', btnText: 'Go to Login'
@@ -584,62 +590,65 @@
                     return;
                 }
 
-                // Prepare data for Supabase
+                // Save new worker to registry if not found during lookup
+                const registryId = await saveWorkerIfNew({
+                    nameOfClaimant: document.getElementById('nameOfClaimant').value.trim(),
+                    gender:         document.getElementById('gender').value,
+                    nationality:    document.getElementById('nationality').value.trim(),
+                    location:       document.getElementById('location').value.trim(),
+                    claimantIdNumber: document.getElementById('claimantIdNumber').value.trim()
+                }, {
+                    full_name:   'nameOfClaimant',
+                    sex:         'gender',
+                    nationality: 'nationality',
+                    address:     'location',
+                    id_number:   'claimantIdNumber'
+                }) || window._resolvedWorkerId || null;
+
                 const claimData = {
-                    file_number: data.fileNumber,
-                    name_of_employer: data.nameOfEmployer,
-                    industry: data.industry,
-                    name_of_claimant: data.nameOfClaimant,
-                    gender: data.gender,
-                    location: data.location,
-                    nationality: data.nationality,
-                    date_of_injury: data.dateOfInjury,
-                    date_reported: data.dateReported,
-                    date_received: data.dateReceived,
-                    cause: data.cause,
-                    nature: data.nature,
-                    incapacity_percentage: parseFloat(data.incapacity),
-                    submitted_by: userResult.user.id,
-                    status: 'pending'
+                    file_number:            document.getElementById('fileNumber').value.trim(),
+                    name_of_employer:       document.getElementById('nameOfEmployer').value.trim(),
+                    industry:               document.getElementById('industry').value,
+                    name_of_claimant:       document.getElementById('nameOfClaimant').value.trim(),
+                    gender:                 document.getElementById('gender').value,
+                    location:               document.getElementById('location').value.trim(),
+                    nationality:            document.getElementById('nationality').value.trim(),
+                    claimant_id_number:     document.getElementById('claimantIdNumber').value.trim().toUpperCase(),
+                    worker_registry_id:     registryId,
+                    date_of_injury:         document.getElementById('dateOfInjury').value,
+                    date_reported:          document.getElementById('dateReported').value,
+                    date_received:          document.getElementById('dateReceived').value,
+                    cause:                  document.getElementById('cause').value.trim(),
+                    nature:                 document.getElementById('nature').value.trim(),
+                    incapacity_percentage:  parseFloat(document.getElementById('incapacity').value),
+                    submitted_by:           userResult.user.id,
+                    status:                 'pending'
                 };
 
-                // Submit to Supabase
-                try {
-                    const supabaseClient = window.supabaseClient || window.supabase.createClient(
-                        'https://qblogmmknnacaaircrlt.supabase.co',
-                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-                    );
+                const supabaseClient = window.supabaseClient || window.supabase.createClient(
+                    'https://qblogmmknnacaaircrlt.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+                );
 
-                    const { data: insertData, error: insertError } = await supabaseClient
-                        .from('injury_claims')
-                        .insert([claimData])
-                        .select();
+                const { error: insertError } = await supabaseClient
+                    .from('injury_claims').insert([claimData]);
 
-                    if (insertError) {
-                        submitButton.disabled = false;
-                        submitButton.textContent = originalText;
-                        console.error('Supabase error:', insertError);
-                        await showAlert(insertError.message, { type: 'error', title: 'Submission Failed' });
-                        return;
-                    }
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
 
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalText;
+                if (insertError) throw insertError;
 
-                    // Show success and redirect
-                    await showAlert('Your injury claim has been submitted successfully.', {
-                        type: 'success', title: 'Claim Submitted', btnText: 'View Entries'
-                    });
-                    form.reset();
-                    window.location.href = 'entries.html';
+                await showAlert('Your injury claim has been submitted successfully.', {
+                    type: 'success', title: 'Claim Submitted', btnText: 'View Entries'
+                });
+                form.reset();
+                window.location.href = 'entries.html';
 
-                } catch (error) {
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalText;
-                    console.error('Submission error:', error);
-                    await showAlert(error.message, { type: 'error', title: 'Submission Failed' });
-                }
-            });
+            } catch (error) {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+                await showAlert(error.message, { type: 'error', title: 'Submission Failed' });
+            }
         });
 
         async function resetForm() {
