@@ -56,7 +56,17 @@
             text-align: center; margin-bottom: 30px;
             padding-bottom: 24px; border-bottom: 2px solid #f0f0f0;
         }
-        .form-header .gov-logo { font-size: 42px; margin-bottom: 8px; }
+        .form-header .gov-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .form-header .gov-logo img {
+            width: 70px;
+            height: 54px;
+            object-fit: contain;
+            display: block;
+        }
         .form-header .form-number {
             font-size: 12px; font-weight: 700; color: #888;
             text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;
@@ -197,7 +207,9 @@
           <!-- ── HEADER ──────────────────────────────────────── -->
           <div class="form-card">
             <div class="form-header">
-              <div class="gov-logo">🦁</div>
+              <div class="gov-logo">
+                <img src="Code-of-Arms-colour.png" alt="Republic of Botswana Coat of Arms">
+              </div>
               <div class="form-number">BL Form 43/10</div>
               <div class="act-title">WORKER'S COMPENSATION ACT</div>
               <div class="subtitle">Act No. 23 of 1998 &nbsp;·&nbsp; Section 9(1)</div>

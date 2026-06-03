@@ -409,7 +409,14 @@
         count.textContent   = `Showing ${rows.length} record${rows.length !== 1 ? 's' : ''}`;
 
         tbody.innerHTML = rows.map(r => {
-            const compLevel  = r.compliance_level ?? 100;
+            // Fall back: count contraventions array if stored totals are stale (trigger not fired on old rows)
+            const contravCount = r.total_contraventions
+                || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)
+                || 0;
+            const compLevel  = r.compliance_level
+                ?? (100 - Math.round((contravCount / 17) * 100));
+            const nonCompPct = r.non_compliance_pct
+                ?? Math.round((contravCount / 17) * 100);
             const barClass   = compLevel >= 75 ? '' : compLevel >= 50 ? 'medium' : 'low';
             const compColor  = compLevel >= 75 ? '#155724' : compLevel >= 50 ? '#856404' : '#721c24';
             const typeSlug   = (r.inspection_type || '').toLowerCase().replace(/\s+/g,'-');
@@ -435,7 +442,7 @@
                 </td>
                 <td>${r.inspector_name || '—'}</td>
                 <td style="text-align:center;font-weight:700;color:${compColor}">
-                    ${r.total_contraventions ?? 0}
+                    ${contravCount}
                 </td>
                 <td>
                     <div class="compliance-bar-wrap">
@@ -470,6 +477,13 @@
         if (!r) return;
 
         const contravList = (r.contraventions || []).join(', ') || 'None';
+        // Recalculate from array in case DB trigger didn't fire on old records
+        const contravCount = r.total_contraventions
+            || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)
+            || 0;
+        const compLevel  = r.compliance_level  ?? (100 - Math.round((contravCount / 17) * 100));
+        const nonCompPct = r.non_compliance_pct ?? Math.round((contravCount / 17) * 100);
+        const compColor  = compLevel >= 75 ? '#155724' : compLevel >= 50 ? '#856404' : '#721c24';
 
         let plantHTML = '';
         try {
@@ -502,9 +516,9 @@
             ['Report Sent',    r.date_report_sent ? fmtDate(r.date_report_sent) : '—'],
             ['Days to Respond',r.days_to_respond != null ? r.days_to_respond + ' days' : '—'],
             ['Employees',      `${(r.employees_male||0)+(r.employees_female||0)} (M:${r.employees_male||0} F:${r.employees_female||0})`],
-            ['Contraventions', `<strong style="color:${compColor}">${r.total_contraventions??0}</strong> — ${contravList}`],
-            ['Non-Compliance', `<strong style="color:${compColor}">${r.non_compliance_pct??0}%</strong>`],
-            ['Compliance Level',`<strong style="color:${compColor}">${r.compliance_level??100}%</strong>`],
+            ['Contraventions', `<strong style="color:${compColor}">${contravCount}</strong> — ${contravList}`],
+            ['Non-Compliance', `<strong style="color:${compColor}">${nonCompPct}%</strong>`],
+            ['Compliance Level',`<strong style="color:${compColor}">${compLevel}%</strong>`],
             ['Action Taken',   r.action_taken],
             ['Follow-up',      r.follow_up_required ? `Yes${r.follow_up_date ? ' — ' + fmtDate(r.follow_up_date) : ''}` : 'No'],
         ].map(([label, value]) =>
@@ -600,7 +614,9 @@
                 r.industry_type, r.registration_status, r.inspection_type, r.inspector_name,
                 r.inspection_date, r.date_report_sent || '', r.days_to_respond ?? '',
                 r.employees_male || 0, r.employees_female || 0,
-                r.total_contraventions ?? 0, r.non_compliance_pct ?? 0, r.compliance_level ?? 100,
+                (r.total_contraventions || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)),
+                (r.non_compliance_pct ?? Math.round(((r.total_contraventions || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)) / 17) * 100)),
+                (r.compliance_level ?? (100 - Math.round(((r.total_contraventions || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)) / 17) * 100))),
                 r.action_taken, r.follow_up_required ? 'Yes' : 'No', r.follow_up_date || '',
                 r.status
             ]);

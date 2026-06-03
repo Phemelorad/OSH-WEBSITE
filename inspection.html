@@ -623,6 +623,18 @@
         const checked = contraventions.length;
         const nonPct  = Math.round((checked / TOTAL_SECTIONS) * 100);
 
+        // Build individual boolean columns from ticked sections
+        // The DB trigger recomputes totals from these, so they must be set
+        const contravSet = new Set(contraventions.map(s => s.toLowerCase()));
+        const boolCols = {};
+        [
+          's9','s13','s14','s15','s16','s18',
+          's41','s42','s46','s47','s48','s49',
+          's52','s53','s62','s66','s67',
+          's17','s23','s29','s30','s31','s32',
+          's34','s37','s38','s39','s51','s54','s57','s58'
+        ].forEach(col => { boolCols[col] = contravSet.has(col); });
+
         const payload = {
           file_number:        document.getElementById('fileNumber').value.trim(),
           inspection_date:    document.getElementById('inspDate').value,
@@ -640,6 +652,7 @@
           total_contraventions: checked,
           non_compliance_pct: nonPct,
           compliance_level:   100 - nonPct,
+          ...boolCols,
           plant_machinery:    JSON.stringify(collectPlant()),
           action_taken:       document.getElementById('actionTaken').value,
           days_to_respond:    parseInt(document.getElementById('daysRespond').value) || null,
