@@ -54,39 +54,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .site-nav {
-            background: white;
-            padding: 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: flex-start;
-            gap: 0;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .site-nav button {
-            background: white;
-            border: none;
-            padding: 18px 35px;
-            font-size: 15px;
-            font-weight: 600;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-            font-family: inherit;
-        }
-
-        .site-nav button:hover {
-            background: #f8f8f8;
-            color: #333;
-        }
-
-        .site-nav button.active {
-            color: #333;
-            border-bottom: 3px solid #333;
-            background: #fafafa;
-        }
+        .site-nav { display: none; } /* replaced by nav.js */
 
         .container {
             max-width: 1600px;
@@ -302,15 +270,6 @@
         }
 
         @media (max-width: 768px) {
-            .site-nav {
-                flex-wrap: wrap;
-            }
-
-            .site-nav button {
-                flex: 1 1 45%;
-                min-width: 120px;
-            }
-
             .stats-grid {
                 grid-template-columns: 1fr;
             }
@@ -330,17 +289,8 @@
         </div>
     </div>
 
-    <nav class="site-nav">
-        <button onclick="location.href='Untitled-1.html'">⌂ Home</button>
-        <button onclick="location.href='form.html'">📋 Submit Claim</button>
-        <button class="active">📊 View Entries</button>
-        <button onclick="location.href='inspection.html'">🔍 Inspection</button>
-        <button onclick="location.href='inspection-entries.html'">📁 Inspection Records</button>
-        <button onclick="location.href='accident-report.html'">🚨 Accident Report</button>
-        <button onclick="location.href='injury-disease-report.html'">🏥 Injury &amp; Disease</button>
-        <button onclick="location.href='worker-profile.html'">👤 Worker Profile</button>
-        <button onclick="location.href='admin.html'">⚙ Admin</button>
-    </nav>
+    <script>window.OSH_ACTIVE_PAGE = 'claims-entries';</script>
+    <script src="nav.js"></script>
 
     <div class="container">
         <!-- Statistics Cards -->

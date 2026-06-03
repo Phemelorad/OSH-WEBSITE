@@ -29,20 +29,6 @@
             cursor: pointer; font-weight: 600; transition: all 0.3s;
         }
         .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .site-nav {
-            background: white; padding: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: flex-start; flex-wrap: wrap;
-            border-top: 1px solid #e0e0e0;
-        }
-        .site-nav button {
-            background: white; border: none; padding: 16px 28px;
-            font-size: 14px; font-weight: 600; color: #666;
-            cursor: pointer; transition: all 0.3s;
-            border-bottom: 3px solid transparent; font-family: inherit;
-        }
-        .site-nav button:hover { background: #f8f8f8; color: #333; }
-        .site-nav button.active { color: #333; border-bottom: 3px solid #333; background: #fafafa; }
         .page-container { padding: 20px; }
         .container { max-width: 820px; margin: 0 auto; }
 
@@ -174,7 +160,6 @@
             .btn { width: 100%; }
             .yn-row { flex-direction: column; align-items: flex-start; gap: 8px; }
         }
-    </style>
 </head>
 <body>
     <div class="navbar">
@@ -188,17 +173,8 @@
         </div>
     </div>
 
-    <nav class="site-nav">
-        <button onclick="location.href='Untitled-1.html'">⌂ Home</button>
-        <button onclick="location.href='form.html'">📋 Submit Claim</button>
-        <button onclick="location.href='entries.html'">📊 View Entries</button>
-        <button onclick="location.href='inspection.html'">🔍 Inspection</button>
-        <button onclick="location.href='inspection-entries.html'">📁 Inspection Records</button>
-        <button onclick="location.href='accident-report.html'">🚨 Accident Report</button>
-        <button class="active">🏥 Injury &amp; Disease</button>
-        <button onclick="location.href='worker-profile.html'">👤 Worker Profile</button>
-        <button onclick="location.href='admin.html'">⚙ Admin</button>
-    </nav>
+    <script>window.OSH_ACTIVE_PAGE = 'injury-disease';</script>
+    <script src="nav.js"></script>
 
     <div class="page-container">
       <div class="container">

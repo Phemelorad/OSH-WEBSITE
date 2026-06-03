@@ -1,0 +1,299 @@
+// ============================================================
+// SHARED DROPDOWN NAVIGATION
+// Include this script on every page AFTER the navbar div.
+// Set window.OSH_ACTIVE_PAGE before including, e.g.:
+//   <script>window.OSH_ACTIVE_PAGE = 'inspection';</script>
+//
+// Page tokens:
+//   dashboard        → Untitled-1.html / dashboard.html
+//   claims-submit    → form.html
+//   claims-entries   → entries.html
+//   inspection-form  → inspection.html
+//   inspection-records → inspection-entries.html
+//   accident         → accident-report.html
+//   injury-disease   → injury-disease-report.html
+//   worker-profile   → worker-profile.html
+//   admin            → admin.html
+// ============================================================
+
+(function () {
+
+  // ── Inject CSS once ──────────────────────────────────────
+  if (!document.getElementById('osh-nav-styles')) {
+    const s = document.createElement('style');
+    s.id = 'osh-nav-styles';
+    s.textContent = `
+      .osh-nav {
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-top: 1px solid #e8e8e8;
+        display: flex;
+        align-items: stretch;
+        position: relative;
+        z-index: 500;
+        flex-wrap: wrap;
+      }
+
+      /* Top-level nav items */
+      .osh-nav-item {
+        position: relative;
+      }
+
+      .osh-nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 22px;
+        height: 52px;
+        background: white;
+        border: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+      }
+
+      .osh-nav-btn:hover {
+        background: #f8f8f8;
+        color: #222;
+      }
+
+      .osh-nav-btn.active {
+        color: #111;
+        border-bottom: 3px solid #222;
+        background: #fafafa;
+      }
+
+      /* Caret for dropdowns */
+      .osh-caret {
+        font-size: 9px;
+        opacity: 0.5;
+        margin-left: 2px;
+        transition: transform 0.2s;
+      }
+
+      .osh-nav-item:hover .osh-caret,
+      .osh-nav-item.open   .osh-caret {
+        transform: rotate(180deg);
+        opacity: 0.8;
+      }
+
+      /* Dropdown panel */
+      .osh-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 210px;
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        z-index: 600;
+        overflow: hidden;
+        animation: osh-drop-in 0.15s ease;
+      }
+
+      .osh-nav-item:hover .osh-dropdown,
+      .osh-nav-item.open   .osh-dropdown {
+        display: block;
+      }
+
+      @keyframes osh-drop-in {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .osh-dropdown a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 18px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #444;
+        text-decoration: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: background 0.15s, color 0.15s;
+        border-bottom: 1px solid #f5f5f5;
+      }
+
+      .osh-dropdown a:last-child { border-bottom: none; }
+
+      .osh-dropdown a:hover {
+        background: #f5f5f5;
+        color: #111;
+      }
+
+      .osh-dropdown a.active {
+        background: #f0f0f0;
+        color: #111;
+        font-weight: 700;
+      }
+
+      .osh-dropdown a .dd-icon {
+        font-size: 15px;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      /* Active parent highlight */
+      .osh-nav-item.has-active > .osh-nav-btn {
+        color: #111;
+        border-bottom: 3px solid #222;
+        background: #fafafa;
+      }
+
+      @media (max-width: 768px) {
+        .osh-nav { flex-direction: column; }
+        .osh-nav-item { width: 100%; }
+        .osh-nav-btn { width: 100%; height: 48px; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
+        .osh-nav-btn.active, .osh-nav-item.has-active > .osh-nav-btn {
+          border-bottom: 1px solid #f0f0f0;
+          border-left: 4px solid #222;
+        }
+        .osh-dropdown { position: static; border-radius: 0; box-shadow: none; border: none; background: #fafafa; animation: none; }
+        .osh-nav-item:hover .osh-dropdown { display: none; }
+        .osh-nav-item.open .osh-dropdown  { display: block; }
+        .osh-dropdown a { padding-left: 32px; }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  // ── Nav structure ────────────────────────────────────────
+  const active = window.OSH_ACTIVE_PAGE || '';
+
+  const MENU = [
+    {
+      id: 'dashboard',
+      label: '⌂ Dashboard',
+      href: 'Untitled-1.html',
+      single: true   // no dropdown — direct link
+    },
+    {
+      id: 'claims',
+      label: '📋 Claims Portal',
+      children: [
+        { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
+        { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
+      ]
+    },
+    {
+      id: 'inspection',
+      label: '🔍 Inspection Portal',
+      children: [
+        { id: 'inspection-form',    icon: '🔍', label: 'New Inspection',      href: 'inspection.html' },
+        { id: 'inspection-records', icon: '📁', label: 'Inspection Records',  href: 'inspection-entries.html' },
+      ]
+    },
+    {
+      id: 'accident',
+      label: '🚨 Accident Portal',
+      children: [
+        { id: 'accident', icon: '🚨', label: 'Accident Report', href: 'accident-report.html' },
+      ]
+    },
+    {
+      id: 'injury',
+      label: '🏥 Injuries & Disease',
+      children: [
+        { id: 'injury-disease',  icon: '🏥', label: 'Injury & Disease Report', href: 'injury-disease-report.html' },
+        { id: 'worker-profile',  icon: '👤', label: 'Worker Profile',           href: 'worker-profile.html' },
+      ]
+    },
+    {
+      id: 'admin',
+      label: '⚙ Admin',
+      href: 'admin.html',
+      single: true
+    },
+  ];
+
+  // ── Build HTML ───────────────────────────────────────────
+  function buildNav() {
+    const nav = document.createElement('nav');
+    nav.className = 'osh-nav';
+
+    MENU.forEach(item => {
+      const li = document.createElement('div');
+      li.className = 'osh-nav-item';
+
+      // Check if this item or any child is active
+      const isSelfActive = item.id === active;
+      const isChildActive = !item.single && item.children?.some(c => c.id === active);
+      if (isChildActive) li.classList.add('has-active');
+
+      if (item.single) {
+        // Direct link button
+        const btn = document.createElement('button');
+        btn.className = 'osh-nav-btn' + (isSelfActive ? ' active' : '');
+        btn.textContent = item.label;
+        btn.onclick = () => { window.location.href = item.href; };
+        li.appendChild(btn);
+      } else {
+        // Dropdown trigger
+        const btn = document.createElement('button');
+        btn.className = 'osh-nav-btn';
+        btn.innerHTML = `${item.label} <span class="osh-caret">▼</span>`;
+        btn.addEventListener('click', () => {
+          // Toggle on mobile
+          li.classList.toggle('open');
+        });
+        li.appendChild(btn);
+
+        // Dropdown panel
+        const dd = document.createElement('div');
+        dd.className = 'osh-dropdown';
+        item.children.forEach(child => {
+          const a = document.createElement('a');
+          a.href = child.href;
+          a.className = child.id === active ? 'active' : '';
+          a.innerHTML = `<span class="dd-icon">${child.icon}</span>${child.label}`;
+          dd.appendChild(a);
+        });
+        li.appendChild(dd);
+      }
+
+      nav.appendChild(li);
+    });
+
+    return nav;
+  }
+
+  // ── Close dropdowns when clicking outside ────────────────
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.osh-nav-item')) {
+      document.querySelectorAll('.osh-nav-item.open')
+        .forEach(el => el.classList.remove('open'));
+    }
+  });
+
+  // ── Inject the nav ───────────────────────────────────────
+  // Replace any existing .site-nav, or insert after .navbar
+  function inject() {
+    const existing = document.querySelector('.site-nav');
+    const nav = buildNav();
+
+    if (existing) {
+      existing.replaceWith(nav);
+    } else {
+      const navbar = document.querySelector('.navbar');
+      if (navbar) navbar.insertAdjacentElement('afterend', nav);
+      else document.body.prepend(nav);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+
+  console.log('OSH nav loaded, active:', active);
+})();
