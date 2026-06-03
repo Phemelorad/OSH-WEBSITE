@@ -210,7 +210,7 @@
             <div class="search-row">
                 <div class="search-wrap">
                     <input type="text" id="searchInput"
-                           placeholder="Type worker name, occupation, or employer…"
+                           placeholder="Name, Omang, or passport number…"
                            oninput="onSearchInput()" autocomplete="off">
                     <div class="suggestions" id="suggestions"></div>
                 </div>
@@ -222,7 +222,7 @@
         <div class="state-box" id="emptyState">
             <div class="icon">👤</div>
             <p>Search for a worker to view their incident history</p>
-            <small>You can search by name, occupation, or employer name</small>
+            <small>Search by full name, Omang (national ID), or passport number</small>
         </div>
 
         <!-- ── Loading state ──────────────────────────────── -->
@@ -235,7 +235,7 @@
         <div class="state-box" id="noResultsState" style="display:none">
             <div class="icon">🔎</div>
             <p>No records found</p>
-            <small>No accidents or injury/disease reports found for this search</small>
+            <small>No accidents or injury/disease reports matched this name or ID</small>
         </div>
 
         <!-- ── Profile ────────────────────────────────────── -->
@@ -277,6 +277,35 @@
     let allIncidents = [];   // merged, sorted timeline
     let currentFilter = 'all';
 
+    // Escape % and _ for safe ilike patterns
+    function escapeIlike(s) {
+        return s.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+    }
+
+    function normalizeSearchQuery(raw) {
+        const trimmed = (raw || '').trim();
+        return { raw: trimmed, upper: trimmed.toUpperCase() };
+    }
+
+    // PostgREST .or() filter: name OR id/passport on report tables
+    function reportOrFilter(nameCol, idCol, q) {
+        const { raw, upper } = normalizeSearchQuery(q);
+        if (!raw) return null;
+        const namePat = `%${escapeIlike(raw)}%`;
+        const idPat = `%${escapeIlike(upper)}%`;
+        return `${nameCol}.ilike.${namePat},${idCol}.ilike.${idPat}`;
+    }
+
+    function dedupeIncidents(rows) {
+        const seen = new Set();
+        return rows.filter(r => {
+            const key = r.id || `${r._type}-${r.accident_date || r.incident_date}-${r.injured_name || r.worker_name}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
     // ── States ───────────────────────────────────────────────
     function showState(id) {
         ['emptyState','loadingState','noResultsState','profileView']
@@ -296,39 +325,62 @@
         const box = document.getElementById('suggestions');
         if (q.length < 2) { box.style.display = 'none'; return; }
         suggestTimer = setTimeout(async () => {
-            // Search both tables for matching names
-            const [accRes, injRes] = await Promise.all([
+            const accOr = reportOrFilter('injured_name', 'injured_id_number', q);
+            const injOr = reportOrFilter('worker_name', 'worker_id_number', q);
+            const regOr = reportOrFilter('full_name', 'id_number', q);
+            const [accRes, injRes, regRes] = await Promise.all([
                 SB.from('accident_reports')
-                  .select('injured_name, occupation_at_accident, occupier_name')
-                  .ilike('injured_name', `%${q}%`).limit(8),
+                  .select('injured_name, injured_id_number, occupation_at_accident, occupier_name')
+                  .or(accOr).limit(8),
                 SB.from('injury_disease_reports')
-                  .select('worker_name, occupation, employer_name')
-                  .ilike('worker_name', `%${q}%`).limit(8),
+                  .select('worker_name, worker_id_number, occupation, employer_name')
+                  .or(injOr).limit(8),
+                SB.from('workers_registry')
+                  .select('full_name, id_number, occupation, employer_name')
+                  .or(regOr).limit(8)
+                  .then(r => (r.error ? { data: [] } : r)),
             ]);
-            const names = new Map();
-            (accRes.data || []).forEach(r => {
-                if (r.injured_name) names.set(r.injured_name, { occ: r.occupation_at_accident, emp: r.occupier_name });
-            });
-            (injRes.data || []).forEach(r => {
-                if (r.worker_name && !names.has(r.worker_name))
-                    names.set(r.worker_name, { occ: r.occupation, emp: r.employer_name });
-            });
-            if (!names.size) { box.style.display = 'none'; return; }
-            box.innerHTML = [...names.entries()].map(([name, meta]) => `
-                <div class="suggestion-item" onclick="selectSuggestion('${name.replace(/'/g,"\\'")}')">
+            const workers = new Map();
+            function addWorker(name, idNum, meta) {
+                if (!name && !idNum) return;
+                const key = (idNum || name || '').toUpperCase();
+                if (!key || workers.has(key)) return;
+                workers.set(key, {
+                    name: name || '—',
+                    id: idNum || '',
+                    occ: meta.occ || '',
+                    emp: meta.emp || '',
+                });
+            }
+            (accRes.data || []).forEach(r => addWorker(r.injured_name, r.injured_id_number, {
+                occ: r.occupation_at_accident, emp: r.occupier_name,
+            }));
+            (injRes.data || []).forEach(r => addWorker(r.worker_name, r.worker_id_number, {
+                occ: r.occupation, emp: r.employer_name,
+            }));
+            (regRes.data || []).forEach(r => addWorker(r.full_name, r.id_number, {
+                occ: r.occupation, emp: r.employer_name,
+            }));
+            if (!workers.size) { box.style.display = 'none'; return; }
+            box.innerHTML = [...workers.values()].map(w => {
+                const label = w.name + (w.id ? ` · ${w.id}` : '');
+                const safeName = (w.name || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+                const safeId = (w.id || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+                return `
+                <div class="suggestion-item" onclick="selectSuggestion('${safeName}', '${safeId}')">
                     <div>
-                        <span class="s-name">${name}</span>
-                        ${meta.occ ? `<span style="color:#888;font-size:12px;margin-left:8px">${meta.occ}</span>` : ''}
+                        <span class="s-name">${label}</span>
+                        ${w.occ ? `<span style="color:#888;font-size:12px;margin-left:8px">${w.occ}</span>` : ''}
                     </div>
-                    <span class="s-meta">${meta.emp || ''}</span>
-                </div>`
-            ).join('');
+                    <span class="s-meta">${w.emp || ''}</span>
+                </div>`;
+            }).join('');
             box.style.display = 'block';
         }, 280);
     }
 
-    function selectSuggestion(name) {
-        document.getElementById('searchInput').value = name;
+    function selectSuggestion(name, idNumber) {
+        document.getElementById('searchInput').value = idNumber || name;
         document.getElementById('suggestions').style.display = 'none';
         searchWorker();
     }
@@ -352,23 +404,25 @@
         showState('loadingState');
 
         try {
-            // Fetch from both tables simultaneously
+            const accOr = reportOrFilter('injured_name', 'injured_id_number', q);
+            const injOr = reportOrFilter('worker_name', 'worker_id_number', q);
+
             const [accRes, injRes] = await Promise.all([
                 SB.from('accident_reports')
                   .select('*')
-                  .ilike('injured_name', `%${q}%`)
+                  .or(accOr)
                   .order('accident_date', { ascending: false }),
 
                 SB.from('injury_disease_reports')
                   .select('*')
-                  .ilike('worker_name', `%${q}%`)
+                  .or(injOr)
                   .order('incident_date', { ascending: false }),
             ]);
 
             const accidents = (accRes.data || []).map(r => ({ ...r, _type: 'accident' }));
             const injuries  = (injRes.data || []).map(r => ({ ...r, _type: r.incident_type === 'Disease' ? 'disease' : 'injury' }));
 
-            allIncidents = [...accidents, ...injuries].sort((a, b) => {
+            allIncidents = dedupeIncidents([...accidents, ...injuries]).sort((a, b) => {
                 const da = new Date(a.accident_date || a.incident_date || 0);
                 const db = new Date(b.accident_date || b.incident_date || 0);
                 return db - da;   // newest first
@@ -390,6 +444,7 @@
         // Use the most specific name found
         const rep = incidents.find(i => i.injured_name || i.worker_name);
         const workerName   = rep?.injured_name || rep?.worker_name || searchTerm;
+        const workerId     = rep?.injured_id_number || rep?.worker_id_number || '';
         const occupation   = rep?.occupation_at_accident || rep?.usual_occupation || rep?.occupation || '—';
         const employer     = rep?.occupier_name || rep?.employer_name || '—';
 
@@ -417,6 +472,7 @@
             <div class="profile-info">
                 <h2>${workerName}</h2>
                 <div class="meta">
+                    ${workerId ? `<strong>ID / Passport:</strong> ${workerId} &nbsp;·&nbsp; ` : ''}
                     ${occupation !== '—' ? `<strong>Occupation:</strong> ${occupation} &nbsp;·&nbsp; ` : ''}
                     <strong>Employer:</strong> ${employer}
                     ${firstDate ? ` &nbsp;·&nbsp; <strong>First incident:</strong> ${fmtDate(firstDate)}` : ''}
@@ -660,11 +716,12 @@
             }
         }
 
-        // Check if a worker name was passed via URL (from another page linking directly)
+        // Deep link: ?worker=Name or ?id=OmangOrPassport (also accepts ?passport=)
         const params = new URLSearchParams(window.location.search);
-        const prefill = params.get('worker');
-        if (prefill) {
-            document.getElementById('searchInput').value = decodeURIComponent(prefill);
+        const prefillId = params.get('id') || params.get('passport');
+        const prefillName = params.get('worker');
+        if (prefillId || prefillName) {
+            document.getElementById('searchInput').value = decodeURIComponent(prefillId || prefillName);
             searchWorker();
         }
     });
