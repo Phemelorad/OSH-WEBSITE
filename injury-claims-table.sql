@@ -40,7 +40,7 @@ CREATE TABLE injury_claims (
 COMMENT ON TABLE injury_claims IS 'Stores injury claim form submissions from OSH website';
 
 -- Add comments to columns
-COMMENT ON COLUMN injury_claims.file_number IS 'Unique file number for the claim';
+COMMENT ON COLUMN injury_claims.file_number IS 'Unique claim file number: OHS/COMP/{claimant_id}/{sequence}/{YY} (auto-generated on insert)';
 COMMENT ON COLUMN injury_claims.incapacity_percentage IS 'Percentage of incapacity (0-100)';
 COMMENT ON COLUMN injury_claims.status IS 'Current status of the claim';
 COMMENT ON COLUMN injury_claims.submitted_by IS 'User who submitted the claim';

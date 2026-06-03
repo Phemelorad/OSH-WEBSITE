@@ -289,9 +289,14 @@
                     <h2 class="section-title">Claim Information</h2>
                     
                     <div class="form-group">
-                        <label for="fileNumber">File Number<span class="required">*</span></label>
-                        <input type="text" id="fileNumber" name="fileNumber" placeholder="Enter file number" required>
-                        <span class="error-message">File number is required</span>
+                        <label for="fileNumber">File Number</label>
+                        <input type="text" id="fileNumber" name="fileNumber" readonly
+                               placeholder="Enter claimant Omang / passport to generate"
+                               style="background:#f5f5f5;cursor:not-allowed;font-weight:600;letter-spacing:0.3px">
+                        <p class="hint" id="fileNumberHint" style="margin-top:8px;font-size:12px;color:#888">
+                            Auto-generated: <strong>OHS/COMP</strong> / claimant ID / claim sequence / year
+                            (e.g. OHS/COMP/113224608/249/26)
+                        </p>
                     </div>
 
                     <div class="form-group">
@@ -463,9 +468,42 @@
                     employer_name:      'nameOfEmployer',
                     worker_registry_id: 'workerRegistryId',
                 },
-                saveNewWorker: true
+                saveNewWorker: true,
+                onFound: refreshClaimFileNumberPreview,
             });
+
+            const claimantIdEl = document.getElementById('claimantIdNumber');
+            let fileNumberTimer = null;
+            claimantIdEl.addEventListener('input', function () {
+                clearTimeout(fileNumberTimer);
+                fileNumberTimer = setTimeout(refreshClaimFileNumberPreview, 400);
+            });
+            claimantIdEl.addEventListener('blur', refreshClaimFileNumberPreview);
         });
+
+        async function refreshClaimFileNumberPreview() {
+            const idEl = document.getElementById('claimantIdNumber');
+            const fileEl = document.getElementById('fileNumber');
+            const hintEl = document.getElementById('fileNumberHint');
+            const id = (idEl?.value || '').trim();
+            if (!id) {
+                fileEl.value = '';
+                hintEl.innerHTML = 'Auto-generated: <strong>OHS/COMP</strong> / claimant ID / claim sequence / year';
+                return;
+            }
+            fileEl.value = 'Generating…';
+            const { fileNumber, error } = await previewCompClaimFileNumber(id);
+            if (error) {
+                fileEl.value = '';
+                hintEl.textContent = 'Could not preview file number: ' + error +
+                    ' (run claim-file-number.sql in Supabase if not applied yet).';
+                return;
+            }
+            fileEl.value = fileNumber || '';
+            hintEl.innerHTML = fileNumber
+                ? `Next file number for this claimant: <strong>${fileNumber}</strong> (assigned on submit)`
+                : 'Enter a valid Omang or passport number.';
+        }
 
         // Form validation
         function validateField(field) {
@@ -553,15 +591,24 @@
                     worker_registry_id: 'workerRegistryId',
                 }) || window._resolvedWorkerId || null;
 
+                const claimantId = document.getElementById('claimantIdNumber').value.trim();
+                if (!claimantId) {
+                    await showAlert('Omang or passport number is required to generate the claim file number.', {
+                        type: 'warning', title: 'Claimant ID Required'
+                    });
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                    return;
+                }
+
                 const claimData = {
-                    file_number:            document.getElementById('fileNumber').value.trim(),
                     name_of_employer:       document.getElementById('nameOfEmployer').value.trim(),
                     industry:               document.getElementById('industry').value,
                     name_of_claimant:       document.getElementById('nameOfClaimant').value.trim(),
                     gender:                 document.getElementById('gender').value,
                     location:               document.getElementById('location').value.trim(),
                     nationality:            document.getElementById('nationality').value.trim(),
-                    claimant_id_number:     document.getElementById('claimantIdNumber').value.trim().toUpperCase(),
+                    claimant_id_number:     claimantId.toUpperCase(),
                     worker_registry_id:     registryId,
                     date_of_injury:         document.getElementById('dateOfInjury').value,
                     date_reported:          document.getElementById('dateReported').value,
@@ -578,17 +625,24 @@
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
                 );
 
-                const { error: insertError } = await supabaseClient
-                    .from('injury_claims').insert([claimData]);
+                const { data: inserted, error: insertError } = await supabaseClient
+                    .from('injury_claims')
+                    .insert([claimData])
+                    .select('file_number')
+                    .single();
 
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
 
                 if (insertError) throw insertError;
 
-                await showAlert('Your injury claim has been submitted successfully.', {
-                    type: 'success', title: 'Claim Submitted', btnText: 'View Entries'
-                });
+                const assignedFile = inserted?.file_number || document.getElementById('fileNumber').value;
+                await showAlert(
+                    assignedFile
+                        ? `Your injury claim has been submitted.\n\nFile number: ${assignedFile}`
+                        : 'Your injury claim has been submitted successfully.',
+                    { type: 'success', title: 'Claim Submitted', btnText: 'View Entries' }
+                );
                 form.reset();
                 window.location.href = 'entries.html';
 

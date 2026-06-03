@@ -113,6 +113,19 @@
     return idType === 'Passport' ? 'Passport' : 'Omang (National ID)';
   };
 
+  /** Preview OHS/COMP/{id}/{seq}/{YY} — requires claim-file-number.sql in Supabase */
+  window.previewCompClaimFileNumber = async function (claimantId) {
+    const id = window.normalizeIdentityId(claimantId);
+    if (!id) return { fileNumber: null, error: null };
+
+    const { data, error } = await getSB().rpc('preview_comp_claim_file_number', {
+      p_claimant_id: id,
+    });
+
+    if (error) return { fileNumber: null, error: error.message };
+    return { fileNumber: data || null, error: null };
+  };
+
   function readFormField(fieldId, column) {
     const el = document.getElementById(fieldId);
     if (!el) return null;
