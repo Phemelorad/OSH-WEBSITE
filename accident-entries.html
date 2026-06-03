@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accident Reports - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%); min-height:100vh; }
+        .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
+        .navbar h1 { color:#333; font-size:24px; }
+        .user-info { display:flex; align-items:center; gap:20px; }
+        .logout-btn { padding:10px 20px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
+        .logout-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+        .site-nav { display:none; }
+        .container { max-width:1600px; margin:40px auto; padding:0 20px; }
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px; margin-bottom:30px; }
+        .stat-card { background:white; border-radius:12px; padding:25px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #333; }
+        .stat-card.red   { border-left-color:#dc3545; }
+        .stat-card.amber { border-left-color:#ffc107; }
+        .stat-card.blue  { border-left-color:#17a2b8; }
+        .stat-card h3 { color:#666; font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+        .stat-card .stat-value { color:#333; font-size:28px; font-weight:700; }
+        .stat-card.red   .stat-value { color:#721c24; }
+        .stat-card.amber .stat-value { color:#856404; }
+        .section-card { background:white; border-radius:12px; padding:30px; box-shadow:0 4px 20px rgba(0,0,0,0.1); margin-bottom:30px; }
+        .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #f0f0f0; flex-wrap:wrap; gap:12px; }
+        .section-header h2 { color:#333; font-size:20px; }
+        .filters { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+        .filter-group { display:flex; flex-direction:column; gap:4px; }
+        .filter-group label { font-size:11px; color:#666; font-weight:600; text-transform:uppercase; }
+        .filter-group select, .filter-group input { padding:8px 12px; border:2px solid #e0e0e0; border-radius:6px; font-size:13px; font-family:inherit; }
+        .refresh-btn, .export-btn { padding:8px 16px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; font-size:13px; font-family:inherit; }
+        .refresh-btn:hover, .export-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+        .table-container { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        thead { background:#f8f8f8; }
+        th { text-align:left; padding:12px; color:#333; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e0e0e0; white-space:nowrap; }
+        td { padding:11px 12px; color:#555; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+        tr:hover { background:#fafafa; }
+        .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+        .badge-fatal      { background:#f8d7da; color:#721c24; }
+        .badge-non-fatal  { background:#d4edda; color:#155724; }
+        .badge-submitted  { background:#fff3cd; color:#856404; }
+        .badge-under_review { background:#d1ecf1; color:#0c5460; }
+        .badge-investigated { background:#d4edda; color:#155724; }
+        .badge-closed     { background:#e2e3e5; color:#383d41; }
+        .badge-accident   { background:#f8d7da; color:#721c24; }
+        .badge-dangerous_occurrence { background:#fff3cd; color:#856404; }
+        .badge-both       { background:#e2d9f3; color:#4a1d96; }
+        .loading { text-align:center; padding:60px; color:#666; }
+        .spinner { border:4px solid #f3f3f3; border-top:4px solid #333; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 20px; }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        .empty-state { text-align:center; padding:60px; color:#999; }
+        .action-btn { padding:5px 10px; margin:0 2px; background:white; color:#333; border:1px solid #ddd; border-radius:4px; cursor:pointer; font-size:11px; transition:all 0.2s; font-family:inherit; }
+        .action-btn:hover { background:#f0f0f0; }
+        .row-count { margin-top:12px; font-size:13px; color:#888; text-align:right; }
+        @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Accident Reports</h1>
+        <div class="user-info">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'accident';</script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Total Reports</h3><div class="stat-value" id="statTotal">—</div></div>
+            <div class="stat-card red"><h3>Fatal</h3><div class="stat-value" id="statFatal">—</div></div>
+            <div class="stat-card"><h3>Non-Fatal</h3><div class="stat-value" id="statNonFatal">—</div></div>
+            <div class="stat-card blue"><h3>Dangerous Occurrences</h3><div class="stat-value" id="statDangerous">—</div></div>
+            <div class="stat-card amber"><h3>Pending Investigation</h3><div class="stat-value" id="statPending">—</div></div>
+            <div class="stat-card"><h3>This Month</h3><div class="stat-value" id="statMonth">—</div></div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🚨 Accident Reports (OHS Form 60)</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Report Type</label>
+                        <select id="filterType" onchange="applyFilters()">
+                            <option value="">All Types</option>
+                            <option value="accident">Accident</option>
+                            <option value="dangerous_occurrence">Dangerous Occurrence</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Fatal</label>
+                        <select id="filterFatal" onchange="applyFilters()">
+                            <option value="">All</option>
+                            <option value="Fatal">Fatal</option>
+                            <option value="Non-fatal">Non-fatal</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Investigation</label>
+                        <select id="filterInv" onchange="applyFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" id="filterSearch" placeholder="Name / Occupier…" oninput="applyFilters()" style="width:160px">
+                    </div>
+                    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+                    <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+                </div>
+            </div>
+
+            <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading records…</p></div>
+
+            <div id="tableWrap" style="display:none">
+                <div class="table-container">
+                    <table>
+                        <thead><tr>
+                            <th>Occupier / Employer</th>
+                            <th>Injured Person</th>
+                            <th>Age / Sex</th>
+                            <th>Industry</th>
+                            <th>Report Type</th>
+                            <th>Accident Date</th>
+                            <th>Place</th>
+                            <th>Fatal?</th>
+                            <th>Investigation</th>
+                            <th>Reporter</th>
+                            <th>Report Date</th>
+                            <th>Actions</th>
+                        </tr></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display:none"><p>🚨 No accident reports found</p></div>
+                <div class="row-count" id="rowCount"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script>
+    const SB = window.supabaseClient || window.supabase.createClient(
+        'https://qblogmmknnacaaircrlt.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+    );
+    let allRecords = [];
+
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        await loadData();
+    });
+
+    async function loadData() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('tableWrap').style.display = 'none';
+        const { data, error } = await SB.from('accident_reports').select('*').order('accident_date', { ascending: false });
+        if (error) {
+            document.getElementById('loadingState').innerHTML = `<p style="color:#e74c3c;padding:40px;text-align:center">Error: ${error.message} <br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>`;
+            return;
+        }
+        allRecords = data || [];
+        buildStats(allRecords);
+        renderTable(allRecords);
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('tableWrap').style.display = 'block';
+    }
+
+    function buildStats(rows) {
+        const now = new Date(), month = new Date(now.getFullYear(), now.getMonth(), 1);
+        document.getElementById('statTotal').textContent     = rows.length;
+        document.getElementById('statFatal').textContent     = rows.filter(r => r.injury_fatal === 'Fatal').length;
+        document.getElementById('statNonFatal').textContent  = rows.filter(r => r.injury_fatal === 'Non-fatal').length;
+        document.getElementById('statDangerous').textContent = rows.filter(r => r.report_type === 'dangerous_occurrence').length;
+        document.getElementById('statPending').textContent   = rows.filter(r => r.investigation_status === 'Pending').length;
+        document.getElementById('statMonth').textContent     = rows.filter(r => new Date(r.accident_date || r.created_at) >= month).length;
+    }
+
+    function applyFilters() {
+        const type   = document.getElementById('filterType').value;
+        const fatal  = document.getElementById('filterFatal').value;
+        const inv    = document.getElementById('filterInv').value;
+        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        renderTable(allRecords.filter(r =>
+            (!type   || r.report_type === type) &&
+            (!fatal  || r.injury_fatal === fatal) &&
+            (!inv    || r.investigation_status === inv) &&
+            (!search || (r.injured_name||'').toLowerCase().includes(search) || (r.occupier_name||'').toLowerCase().includes(search))
+        ));
+    }
+
+    function renderTable(rows) {
+        const tbody = document.getElementById('tableBody');
+        const empty = document.getElementById('emptyState');
+        document.getElementById('rowCount').textContent = rows.length ? `Showing ${rows.length} record${rows.length !== 1 ? 's' : ''}` : '';
+        if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        const canEdit = canEditClaims ? canEditClaims : () => true;
+        tbody.innerHTML = rows.map(r => {
+            const typeSlug  = (r.report_type || '').replace('_','-');
+            const fatalSlug = (r.injury_fatal || '').toLowerCase().replace('-','').replace(' ','');
+            const invSlug   = (r.investigation_status || 'submitted').toLowerCase().replace(' ','_');
+            return `<tr>
+                <td><strong>${r.occupier_name || '—'}</strong><br><small style="color:#aaa">${r.nature_of_industry || ''}</small></td>
+                <td>${r.injured_name || '—'}</td>
+                <td>${r.injured_age ? r.injured_age + ' / ' + (r.injured_sex || '') : '—'}</td>
+                <td>${r.industry_sector || '—'}</td>
+                <td><span class="badge badge-${typeSlug}">${(r.report_type || '').replace('_',' ').toUpperCase()}</span></td>
+                <td style="white-space:nowrap">${fmtDate(r.accident_date)}</td>
+                <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.accident_place||''}">${r.accident_place || r.premises_address || '—'}</td>
+                <td><span class="badge badge-${r.injury_fatal === 'Fatal' ? 'fatal' : 'non-fatal'}">${r.injury_fatal || '—'}</span></td>
+                <td><span class="badge badge-${invSlug}">${r.investigation_status || 'Pending'}</span></td>
+                <td>${r.reporter_name || '—'}</td>
+                <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
+                <td style="white-space:nowrap">
+                    <button class="action-btn" onclick="viewRecord('${r.id}')">View</button>
+                    <button class="action-btn" onclick="editInvestigation('${r.id}','${r.investigation_status||'Pending'}','${r.submitted_by||''}')">Status</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function viewRecord(id) {
+        const r = allRecords.find(x => x.id === id);
+        if (!r) return;
+        const fields = [
+            ['Report Type', (r.report_type||'').replace('_',' ').toUpperCase()],
+            ['Occupier / Employer', r.occupier_name],
+            ['Premises Address', r.premises_address],
+            ['Nature of Industry', r.nature_of_industry],
+            ['Industry Sector', r.industry_sector],
+            ['─── Injured Person ───', ''],
+            ['Full Name', r.injured_name],
+            ['Age', r.injured_age],
+            ['Sex', r.injured_sex],
+            ['ID / Passport', r.injured_id_number],
+            ['Occupation at Accident', r.occupation_at_accident],
+            ['Usual Occupation', r.usual_occupation],
+            ['Experience Level', r.experience_level],
+            ['─── Accident ───', ''],
+            ['Date', fmtDate(r.accident_date)],
+            ['Time', r.accident_time],
+            ['Place', r.accident_place],
+            ['Description', r.accident_description],
+            ['Machinery Involved', r.machinery_involved],
+            ['─── Injury ───', ''],
+            ['Fatal?', r.injury_fatal],
+            ['Disabled 3+ Days', r.disabled_three_days],
+            ['Hourly Pay (BWP)', r.hourly_pay],
+            ['Medical Practitioner', r.medical_practitioner],
+            ['─── Dangerous Occurrence ───', ''],
+            ['Date', r.dangerous_date ? fmtDate(r.dangerous_date) : null],
+            ['Description', r.dangerous_description],
+            ['Damage / Loss', r.dangerous_damage],
+            ['Employees Injured', r.employees_injured],
+            ['─── Submission ───', ''],
+            ['Reporter', r.reporter_name + (r.reporter_designation ? ` (${r.reporter_designation})` : '')],
+            ['Report Date', fmtDate(r.report_date)],
+            ['Causation No.', r.causation_number],
+            ['Investigation Status', r.investigation_status],
+            ['Official Action', r.official_action],
+        ];
+        const rowsHTML = fields.filter(([,v]) => v != null && v !== '').map(([label, value]) => {
+            if (label.startsWith('─')) return `<div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;padding:10px 0 4px;border-top:1px solid #f0f0f0;margin-top:4px">${label.replace(/─/g,'').trim()}</div>`;
+            return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8f8f8;gap:16px">
+                <span style="color:#888;font-size:13px;min-width:160px;flex-shrink:0">${label}</span>
+                <span style="color:#333;font-size:13px;text-align:right;line-height:1.4">${value}</span></div>`;
+        }).join('');
+        return new Promise(resolve => {
+            const ov = document.createElement('div');
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+            ov.innerHTML = `<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:'Segoe UI',sans-serif">
+                <div style="font-size:32px;text-align:center;margin-bottom:8px">🚨</div>
+                <h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Accident Report — OHS Form 60</h2>
+                ${rowsHTML}
+                <div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Close</button></div>
+            </div>`;
+            ov.querySelector('#closeBtn').addEventListener('click', () => { ov.remove(); resolve(); });
+            ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); resolve(); } });
+            document.body.appendChild(ov);
+        });
+    }
+
+    async function editInvestigation(id, current, ownerId) {
+        if (typeof canEditClaims === 'function' && !canEditClaims(ownerId)) {
+            showPermissionDenied('edit this report'); return;
+        }
+        const newStatus = await showSelect(
+            `Current: <strong>${current}</strong>`,
+            [{ value:'Pending', label:'⏳ Pending' }, { value:'In Progress', label:'🔵 In Progress' }, { value:'Completed', label:'✅ Completed' }, { value:'Closed', label:'⚫ Closed' }],
+            current,
+            { title: 'Update Investigation Status', confirmText: 'Update' }
+        );
+        if (!newStatus || newStatus === current) return;
+        const { error } = await SB.from('accident_reports').update({ investigation_status: newStatus }).eq('id', id);
+        if (error) { await showAlert(error.message, { type:'error', title:'Update Failed' }); return; }
+        showToast('Investigation status updated', 'success');
+        allRecords = allRecords.map(r => r.id === id ? { ...r, investigation_status: newStatus } : r);
+        applyFilters();
+    }
+
+    function exportCSV() {
+        const headers = ['Occupier','Premises','Industry','Report Type','Injured Name','Age','Sex','ID No','Occupation','Accident Date','Place','Fatal','Disabled 3+ Days','Investigation','Reporter','Report Date','Causation No'];
+        const rows = allRecords.map(r => [
+            r.occupier_name, r.premises_address, r.industry_sector, r.report_type,
+            r.injured_name, r.injured_age, r.injured_sex, r.injured_id_number,
+            r.occupation_at_accident, r.accident_date, r.accident_place, r.injury_fatal,
+            r.disabled_three_days, r.investigation_status, r.reporter_name, r.report_date, r.causation_number
+        ]);
+        const csv = [headers, ...rows].map(r => r.map(c => `"${c||''}"`).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+        a.download = `accident_reports_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    async function handleLogout() {
+        const ok = await showConfirm('You will be signed out of the OSH system.', { title:'Logout', icon:'👋', confirmText:'Logout', cancelText:'Stay' });
+        if (ok) { const r = await signOut(); if (r.success) window.location.href = 'index.html'; else await showAlert('Logout failed: ' + r.error, { type:'error' }); }
+    }
+    </script>
+</body>
+</html>

@@ -196,15 +196,17 @@
       id: 'accident',
       label: '🚨 Accident Portal',
       children: [
-        { id: 'accident', icon: '🚨', label: 'Accident Report', href: 'accident-report.html' },
+        { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
+        { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
       ]
     },
     {
       id: 'injury',
       label: '🏥 Injuries & Disease',
       children: [
-        { id: 'injury-disease',  icon: '🏥', label: 'Injury & Disease Report', href: 'injury-disease-report.html' },
-        { id: 'worker-profile',  icon: '👤', label: 'Worker Profile',           href: 'worker-profile.html' },
+        { id: 'injury-disease',         icon: '🏥', label: 'New Injury/Disease Report', href: 'injury-disease-report.html' },
+        { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',               href: 'injury-disease-entries.html' },
+        { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',             href: 'worker-profile.html' },
       ]
     },
     {
