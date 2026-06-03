@@ -500,9 +500,6 @@
             } else { plantHTML = '<p style="color:#999;font-size:13px">None recorded</p>'; }
         } catch { plantHTML = '<p style="color:#999;font-size:13px">None recorded</p>'; }
 
-        const compColor = (r.compliance_level||100) >= 75 ? '#155724'
-                        : (r.compliance_level||100) >= 50 ? '#856404' : '#721c24';
-
         const rows = [
             ['File Number',    r.file_number],
             ['Factory',        r.factory_name],
