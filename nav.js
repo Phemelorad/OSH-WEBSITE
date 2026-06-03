@@ -2,18 +2,20 @@
 // SHARED DROPDOWN NAVIGATION
 // Include this script on every page AFTER the navbar div.
 // Set window.OSH_ACTIVE_PAGE before including, e.g.:
-//   <script>window.OSH_ACTIVE_PAGE = 'inspection';</script>
+//   <script>window.OSH_ACTIVE_PAGE = 'inspection-form';</script>
 //
 // Page tokens:
-//   dashboard        → Untitled-1.html / dashboard.html
-//   claims-submit    → form.html
-//   claims-entries   → entries.html
-//   inspection-form  → inspection.html
-//   inspection-records → inspection-entries.html
-//   accident         → accident-report.html
-//   injury-disease   → injury-disease-report.html
-//   worker-profile   → worker-profile.html
-//   admin            → admin.html
+//   dashboard               → dashboard.html
+//   claims-submit           → form.html
+//   claims-entries          → entries.html
+//   inspection-form         → inspection.html
+//   inspection-records      → inspection-entries.html
+//   accident                → accident-report.html
+//   accident-entries        → accident-entries.html
+//   injury-disease          → injury-disease-report.html
+//   injury-disease-entries  → injury-disease-entries.html
+//   worker-profile          → worker-profile.html
+//   admin                   → admin.html
 // ============================================================
 
 (function () {
@@ -173,8 +175,8 @@
     {
       id: 'dashboard',
       label: '⌂ Dashboard',
-      href: 'Untitled-1.html',
-      single: true   // no dropdown — direct link
+      href: 'dashboard.html',
+      single: true
     },
     {
       id: 'claims',
