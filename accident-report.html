@@ -631,17 +631,16 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
-            // Save new worker to registry if not previously found
-            const registryId = await saveWorkerIfNew({
-                full_name:  g('injuredName'),
-                sex:        g('injuredSex'),
-                occupation: g('occupationAtAccident'),
-                id_number:  (g('injuredId') || '').toUpperCase()
-            }, {
-                full_name:  'full_name',
-                sex:        'sex',
-                occupation: 'occupation',
-                id_number:  'id_number'
+            const registryId = await upsertWorkerRegistry({
+                id_number:          'injuredId',
+                full_name:          'injuredName',
+                sex:                'injuredSex',
+                occupation:         'occupationAtAccident',
+                usual_occupation:   'usualOccupation',
+                experience_level:   'experienceLevel',
+                age_years:          'injuredAge',
+                employer_name:      'occupierName',
+                worker_registry_id: 'accidentWorkerRegistryId',
             }) || window._resolvedWorkerId || null;
 
             const payload = {
@@ -730,9 +729,15 @@
             attachWorkerLookup({
                 containerId: 'wl-container-accident',
                 fields: {
-                    id_number: 'injuredId', full_name: 'injuredName',
-                    sex: 'injuredSex', occupation: 'occupationAtAccident',
-                    worker_registry_id: 'accidentWorkerRegistryId'
+                    id_number:          'injuredId',
+                    full_name:          'injuredName',
+                    sex:                'injuredSex',
+                    occupation:         'occupationAtAccident',
+                    usual_occupation:   'usualOccupation',
+                    experience_level:   'experienceLevel',
+                    age_years:          'injuredAge',
+                    employer_name:      'occupierName',
+                    worker_registry_id: 'accidentWorkerRegistryId',
                 },
                 saveNewWorker: true
             });
@@ -786,7 +791,11 @@
                 full_name:          'injuredName',
                 sex:                'injuredSex',
                 occupation:         'occupationAtAccident',
-                worker_registry_id: 'accidentWorkerRegistryId'
+                usual_occupation:   'usualOccupation',
+                experience_level:   'experienceLevel',
+                age_years:          'injuredAge',
+                employer_name:      'occupierName',
+                worker_registry_id: 'accidentWorkerRegistryId',
             },
             saveNewWorker: true
         });

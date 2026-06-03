@@ -447,17 +447,15 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
-            // Save new worker to registry if not previously found
-            const registryId = await saveWorkerIfNew({
-                full_name:  g('workerName'),
-                address:    g('workerAddress'),
-                occupation: g('occupation'),
-                id_number:  (g('workerIdNumber') || '').toUpperCase()
-            }, {
-                full_name:  'full_name',
-                address:    'address',
-                occupation: 'occupation',
-                id_number:  'id_number'
+            const registryId = await upsertWorkerRegistry({
+                id_number:            'workerIdNumber',
+                full_name:            'workerName',
+                address:              'workerAddress',
+                occupation:           'occupation',
+                employer_name:        'employerName',
+                employer_telephone:   'employerTelephone',
+                employer_fax:         'employerFax',
+                worker_registry_id:   'idrWorkerRegistryId',
             }) || window._resolvedWorkerId || null;
 
             const payload = {

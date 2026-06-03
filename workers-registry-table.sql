@@ -20,10 +20,14 @@ CREATE TABLE IF NOT EXISTS workers_registry (
     address         TEXT,
 
     -- ── Employment details ────────────────────────────────────
-    occupation      TEXT,
-    employer_name   TEXT,
-    employer_address TEXT,
-    employer_telephone TEXT,
+    occupation          TEXT,
+    usual_occupation    TEXT,
+    experience_level    TEXT,
+    employer_name       TEXT,
+    employer_address    TEXT,
+    employer_telephone  TEXT,
+    employer_fax          TEXT,
+    age_years           INTEGER CHECK (age_years IS NULL OR (age_years > 0 AND age_years < 120)),
 
     -- ── Metadata ─────────────────────────────────────────────
     created_by      UUID REFERENCES auth.users(id) ON DELETE SET NULL,

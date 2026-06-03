@@ -354,7 +354,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="gender">Gender<span class="required">*</span></label>
-                            <select id="gender" name="gender" required>
+                            <select id="gender" name="gender" data-sex-format="mf" required>
                                 <option value="">— Select gender —</option>
                                 <option value="M">Male</option>
                                 <option value="F">Female</option>
@@ -455,12 +455,13 @@
             attachWorkerLookup({
                 containerId: 'wl-container',
                 fields: {
-                    id_number:   'claimantIdNumber',
-                    full_name:   'nameOfClaimant',
-                    sex:         'gender',
-                    nationality: 'nationality',
-                    address:     'location',
-                    worker_registry_id: 'workerRegistryId'
+                    id_number:          'claimantIdNumber',
+                    full_name:          'nameOfClaimant',
+                    sex:                'gender',
+                    nationality:        'nationality',
+                    address:            'location',
+                    employer_name:      'nameOfEmployer',
+                    worker_registry_id: 'workerRegistryId',
                 },
                 saveNewWorker: true
             });
@@ -542,19 +543,14 @@
                     return;
                 }
 
-                // Save new worker to registry if not found during lookup
-                const registryId = await saveWorkerIfNew({
-                    nameOfClaimant: document.getElementById('nameOfClaimant').value.trim(),
-                    gender:         document.getElementById('gender').value,
-                    nationality:    document.getElementById('nationality').value.trim(),
-                    location:       document.getElementById('location').value.trim(),
-                    claimantIdNumber: document.getElementById('claimantIdNumber').value.trim()
-                }, {
-                    full_name:   'nameOfClaimant',
-                    sex:         'gender',
-                    nationality: 'nationality',
-                    address:     'location',
-                    id_number:   'claimantIdNumber'
+                const registryId = await upsertWorkerRegistry({
+                    id_number:          'claimantIdNumber',
+                    full_name:          'nameOfClaimant',
+                    sex:                'gender',
+                    nationality:        'nationality',
+                    address:            'location',
+                    employer_name:      'nameOfEmployer',
+                    worker_registry_id: 'workerRegistryId',
                 }) || window._resolvedWorkerId || null;
 
                 const claimData = {
