@@ -283,7 +283,12 @@
                     Form submitted successfully!
                 </div>
 
+                <div id="draftBanner" style="display:none;margin-bottom:20px;padding:14px 18px;background:#fff3cd;border:1px solid #ffc107;border-radius:8px;font-size:14px;color:#856404"></div>
+
             <form id="mainForm">
+                <input type="hidden" id="draftClaimId" name="draftClaimId" value="">
+                <input type="hidden" id="sourceType" name="sourceType" value="">
+                <input type="hidden" id="sourceId" name="sourceId" value="">
                 <!-- Claim Information Section -->
                 <div class="form-section">
                     <h2 class="section-title">Claim Information</h2>
@@ -369,8 +374,12 @@
 
                         <div class="form-group">
                             <label for="nationality">Nationality<span class="required">*</span></label>
-                            <input type="text" id="nationality" name="nationality" placeholder="Enter nationality" required>
-                            <span class="error-message">Nationality is required</span>
+                            <div class="nat-select-wrap">
+                                <input type="text" id="nationality" name="nationality"
+                                       placeholder="Search nationality…" required autocomplete="off">
+                                <div class="nat-dropdown" id="nationalityDropdown" role="listbox"></div>
+                            </div>
+                            <span class="error-message">Please select a nationality from the list</span>
                         </div>
                     </div>
 
@@ -426,8 +435,9 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelDraftBtn" style="display:none" onclick="cancelDraftFromForm()">Cancel draft</button>
                     <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
-                    <button type="submit" class="btn btn-primary">Submit Claim</button>
+                    <button type="submit" class="btn btn-primary" id="submitClaimBtn">Submit Claim</button>
                 </div>
             </form>
         </div>
@@ -443,6 +453,9 @@
     <script src="modal.js"></script>
     <!-- Worker Lookup -->
     <script src="worker-lookup.js"></script>
+    <script src="nationalities.js"></script>
+    <script src="nationality-select.js"></script>
+    <script src="claim-draft.js"></script>
 
     <script>
         const form = document.getElementById('mainForm');
@@ -457,6 +470,8 @@
             enforcePermissions();
 
             // Attach worker lookup — maps registry columns → form field IDs
+            initNationalitySelect('nationality');
+
             attachWorkerLookup({
                 containerId: 'wl-container',
                 fields: {
@@ -479,7 +494,24 @@
                 fileNumberTimer = setTimeout(refreshClaimFileNumberPreview, 400);
             });
             claimantIdEl.addEventListener('blur', refreshClaimFileNumberPreview);
+
+            const params = new URLSearchParams(window.location.search);
+            const draftId = params.get('draft');
+            if (draftId) {
+                const data = await loadClaimDraftIntoForm(draftId);
+                if (data) {
+                    document.getElementById('cancelDraftBtn').style.display = 'inline-block';
+                    document.getElementById('submitClaimBtn').textContent = 'Complete & submit claim';
+                }
+            }
         });
+
+        async function cancelDraftFromForm() {
+            const id = document.getElementById('draftClaimId').value;
+            if (!id) return;
+            const ok = await cancelClaimDraft(id);
+            if (ok) window.location.href = 'entries.html';
+        }
 
         async function refreshClaimFileNumberPreview() {
             const idEl = document.getElementById('claimantIdNumber');
@@ -528,6 +560,15 @@
             if (field.hasAttribute('required') && value === '') {
                 field.classList.add('error');
                 return false;
+            }
+
+            if (field.id === 'nationality' && value) {
+                const list = window.NATIONALITIES || [];
+                const ok = list.some(n => n.toLowerCase() === value.toLowerCase());
+                if (!ok) {
+                    field.classList.add('error');
+                    return false;
+                }
             }
 
             field.classList.remove('error');
@@ -601,6 +642,8 @@
                     return;
                 }
 
+                const draftId = document.getElementById('draftClaimId').value.trim();
+
                 const claimData = {
                     name_of_employer:       document.getElementById('nameOfEmployer').value.trim(),
                     industry:               document.getElementById('industry').value,
@@ -610,14 +653,16 @@
                     nationality:            document.getElementById('nationality').value.trim(),
                     claimant_id_number:     claimantId.toUpperCase(),
                     worker_registry_id:     registryId,
+                    source_type:            document.getElementById('sourceType').value || 'manual',
+                    source_id:              document.getElementById('sourceId').value.trim() || null,
                     date_of_injury:         document.getElementById('dateOfInjury').value,
                     date_reported:          document.getElementById('dateReported').value,
                     date_received:          document.getElementById('dateReceived').value,
                     cause:                  document.getElementById('cause').value.trim(),
                     nature:                 document.getElementById('nature').value.trim(),
                     incapacity_percentage:  parseFloat(document.getElementById('incapacity').value),
-                    submitted_by:           userResult.user.id,
-                    status:                 'pending'
+                    status:                 'pending',
+                    file_number:            null,
                 };
 
                 const supabaseClient = window.supabaseClient || window.supabase.createClient(
@@ -625,11 +670,30 @@
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
                 );
 
-                const { data: inserted, error: insertError } = await supabaseClient
-                    .from('injury_claims')
-                    .insert([claimData])
-                    .select('file_number')
-                    .single();
+                let inserted;
+                let insertError;
+
+                if (draftId) {
+                    const res = await supabaseClient
+                        .from('injury_claims')
+                        .update(claimData)
+                        .eq('id', draftId)
+                        .eq('status', 'draft')
+                        .select('file_number')
+                        .single();
+                    inserted = res.data;
+                    insertError = res.error;
+                } else {
+                    claimData.submitted_by = userResult.user.id;
+                    if (!claimData.source_id) claimData.source_type = 'manual';
+                    const res = await supabaseClient
+                        .from('injury_claims')
+                        .insert([claimData])
+                        .select('file_number')
+                        .single();
+                    inserted = res.data;
+                    insertError = res.error;
+                }
 
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;

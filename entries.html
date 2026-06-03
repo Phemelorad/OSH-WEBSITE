@@ -221,6 +221,16 @@
             color: #721c24;
         }
 
+        .badge-draft {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
         .badge-closed {
             background: #e2e3e5;
             color: #383d41;
@@ -308,8 +318,8 @@
                 <div class="stat-value" id="approvedClaims">0</div>
             </div>
             <div class="stat-card">
-                <h3>This Month</h3>
-                <div class="stat-value" id="thisMonthClaims">0</div>
+                <h3>Drafts to complete</h3>
+                <div class="stat-value" id="draftClaims">0</div>
             </div>
             <div class="stat-card">
                 <h3>Avg Incapacity</h3>
@@ -326,6 +336,7 @@
                         <label>Status</label>
                         <select id="filterStatus" onchange="loadClaims()">
                             <option value="">All Status</option>
+                            <option value="draft">Draft</option>
                             <option value="pending">Pending</option>
                             <option value="under_review">Under Review</option>
                             <option value="approved">Approved</option>
@@ -485,20 +496,18 @@
         function updateStatistics(claims) {
             const total = claims.length;
             const pending = claims.filter(c => c.status === 'pending').length;
+            const drafts = claims.filter(c => c.status === 'draft').length;
             const approved = claims.filter(c => c.status === 'approved').length;
             
-            const now = new Date();
-            const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const thisMonth = claims.filter(c => new Date(c.created_at) >= firstOfMonth).length;
-
-            const avgIncapacity = claims.length > 0 
-                ? (claims.reduce((sum, c) => sum + parseFloat(c.incapacity_percentage), 0) / claims.length).toFixed(1)
+            const submitted = claims.filter(c => c.status !== 'draft' && c.status !== 'cancelled');
+            const avgIncapacity = submitted.length > 0
+                ? (submitted.reduce((sum, c) => sum + parseFloat(c.incapacity_percentage), 0) / submitted.length).toFixed(1)
                 : 0;
 
             document.getElementById('totalClaims').textContent = total;
             document.getElementById('pendingClaims').textContent = pending;
             document.getElementById('approvedClaims').textContent = approved;
-            document.getElementById('thisMonthClaims').textContent = thisMonth;
+            document.getElementById('draftClaims').textContent = drafts;
             document.getElementById('avgIncapacity').textContent = avgIncapacity + '%';
         }
 
@@ -518,9 +527,16 @@
                 const editDisabled = !canEdit ? 'disabled' : '';
                 const editTitle = !canEdit ? 'title="You can only edit your own claims"' : '';
                 
+                const fileCell = claim.status === 'draft'
+                    ? '<em style="color:#856404">Awaiting submit</em>'
+                    : `<strong>${claim.file_number || '—'}</strong>`;
+                const completeBtn = claim.status === 'draft'
+                    ? `<button class="action-btn" onclick="window.location.href='form.html?draft=${claim.id}'">Complete</button>`
+                    : '';
+
                 return `
                 <tr>
-                    <td><strong>${claim.file_number}</strong></td>
+                    <td>${fileCell}</td>
                     <td>${claim.name_of_claimant}</td>
                     <td>${claim.name_of_employer}</td>
                     <td>${claim.industry}</td>
@@ -534,10 +550,11 @@
                     </td>
                     <td>${formatDate(claim.created_at)}</td>
                     <td>
+                        ${completeBtn}
                         <button class="action-btn" onclick="viewClaim('${claim.id}')">View</button>
                         <button class="action-btn ${editDisabled}" ${editTitle} 
                             onclick="editStatus('${claim.id}', '${claim.status}', '${claim.submitted_by}')"
-                            ${!canEdit ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            ${!canEdit || claim.status === 'draft' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
                             Status
                         </button>
                     </td>

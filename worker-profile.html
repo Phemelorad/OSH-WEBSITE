@@ -606,23 +606,31 @@
     }
 
     function claimCard(c) {
+        const isDraft = c.status === 'draft';
         const desc = (c.cause || c.nature || '—');
         const trunc = desc.length > 160 ? desc.substring(0, 160) + '…' : desc;
+        const click = isDraft
+            ? `window.location.href='form.html?draft=${c.id}'`
+            : `viewClaimDetail('${c.id}')`;
+        const title = isDraft
+            ? `Draft claim — ${esc(c.name_of_employer || '')}`
+            : `Claim ${esc(c.file_number || '—')} — ${esc(c.name_of_employer || '')}`;
         return `
-        <div class="incident-card type-claim" onclick="viewClaimDetail('${c.id}')">
-            <div class="incident-icon icon-claim">📑</div>
+        <div class="incident-card type-claim" onclick="${click}">
+            <div class="incident-icon icon-claim">${isDraft ? '📝' : '📑'}</div>
             <div class="incident-body">
-                <h4>Claim ${esc(c.file_number || '—')} — ${esc(c.name_of_employer || '')}</h4>
+                <h4>${title}</h4>
                 <div class="desc">${esc(trunc)}</div>
                 <div class="incident-meta">
                     <span class="meta-chip">${esc(c.industry || '—')}</span>
                     <span class="meta-chip">${c.incapacity_percentage != null ? c.incapacity_percentage + '% incapacity' : ''}</span>
                     <span class="meta-chip">${esc(c.status || '')}</span>
+                    ${c.source_type && c.source_type !== 'manual' ? `<span class="meta-chip">Linked ${esc(c.source_type)}</span>` : ''}
                 </div>
             </div>
             <div class="incident-date">
                 <span class="date-val">${fmtDate(c.date_of_injury)}</span>
-                <span style="font-size:11px;color:#bbb">Click to view</span>
+                <span style="font-size:11px;color:#bbb">${isDraft ? 'Click to complete' : 'Click to view'}</span>
             </div>
         </div>`;
     }

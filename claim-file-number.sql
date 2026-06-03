@@ -36,7 +36,8 @@ BEGIN
     SELECT COUNT(*)::INTEGER
     INTO v_count
     FROM injury_claims
-    WHERE public.normalize_claimant_id(claimant_id_number) = v_id;
+    WHERE public.normalize_claimant_id(claimant_id_number) = v_id
+      AND status NOT IN ('draft', 'cancelled');
 
     RETURN v_count + 1;
 END;
@@ -106,13 +107,16 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.injury_claims_before_insert_file_number()
+CREATE OR REPLACE FUNCTION public.injury_claims_assign_file_number()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+    IF NEW.status IN ('draft', 'cancelled') THEN
+        RETURN NEW;
+    END IF;
     IF NEW.file_number IS NULL OR btrim(NEW.file_number) = '' THEN
         IF NEW.claimant_id_number IS NULL OR btrim(NEW.claimant_id_number) = '' THEN
             RAISE EXCEPTION 'Claimant ID is required to generate file number';
@@ -125,9 +129,9 @@ $$;
 
 DROP TRIGGER IF EXISTS trg_injury_claims_file_number ON injury_claims;
 CREATE TRIGGER trg_injury_claims_file_number
-    BEFORE INSERT ON injury_claims
+    BEFORE INSERT OR UPDATE OF status, file_number, claimant_id_number ON injury_claims
     FOR EACH ROW
-    EXECUTE FUNCTION public.injury_claims_before_insert_file_number();
+    EXECUTE FUNCTION public.injury_claims_assign_file_number();
 
 GRANT EXECUTE ON FUNCTION public.preview_comp_claim_file_number(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.generate_comp_claim_file_number(TEXT) TO authenticated;

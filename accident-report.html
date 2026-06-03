@@ -535,6 +535,7 @@
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
     <script src="worker-lookup.js"></script>
+    <script src="claim-draft.js"></script>
     <script>
     // ── Toggle sections based on report type ──────────────────
     function toggleSections() {
@@ -698,14 +699,29 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
             );
 
-            const { error } = await sb.from('accident_reports').insert([payload]);
+            const { data: insertedReport, error } = await sb.from('accident_reports')
+                .insert([payload])
+                .select('id')
+                .single();
             btn.disabled = false; btn.textContent = 'Submit Accident Report';
 
             if (error) throw error;
 
-            await showAlert('Accident report submitted successfully.', {
-                type:'success', title:'Report Submitted', btnText:'OK'
-            });
+            const draftId = await createClaimDraftFromAccident(
+                payload,
+                insertedReport.id,
+                userResult.user.id,
+                registryId
+            );
+
+            if (draftId) {
+                await promptCompleteClaimDraft(draftId, 'accident report');
+            } else {
+                await showAlert('Accident report submitted successfully.', {
+                    type: 'success', title: 'Report Submitted', btnText: 'OK'
+                });
+            }
+
             document.getElementById('accidentForm').reset();
             toggleSections();
 
