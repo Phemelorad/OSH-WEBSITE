@@ -363,6 +363,38 @@
         <!-- Login Form -->
         <form id="loginForm">
             <div class="form-group">
+                <label>Select Your Role</label>
+                <div class="role-selection">
+                    <label class="role-option" data-role="company">
+                        <input type="radio" name="loginRole" value="company" required>
+                        <div class="icon">🏢</div>
+                        <div class="label">Company</div>
+                    </label>
+                    <label class="role-option" data-role="worker">
+                        <input type="radio" name="loginRole" value="worker" required>
+                        <div class="icon">👷</div>
+                        <div class="label">Employee/Worker</div>
+                    </label>
+                    <label class="role-option" data-role="osh_officer">
+                        <input type="radio" name="loginRole" value="osh_officer" required>
+                        <div class="icon">👮</div>
+                        <div class="label">OSH Officer</div>
+                    </label>
+                </div>
+                <span class="error-message">Please select your role</span>
+            </div>
+
+            <!-- Login Company-specific fields -->
+            <div id="loginCompanyFields" class="role-specific-fields hidden">
+                <h3>Company Account</h3>
+                <div class="form-group">
+                    <label for="loginCompanyName">Company Name</label>
+                    <input type="text" id="loginCompanyName" name="loginCompanyName" placeholder="Enter your registered company name">
+                    <span class="error-message">Please enter your company name</span>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="loginEmail">Email Address</label>
                 <input type="email" id="loginEmail" name="email" placeholder="your.email@example.com" required>
                 <span class="error-message">Please enter a valid email</span>
@@ -561,24 +593,35 @@
         });
 
         // ── Role selection with dynamic fields ──────────
+        // Handles both login and register forms
         document.querySelectorAll('.role-option').forEach(option => {
             option.addEventListener('click', function() {
-                document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+                // Only toggle within the same form container
+                const parentForm = this.closest('form');
+                parentForm.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
                 this.querySelector('input[type="radio"]').checked = true;
 
                 const selectedRole = this.querySelector('input[type="radio"]').value;
 
-                document.getElementById('companyFields').classList.add('hidden');
-                document.getElementById('workerFields').classList.add('hidden');
-                document.getElementById('oshOfficerFields').classList.add('hidden');
+                // Toggle fields based on which form we're in
+                if (parentForm.id === 'loginForm') {
+                    document.getElementById('loginCompanyFields').classList.add('hidden');
+                    if (selectedRole === 'company') {
+                        document.getElementById('loginCompanyFields').classList.remove('hidden');
+                    }
+                } else {
+                    document.getElementById('companyFields').classList.add('hidden');
+                    document.getElementById('workerFields').classList.add('hidden');
+                    document.getElementById('oshOfficerFields').classList.add('hidden');
 
-                if (selectedRole === 'company') {
-                    document.getElementById('companyFields').classList.remove('hidden');
-                } else if (selectedRole === 'worker') {
-                    document.getElementById('workerFields').classList.remove('hidden');
-                } else if (selectedRole === 'osh_officer') {
-                    document.getElementById('oshOfficerFields').classList.remove('hidden');
+                    if (selectedRole === 'company') {
+                        document.getElementById('companyFields').classList.remove('hidden');
+                    } else if (selectedRole === 'worker') {
+                        document.getElementById('workerFields').classList.remove('hidden');
+                    } else if (selectedRole === 'osh_officer') {
+                        document.getElementById('oshOfficerFields').classList.remove('hidden');
+                    }
                 }
             });
         });
@@ -647,7 +690,7 @@
         }
 
         // ── Blur validation ────────────────────────────
-        ['loginEmail','loginPassword','firstName','surname','registerEmail',
+        ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
          'registerPassword','confirmPassword','location',
          'companyName','ownerName','ownerEmail','companyPhone',
          'workplaceCompany','employeeId'].forEach(id => {
@@ -660,6 +703,22 @@
         // ── Login form submit ──────────────────────────
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            // Validate role selection
+            const selectedRole = document.querySelector('input[name="loginRole"]:checked');
+            if (!selectedRole) {
+                await showAlert('Please select your role to continue.', { type: 'warning', title: 'Role Required' });
+                return;
+            }
+            const loginRoleValue = selectedRole.value;
+
+            // Validate company name if company role
+            const loginCompanyName = document.getElementById('loginCompanyName').value.trim();
+            if (loginRoleValue === 'company' && !loginCompanyName) {
+                document.getElementById('loginCompanyName').classList.add('error');
+                await showAlert('Please enter your company name.', { type: 'warning', title: 'Company Name Required' });
+                return;
+            }
 
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -684,8 +743,43 @@
                     ? await getUserProfile(result.data.user.id)
                     : null;
                 if (userProfile.success) {
-                    sessionStorage.setItem('user', JSON.stringify(userProfile.data));
-                    const redirectUrl = userProfile.data.role === 'company'
+                    const profile = userProfile.data;
+
+                    // Verify role matches what user selected
+                    if (loginRoleValue === 'company' && profile.role !== 'company') {
+                        await showAlert('This account is not registered as a company. Please select the correct role.', {
+                            type: 'error', title: 'Role Mismatch'
+                        });
+                        return;
+                    }
+                    if (loginRoleValue !== 'company' && profile.role === 'company') {
+                        await showAlert('This is a company account. Please select "Company" as your role.', {
+                            type: 'error', title: 'Role Mismatch'
+                        });
+                        return;
+                    }
+
+                    // For company users, verify the company name matches
+                    if (profile.role === 'company' && loginCompanyName) {
+                        // Look up the user's company to verify name
+                        if (profile.company_id) {
+                            const { data: company } = await supabaseClient
+                                .from('companies')
+                                .select('company_name')
+                                .eq('id', profile.company_id)
+                                .maybeSingle();
+
+                            if (company && company.company_name.toLowerCase() !== loginCompanyName.toLowerCase()) {
+                                await showAlert(`Company name mismatch. This account is registered under "${company.company_name}".`, {
+                                    type: 'error', title: 'Company Name Mismatch'
+                                });
+                                return;
+                            }
+                        }
+                    }
+
+                    sessionStorage.setItem('user', JSON.stringify(profile));
+                    const redirectUrl = profile.role === 'company'
                         ? 'company-view.html'
                         : 'dashboard.html';
                     showToast('Login successful! Redirecting...', 'success', 1800);

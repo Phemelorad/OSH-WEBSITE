@@ -9,6 +9,9 @@
     // Initialize Supabase client
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Expose client globally so other pages/scripts can use it
+    window.supabaseClient = supabaseClient;
+
     // Helper function to handle errors
     function handleError(error) {
         console.error('Error:', error);
