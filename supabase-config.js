@@ -226,10 +226,9 @@
     // Reset password
     window.resetPassword = async function(email) {
         try {
-            // Build the correct redirect URL regardless of deployment path
-            const baseUrl = window.location.origin;
-            const path = window.location.pathname.replace(/\/[^/]*$/, ''); // strip current page
-            const redirectTo = baseUrl + (path === '' ? '' : path) + '/reset-password.html';
+            // Build correct redirect URL — works for both local and GitHub Pages subpaths
+            const basePath = window.location.pathname.replace(/\/[^/]*$/, '');
+            const redirectTo = window.location.origin + basePath + '/reset-password.html';
 
             const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                 redirectTo: redirectTo
