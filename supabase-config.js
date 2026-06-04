@@ -226,8 +226,13 @@
     // Reset password
     window.resetPassword = async function(email) {
         try {
+            // Build the correct redirect URL regardless of deployment path
+            const baseUrl = window.location.origin;
+            const path = window.location.pathname.replace(/\/[^/]*$/, ''); // strip current page
+            const redirectTo = baseUrl + (path === '' ? '' : path) + '/reset-password.html';
+
             const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password.html'
+                redirectTo: redirectTo
             });
 
             if (error) throw error;
