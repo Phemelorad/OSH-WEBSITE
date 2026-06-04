@@ -68,8 +68,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .site-nav { display: none; } /* replaced by nav.js */
-
         .container {
             max-width: 1400px;
             margin: 40px auto;
@@ -371,12 +369,10 @@
     <script src="role-permissions.js"></script>
     <!-- Custom Modals -->
     <script src="modal.js"></script>
+    <script src="common.js"></script>
 
     <script>
-        const supabaseClient = window.supabaseClient || window.supabase.createClient(
-            'https://qblogmmknnacaaircrlt.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-        );
+        const supabaseClient = window.supabaseClient;
 
         // Check authentication on page load
         window.addEventListener('load', async function() {
@@ -594,19 +590,6 @@
             }
         }
 
-        async function handleLogout() {
-            const confirmed = await showConfirm('You will be signed out of the OSH system.', {
-                title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
-            });
-            if (confirmed) {
-                const result = await signOut();
-                if (result.success) {
-                    window.location.href = 'index.html';
-                } else {
-                    await showAlert('Logout failed: ' + result.error, { type: 'error' });
-                }
-            }
-        }
     </script>
 </body>
 </html>

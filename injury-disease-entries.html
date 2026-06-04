@@ -13,7 +13,6 @@
         .user-info { display:flex; align-items:center; gap:20px; }
         .logout-btn { padding:10px 20px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
         .logout-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
-        .site-nav { display:none; }
         .container { max-width:1600px; margin:40px auto; padding:0 20px; }
         .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:20px; margin-bottom:30px; }
         .stat-card { background:white; border-radius:12px; padding:25px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #333; }
@@ -156,11 +155,9 @@
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
+    <script src="common.js"></script>
     <script>
-    const SB = window.supabaseClient || window.supabase.createClient(
-        'https://qblogmmknnacaaircrlt.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-    );
+    const SB = window.supabaseClient;
     let allRecords = [];
 
     window.addEventListener('load', async () => {
@@ -322,15 +319,6 @@
         URL.revokeObjectURL(a.href);
     }
 
-    function fmtDate(d) {
-        if (!d) return '—';
-        return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-    }
-
-    async function handleLogout() {
-        const ok = await showConfirm('You will be signed out of the OSH system.', { title:'Logout', icon:'👋', confirmText:'Logout', cancelText:'Stay' });
-        if (ok) { const r = await signOut(); if (r.success) window.location.href = 'index.html'; else await showAlert('Logout failed: ' + r.error, { type:'error' }); }
-    }
     </script>
 </body>
 </html>

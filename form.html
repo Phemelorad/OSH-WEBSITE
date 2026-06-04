@@ -54,8 +54,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .site-nav { display: none; } /* replaced by nav.js */
-
         .page-container {
             padding: 20px;
         }
@@ -238,11 +236,7 @@
             .user-info {
                 width: 100%;
                 justify-content: flex-end;
-            }
-
-            .site-nav { display: none; } /* replaced by nav.js */
-
-            .form-card {
+            }            .form-card {
                 padding: 30px 20px;
             }
 
@@ -456,6 +450,7 @@
     <script src="nationalities.js"></script>
     <script src="nationality-select.js"></script>
     <script src="claim-draft.js"></script>
+    <script src="common.js"></script>
 
     <script>
         const form = document.getElementById('mainForm');
@@ -665,11 +660,7 @@
                     file_number:            null,
                 };
 
-                const supabaseClient = window.supabaseClient || window.supabase.createClient(
-                    'https://qblogmmknnacaaircrlt.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-                );
-
+                const supabaseClient = window.supabaseClient;
                 let inserted;
                 let insertError;
 
@@ -728,19 +719,6 @@
             }
         }
 
-        async function handleLogout() {
-            const confirmed = await showConfirm('You will be signed out of the OSH system.', {
-                title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
-            });
-            if (confirmed) {
-                const result = await signOut();
-                if (result.success) {
-                    window.location.href = 'index.html';
-                } else {
-                    await showAlert('Logout failed: ' + result.error, { type: 'error' });
-                }
-            }
-        }
     </script>
 </body>
 </html>

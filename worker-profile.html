@@ -30,8 +30,6 @@
             cursor: pointer; font-weight: 600; transition: all 0.3s;
         }
         .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .site-nav { display: none; } /* replaced by nav.js */
-
         /* ── Page layout ─────────────────────── */
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
@@ -308,12 +306,9 @@
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
     <script src="worker-lookup.js"></script>
+    <script src="common.js"></script>
     <script>
-    const SB = window.supabaseClient || window.supabase.createClient(
-        'https://qblogmmknnacaaircrlt.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-    );
-
+    const SB = window.supabaseClient;
     let allIncidents = [];
     let allClaims = [];
     let registryRow = null;
@@ -540,13 +535,6 @@
         }
         return out.sort((a, b) =>
             new Date(b.date_of_injury || 0) - new Date(a.date_of_injury || 0));
-    }
-
-    function esc(s) {
-        if (s == null) return '';
-        return String(s)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function renderDetailRows(rows) {
@@ -938,22 +926,6 @@
     }
 
     // ── Helpers ───────────────────────────────────────────────
-    function fmtDate(d) {
-        if (!d) return '—';
-        return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-    }
-
-    async function handleLogout() {
-        const ok = await showConfirm('You will be signed out of the OSH system.', {
-            title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
-        });
-        if (ok) {
-            const r = await signOut();
-            if (r.success) window.location.href = 'index.html';
-            else await showAlert('Logout failed: ' + r.error, { type: 'error' });
-        }
-    }
-
     // ── Init ──────────────────────────────────────────────────
     window.addEventListener('load', async function () {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }

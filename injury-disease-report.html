@@ -396,6 +396,7 @@
     <script src="modal.js"></script>
     <script src="worker-lookup.js"></script>
     <script src="claim-draft.js"></script>
+    <script src="common.js"></script>
     <script>
     // ── Show next-of-kin question only when Death = Yes ──────
     function toggleNOK() {
@@ -483,12 +484,7 @@
                 status:                   'submitted'
             };
 
-            const sb = window.supabaseClient || window.supabase.createClient(
-                'https://qblogmmknnacaaircrlt.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-            );
-
-            const { data: insertedReport, error } = await sb.from('injury_disease_reports')
+            const { data: insertedReport, error } = await window.supabaseClient.from('injury_disease_reports')
                 .insert([payload])
                 .select('id')
                 .single();
@@ -549,16 +545,7 @@
     }
 
     // ── Logout ────────────────────────────────────────────────
-    async function handleLogout() {
-        const ok = await showConfirm('You will be signed out of the OSH system.', {
-            title: 'Logout', icon: '👋', confirmText: 'Logout', cancelText: 'Stay'
-        });
-        if (ok) {
-            const r = await signOut();
-            if (r.success) window.location.href = 'index.html';
-            else await showAlert('Logout failed: ' + r.error, { type: 'error' });
-        }
-    }
+
 
     // ── Init ──────────────────────────────────────────────────
     window.addEventListener('load', async function () {

@@ -426,6 +426,7 @@
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
+    <script src="common.js"></script>
     <script>
     // ── Contravention definitions from the Excel sheet ────────────
     const COMMON_SECTIONS = [
@@ -640,12 +641,7 @@
           status:             'completed'
         };
 
-        const supabaseClient = window.supabaseClient || window.supabase.createClient(
-          'https://qblogmmknnacaaircrlt.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-        );
-
-        const { error } = await supabaseClient
+        const { error } = await window.supabaseClient
           .from('workplace_inspections').insert([payload]);
 
         submitBtn.disabled = false;
@@ -691,19 +687,7 @@
       }
     }
 
-    async function handleLogout() {
-      const confirmed = await showConfirm('You will be signed out of the OSH system.', {
-        title:'Logout', icon:'👋', confirmText:'Logout', cancelText:'Stay'
-      });
-      if (confirmed) {
-        const result = await signOut();
-        if (result.success) {
-          window.location.href = 'index.html';
-        } else {
-          await showAlert('Logout failed: ' + result.error, { type:'error' });
-        }
-      }
-    }
+
 
     // Init
     window.addEventListener('load', async function() {
