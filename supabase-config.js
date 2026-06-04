@@ -29,8 +29,9 @@
                     data: {
                         first_name: userData.firstName,
                         surname: userData.surname,
-                        department: userData.department,
-                        location: userData.location
+                        department: userData.department || 'osh',
+                        location: userData.location,
+                        role: userData.role || 'viewer'
                     }
                 }
             });
@@ -45,12 +46,35 @@
             // Wait a moment for the session to be established
             await new Promise(resolve => setTimeout(resolve, 500));
 
+            // If this is a company registration, create the company record first
+            let companyId = null;
+            if (userData.role === 'company' && userData.companyName) {
+                const { data: companyData, error: companyError } = await supabaseClient
+                    .from('companies')
+                    .insert([{
+                        company_name: userData.companyName,
+                        industry: userData.industry || null,
+                        location: userData.location || null,
+                        telephone: userData.companyPhone || null,
+                        owner_name: userData.ownerName || null,
+                        owner_email: userData.ownerEmail || null
+                    }])
+                    .select('id')
+                    .single();
+
+                if (companyError) {
+                    console.warn('Company creation failed:', companyError);
+                    // Non-fatal — profile will still be created without company link
+                } else if (companyData) {
+                    companyId = companyData.id;
+                }
+            }
+
             // Get the current session to ensure we're authenticated
             const { data: { session } } = await supabaseClient.auth.getSession();
             
             if (!session) {
                 // User created but not logged in (email confirmation required)
-                // Return success without creating profile - it will be created on first login
                 return { 
                     success: true, 
                     data: authData,
@@ -59,19 +83,24 @@
             }
 
             // User is authenticated, now insert profile
+            const profileFields = {
+                user_id: authData.user.id,
+                first_name: userData.firstName,
+                surname: userData.surname,
+                email: userData.email,
+                department: userData.department || 'osh',
+                location: userData.location || 'Not specified',
+                role: userData.role || 'viewer',
+                created_at: new Date().toISOString()
+            };
+
+            if (companyId && userData.role === 'company') {
+                profileFields.company_id = companyId;
+            }
+
             const { data: profileData, error: profileError } = await supabaseClient
                 .from('user_profiles')
-                .insert([
-                    {
-                        user_id: authData.user.id,
-                        first_name: userData.firstName,
-                        surname: userData.surname,
-                        email: userData.email,
-                        department: userData.department,
-                        location: userData.location,
-                        created_at: new Date().toISOString()
-                    }
-                ])
+                .insert([profileFields])
                 .select();
 
             if (profileError) {

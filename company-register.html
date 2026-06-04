@@ -314,6 +314,16 @@
     window.addEventListener('load', async () => {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
+
+        // If this is a company user, auto-filter to their company
+        if (currentUserRole === 'company') {
+            const companyName = await window.getUserCompanyName(SB);
+            if (companyName) {
+                // Store for auto-filtering after data loads
+                window._companyFilterName = companyName;
+            }
+        }
+
         await loadData();
     });
 
@@ -337,7 +347,17 @@
 
         allCompanies = data;
         buildStats(data);
-        renderTable(data);
+
+        // Auto-filter for company users
+        if (window._companyFilterName) {
+            document.getElementById('filterSearch').value = window._companyFilterName;
+            // Hide the search filter for company users — they only see their company
+            document.querySelector('.filters .filter-group:last-child')?.style.setProperty('display', 'none');
+            renderTable(data.filter(c => c.company_name === window._companyFilterName));
+        } else {
+            renderTable(data);
+        }
+
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('tableWrap').style.display    = 'block';
     }
@@ -458,7 +478,15 @@
             );
 
             buildStats(allCompanies);
-            renderTable(allCompanies);
+
+            // Auto-filter for company users
+            if (window._companyFilterName) {
+                document.getElementById('filterSearch').value = window._companyFilterName;
+                renderTable(allCompanies.filter(c => c.company_name === window._companyFilterName));
+            } else {
+                renderTable(allCompanies);
+            }
+
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('tableWrap').style.display    = 'block';
 

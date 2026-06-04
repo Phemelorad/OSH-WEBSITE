@@ -692,8 +692,14 @@
             submitButton.textContent = originalText;
 
             if (result.success) {
+                // Role-aware redirect
+                const userProfile = result.data?.user
+                    ? await getUserProfile(result.data.user.id)
+                    : null;
+                const isCompany = userProfile.success && userProfile.data?.role === 'company';
+                const redirectUrl = isCompany ? 'company-register.html' : 'dashboard.html';
                 await showAlert('Login successful!', { type: 'success', title: 'Welcome Back' });
-                window.location.href = 'dashboard.html';
+                window.location.href = redirectUrl;
             } else {
                 await showAlert(result.error, { type: 'error', title: 'Login Failed' });
             }
@@ -773,13 +779,17 @@
                 formData.ownerName = document.getElementById('ownerName').value;
                 formData.ownerEmail = document.getElementById('ownerEmail').value;
                 formData.companyPhone = document.getElementById('companyPhone').value;
+                formData.industry = document.getElementById('companyIndustry')?.value || '';
+                formData.department = 'company';
             } else if (selectedRole.value === 'worker') {
                 formData.workplaceCompany = document.getElementById('workplaceCompany').value;
                 formData.employeeId = document.getElementById('employeeId').value || null;
+                formData.department = 'general';
             } else if (selectedRole.value === 'osh_officer') {
                 const selectedRoles = Array.from(document.querySelectorAll('input[name="officerRoles"]:checked'))
                     .map(cb => cb.value);
                 formData.officerRoles = selectedRoles;
+                formData.department = 'osh';
             }
 
             const result = await signUp(formData);
@@ -788,7 +798,11 @@
             submitButton.textContent = originalText;
 
             if (result.success) {
-                await showAlert('Account created successfully!\nPlease check your email to verify your account.', {
+                // Different redirect based on role
+                const redirectMsg = selectedRole.value === 'company'
+                    ? 'Your company account has been created!\nPlease check your email to verify your account.'
+                    : 'Account created successfully!\nPlease check your email to verify your account.';
+                await showAlert(redirectMsg, {
                     type: 'success', title: 'Account Created', btnText: 'Go to Login'
                 });
                 loginTab.click();
@@ -796,6 +810,26 @@
                 await showAlert(result.error, { type: 'error', title: 'Registration Failed' });
             }
         });
+
+        // Add industry dropdown to company fields
+        const companyFieldsDiv = document.getElementById('companyFields');
+        const industryGroup = document.createElement('div');
+        industryGroup.className = 'form-group';
+        industryGroup.innerHTML = `
+            <label for="companyIndustry">Industry Sector</label>
+            <select id="companyIndustry" name="companyIndustry">
+                <option value="">— Select industry —</option>
+                <option>Manufacturing</option>
+                <option>Services</option>
+                <option>Construction</option>
+                <option>Agriculture</option>
+                <option>Transport</option>
+                <option>Retail</option>
+                <option>Government</option>
+                <option>Parastatal</option>
+            </select>
+        `;
+        companyFieldsDiv.appendChild(industryGroup);
     </script>
 </body>
 </html>

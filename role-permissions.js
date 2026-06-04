@@ -6,7 +6,8 @@ const ROLES = {
     VIEWER: 'viewer',
     OFFICER: 'officer',
     ADMIN: 'admin',
-    SUPER_ADMIN: 'super_admin'
+    SUPER_ADMIN: 'super_admin',
+    COMPANY: 'company'
 };
 
 const PERMISSIONS = {
@@ -40,6 +41,13 @@ const PERMISSIONS = {
         access_admin: true,
         manage_users: true,
         manage_super_admins: true
+    },
+    company: {
+        view_claims: true,
+        submit_claims: false,
+        edit_claims: false,
+        access_admin: false,
+        manage_users: false
     }
 };
 
@@ -149,6 +157,9 @@ function updateUIForRole() {
 
     // Add role badge to UI
     addRoleBadge();
+
+    // Apply nav visibility based on role
+    applyNavVisibility();
 }
 
 // Add role badge to navbar
@@ -157,7 +168,8 @@ function addRoleBadge() {
         viewer: 'Viewer',
         officer: 'Officer',
         admin: 'Admin',
-        super_admin: 'Super Admin'
+        super_admin: 'Super Admin',
+        company: 'Company'
     };
 
     const roleBadgeHTML = `
@@ -211,6 +223,57 @@ function enforcePermissions() {
     }
 }
 
+// Hide nav items based on role
+function applyNavVisibility() {
+    if (!currentUserRole) return;
+    document.querySelectorAll('.osh-nav-item[data-hide-for]').forEach(item => {
+        const hideForRoles = (item.dataset.hideFor || '').split(',').map(r => r.trim());
+        if (hideForRoles.includes(currentUserRole)) {
+            item.style.display = 'none';
+        } else {
+            item.style.display = '';
+        }
+    });
+}
+
+// Check if the current user is a company account
+function isCompanyUser() {
+    return currentUserRole === 'company';
+}
+
+// Get the company name from the user's profile (for company users)
+// Uses the provided supabase client, or falls back to a global one
+window.getUserCompanyName = async function(supabaseClient) {
+    try {
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) return null;
+
+        const profileResult = await getUserProfile(userResult.user.id);
+        if (!profileResult.success || !profileResult.data) return null;
+
+        const profile = profileResult.data;
+
+        // If user has a company_id, look up the company name
+        if (profile.company_id && profile.role === 'company') {
+            // Accept a passed client, or use window.SB (set by company-register.html), or create a fresh one
+            const sb = supabaseClient || window.SB || null;
+            if (!sb) return null;
+
+            const { data } = await sb
+                .from('companies')
+                .select('company_name')
+                .eq('id', profile.company_id)
+                .maybeSingle();
+
+            if (data) return data.company_name;
+        }
+        return null;
+    } catch (e) {
+        console.warn('Could not get company name:', e);
+        return null;
+    }
+};
+
 // Show permission denied message
 function showPermissionDenied(action = 'perform this action') {
     alert(`Permission Denied\n\nYou do not have permission to ${action}.\n\nYour role: ${currentUserRole}\nRequired: officer or higher`);
@@ -222,7 +285,8 @@ function getRoleDisplayName(role) {
         viewer: 'Viewer',
         officer: 'Officer',
         admin: 'Admin',
-        super_admin: 'Super Admin'
+        super_admin: 'Super Admin',
+        company: 'Company'
     };
     return names[role] || role;
 }
@@ -233,7 +297,8 @@ function getRoleColor(role) {
         viewer: '#e2e3e5',
         officer: '#d1ecf1',
         admin: '#fff3cd',
-        super_admin: '#d4edda'
+        super_admin: '#d4edda',
+        company: '#cce5ff'
     };
     return colors[role] || '#f8f9fa';
 }
