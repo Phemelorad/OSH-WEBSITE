@@ -179,6 +179,12 @@
       single: true
     },
     {
+      id: 'company-register',
+      label: '🏢 Company Register',
+      href: 'company-register.html',
+      single: true
+    },
+    {
       id: 'claims',
       label: '📋 Claims Portal',
       children: [

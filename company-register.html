@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Register - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .container { max-width: 1600px; margin: 40px auto; padding: 0 20px; }
+
+        /* ── Stats cards ───────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-left: 4px solid #333;
+        }
+        .stat-card h3 { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .stat-card .stat-value { color: #333; font-size: 28px; font-weight: 700; }
+        .stat-card.red    { border-left-color: #dc3545; }
+        .stat-card.amber  { border-left-color: #ffc107; }
+        .stat-card.blue   { border-left-color: #17a2b8; }
+        .stat-card.green  { border-left-color: #28a745; }
+        .stat-card.purple { border-left-color: #6f42c1; }
+
+        /* ── Section card ──────────────────────── */
+        .section-card {
+            background: white; border-radius: 12px; padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 30px;
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; gap: 12px;
+        }
+        .section-header h2 { color: #333; font-size: 20px; }
+        .filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-group label { font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase; }
+        .filter-group select, .filter-group input {
+            padding: 8px 12px; border: 2px solid #e0e0e0;
+            border-radius: 6px; font-size: 13px; font-family: inherit;
+        }
+        .refresh-btn, .export-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+            font-size: 13px; font-family: inherit;
+        }
+        .refresh-btn:hover, .export-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        /* ── Table ─────────────────────────────── */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead { background: #f8f8f8; }
+        th {
+            text-align: left; padding: 12px; color: #333;
+            font-weight: 700; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; white-space: nowrap;
+        }
+        td { padding: 11px 12px; color: #555; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        tr:hover { background: #fafafa; cursor: pointer; }
+        .clickable-row { cursor: pointer; transition: background 0.15s; }
+        .clickable-row:hover { background: #f0f0f0; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px;
+            border-radius: 12px; font-size: 11px; font-weight: 600;
+        }
+        .badge-high   { background: #d4edda; color: #155724; }
+        .badge-medium { background: #fff3cd; color: #856404; }
+        .badge-low    { background: #f8d7da; color: #721c24; }
+        .badge-zero   { background: #e2e3e5; color: #383d41; }
+
+        .loading { text-align: center; padding: 60px; color: #666; }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        .empty-state { text-align: center; padding: 60px; color: #999; }
+        .row-count { margin-top: 12px; font-size: 13px; color: #888; text-align: right; }
+
+        /* ── Compliance bar ────────────────────── */
+        .comp-bar-wrap  { display:flex; align-items:center; gap:8px; min-width:100px; }
+        .comp-bar       { flex:1; height:8px; background:#eee; border-radius:4px; overflow:hidden; }
+        .comp-bar-fill  { height:100%; border-radius:4px; background:#28a745; transition:width 0.3s; }
+        .comp-bar-fill.medium { background:#ffc107; }
+        .comp-bar-fill.low    { background:#dc3545; }
+        .comp-label     { font-size:12px; font-weight:700; white-space:nowrap; }
+
+        /* ── Industry chip ─────────────────────── */
+        .industry-chip {
+            display:inline-block; padding:3px 10px; border-radius:10px;
+            font-size:11px; font-weight:600; background:#f0f0f0; color:#555;
+        }
+
+        /* ── Drill-down tabs ───────────────────── */
+        .dd-tabs {
+            display: flex; gap: 0; border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 16px; overflow-x: auto;
+        }
+        .dd-tab {
+            padding: 10px 18px; border: none; background: transparent;
+            font-size: 13px; font-weight: 600; color: #888; cursor: pointer;
+            border-bottom: 3px solid transparent; transition: all 0.2s;
+            font-family: inherit; white-space: nowrap;
+        }
+        .dd-tab:hover { color: #333; }
+        .dd-tab.active { color: #222; border-bottom-color: #222; }
+        .dd-tab .tab-count {
+            display: inline-block; margin-left: 6px; padding: 1px 7px;
+            border-radius: 10px; font-size: 11px; background: #f0f0f0; color: #666;
+        }
+        .dd-tab.active .tab-count { background: #333; color: white; }
+
+        .dd-panel { display: none; }
+        .dd-panel.active { display: block; }
+
+        .dd-list-item {
+            display: flex; gap: 12px; padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5; align-items: flex-start;
+        }
+        .dd-list-item:last-child { border-bottom: none; }
+        .dd-item-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .dd-item-body { flex: 1; }
+        .dd-item-body h4 { font-size: 14px; color: #222; margin-bottom: 2px; }
+        .dd-item-body .dd-meta { font-size: 12px; color: #888; }
+        .dd-item-body .dd-desc { font-size: 12px; color: #666; margin-top: 4px; }
+        .dd-item-date { font-size: 12px; color: #aaa; white-space: nowrap; text-align: right; flex-shrink: 0; }
+
+        .dd-empty {
+            text-align: center; padding: 30px; color: #aaa; font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .filters { flex-direction: column; }
+            .section-header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🏢 Company Register</h1>
+        <div class="user-info">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'company-register';</script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+
+        <!-- ── Stats grid ──────────────────────────── -->
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Registered Companies</h3><div class="stat-value" id="statCompanies">—</div></div>
+            <div class="stat-card red"><h3>Total Incidents</h3><div class="stat-value" id="statIncidents">—</div></div>
+            <div class="stat-card amber"><h3>Fatalities</h3><div class="stat-value" id="statFatalities">—</div></div>
+            <div class="stat-card blue"><h3>Inspections</h3><div class="stat-value" id="statInspections">—</div></div>
+            <div class="stat-card purple"><h3>Claims</h3><div class="stat-value" id="statClaims">—</div></div>
+            <div class="stat-card green"><h3>Avg Compliance</h3><div class="stat-value" id="statCompliance">—</div></div>
+        </div>
+
+        <!-- ── Table section ──────────────────────── -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📋 Company Directory</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Industry</label>
+                        <select id="filterIndustry" onchange="applyFilters()">
+                            <option value="">All Industries</option>
+                            <option>Manufacturing</option>
+                            <option>Services</option>
+                            <option>Construction</option>
+                            <option>Agriculture</option>
+                            <option>Transport</option>
+                            <option>Retail</option>
+                            <option>Government</option>
+                            <option>Parastatal</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Has Inspections</label>
+                        <select id="filterInspections" onchange="applyFilters()">
+                            <option value="">All</option>
+                            <option value="yes">Has inspections</option>
+                            <option value="no">No inspections</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search Company</label>
+                        <input type="text" id="filterSearch" placeholder="Company name…"
+                               oninput="applyFilters()" style="width:180px">
+                    </div>
+                    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+                    <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+                </div>
+            </div>
+
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>Loading company data…</p>
+            </div>
+
+            <div id="tableWrap" style="display:none">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company Name</th>
+                                <th>Industry</th>
+                                <th>Incidents</th>
+                                <th>Fatalities</th>
+                                <th>Inspections</th>
+                                <th>Compliance</th>
+                                <th>Claims</th>
+                                <th>Last Activity</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display:none">
+                    <p>🏢 No companies found</p>
+                    <p style="font-size:13px;color:#aaa">Try adjusting the filters.</p>
+                </div>
+                <div class="row-count" id="rowCount"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drill-down overlay -->
+    <div id="drilldownOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div id="drilldownModal" style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:640px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;animation:osh-slide-up 0.2s ease;">
+            <!-- Header -->
+            <div style="padding:24px 26px 16px;border-bottom:2px solid #f0f0f0;flex-shrink:0;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+                    <div>
+                        <div style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Company Profile</div>
+                        <h2 id="ddCompanyName" style="font-size:20px;color:#222;margin:0;"></h2>
+                        <div id="ddCompanyMeta" style="font-size:13px;color:#888;margin-top:4px;"></div>
+                    </div>
+                    <button onclick="closeDrilldown()" style="padding:6px 14px;background:#f0f0f0;border:none;border-radius:6px;font-size:18px;cursor:pointer;line-height:1;">✕</button>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div id="ddStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;padding:16px 26px;background:#fafafa;flex-shrink:0;"></div>
+
+            <!-- Tabs -->
+            <div class="dd-tabs" id="ddTabs" style="padding:0 26px;flex-shrink:0;"></div>
+
+            <!-- Scrollable panel body -->
+            <div style="flex:1;overflow-y:auto;padding:0 26px 20px;">
+                <div id="ddPanelAccidents" class="dd-panel"></div>
+                <div id="ddPanelInspections" class="dd-panel"></div>
+                <div id="ddPanelInjuries" class="dd-panel"></div>
+                <div id="ddPanelClaims" class="dd-panel"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script>
+    const SB = window.supabaseClient || window.supabase.createClient(
+        'https://qblogmmknnacaaircrlt.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+    );
+
+    let allCompanies = [];
+    let ddAccidents = [];
+    let ddInspections = [];
+    let ddInjuries = [];
+    let ddClaims = [];
+
+    // ── Init ─────────────────────────────────────────────────
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        await loadData();
+    });
+
+    // ── Load from the view ───────────────────────────────────
+    async function loadData() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('tableWrap').style.display    = 'none';
+
+        // Try the view first, fallback to building from individual tables
+        const { data, error } = await SB
+            .from('company_register_view')
+            .select('*')
+            .order('company_name', { ascending: true });
+
+        if (error || !data?.length) {
+            // Fallback: build company register from individual tables
+            console.warn('company_register_view not available, building from tables:', error?.message);
+            await loadFromTables();
+            return;
+        }
+
+        allCompanies = data;
+        buildStats(data);
+        renderTable(data);
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('tableWrap').style.display    = 'block';
+    }
+
+    // ── Fallback: build from individual tables ───────────────
+    async function loadFromTables() {
+        try {
+            const [accRes, insRes, idrRes, clmRes] = await Promise.all([
+                SB.from('accident_reports').select('occupier_name, industry_sector, accident_date, injury_fatal, report_type, id').not('occupier_name', 'is', null),
+                SB.from('workplace_inspections').select('factory_name, industry_type, compliance_level, inspection_date, follow_up_required, employees_male, employees_female, id').not('factory_name', 'is', null),
+                SB.from('injury_disease_reports').select('employer_name, incident_type, resulted_death, incident_date, id').not('employer_name', 'is', null),
+                SB.from('injury_claims').select('name_of_employer, industry, status, date_of_injury, incapacity_percentage, id').not('name_of_employer', 'is', null),
+            ]);
+
+            const accidents   = accRes.data || [];
+            const inspections = insRes.data || [];
+            const injuries    = idrRes.data || [];
+            const claims      = clmRes.data || [];
+
+            // Collect all unique company names
+            const companyMap = new Map();
+
+            function addCompany(name, industry) {
+                if (!name || !name.trim()) return;
+                const key = name.trim();
+                if (!companyMap.has(key)) {
+                    companyMap.set(key, {
+                        company_name: key,
+                        industry: industry || null,
+                        accident_count: 0, fatal_accidents: 0, dangerous_occurrences: 0,
+                        last_accident_date: null,
+                        inspection_count: 0, avg_compliance_level: null,
+                        last_inspection_date: null, follow_ups_required: 0, total_employees: 0,
+                        injury_disease_count: 0, disease_count: 0, idr_fatalities: 0,
+                        last_idr_date: null,
+                        claim_count: 0, draft_claims: 0, approved_claims: 0,
+                        total_incidents: 0, total_fatalities: 0,
+                        first_activity_date: null, last_activity_date: null,
+                    });
+                }
+                const c = companyMap.get(key);
+                if (industry && !c.industry) c.industry = industry;
+            }
+
+            accidents.forEach(a => {
+                addCompany(a.occupier_name, a.industry_sector);
+                const c = companyMap.get(a.occupier_name.trim());
+                c.accident_count++;
+                if (a.injury_fatal === 'Fatal') c.fatal_accidents++;
+                if (a.report_type === 'dangerous_occurrence') c.dangerous_occurrences++;
+                if (a.accident_date && (!c.last_accident_date || a.accident_date > c.last_accident_date))
+                    c.last_accident_date = a.accident_date;
+                if (a.accident_date && (!c.first_activity_date || a.accident_date < c.first_activity_date))
+                    c.first_activity_date = a.accident_date;
+            });
+
+            inspections.forEach(i => {
+                addCompany(i.factory_name, i.industry_type);
+                const c = companyMap.get(i.factory_name.trim());
+                c.inspection_count++;
+                if (i.follow_up_required) c.follow_ups_required++;
+                c.total_employees += (i.employees_male || 0) + (i.employees_female || 0);
+                if (i.inspection_date && (!c.last_inspection_date || i.inspection_date > c.last_inspection_date))
+                    c.last_inspection_date = i.inspection_date;
+                if (i.inspection_date && (!c.first_activity_date || i.inspection_date < c.first_activity_date))
+                    c.first_activity_date = i.inspection_date;
+            });
+
+            injuries.forEach(idr => {
+                addCompany(idr.employer_name, null);
+                const c = companyMap.get(idr.employer_name.trim());
+                c.injury_disease_count++;
+                if (idr.incident_type === 'Disease') c.disease_count++;
+                if (idr.resulted_death === 'Yes') c.idr_fatalities++;
+                if (idr.incident_date && (!c.last_idr_date || idr.incident_date > c.last_idr_date))
+                    c.last_idr_date = idr.incident_date;
+                if (idr.incident_date && (!c.first_activity_date || idr.incident_date < c.first_activity_date))
+                    c.first_activity_date = idr.incident_date;
+            });
+
+            claims.forEach(cl => {
+                addCompany(cl.name_of_employer, cl.industry);
+                const c = companyMap.get(cl.name_of_employer.trim());
+                c.claim_count++;
+                if (cl.status === 'draft') c.draft_claims++;
+                if (cl.status === 'approved') c.approved_claims++;
+                if (cl.date_of_injury && (!c.last_activity_date || cl.date_of_injury > c.last_activity_date))
+                    c.last_activity_date = cl.date_of_injury;
+                if (cl.date_of_injury && (!c.first_activity_date || cl.date_of_injury < c.first_activity_date))
+                    c.first_activity_date = cl.date_of_injury;
+            });
+
+            // Compute totals and compliance average
+            companyMap.forEach(c => {
+                c.total_incidents = c.accident_count + c.injury_disease_count;
+                c.total_fatalities = c.fatal_accidents + c.idr_fatalities;
+                c.last_activity_date = [c.last_accident_date, c.last_inspection_date, c.last_idr_date]
+                    .filter(Boolean).sort().pop() || null;
+            });
+
+            // Compute avg compliance separately
+            const inspByCompany = new Map();
+            inspections.forEach(i => {
+                if (!i.factory_name) return;
+                const key = i.factory_name.trim();
+                if (!inspByCompany.has(key)) inspByCompany.set(key, []);
+                inspByCompany.get(key).push(i.compliance_level);
+            });
+            inspByCompany.forEach((levels, name) => {
+                const c = companyMap.get(name);
+                if (c && levels.length) {
+                    c.avg_compliance_level = Math.round(levels.reduce((a,b) => a + b, 0) / levels.length);
+                }
+            });
+
+            allCompanies = [...companyMap.values()].sort((a, b) =>
+                a.company_name.localeCompare(b.company_name)
+            );
+
+            buildStats(allCompanies);
+            renderTable(allCompanies);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableWrap').style.display    = 'block';
+
+        } catch (err) {
+            document.getElementById('loadingState').innerHTML =
+                `<p style="color:#e74c3c;padding:40px;text-align:center">
+                    Error loading data: ${err.message}
+                    <br><button onclick="loadFromTables()" style="margin-top:12px;padding:8px 20px;
+                    background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer">Retry</button>
+                 </p>`;
+        }
+    }
+
+    // ── Stats ────────────────────────────────────────────────
+    function buildStats(rows) {
+        const companies   = rows.length;
+        const incidents   = rows.reduce((s, r) => s + ((r.total_incidents ?? r.accident_count + r.injury_disease_count) || 0), 0);
+        const fatalities  = rows.reduce((s, r) => s + ((r.total_fatalities ?? r.fatal_accidents + r.idr_fatalities) || 0), 0);
+        const inspections = rows.reduce((s, r) => s + (r.inspection_count || 0), 0);
+        const claims      = rows.reduce((s, r) => s + (r.claim_count || 0), 0);
+        const comps       = rows.filter(r => r.avg_compliance_level != null).map(r => r.avg_compliance_level);
+        const avgComp     = comps.length ? Math.round(comps.reduce((a,b) => a+b, 0) / comps.length) : 0;
+
+        document.getElementById('statCompanies').textContent   = companies;
+        document.getElementById('statIncidents').textContent   = incidents;
+        document.getElementById('statFatalities').textContent  = fatalities;
+        document.getElementById('statInspections').textContent = inspections;
+        document.getElementById('statClaims').textContent      = claims;
+        document.getElementById('statCompliance').textContent  = comps.length ? avgComp + '%' : 'N/A';
+    }
+
+    // ── Filters ──────────────────────────────────────────────
+    function applyFilters() {
+        const industry    = document.getElementById('filterIndustry').value;
+        const inspFilter = document.getElementById('filterInspections').value;
+        const search     = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+        const filtered = allCompanies.filter(c => {
+            if (industry && c.industry !== industry) return false;
+            if (inspFilter === 'yes' && !c.inspection_count) return false;
+            if (inspFilter === 'no' && c.inspection_count > 0) return false;
+            if (search && !c.company_name.toLowerCase().includes(search)) return false;
+            return true;
+        });
+        renderTable(filtered);
+    }
+
+    // ── Render table ─────────────────────────────────────────
+    function renderTable(rows) {
+        const tbody = document.getElementById('tableBody');
+        const empty = document.getElementById('emptyState');
+        const count = document.getElementById('rowCount');
+
+        if (!rows.length) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            count.textContent   = '';
+            return;
+        }
+        empty.style.display = 'none';
+        count.textContent   = `Showing ${rows.length} compan${rows.length !== 1 ? 'ies' : 'y'}`;
+
+        tbody.innerHTML = rows.map(c => {
+        const incidents   = (c.total_incidents ?? c.accident_count + c.injury_disease_count) || 0;
+        const fatalities  = (c.total_fatalities ?? c.fatal_accidents + c.idr_fatalities) || 0;
+            const compLevel   = c.avg_compliance_level;
+            const barClass    = compLevel >= 75 ? '' : compLevel >= 50 ? 'medium' : 'low';
+            const compColor   = compLevel >= 75 ? '#155724' : compLevel >= 50 ? '#856404' : '#721c24';
+            const lastAct     = c.last_activity_date || c.last_accident_date || c.last_inspection_date || c.last_idr_date || null;
+
+            const incBadge = !incidents  ? 'badge-zero' : fatalities ? 'badge-low' : incidents <= 3 ? 'badge-medium' : 'badge-high';
+
+            return `<tr class="clickable-row" onclick="openDrilldown('${esc(c.company_name)}')">
+                <td><strong>${esc(c.company_name)}</strong></td>
+                <td>${c.industry ? `<span class="industry-chip">${esc(c.industry)}</span>` : '<span style="color:#bbb">—</span>'}</td>
+                <td><span class="badge ${incBadge}">${incidents}${fatalities ? ` (${fatalities} fatal)` : ''}</span></td>
+                <td style="text-align:center;font-weight:${fatalities ? 700 : 400};color:${fatalities ? '#721c24' : '#999'}">${fatalities || '0'}</td>
+                <td style="text-align:center;font-weight:${c.inspection_count ? 600 : 400}">${c.inspection_count || '—'}</td>
+                <td>
+                    ${compLevel != null
+                        ? `<div class="comp-bar-wrap">
+                               <div class="comp-bar">
+                                   <div class="comp-bar-fill ${barClass}" style="width:${compLevel}%"></div>
+                               </div>
+                               <span class="comp-label" style="color:${compColor}">${compLevel}%</span>
+                           </div>`
+                        : '<span style="color:#bbb">—</span>'}
+                </td>
+                <td style="text-align:center">${c.claim_count || '—'}</td>
+                <td style="white-space:nowrap;font-size:12px;color:#888">${lastAct ? fmtDate(lastAct) : '—'}</td>
+                <td><button class="refresh-btn" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();openDrilldown('${esc(c.company_name)}')">View</button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+            .replace(/'/g,'&#39;');
+    }
+
+    // ── Drill-down ───────────────────────────────────────────
+    async function openDrilldown(companyName) {
+        const overlay = document.getElementById('drilldownOverlay');
+        overlay.style.display = 'flex';
+
+        document.getElementById('ddCompanyName').textContent = companyName;
+
+        // Load all records for this company across all tables
+        const company = allCompanies.find(c => c.company_name === companyName);
+        const metaEl = document.getElementById('ddCompanyMeta');
+        metaEl.innerHTML = company?.industry
+            ? `<span class="industry-chip">${esc(company.industry)}</span>`
+            : '';
+
+        // Build stats row
+        const statsEl = document.getElementById('ddStats');
+        if (company) {
+            const incidents = company.total_incidents || company.accident_count + company.injury_disease_count || 0;
+            statsEl.innerHTML = `
+                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;color:#333">${incidents}</div>
+                    <div style="font-size:10px;color:#888;text-transform:uppercase">Incidents</div>
+                </div>
+                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;color:#333">${company.inspection_count || 0}</div>
+                    <div style="font-size:10px;color:#888;text-transform:uppercase">Inspections</div>
+                </div>
+                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;color:#333">${company.claim_count || 0}</div>
+                    <div style="font-size:10px;color:#888;text-transform:uppercase">Claims</div>
+                </div>
+                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;color:${(company.avg_compliance_level||0) >= 75 ? '#155724' : (company.avg_compliance_level||0) >= 50 ? '#856404' : '#721c24'}">${company.avg_compliance_level != null ? company.avg_compliance_level + '%' : 'N/A'}</div>
+                    <div style="font-size:10px;color:#888;text-transform:uppercase">Compliance</div>
+                </div>`;
+        }
+
+        // Fetch records for detail tabs
+        const [accRes, insRes, idrRes, clmRes] = await Promise.all([
+            SB.from('accident_reports').select('*')
+                .eq('occupier_name', companyName)
+                .order('accident_date', { ascending: false }),
+            SB.from('workplace_inspections').select('*')
+                .eq('factory_name', companyName)
+                .order('inspection_date', { ascending: false }),
+            SB.from('injury_disease_reports').select('*')
+                .eq('employer_name', companyName)
+                .order('incident_date', { ascending: false }),
+            SB.from('injury_claims').select('*')
+                .eq('name_of_employer', companyName)
+                .order('created_at', { ascending: false }),
+        ]);
+
+        ddAccidents   = accRes.data || [];
+        ddInspections = insRes.data || [];
+        ddInjuries    = idrRes.data || [];
+        ddClaims      = clmRes.data || [];
+
+        // Build tabs
+        const tabsEl = document.getElementById('ddTabs');
+        tabsEl.innerHTML = `
+            <button class="dd-tab active" data-panel="Accidents" onclick="switchDDTab(this,'Accidents')">
+                🚨 Accidents <span class="tab-count">${ddAccidents.length}</span>
+            </button>
+            <button class="dd-tab" data-panel="Inspections" onclick="switchDDTab(this,'Inspections')">
+                🔍 Inspections <span class="tab-count">${ddInspections.length}</span>
+            </button>
+            <button class="dd-tab" data-panel="Injuries" onclick="switchDDTab(this,'Injuries')">
+                🏥 Injuries <span class="tab-count">${ddInjuries.length}</span>
+            </button>
+            <button class="dd-tab" data-panel="Claims" onclick="switchDDTab(this,'Claims')">
+                📑 Claims <span class="tab-count">${ddClaims.length}</span>
+            </button>`;
+
+        // Render all panels
+        renderAccidentPanel();
+        renderInspectionPanel();
+        renderInjuryPanel();
+        renderClaimPanel();
+
+        // Show first tab
+        switchDDTab(tabsEl.querySelector('.dd-tab'), 'Accidents');
+    }
+
+    function switchDDTab(btn, panelName) {
+        document.querySelectorAll('.dd-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.dd-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('ddPanel' + panelName)?.classList.add('active');
+    }
+
+    function closeDrilldown() {
+        document.getElementById('drilldownOverlay').style.display = 'none';
+    }
+    document.getElementById('drilldownOverlay').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeDrilldown();
+    });
+
+    function renderAccidentPanel() {
+        const el = document.getElementById('ddPanelAccidents');
+        if (!ddAccidents.length) {
+            el.innerHTML = '<div class="dd-empty">🚨 No accident reports for this company</div>'; return;
+        }
+        el.innerHTML = ddAccidents.map(a => `
+            <div class="dd-list-item">
+                <div class="dd-item-icon icon-accident" style="background:#f8d7da">🚨</div>
+                <div class="dd-item-body">
+                    <h4>${esc(a.injured_name || 'Unknown')} — ${esc(a.accident_description ? a.accident_description.substring(0,80) + (a.accident_description.length > 80 ? '…' : '') : 'No description')}</h4>
+                    <div class="dd-meta">
+                        ${a.accident_place ? esc(a.accident_place) + ' · ' : ''}
+                        ${a.injury_fatal ? `<strong>${esc(a.injury_fatal)}</strong> · ` : ''}
+                        ${a.investigation_status ? `Status: ${esc(a.investigation_status)}` : ''}
+                    </div>
+                </div>
+                <div class="dd-item-date">${fmtDate(a.accident_date)}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderInspectionPanel() {
+        const el = document.getElementById('ddPanelInspections');
+        if (!ddInspections.length) {
+            el.innerHTML = '<div class="dd-empty">🔍 No inspections recorded for this company</div>'; return;
+        }
+        el.innerHTML = ddInspections.map(i => {
+            const comp = i.compliance_level || 0;
+            const clr  = comp >= 75 ? '#155724' : comp >= 50 ? '#856404' : '#721c24';
+            return `
+            <div class="dd-list-item">
+                <div class="dd-item-icon" style="background:#d1ecf1">🔍</div>
+                <div class="dd-item-body">
+                    <h4>${esc(i.inspection_type || 'Inspection')} — ${esc(i.inspector_name || 'Unknown')}</h4>
+                    <div class="dd-meta">
+                        ${i.nature_of_work ? esc(i.nature_of_work) + ' · ' : ''}
+                        <strong style="color:${clr}">${comp}% compliance</strong>
+                        ${i.action_taken ? ` · ${esc(i.action_taken)}` : ''}
+                        ${i.follow_up_required ? ' · ⚠ Follow-up needed' : ''}
+                    </div>
+                </div>
+                <div class="dd-item-date">${fmtDate(i.inspection_date)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderInjuryPanel() {
+        const el = document.getElementById('ddPanelInjuries');
+        if (!ddInjuries.length) {
+            el.innerHTML = '<div class="dd-empty">🏥 No injury or disease reports for this company</div>'; return;
+        }
+        el.innerHTML = ddInjuries.map(idr => {
+            const cls = idr.incident_type === 'Disease' ? 'icon-disease' : 'icon-injury';
+            const bg  = idr.incident_type === 'Disease' ? '#e8dcf5' : '#ffe5d0';
+            const icn = idr.incident_type === 'Disease' ? '🦠' : '🏥';
+            return `
+            <div class="dd-list-item">
+                <div class="dd-item-icon" style="background:${bg}">${icn}</div>
+                <div class="dd-item-body">
+                    <h4>${esc(idr.worker_name || 'Unknown')} — ${esc(idr.incident_type || 'Report')}</h4>
+                    <div class="dd-meta">
+                        ${idr.nature_of_injuries ? esc(idr.nature_of_injuries.substring(0,100)) + (idr.nature_of_injuries.length > 100 ? '…' : '') + ' · ' : ''}
+                        ${idr.resulted_death === 'Yes' ? '<strong style="color:#721c24">Fatal</strong> · ' : ''}
+                        ${idr.permanent_incapacity === 'Yes' ? '♿ Permanent Incapacity · ' : ''}
+                        ${idr.temporary_incapacity === 'Yes' ? '🩹 Temporary Incapacity · ' : ''}
+                        ${esc(idr.occupation || '')}
+                    </div>
+                </div>
+                <div class="dd-item-date">${fmtDate(idr.incident_date)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderClaimPanel() {
+        const el = document.getElementById('ddPanelClaims');
+        if (!ddClaims.length) {
+            el.innerHTML = '<div class="dd-empty">📑 No compensation claims for this company</div>'; return;
+        }
+        el.innerHTML = ddClaims.map(c => `
+            <div class="dd-list-item">
+                <div class="dd-item-icon" style="background:#d4edda">📑</div>
+                <div class="dd-item-body">
+                    <h4>${esc(c.name_of_claimant || 'Unknown')} — ${c.file_number ? esc(c.file_number) : 'Draft'}</h4>
+                    <div class="dd-meta">
+                        ${c.industry ? esc(c.industry) + ' · ' : ''}
+                        ${c.incapacity_percentage != null ? c.incapacity_percentage + '% incapacity · ' : ''}
+                        Status: <strong>${esc(c.status || '')}</strong>
+                    </div>
+                </div>
+                <div class="dd-item-date">${fmtDate(c.date_of_injury)}</div>
+            </div>
+        `).join('');
+    }
+
+    // ── Export CSV ────────────────────────────────────────────
+    function exportCSV() {
+        const headers = ['Company Name','Industry','Incidents','Fatalities','Accidents','Dangerous Occurrences',
+                         'Inspections','Avg Compliance %','Follow-ups Required','Total Employees',
+                         'Injury/Disease Reports','Disease Count','Compensation Claims','Draft Claims',
+                         'Approved Claims','Last Activity Date'];
+
+        const rows = allCompanies.map(c => [
+            c.company_name, c.industry || '',
+            (c.total_incidents ?? c.accident_count + c.injury_disease_count) || 0,
+            (c.total_fatalities ?? c.fatal_accidents + c.idr_fatalities) || 0,
+            c.accident_count || 0, c.dangerous_occurrences || 0,
+            c.inspection_count || 0, c.avg_compliance_level ?? '',
+            c.follow_ups_required || 0, c.total_employees || 0,
+            c.injury_disease_count || 0, c.disease_count || 0,
+            c.claim_count || 0, c.draft_claims || 0, c.approved_claims || 0,
+            c.last_activity_date || c.last_accident_date || ''
+        ]);
+
+        const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+        a.download = `company_register_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    async function handleLogout() {
+        const ok = await showConfirm('You will be signed out of the OSH system.', {
+            title:'Logout', icon:'👋', confirmText:'Logout', cancelText:'Stay'
+        });
+        if (ok) {
+            const r = await signOut();
+            if (r.success) window.location.href = 'index.html';
+            else await showAlert('Logout failed: ' + r.error, { type:'error' });
+        }
+    }
+    </script>
+</body>
+</html>
