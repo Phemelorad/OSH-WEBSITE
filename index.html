@@ -794,23 +794,9 @@
         });
 
         // ── Forgot password ────────────────────────────
-        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
+        document.getElementById('forgotPassword').addEventListener('click', function(e) {
             e.preventDefault();
-            const email = await showPrompt(
-                'Enter your email address and we\'ll send you a reset link.',
-                '',
-                { title: 'Reset Password', icon: '🔑', confirmText: 'Send Reset Link' }
-            );
-            if (email && email.trim()) {
-                const result = await resetPassword(email.trim());
-                if (result.success) {
-                    await showAlert('Password reset email sent! Please check your inbox.', {
-                        type: 'success', title: 'Email Sent'
-                    });
-                } else {
-                    await showAlert(result.error, { type: 'error', title: 'Error' });
-                }
-            }
+            window.location.href = 'reset-password.html';
         });
 
         // ── Register form submit ───────────────────────
