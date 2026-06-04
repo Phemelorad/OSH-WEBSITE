@@ -179,6 +179,13 @@
       single: true
     },
     {
+      id: 'company-view',
+      label: '🏢 My Company',
+      href: 'company-view.html',
+      single: true,
+      hideFor: ['viewer', 'officer', 'admin', 'super_admin']
+    },
+    {
       id: 'company-register',
       label: '🏢 Company Register',
       href: 'company-register.html',

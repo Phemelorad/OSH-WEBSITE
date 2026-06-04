@@ -686,7 +686,7 @@
                 if (userProfile.success) {
                     sessionStorage.setItem('user', JSON.stringify(userProfile.data));
                     const redirectUrl = userProfile.data.role === 'company'
-                        ? 'company-register.html'
+                        ? 'company-view.html'
                         : 'dashboard.html';
                     showToast('Login successful! Redirecting...', 'success', 1800);
                     setTimeout(() => { window.location.href = redirectUrl; }, 1200);
@@ -827,7 +827,7 @@
                 if (userResult.success && userResult.user) {
                     const profile = await getUserProfile(userResult.user.id);
                     if (profile.success && profile.data.role === 'company') {
-                        window.location.href = 'company-register.html';
+                        window.location.href = 'company-view.html';
                         return;
                     }
                 }

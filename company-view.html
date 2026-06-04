@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Company - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; font-size: 14px; }
+        .user-company-name { font-size: 12px; color: #888; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+
+        /* ── Company Hero ─────────────────────── */
+        .company-hero {
+            background: white; border-radius: 14px; padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex; align-items: center; gap: 30px; flex-wrap: wrap;
+        }
+        .company-icon {
+            width: 80px; height: 80px; border-radius: 16px;
+            background: linear-gradient(135deg, #333 0%, #555 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; flex-shrink: 0;
+        }
+        .company-info { flex: 1; min-width: 200px; }
+        .company-info h2 { font-size: 28px; color: #222; margin-bottom: 6px; }
+        .company-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+        .company-meta-item { font-size: 13px; color: #888; display: flex; align-items: center; gap: 6px; }
+        .company-meta-item strong { color: #555; }
+
+        /* ── Stats Grid ───────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid #333; transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card h3 { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .stat-card .stat-value { color: #222; font-size: 30px; font-weight: 700; }
+        .stat-card .stat-sub { font-size: 12px; color: #999; margin-top: 4px; }
+        .stat-card.red    { border-left-color: #dc3545; }
+        .stat-card.amber  { border-left-color: #ffc107; }
+        .stat-card.blue   { border-left-color: #17a2b8; }
+        .stat-card.green  { border-left-color: #28a745; }
+        .stat-card.purple { border-left-color: #6f42c1; }
+        .stat-card.orange { border-left-color: #fd7e14; }
+
+        /* ── Section Cards ────────────────────── */
+        .section-card {
+            background: white; border-radius: 12px; padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 24px;
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px; padding-bottom: 14px;
+            border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; gap: 10px;
+        }
+        .section-header h2 { color: #333; font-size: 18px; }
+        .section-header .section-link {
+            font-size: 13px; color: #666; text-decoration: none;
+            font-weight: 600; transition: color 0.2s;
+        }
+        .section-header .section-link:hover { color: #222; }
+
+        /* ── Activity List ────────────────────── */
+        .activity-list { }
+        .activity-item {
+            display: flex; gap: 14px; padding: 14px 0;
+            border-bottom: 1px solid #f5f5f5; align-items: flex-start;
+            transition: background 0.15s;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background: #fafafa; margin: 0 -12px; padding: 14px 12px; border-radius: 8px; }
+        .activity-icon {
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .activity-body { flex: 1; min-width: 0; }
+        .activity-body h4 { font-size: 14px; color: #222; margin-bottom: 2px; }
+        .activity-body .activity-meta { font-size: 12px; color: #888; }
+        .activity-body .activity-desc { font-size: 12px; color: #666; margin-top: 4px; }
+        .activity-date {
+            font-size: 12px; color: #aaa; white-space: nowrap;
+            text-align: right; flex-shrink: 0; padding-top: 2px;
+        }
+
+        .empty-state {
+            text-align: center; padding: 40px 20px; color: #aaa;
+        }
+        .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ── Compliance bar ────────────────────── */
+        .comp-bar-wrap  { display:flex; align-items:center; gap:8px; min-width:120px; }
+        .comp-bar       { flex:1; height:10px; background:#eee; border-radius:5px; overflow:hidden; }
+        .comp-bar-fill  { height:100%; border-radius:5px; background:#28a745; transition:width 0.5s ease; }
+        .comp-bar-fill.medium { background:#ffc107; }
+        .comp-bar-fill.low    { background:#dc3545; }
+        .comp-label     { font-size:14px; font-weight:700; white-space:nowrap; min-width:40px; text-align:right; }
+
+        /* ── Compliance gauge ──────────────────── */
+        .compliance-section {
+            display: flex; align-items: center; gap: 30px;
+            padding: 20px 0; flex-wrap: wrap;
+        }
+        .gauge {
+            width: 120px; height: 120px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; flex-shrink: 0;
+            position: relative;
+        }
+        .gauge-value { font-size: 32px; font-weight: 700; color: #222; }
+        .gauge-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .gauge-details { flex: 1; min-width: 180px; }
+        .gauge-detail-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 0; border-bottom: 1px solid #f5f5f5;
+        }
+        .gauge-detail-row:last-child { border-bottom: none; }
+        .gauge-detail-label { font-size: 13px; color: #666; flex: 1; }
+        .gauge-detail-value { font-size: 14px; font-weight: 600; color: #333; }
+
+        /* ── Loading ───────────────────────────── */
+        .loading {
+            text-align: center; padding: 80px 20px; color: #666;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 44px; height: 44px;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        .site-nav { display: none; } /* replaced by nav.js */
+
+        /* ── Badges ────────────────────────────── */
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-fatal   { background: #f8d7da; color: #721c24; }
+        .badge-serious { background: #fff3cd; color: #856404; }
+        .badge-ok      { background: #d4edda; color: #155724; }
+        .badge-info    { background: #d1ecf1; color: #0c5460; }
+        .badge-neutral { background: #e2e3e5; color: #383d41; }
+
+        /* ── Responsive ────────────────────────── */
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            .company-hero { padding: 24px; flex-direction: column; text-align: center; }
+            .company-meta { justify-content: center; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .compliance-section { flex-direction: column; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🏢 My Company</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-company-name" id="userCompanyName"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'company-view';</script>
+    <script src="nav.js"></script>
+
+    <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Loading your company data…</p>
+    </div>
+
+    <div id="mainContent" class="container" style="display:none">
+        <!-- ── Company Hero ────────────────────────── -->
+        <div class="company-hero" id="companyHero">
+            <div class="company-icon">🏢</div>
+            <div class="company-info">
+                <h2 id="companyName">—</h2>
+                <div class="company-meta">
+                    <span class="company-meta-item">🏭 <strong>Industry:</strong> <span id="companyIndustry">—</span></span>
+                    <span class="company-meta-item">📍 <strong>Location:</strong> <span id="companyLocation">—</span></span>
+                    <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">—</span></span>
+                    <span class="company-meta-item">👤 <strong>Owner:</strong> <span id="companyOwner">—</span></span>
+                    <span class="company-meta-item">📧 <strong>Email:</strong> <span id="companyOwnerEmail">—</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Stats Grid ─────────────────────────── -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card red">
+                <h3>Total Incidents</h3>
+                <div class="stat-value" id="statIncidents">—</div>
+                <div class="stat-sub">Accidents + Injuries</div>
+            </div>
+            <div class="stat-card amber">
+                <h3>Fatalities</h3>
+                <div class="stat-value" id="statFatalities">—</div>
+                <div class="stat-sub">All reports</div>
+            </div>
+            <div class="stat-card blue">
+                <h3>Inspections</h3>
+                <div class="stat-value" id="statInspections">—</div>
+                <div class="stat-sub">Total conducted</div>
+            </div>
+            <div class="stat-card green">
+                <h3>Compliance</h3>
+                <div class="stat-value" id="statCompliance">—</div>
+                <div class="stat-sub">Average score</div>
+            </div>
+            <div class="stat-card purple">
+                <h3>Claims</h3>
+                <div class="stat-value" id="statClaims">—</div>
+                <div class="stat-sub">Compensation claims</div>
+            </div>
+            <div class="stat-card orange">
+                <h3>Employees</h3>
+                <div class="stat-value" id="statEmployees">—</div>
+                <div class="stat-sub">Across inspections</div>
+            </div>
+        </div>
+
+        <!-- ── Compliance Detail ──────────────────── -->
+        <div class="section-card" id="complianceCard">
+            <div class="section-header">
+                <h2>📊 Compliance Overview</h2>
+            </div>
+            <div class="compliance-section" id="complianceSection">
+                <div class="gauge" id="complianceGauge">
+                    <div class="gauge-value" id="gaugeValue">—</div>
+                    <div class="gauge-label">Compliance</div>
+                </div>
+                <div class="gauge-details">
+                    <div class="gauge-detail-row">
+                        <span class="gauge-detail-label">Inspections Conducted</span>
+                        <span class="gauge-detail-value" id="gaugeInspections">—</span>
+                    </div>
+                    <div class="gauge-detail-row">
+                        <span class="gauge-detail-label">Follow-ups Required</span>
+                        <span class="gauge-detail-value" id="gaugeFollowUps">—</span>
+                    </div>
+                    <div class="gauge-detail-row">
+                        <span class="gauge-detail-label">Last Inspection</span>
+                        <span class="gauge-detail-value" id="gaugeLastInspection">—</span>
+                    </div>
+                    <div class="gauge-detail-row">
+                        <span class="gauge-detail-label">Total Employees</span>
+                        <span class="gauge-detail-value" id="gaugeEmployees">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Recent Accidents ──────────────────── -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🚨 Recent Accidents</h2>
+                <a href="accident-entries.html" class="section-link">View all →</a>
+            </div>
+            <div id="accidentsList" class="activity-list">
+                <div class="empty-state">
+                    <div class="empty-icon">✅</div>
+                    <p>No accident reports on record</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Recent Inspections ────────────────── -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🔍 Recent Inspections</h2>
+                <a href="inspection-entries.html" class="section-link">View all →</a>
+            </div>
+            <div id="inspectionsList" class="activity-list">
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <p>No inspections recorded yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Recent Injuries & Diseases ────────── -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🏥 Recent Injuries &amp; Diseases</h2>
+                <a href="injury-disease-entries.html" class="section-link">View all →</a>
+            </div>
+            <div id="injuriesList" class="activity-list">
+                <div class="empty-state">
+                    <div class="empty-icon">✅</div>
+                    <p>No injury or disease reports on record</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Recent Claims ─────────────────────── -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📑 Compensation Claims</h2>
+                <a href="entries.html" class="section-link">View all →</a>
+            </div>
+            <div id="claimsList" class="activity-list">
+                <div class="empty-state">
+                    <div class="empty-icon">📑</div>
+                    <p>No compensation claims on record</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script>
+    const SB = window.supabaseClient || window.supabase.createClient(
+        'https://qblogmmknnacaaircrlt.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
+    );
+
+    let companyName = null;
+
+    // ── Init ─────────────────────────────────────────────────
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+
+        // Company users only — redirect others
+        if (currentUserRole !== 'company') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        // Get company name from profile
+        companyName = await window.getUserCompanyName(SB);
+        if (!companyName) {
+            document.getElementById('loadingState').innerHTML = `
+                <p style="color:#e74c3c;padding:20px;text-align:center">
+                    Could not determine your company. Please contact an administrator.
+                    <br><br>
+                    <button onclick="window.location.href='index.html'"
+                        style="padding:10px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">
+                        Go to Login
+                    </button>
+                </p>`;
+            return;
+        }
+
+        // Update user info in navbar
+        const userResult = await getCurrentUser();
+        if (userResult.success && userResult.user) {
+            const profileResult = await getUserProfile(userResult.user.id);
+            if (profileResult.success && profileResult.data) {
+                document.getElementById('userName').textContent =
+                    `${profileResult.data.first_name} ${profileResult.data.surname}`;
+            } else {
+                document.getElementById('userName').textContent = userResult.user.email.split('@')[0];
+            }
+        }
+        document.getElementById('userCompanyName').textContent = companyName;
+
+        // Load all company data
+        await loadCompanyData();
+    });
+
+    // ── Load Company Data ────────────────────────────────────
+    async function loadCompanyData() {
+        try {
+            // Fetch company profile from companies table
+            const { data: companyProfile } = await SB
+                .from('companies')
+                .select('*')
+                .eq('company_name', companyName)
+                .maybeSingle();
+
+            if (companyProfile) {
+                document.getElementById('companyName').textContent = companyProfile.company_name || companyName;
+                document.getElementById('companyIndustry').textContent = companyProfile.industry || 'Not specified';
+                document.getElementById('companyLocation').textContent = companyProfile.location || 'Not specified';
+                document.getElementById('companyPhone').textContent = companyProfile.telephone || 'Not specified';
+                document.getElementById('companyOwner').textContent = companyProfile.owner_name || 'Not specified';
+                document.getElementById('companyOwnerEmail').textContent = companyProfile.owner_email || 'Not specified';
+            } else {
+                document.getElementById('companyName').textContent = companyName;
+            }
+
+            // Fetch data from all tables in parallel
+            const [accRes, insRes, idrRes, clmRes, viewRes] = await Promise.all([
+                SB.from('accident_reports')
+                    .select('*')
+                    .eq('occupier_name', companyName)
+                    .order('accident_date', { ascending: false })
+                    .limit(5),
+                SB.from('workplace_inspections')
+                    .select('*')
+                    .eq('factory_name', companyName)
+                    .order('inspection_date', { ascending: false })
+                    .limit(5),
+                SB.from('injury_disease_reports')
+                    .select('*')
+                    .eq('employer_name', companyName)
+                    .order('incident_date', { ascending: false })
+                    .limit(5),
+                SB.from('injury_claims')
+                    .select('*')
+                    .eq('name_of_employer', companyName)
+                    .order('created_at', { ascending: false })
+                    .limit(5),
+                SB.from('company_register_view')
+                    .select('*')
+                    .eq('company_name', companyName)
+                    .maybeSingle()
+            ]);
+
+            const accidents   = accRes.data || [];
+            const inspections = insRes.data || [];
+            const injuries    = idrRes.data || [];
+            const claims      = clmRes.data || [];
+            const viewData    = viewRes.data || null;
+
+            // ── Update Stats ──
+            const totalIncidents = viewData
+                ? (viewData.total_incidents || 0)
+                : (accidents.length + injuries.length);
+            const totalFatalities = viewData
+                ? (viewData.total_fatalities || 0)
+                : 0;
+            const totalInspections = viewData
+                ? (viewData.inspection_count || 0)
+                : inspections.length;
+            const avgCompliance = viewData?.avg_compliance_level ?? null;
+            const totalClaims = viewData
+                ? (viewData.claim_count || 0)
+                : claims.length;
+            const totalEmployees = viewData?.total_employees || 0;
+
+            document.getElementById('statIncidents').textContent = totalIncidents;
+            document.getElementById('statFatalities').textContent = totalFatalities;
+            document.getElementById('statInspections').textContent = totalInspections;
+            document.getElementById('statCompliance').textContent = avgCompliance != null ? avgCompliance + '%' : 'N/A';
+            document.getElementById('statClaims').textContent = totalClaims;
+            document.getElementById('statEmployees').textContent = totalEmployees || '—';
+
+            // ── Update Compliance Gauge ──
+            const gaugeEl = document.getElementById('complianceGauge');
+            const gaugeValueEl = document.getElementById('gaugeValue');
+            if (avgCompliance != null) {
+                gaugeValueEl.textContent = avgCompliance + '%';
+                const color = avgCompliance >= 75 ? '#28a745' : avgCompliance >= 50 ? '#ffc107' : '#dc3545';
+                gaugeEl.style.background = `conic-gradient(${color} ${avgCompliance}%, #eee ${avgCompliance}%)`;
+                gaugeEl.style.color = '#222';
+            } else {
+                gaugeValueEl.textContent = 'N/A';
+                gaugeEl.style.background = '#f0f0f0';
+            }
+
+            const followUps = inspections.filter(i => i.follow_up_required).length;
+            document.getElementById('gaugeInspections').textContent = totalInspections;
+            document.getElementById('gaugeFollowUps').textContent = followUps;
+            document.getElementById('gaugeLastInspection').textContent =
+                inspections.length ? fmtDate(inspections[0].inspection_date) : '—';
+            document.getElementById('gaugeEmployees').textContent = totalEmployees || '—';
+
+            // ── Render Lists ──
+            renderAccidents(accidents);
+            renderInspections(inspections);
+            renderInjuries(injuries);
+            renderClaims(claims);
+
+            // ── Show content ──
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+
+        } catch (err) {
+            document.getElementById('loadingState').innerHTML = `
+                <p style="color:#e74c3c;padding:20px;text-align:center">
+                    Error loading company data: ${err.message}
+                    <br><br>
+                    <button onclick="location.reload()"
+                        style="padding:10px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">
+                        Retry
+                    </button>
+                </p>`;
+        }
+    }
+
+    // ── Render Accidents ─────────────────────────────────────
+    function renderAccidents(list) {
+        const el = document.getElementById('accidentsList');
+        if (!list.length) {
+            el.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><p>No accident reports on record</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(a => {
+            const badgeCls = a.injury_fatal === 'Fatal' ? 'badge-fatal' :
+                             a.injury_fatal === 'Serious' ? 'badge-serious' : 'badge-info';
+            return `
+            <div class="activity-item">
+                <div class="activity-icon" style="background:#f8d7da">🚨</div>
+                <div class="activity-body">
+                    <h4>${esc(a.injured_name || 'Unknown')} ${a.injury_fatal ? `<span class="badge ${badgeCls}">${esc(a.injury_fatal)}</span>` : ''}</h4>
+                    <div class="activity-meta">
+                        ${a.accident_place ? esc(a.accident_place) + ' · ' : ''}
+                        ${a.accident_description ? esc(a.accident_description.substring(0, 120)) + (a.accident_description.length > 120 ? '…' : '') : 'No description'}
+                    </div>
+                    ${a.investigation_status ? `<div class="activity-desc">Status: ${esc(a.investigation_status)}</div>` : ''}
+                </div>
+                <div class="activity-date">${fmtDate(a.accident_date)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Render Inspections ───────────────────────────────────
+    function renderInspections(list) {
+        const el = document.getElementById('inspectionsList');
+        if (!list.length) {
+            el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>No inspections recorded yet</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(i => {
+            const comp = i.compliance_level || 0;
+            const barClass = comp >= 75 ? '' : comp >= 50 ? 'medium' : 'low';
+            const color = comp >= 75 ? '#155724' : comp >= 50 ? '#856404' : '#721c24';
+            return `
+            <div class="activity-item">
+                <div class="activity-icon" style="background:#d1ecf1">🔍</div>
+                <div class="activity-body">
+                    <h4>${esc(i.inspection_type || 'Inspection')} — ${esc(i.inspector_name || 'Unknown')}</h4>
+                    <div class="activity-meta">
+                        ${i.nature_of_work ? esc(i.nature_of_work) + ' · ' : ''}
+                        ${i.action_taken ? esc(i.action_taken) + ' · ' : ''}
+                        ${i.follow_up_required ? '⚠ Follow-up needed' : '✅ No follow-up needed'}
+                    </div>
+                    <div class="activity-desc">
+                        <div class="comp-bar-wrap" style="margin-top:4px">
+                            <div class="comp-bar">
+                                <div class="comp-bar-fill ${barClass}" style="width:${comp}%"></div>
+                            </div>
+                            <span class="comp-label" style="color:${color}">${comp}%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-date">${fmtDate(i.inspection_date)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Render Injuries ──────────────────────────────────────
+    function renderInjuries(list) {
+        const el = document.getElementById('injuriesList');
+        if (!list.length) {
+            el.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><p>No injury or disease reports on record</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(idr => {
+            const isDisease = idr.incident_type === 'Disease';
+            const bg = isDisease ? '#e8dcf5' : '#ffe5d0';
+            const icon = isDisease ? '🦠' : '🏥';
+            return `
+            <div class="activity-item">
+                <div class="activity-icon" style="background:${bg}">${icon}</div>
+                <div class="activity-body">
+                    <h4>${esc(idr.worker_name || 'Unknown')} — ${esc(idr.incident_type || 'Report')}
+                        ${idr.resulted_death === 'Yes' ? `<span class="badge badge-fatal">Fatal</span>` : ''}
+                    </h4>
+                    <div class="activity-meta">
+                        ${idr.nature_of_injuries ? esc(idr.nature_of_injuries.substring(0, 100)) + (idr.nature_of_injuries.length > 100 ? '…' : '') + ' · ' : ''}
+                        ${idr.occupation ? esc(idr.occupation) : ''}
+                    </div>
+                    <div class="activity-desc">
+                        ${idr.permanent_incapacity === 'Yes' ? '♿ Permanent Incapacity · ' : ''}
+                        ${idr.temporary_incapacity === 'Yes' ? '🩹 Temporary Incapacity' : ''}
+                    </div>
+                </div>
+                <div class="activity-date">${fmtDate(idr.incident_date)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Render Claims ────────────────────────────────────────
+    function renderClaims(list) {
+        const el = document.getElementById('claimsList');
+        if (!list.length) {
+            el.innerHTML = `<div class="empty-state"><div class="empty-icon">📑</div><p>No compensation claims on record</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(c => {
+            const statusBadge = c.status === 'approved' ? 'badge-ok' :
+                                c.status === 'draft' ? 'badge-neutral' : 'badge-info';
+            return `
+            <div class="activity-item">
+                <div class="activity-icon" style="background:#d4edda">📑</div>
+                <div class="activity-body">
+                    <h4>${esc(c.name_of_claimant || 'Unknown')} — ${c.file_number ? esc(c.file_number) : 'Draft'}
+                        <span class="badge ${statusBadge}">${esc(c.status || 'pending')}</span>
+                    </h4>
+                    <div class="activity-meta">
+                        ${c.industry ? esc(c.industry) + ' · ' : ''}
+                        ${c.nature_of_injury ? esc(c.nature_of_injury.substring(0, 80)) : ''}
+                    </div>
+                    <div class="activity-desc">
+                        ${c.incapacity_percentage != null ? `Incapacity: ${c.incapacity_percentage}%` : ''}
+                    </div>
+                </div>
+                <div class="activity-date">${fmtDate(c.date_of_injury)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Helpers ──────────────────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/\"/g,'&quot;')
+            .replace(/'/g,'&#39;');
+    }
+
+    async function handleLogout() {
+        const ok = await showConfirm('You will be signed out of the OSH system.', {
+            title:'Logout', icon:'👋', confirmText:'Logout', cancelText:'Stay'
+        });
+        if (ok) {
+            const r = await signOut();
+            if (r.success) window.location.href = 'index.html';
+            else await showAlert('Logout failed: ' + r.error, { type:'error' });
+        }
+    }
+    </script>
+</body>
+</html>
