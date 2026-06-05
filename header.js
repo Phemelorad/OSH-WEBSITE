@@ -95,11 +95,6 @@
         color: #777;
       }
 
-      .header-user .user-company-name {
-        font-size: 11px;
-        color: #888;
-      }
-
       .header-logout {
         padding: 8px 18px;
         background: none;
