@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Inspection - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; font-size: 14px; }
+        .user-company-name { font-size: 12px; color: #888; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .page-container { padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .form-card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px; border: 1px solid #e0e0e0; margin-bottom: 20px;
+        }
+        .form-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #f0f0f0; }
+        .form-header h1 { color: #333; font-size: 26px; margin-bottom: 6px; }
+        .form-header p { color: #666; font-size: 14px; }
+        .section-title {
+            color: #333; font-size: 15px; font-weight: 700;
+            margin-bottom: 16px; padding: 10px 14px;
+            background: #f5f5f5; border-left: 4px solid #333;
+            border-radius: 0 6px 6px 0;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 16px;
+        }
+        .form-row-2 { grid-template-columns: repeat(2,1fr); }
+        .form-row-3 { grid-template-columns: repeat(3,1fr); }
+        .col-span-2 { grid-column: span 2; }
+        .form-group { margin-bottom: 4px; }
+        .form-group label {
+            display: block; color: #444; font-weight: 600;
+            margin-bottom: 6px; font-size: 13px;
+        }
+        .req { color: #e74c3c; margin-left: 2px; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 10px 13px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 13px; font-family: inherit; transition: border-color 0.2s;
+            background: #fff;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus { outline: none; border-color: #999; }
+        .form-group input.error,
+        .form-group select.error { border-color: #e74c3c; }
+        .err-msg { color: #e74c3c; font-size: 11px; margin-top: 3px; display: none; }
+        .form-group input.error ~ .err-msg,
+        .form-group select.error ~ .err-msg { display: block; }
+        .form-actions {
+            display: flex; gap: 15px; justify-content: flex-end;
+            padding-top: 20px; border-top: 2px solid #f0f0f0; margin-top: 10px;
+        }
+        .btn {
+            padding: 12px 30px; border-radius: 8px; font-size: 15px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
+            border: 2px solid #ddd; font-family: inherit;
+        }
+        .btn-primary { background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color: #333; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .btn-secondary { background: white; color: #666; }
+        .btn-secondary:hover { background: #f5f5f5; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .info-box {
+            background: #f0fafc; border: 1px solid #d1ecf1;
+            border-radius: 8px; padding: 16px 20px; margin-bottom: 20px;
+            font-size: 13px; color: #0c5460; line-height: 1.5;
+        }
+        .info-box strong { color: #0c5460; }
+        .status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+        }
+        .status-pending   { background: #fff3cd; color: #856404; }
+        .status-approved  { background: #d4edda; color: #155724; }
+        .status-scheduled { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #cce5ff; color: #004085; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        @media (max-width: 768px) {
+            .form-card { padding: 20px; }
+            .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
+            .col-span-2 { grid-column: span 1; }
+            .form-actions { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📅 Book an Inspection</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-company-name" id="userCompanyName"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'company-book-inspection';</script>
+    <script src="nav.js"></script>
+
+    <div class="page-container">
+      <div class="container">
+        <form id="bookingForm">
+          <div class="form-card">
+            <div class="form-header">
+              <h1>📅 Request an Inspection</h1>
+              <p>Submit a request for an OSH workplace inspection. An officer will review and schedule your inspection.</p>
+            </div>
+
+            <div class="info-box">
+              <strong>ℹ How it works:</strong> Submit your booking request below. An OSH officer will review it and schedule an inspection. You'll be able to track the status from your monitoring dashboard.
+            </div>
+
+            <div class="section-title">Company Information</div>
+            <div class="form-row form-row-2">
+              <div class="form-group col-span-2">
+                <label>Company Name<span class="req">*</span></label>
+                <input type="text" name="company_name" id="companyName" placeholder="Your registered company name" required readonly>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label>Contact Name<span class="req">*</span></label>
+                <input type="text" name="contact_name" id="contactName" placeholder="Your full name" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Contact Email<span class="req">*</span></label>
+                <input type="email" name="contact_email" id="contactEmail" placeholder="your@email.com" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Contact Phone</label>
+                <input type="tel" name="contact_phone" id="contactPhone" placeholder="e.g. +267 71234567">
+              </div>
+            </div>
+
+            <div class="section-title">Inspection Details</div>
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label>Preferred Date</label>
+                <input type="date" name="preferred_date" id="preferredDate">
+              </div>
+              <div class="form-group">
+                <label>Preferred Time</label>
+                <select name="preferred_time" id="preferredTime">
+                  <option value="">— Select —</option>
+                  <option value="Morning">Morning (08:00–12:00)</option>
+                  <option value="Afternoon">Afternoon (12:00–16:00)</option>
+                  <option value="Flexible">Flexible</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Inspection Type<span class="req">*</span></label>
+                <select name="inspection_type" id="inspectionType" required>
+                  <option value="">— Select —</option>
+                  <option value="Routine">Routine</option>
+                  <option value="Follow-up">Follow-up</option>
+                  <option value="First Time">First Time</option>
+                  <option value="Query">Query</option>
+                </select>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group col-span-2">
+                <label>Location / Premises Address<span class="req">*</span></label>
+                <input type="text" name="location" id="location" placeholder="Plot number, street, town/city" required>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>Nature of Work</label>
+                <input type="text" name="nature_of_work" id="natureOfWork" placeholder="e.g. Manufacturing, Warehousing">
+              </div>
+              <div class="form-group">
+                <label>Industry Type</label>
+                <select name="industry_type" id="industryType">
+                  <option value="">— Select —</option>
+                  <option>Manufacturing</option>
+                  <option>Services</option>
+                  <option>Construction</option>
+                  <option>Agriculture</option>
+                  <option>Transport</option>
+                  <option>Retail</option>
+                  <option>Government</option>
+                  <option>Parastatal</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="section-title">Additional Information</div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>Notes / Reason for Request</label>
+                <textarea name="notes" id="notes" placeholder="Briefly describe why you're requesting an inspection or any specific concerns…"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Special Requirements</label>
+                <textarea name="special_requirements" id="specialRequirements" placeholder="Any special requirements or accommodations needed…"></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Submit Booking Request</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script>
+    // ── Init ──────────────────────────────────────────────────
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        
+        // Only company users can access
+        if (currentUserRole !== 'company') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const profile = await getUserProfile(userResult.user.id);
+        if (profile.success) {
+            const name = profile.data.first_name + ' ' + profile.data.surname;
+            document.getElementById('userName').textContent = name;
+            document.getElementById('contactName').value = name;
+            document.getElementById('contactEmail').value = profile.data.email || '';
+
+            // Auto-fill company name from user's company
+            const companyName = await window.getUserCompanyName(window.supabaseClient);
+            if (companyName) {
+                document.getElementById('companyName').value = companyName;
+                document.getElementById('userCompanyName').textContent = companyName;
+            }
+        }
+
+        // Set min date for preferred date to today
+        document.getElementById('preferredDate').min = new Date().toISOString().split('T')[0];
+    });
+
+    // ── Validation ────────────────────────────────────────────
+    function validateForm() {
+        const required = document.querySelectorAll('#bookingForm [required]');
+        let ok = true;
+        required.forEach(f => {
+            if (!f.value.trim()) { f.classList.add('error'); ok = false; }
+            else f.classList.remove('error');
+        });
+        return ok;
+    }
+
+    // ── Submit ────────────────────────────────────────────────
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!validateForm()) {
+            await showAlert('Please fill in all required fields.', { type: 'warning', title: 'Incomplete Form' });
+            document.querySelector('#bookingForm .error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+
+        try {
+            const userResult = await getCurrentUser();
+            if (!userResult.success || !userResult.user) {
+                await showAlert('You must be logged in.', { type:'warning', title:'Not Authenticated' });
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const g = id => document.getElementById(id)?.value?.trim() || null;
+
+            // Get company_id
+            let companyId = null;
+            const profile = await getUserProfile(userResult.user.id);
+            if (profile.success && profile.data.company_id) {
+                companyId = profile.data.company_id;
+            }
+
+            const payload = {
+                company_name:        g('companyName'),
+                company_id:          companyId,
+                contact_name:        g('contactName'),
+                contact_email:       g('contactEmail'),
+                contact_phone:       g('contactPhone'),
+                preferred_date:      g('preferredDate') || null,
+                preferred_time:      g('preferredTime') || null,
+                inspection_type:     g('inspectionType'),
+                location:            g('location'),
+                nature_of_work:      g('natureOfWork'),
+                industry_type:       g('industryType'),
+                notes:               g('notes'),
+                special_requirements: g('specialRequirements'),
+                submitted_by:        userResult.user.id,
+                status:              'pending'
+            };
+
+            const { error } = await window.supabaseClient
+                .from('inspection_bookings').insert([payload]);
+
+            btn.disabled = false;
+            btn.textContent = 'Submit Booking Request';
+
+            if (error) throw error;
+
+            await showAlert(
+                'Your inspection booking request has been submitted successfully. An OSH officer will review and schedule your inspection.',
+                { type: 'success', title: 'Request Submitted', btnText: 'Done' }
+            );
+
+            document.getElementById('bookingForm').reset();
+            // Re-fill auto fields after reset
+            if (profile.success) {
+                document.getElementById('contactName').value = profile.data.first_name + ' ' + profile.data.surname;
+                document.getElementById('contactEmail').value = profile.data.email || '';
+            }
+            const companyName = await window.getUserCompanyName(window.supabaseClient);
+            if (companyName) document.getElementById('companyName').value = companyName;
+
+        } catch(err) {
+            btn.disabled = false;
+            btn.textContent = 'Submit Booking Request';
+            await showAlert(err.message, { type: 'error', title: 'Submission Failed' });
+        }
+    });
+
+    async function resetForm() {
+        const ok = await showConfirm('All entered data will be cleared.', {
+            title: 'Reset Form', icon: '🔄', confirmText: 'Reset', danger: true
+        });
+        if (ok) {
+            document.getElementById('bookingForm').reset();
+            // Re-fill auto fields
+            const userResult = await getCurrentUser();
+            if (userResult.success && userResult.user) {
+                const profile = await getUserProfile(userResult.user.id);
+                if (profile.success) {
+                    document.getElementById('contactName').value = profile.data.first_name + ' ' + profile.data.surname;
+                    document.getElementById('contactEmail').value = profile.data.email || '';
+                }
+                const companyName = await window.getUserCompanyName(window.supabaseClient);
+                if (companyName) document.getElementById('companyName').value = companyName;
+            }
+            showToast('Form has been reset.', 'info');
+        }
+    }
+    </script>
+</body>
+</html>

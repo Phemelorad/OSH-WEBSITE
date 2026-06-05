@@ -16,6 +16,8 @@
 //   injury-disease-entries  → injury-disease-entries.html
 //   worker-profile          → worker-profile.html
 //   admin                   → admin.html
+//   company-book-inspection → company-book-inspection.html
+//   company-monitoring      → company-monitoring.html
 // ============================================================
 
 (function () {
@@ -178,6 +180,17 @@
       href: 'dashboard.html',
       single: true,
       hideFor: ['viewer', 'worker', 'company']
+    },
+    {
+      id: 'company-portal',
+      label: '📋 Company Portal',
+      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin'],
+      children: [
+        { id: 'company-book-inspection', icon: '📅', label: 'Book Inspection',       href: 'company-book-inspection.html' },
+        { id: 'accident',                icon: '🚨', label: 'Report Accident',        href: 'accident-report.html' },
+        { id: 'injury-disease',          icon: '🏥', label: 'Report Injury / Disease', href: 'injury-disease-report.html' },
+        { id: 'company-monitoring',      icon: '📊', label: 'Monitoring Dashboard',   href: 'company-monitoring.html' },
+      ]
     },
     {
       id: 'company-view',

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Dashboard - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; font-size: 14px; }
+        .user-company-name { font-size: 12px; color: #888; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+        .page-header h1 { color: #222; font-size: 28px; }
+        .page-header p { color: #888; font-size: 14px; margin-top: 4px; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 22px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid #333; transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .stat-icon { font-size: 20px; margin-bottom: 6px; }
+        .stat-card h3 { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .stat-card .stat-value { color: #222; font-size: 28px; font-weight: 700; }
+        .stat-card .stat-sub { font-size: 11px; color: #999; margin-top: 2px; }
+        .stat-card.blue   { border-left-color: #17a2b8; }
+        .stat-card.green  { border-left-color: #28a745; }
+        .stat-card.amber  { border-left-color: #ffc107; }
+        .stat-card.red    { border-left-color: #dc3545; }
+        .stat-card.purple { border-left-color: #6f42c1; }
+        .stat-card.orange { border-left-color: #fd7e14; }
+
+        /* Section Card */
+        .section-card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 24px; border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .section-header h2 { color: #333; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-header .section-link {
+            font-size: 13px; color: #666; text-decoration: none;
+            font-weight: 600; transition: color 0.2s;
+        }
+        .section-header .section-link:hover { color: #222; }
+
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%; border-collapse: collapse; font-size: 13px;
+        }
+        table th {
+            background: #fafafa; padding: 12px 16px;
+            text-align: left; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #888; border-bottom: 1px solid #e8e8e8;
+        }
+        table td {
+            padding: 12px 16px; border-bottom: 1px solid #f5f5f5;
+            color: #444;
+        }
+        table tr:hover td { background: #fafafa; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-pending   { background: #fff3cd; color: #856404; }
+        .badge-approved  { background: #d4edda; color: #155724; }
+        .badge-scheduled { background: #d1ecf1; color: #0c5460; }
+        .badge-completed { background: #cce5ff; color: #004085; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+        .badge-submitted { background: #d4edda; color: #155724; }
+        .badge-draft     { background: #e2e3e5; color: #383d41; }
+        .badge-info      { background: #d1ecf1; color: #0c5460; }
+        .badge-neutral   { background: #f0f0f0; color: #555; }
+
+        .loading { text-align: center; padding: 80px 20px; color: #666; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #333; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+        .empty-state .empty-icon { font-size: 28px; margin-bottom: 8px; }
+        .empty-state p { font-size: 13px; }
+
+        /* Tabs */
+        .tabs {
+            display: flex; gap: 0; border-bottom: 2px solid #e8e8e8;
+            padding: 0 24px; background: #fafafa; overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 14px 22px; background: none; border: none;
+            font-size: 13px; font-weight: 600; color: #888;
+            cursor: pointer; border-bottom: 3px solid transparent;
+            font-family: inherit; white-space: nowrap; transition: all 0.2s;
+        }
+        .tab-btn:hover { color: #555; }
+        .tab-btn.active { color: #222; border-bottom-color: #333; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .section-header { padding: 14px 16px; }
+            table th, table td { padding: 10px 12px; }
+            .tabs { padding: 0 12px; }
+            .tab-btn { padding: 12px 14px; font-size: 12px; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📊 Monitoring Dashboard</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-company-name" id="userCompanyName"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'company-monitoring';</script>
+    <script src="nav.js"></script>
+
+    <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Loading monitoring data…</p>
+    </div>
+
+    <div id="mainContent" class="container" style="display:none">
+        <div class="page-header">
+            <h1>📊 Monitoring Dashboard</h1>
+            <p>Track your inspection bookings, reports, and compensation claims in one place.</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card blue"><div class="stat-icon">📅</div><h3>Inspection Bookings</h3><div class="stat-value" id="statBookings">—</div><div class="stat-sub">Total requests</div></div>
+            <div class="stat-card green"><div class="stat-icon">🔍</div><h3>Inspections</h3><div class="stat-value" id="statInspections">—</div><div class="stat-sub">Conducted</div></div>
+            <div class="stat-card red"><div class="stat-icon">🚨</div><h3>Accidents</h3><div class="stat-value" id="statAccidents">—</div><div class="stat-sub">Reports submitted</div></div>
+            <div class="stat-card amber"><div class="stat-icon">🏥</div><h3>Injuries &amp; Diseases</h3><div class="stat-value" id="statInjuries">—</div><div class="stat-sub">Reports submitted</div></div>
+            <div class="stat-card purple"><div class="stat-icon">📑</div><h3>Compensation Claims</h3><div class="stat-value" id="statClaims">—</div><div class="stat-sub">Total claims</div></div>
+            <div class="stat-card orange"><div class="stat-icon">⚠</div><h3>Pending Actions</h3><div class="stat-value" id="statPending">—</div><div class="stat-sub">Awaiting response</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="section-card">
+            <div class="tabs" id="tabBar">
+                <button class="tab-btn active" data-tab="tab-bookings">📅 Bookings</button>
+                <button class="tab-btn" data-tab="tab-inspections">🔍 Inspections</button>
+                <button class="tab-btn" data-tab="tab-accidents">🚨 Accidents</button>
+                <button class="tab-btn" data-tab="tab-injuries">🏥 Injuries</button>
+                <button class="tab-btn" data-tab="tab-claims">📑 Claims</button>
+            </div>
+
+            <!-- Bookings Tab -->
+            <div class="tab-content active" id="tab-bookings">
+                <div class="section-header">
+                    <h2>📅 Inspection Booking Requests</h2>
+                    <a href="company-book-inspection.html" class="section-link">New Booking →</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date Requested</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Preferred Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTable"></tbody>
+                    </table>
+                </div>
+                <div id="bookingsEmpty" class="empty-state"><div class="empty-icon">📅</div><p>No inspection booking requests yet.</p></div>
+            </div>
+
+            <!-- Inspections Tab -->
+            <div class="tab-content" id="tab-inspections">
+                <div class="section-header">
+                    <h2>🔍 Inspections Conducted</h2>
+                    <a href="inspection-entries.html" class="section-link">View All →</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Inspector</th>
+                                <th>Type</th>
+                                <th>Compliance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inspectionsTable"></tbody>
+                    </table>
+                </div>
+                <div id="inspectionsEmpty" class="empty-state"><div class="empty-icon">🔍</div><p>No inspections conducted yet.</p></div>
+            </div>
+
+            <!-- Accidents Tab -->
+            <div class="tab-content" id="tab-accidents">
+                <div class="section-header">
+                    <h2>🚨 Accident Reports</h2>
+                    <a href="accident-report.html" class="section-link">New Report →</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Injured Person</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accidentsTable"></tbody>
+                    </table>
+                </div>
+                <div id="accidentsEmpty" class="empty-state"><div class="empty-icon">🚨</div><p>No accident reports on record.</p></div>
+            </div>
+
+            <!-- Injuries Tab -->
+            <div class="tab-content" id="tab-injuries">
+                <div class="section-header">
+                    <h2>🏥 Injury &amp; Disease Reports</h2>
+                    <a href="injury-disease-report.html" class="section-link">New Report →</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Worker</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="injuriesTable"></tbody>
+                    </table>
+                </div>
+                <div id="injuriesEmpty" class="empty-state"><div class="empty-icon">🏥</div><p>No injury or disease reports on record.</p></div>
+            </div>
+
+            <!-- Claims Tab -->
+            <div class="tab-content" id="tab-claims">
+                <div class="section-header">
+                    <h2>📑 Compensation Claims</h2>
+                    <a href="entries.html" class="section-link">View All →</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Claimant</th>
+                                <th>File Number</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimsTable"></tbody>
+                    </table>
+                </div>
+                <div id="claimsEmpty" class="empty-state"><div class="empty-icon">📑</div><p>No compensation claims on record.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+    let companyName = null;
+
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+
+        // Only company users can access
+        if (currentUserRole !== 'company') { window.location.href = 'dashboard.html'; return; }
+
+        const userResult = await getCurrentUser();
+        if (userResult.success && userResult.user) {
+            const profile = await getUserProfile(userResult.user.id);
+            if (profile.success) {
+                document.getElementById('userName').textContent = profile.data.first_name + ' ' + profile.data.surname;
+            }
+        }
+
+        companyName = await window.getUserCompanyName(SB);
+        if (!companyName) {
+            document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:20px;text-align:center">Could not determine your company. Please contact an administrator.</p>';
+            return;
+        }
+        document.getElementById('userCompanyName').textContent = companyName;
+
+        await loadMonitoringData();
+    });
+
+    // ── Tab switching ─────────────────────────────────────────
+    document.getElementById('tabBar').addEventListener('click', e => {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn) return;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+
+    async function loadMonitoringData() {
+        try {
+            const [bookRes, insRes, accRes, idrRes, clmRes] = await Promise.all([
+                SB.from('inspection_bookings')
+                    .select('*')
+                    .eq('company_name', companyName)
+                    .order('created_at', { ascending: false })
+                    .limit(50),
+                SB.from('workplace_inspections')
+                    .select('*')
+                    .eq('factory_name', companyName)
+                    .order('inspection_date', { ascending: false })
+                    .limit(50),
+                SB.from('accident_reports')
+                    .select('*')
+                    .eq('occupier_name', companyName)
+                    .order('accident_date', { ascending: false })
+                    .limit(50),
+                SB.from('injury_disease_reports')
+                    .select('*')
+                    .eq('employer_name', companyName)
+                    .order('incident_date', { ascending: false })
+                    .limit(50),
+                SB.from('injury_claims')
+                    .select('*')
+                    .eq('name_of_employer', companyName)
+                    .order('created_at', { ascending: false })
+                    .limit(50)
+            ]);
+
+            const bookings     = bookRes.data || [];
+            const inspections  = insRes.data || [];
+            const accidents    = accRes.data || [];
+            const injuries     = idrRes.data || [];
+            const claims       = clmRes.data || [];
+
+            // Update stats
+            document.getElementById('statBookings').textContent    = bookings.length;
+            document.getElementById('statInspections').textContent = inspections.length;
+            document.getElementById('statAccidents').textContent   = accidents.length;
+            document.getElementById('statInjuries').textContent    = injuries.length;
+            document.getElementById('statClaims').textContent      = claims.length;
+
+            // Count pending items
+            const pending = bookings.filter(b => b.status === 'pending' || b.status === 'approved').length
+                         + accidents.filter(a => a.investigation_status === 'Pending' || a.investigation_status === 'In Progress').length
+                         + claims.filter(c => c.status === 'draft' || c.status === 'pending').length;
+            document.getElementById('statPending').textContent = pending;
+
+            // Render tables
+            renderBookings(bookings);
+            renderInspections(inspections);
+            renderAccidents(accidents);
+            renderInjuries(injuries);
+            renderClaims(claims);
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').style.display  = 'block';
+        } catch (err) {
+            document.getElementById('loadingState').innerHTML =
+                '<p style="color:#e74c3c;padding:20px;text-align:center">Error loading data: ' + esc(err.message) +
+                '<br><br><button onclick="location.reload()" style="padding:10px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">Retry</button></p>';
+        }
+    }
+
+    function renderBookings(list) {
+        const tbody = document.getElementById('bookingsTable');
+        const empty = document.getElementById('bookingsEmpty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(b => {
+            const statusClass = 'badge-' + (b.status || 'pending');
+            return '<tr>'
+                + '<td>' + fmtDate(b.created_at) + '</td>'
+                + '<td>' + esc(b.inspection_type || '—') + '</td>'
+                + '<td>' + esc(b.location || '—') + '</td>'
+                + '<td>' + (b.preferred_date ? fmtDate(b.preferred_date) : '—') + '</td>'
+                + '<td><span class="badge ' + statusClass + '">' + esc(b.status || 'pending') + '</span></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function renderInspections(list) {
+        const tbody = document.getElementById('inspectionsTable');
+        const empty = document.getElementById('inspectionsEmpty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(i => {
+            const comp = i.compliance_level || 0;
+            const compColor = comp >= 75 ? '#155724' : comp >= 50 ? '#856404' : '#721c24';
+            const statusClass = i.follow_up_required ? 'badge-amber' : 'badge-completed';
+            return '<tr>'
+                + '<td>' + fmtDate(i.inspection_date) + '</td>'
+                + '<td>' + esc(i.inspector_name || '—') + '</td>'
+                + '<td>' + esc(i.inspection_type || '—') + '</td>'
+                + '<td style="font-weight:600;color:' + compColor + '">' + comp + '%</td>'
+                + '<td><span class="badge ' + statusClass + '">' + (i.follow_up_required ? '⚠ Follow-up' : '✅ Done') + '</span></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function renderAccidents(list) {
+        const tbody = document.getElementById('accidentsTable');
+        const empty = document.getElementById('accidentsEmpty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(a => {
+            const fatalBadge = a.injury_fatal === 'Fatal' ? '<span class="badge badge-pending">Fatal</span>' : '';
+            const isDangerous = a.report_type === 'dangerous_occurrence' || a.report_type === 'both';
+            const typeLabel = isDangerous ? 'Dangerous Occurrence' : (a.report_type === 'accident' ? 'Accident' : a.report_type || '—');
+            return '<tr>'
+                + '<td>' + fmtDate(a.accident_date) + '</td>'
+                + '<td>' + esc(a.injured_name || '—') + ' ' + fatalBadge + '</td>'
+                + '<td>' + esc(typeLabel) + '</td>'
+                + '<td><span class="badge badge-info">' + esc(a.investigation_status || 'Pending') + '</span></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function renderInjuries(list) {
+        const tbody = document.getElementById('injuriesTable');
+        const empty = document.getElementById('injuriesEmpty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(idr => {
+            const fatal = idr.resulted_death === 'Yes' ? '<span class="badge badge-pending">Fatal</span>' : '';
+            const sev = idr.permanent_incapacity === 'Yes' ? '♿ Permanent' : idr.temporary_incapacity === 'Yes' ? '🩹 Temporary' : '—';
+            return '<tr>'
+                + '<td>' + fmtDate(idr.incident_date) + '</td>'
+                + '<td>' + esc(idr.worker_name || '—') + ' ' + fatal + '</td>'
+                + '<td>' + esc(idr.incident_type || '—') + '</td>'
+                + '<td>' + sev + '</td>'
+                + '<td><span class="badge badge-submitted">Submitted</span></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function renderClaims(list) {
+        const tbody = document.getElementById('claimsTable');
+        const empty = document.getElementById('claimsEmpty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(c => {
+            const statusClass = c.status === 'approved' ? 'badge-approved' : c.status === 'draft' ? 'badge-draft' : c.status === 'submitted' ? 'badge-submitted' : 'badge-info';
+            return '<tr>'
+                + '<td>' + fmtDate(c.date_of_injury) + '</td>'
+                + '<td>' + esc(c.name_of_claimant || '—') + '</td>'
+                + '<td>' + esc(c.file_number || 'Draft') + '</td>'
+                + '<td><span class="badge ' + statusClass + '">' + esc(c.status || 'pending') + '</span></td>'
+                + '</tr>';
+        }).join('');
+    }
+    </script>
+</body>
+</html>
