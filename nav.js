@@ -182,6 +182,13 @@
       hideFor: ['viewer', 'worker', 'company']
     },
     {
+      id: 'company-view',
+      label: '🏢 My Company',
+      href: 'company-view.html',
+      single: true,
+      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
+    },
+    {
       id: 'company-book-inspection',
       label: '📅 Book Inspection',
       href: 'company-book-inspection.html',
@@ -206,13 +213,6 @@
       id: 'company-monitoring',
       label: '📊 Monitoring Dashboard',
       href: 'company-monitoring.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
-    },
-    {
-      id: 'company-view',
-      label: '🏢 My Company',
-      href: 'company-view.html',
       single: true,
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
     },
