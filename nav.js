@@ -87,19 +87,14 @@
     {
       id: 'dashboard',
       label: '⌂ Dashboard',
-      href: 'dashboard.html'
+      href: 'dashboard.html',
+      hideFor: ['viewer', 'worker', 'company']
     },
     {
       id: 'company-view',
       label: '🏢 My Company',
       href: 'company-view.html',
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
-    },
-    {
-      id: 'company-register',
-      label: '🏢 Companies',
-      href: 'company-register.html',
-      hideFor: ['company']
     },
     {
       id: 'inspection',
@@ -130,9 +125,15 @@
       hideFor: ['company', 'viewer', 'worker']
     },
     {
+      id: 'company-register',
+      label: '🏢 Companies',
+      href: 'company-register.html',
+      hideFor: ['company']
+    },
+    {
       id: 'admin',
       label: '⚙ Admin',
-      hideFor: ['company', 'viewer', 'worker'],
+      hideFor: ['company', 'viewer', 'worker', 'officer'],
       href: 'admin.html'
     },
   ];
