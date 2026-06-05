@@ -55,6 +55,14 @@
         .form-row-2 { grid-template-columns: repeat(2, 1fr); }
         .col-span-2 { grid-column: span 2; }
         .col-span-3 { grid-column: span 3; }
+        /* Compact employee fields */
+        .form-row-emp { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .form-row-emp .emp-field label { font-size: 11px; margin-bottom: 3px; }
+        .form-row-emp .emp-field input { padding: 7px 10px; font-size: 12px; }
+        .form-row-emp-total {
+            background: #f5f5f5; border-radius: 6px; padding: 8px 14px;
+            border-left: 3px solid #333; margin-bottom: 16px;
+        }
         .form-group { margin-bottom: 4px; }
         .form-group label {
             display: block; color: #444; font-weight: 600;
@@ -277,34 +285,32 @@
                 <span class="err-msg">Required</span>
               </div>
             </div>
-            <div class="form-row form-row-2">
-              <div class="form-group">
-                <label>No. of Employees — Male<span class="req">*</span></label>
+            <div class="form-row form-row-4 form-row-emp">
+              <div class="form-group emp-field">
+                <label>Male<span class="req">*</span></label>
                 <input type="number" name="employees_male" id="empMale" min="0" placeholder="0" required oninput="updateEmpTotals()">
                 <span class="err-msg">Required</span>
               </div>
-              <div class="form-group">
-                <label>No. of Foreign Employees — Male</label>
+              <div class="form-group emp-field">
+                <label>Foreign Male</label>
                 <input type="number" name="employees_foreign_male" id="empForeignMale" min="0" placeholder="0" value="0" oninput="updateEmpTotals()">
               </div>
-            </div>
-            <div class="form-row form-row-2">
-              <div class="form-group">
-                <label>No. of Employees — Female<span class="req">*</span></label>
+              <div class="form-group emp-field">
+                <label>Female<span class="req">*</span></label>
                 <input type="number" name="employees_female" id="empFemale" min="0" placeholder="0" required oninput="updateEmpTotals()">
                 <span class="err-msg">Required</span>
               </div>
-              <div class="form-group">
-                <label>No. of Foreign Employees — Female</label>
+              <div class="form-group emp-field">
+                <label>Foreign Female</label>
                 <input type="number" name="employees_foreign_female" id="empForeignFemale" min="0" placeholder="0" value="0" oninput="updateEmpTotals()">
               </div>
             </div>
-            <div class="form-row" style="background:#f5f5f5;border-radius:8px;padding:12px 16px;border-left:4px solid #333;">
-              <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;width:100%;">
-                <div><span style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total Employees</span></div>
-                <div><span style="font-size:22px;font-weight:700;color:#333;" id="empTotalLocal">0</span> <span style="font-size:12px;color:#888;">Local</span></div>
-                <div><span style="font-size:22px;font-weight:700;color:#17a2b8;" id="empTotalForeign">0</span> <span style="font-size:12px;color:#888;">Foreign</span></div>
-                <div style="border-left:2px solid #ddd;padding-left:24px;"><span style="font-size:26px;font-weight:700;color:#222;" id="empTotalAll">0</span> <span style="font-size:12px;color:#888;">All</span></div>
+            <div class="form-row form-row-emp-total">
+              <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;">
+                <span style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;">Total</span>
+                <span><strong style="font-size:18px;color:#333;" id="empTotalLocal">0</strong> <span style="font-size:11px;color:#888;">Local</span></span>
+                <span><strong style="font-size:18px;color:#17a2b8;" id="empTotalForeign">0</strong> <span style="font-size:11px;color:#888;">Foreign</span></span>
+                <span style="border-left:2px solid #ddd;padding-left:20px;"><strong style="font-size:20px;color:#222;" id="empTotalAll">0</strong> <span style="font-size:11px;color:#888;">All</span></span>
               </div>
             </div>
           </div>
