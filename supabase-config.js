@@ -40,6 +40,7 @@
                         surname: userData.surname,
                         department: userData.department || 'osh',
                         location: userData.location,
+                        designation: userData.designation || null,
                         role: mapRole(userData.role || 'viewer'),
                         company_name: userData.companyName || null,
                         company_industry: userData.industry || null,
@@ -148,6 +149,7 @@
                 email: user.email,
                 department: metadata.department || 'osh',
                 location: metadata.location || 'Not specified',
+                designation: metadata.designation || null,
                 role: role,
                 created_at: new Date().toISOString()
             };

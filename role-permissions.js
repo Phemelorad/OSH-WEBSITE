@@ -72,6 +72,7 @@ async function initializeRoleSystem() {
             currentUserId = cached.user_id;
             currentUserRole = cached.role;
             console.log('User role (from cache):', currentUserRole);
+            updateHeaderDisplay(cached);
             updateUIForRole();
             // Refresh cache in background (don't block UI)
             setTimeout(() => refreshUserProfileInBackground(), 100);
@@ -97,6 +98,7 @@ async function initializeRoleSystem() {
                 window.cacheUserProfile(profileResult.data);
             }
             
+            updateHeaderDisplay(profileResult.data);
             updateUIForRole();
             return true;
         }
@@ -104,6 +106,41 @@ async function initializeRoleSystem() {
     } catch (error) {
         console.error('Error initializing role system:', error);
         return false;
+    }
+}
+
+// Populate header display from profile data (name, designation, department)
+function updateHeaderDisplay(profile) {
+    if (!profile) return;
+    const nameEl = document.getElementById('userName');
+    const desigEl = document.getElementById('userDesignation');
+    const desigSep = document.getElementById('userDesignationSep');
+    const deptEl = document.getElementById('userDept');
+    const companyEl = document.getElementById('userCompanyName');
+
+    // Set name
+    const fullName = (profile.first_name + ' ' + profile.surname).trim();
+    if (nameEl && fullName) nameEl.textContent = fullName;
+
+    // Set designation (if present)
+    if (desigEl && profile.designation) {
+        desigEl.textContent = profile.designation;
+        if (desigSep) desigSep.style.display = '';
+    }
+
+    // Set department
+    const deptMap = {
+        osh: 'Dept. of OSH',
+        company: 'Company',
+        general: 'General'
+    };
+    if (deptEl) {
+        deptEl.textContent = deptMap[profile.department] || profile.department || '';
+    }
+
+    // Set company name for company users
+    if (companyEl && profile.role === 'company' && profile.company_name) {
+        companyEl.textContent = profile.company_name;
     }
 }
 

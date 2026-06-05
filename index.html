@@ -544,6 +544,12 @@
             </div>
 
             <div class="form-group">
+                <label for="designation">Designation / Job Title</label>
+                <input type="text" id="designation" name="designation" placeholder="e.g. Deputy Director, Safety Officer, Inspector">
+                <span class="error-message">Please enter your designation</span>
+            </div>
+
+            <div class="form-group">
                 <label for="location">Location / Station</label>
                 <input type="text" id="location" name="location" placeholder="Enter your location or station" required>
                 <span class="error-message">Location is required</span>
@@ -696,7 +702,7 @@
 
         // ── Blur validation ────────────────────────────
         ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
-         'registerPassword','confirmPassword','location',
+         'registerPassword','confirmPassword','designation','location',
          'companyName','ownerName','ownerEmail','companyPhone',
          'workplaceCompany','employeeId'].forEach(id => {
             const field = document.getElementById(id);
@@ -847,7 +853,7 @@
             });
 
             if (selectedRole.value === 'company') {
-                ['companyName', 'ownerName', 'ownerEmail', 'companyPhone'].forEach(id => {
+                ['companyName', 'ownerName', 'ownerEmail', 'companyPhone', 'designation'].forEach(id => {
                     const f = document.getElementById(id);
                     if (f && !f.value.trim()) { f.classList.add('error'); isValid = false; }
                 });
@@ -883,6 +889,7 @@
                 formData.companyPhone    = document.getElementById('companyPhone').value;
                 formData.industry        = document.getElementById('companyIndustry')?.value || '';
                 formData.department      = 'company';
+                formData.designation     = document.getElementById('designation').value.trim() || 'Company Representative';
             } else if (selectedRole.value === 'worker') {
                 formData.workplaceCompany = document.getElementById('workplaceCompany').value;
                 formData.employeeId       = document.getElementById('employeeId').value || null;
@@ -893,6 +900,9 @@
                 ).map(cb => cb.value);
                 formData.department = 'osh';
             }
+
+            // Add designation
+            formData.designation = document.getElementById('designation').value.trim();
 
             const result = await signUp(formData);
 
