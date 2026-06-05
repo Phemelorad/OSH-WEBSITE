@@ -686,6 +686,7 @@
         document.getElementById('inspectionForm').reset();
         document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
         updateCompliance();
+        updateEmpTotals();
 
       } catch(err) {
         submitBtn.disabled = false;
@@ -714,6 +715,7 @@
             <td><button type="button" class="remove-row-btn" onclick="removeRow(this)">✕</button></td>
           </tr>`;
         updateCompliance();
+        updateEmpTotals();
         showToast('Form has been reset.', 'info');
       }
     }
