@@ -92,18 +92,7 @@
 
       .header-user .user-designation {
         font-size: 11px;
-        color: #666;
-        font-weight: 600;
-      }
-
-      .header-user .user-designation-sep {
-        font-size: 11px;
-        color: #bbb;
-      }
-
-      .header-user .user-dept {
-        font-size: 11px;
-        color: #888;
+        color: #777;
       }
 
       .header-user .user-company-name {
@@ -131,15 +120,17 @@
         color: #222;
       }
 
-      /* Role badge injected by addRoleBadge() */
-      .header-user .user-name .role-badge-inline {
-        background: #f0f0f0;
-        color: #666;
-        padding: 3px 9px;
+      .header-user .user-name .role-badge {
+        display: inline-block;
+        background: #e8e8e8;
+        color: #555;
+        padding: 2px 10px;
         border-radius: 12px;
         font-size: 11px;
         font-weight: 600;
         margin-left: 8px;
+        vertical-align: middle;
+        line-height: normal;
       }
 
       @media (max-width: 768px) {
@@ -179,13 +170,16 @@
         </div>
         <div class="header-right">
           <div class="header-user">
-            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-name" id="userName">
+              Loading...
+              <span class="role-badge" id="userRoleBadge"></span>
+            </div>
             <div class="user-meta">
               <span class="user-designation" id="userDesignation"></span>
-              <span class="user-designation-sep" id="userDesignationSep" style="display:none">·</span>
-              <span class="user-dept" id="userDept"></span>
-              <span class="user-department" id="userDepartment" style="display:none"></span>
-              <span class="user-company-name" id="userCompanyName"></span>
+              <!-- Hidden fallback IDs for backward compatibility with page scripts -->
+              <span id="userDept" style="display:none"></span>
+              <span id="userDepartment" style="display:none"></span>
+              <span id="userCompanyName" style="display:none"></span>
             </div>
           </div>
           <button class="header-logout" onclick="handleLogout()">Sign Out</button>

@@ -109,38 +109,36 @@ async function initializeRoleSystem() {
     }
 }
 
-// Populate header display from profile data (name, designation, department)
+// Populate header display from profile data (name, role badge, designation)
+// Always shows: Name [Role] · Designation (or company name for company users)
 function updateHeaderDisplay(profile) {
     if (!profile) return;
     const nameEl = document.getElementById('userName');
+    const roleBadgeEl = document.getElementById('userRoleBadge');
     const desigEl = document.getElementById('userDesignation');
-    const desigSep = document.getElementById('userDesignationSep');
-    const deptEl = document.getElementById('userDept');
-    const companyEl = document.getElementById('userCompanyName');
 
     // Set name
     const fullName = (profile.first_name + ' ' + profile.surname).trim();
-    if (nameEl && fullName) nameEl.textContent = fullName;
-
-    // Set designation (if present)
-    if (desigEl && profile.designation) {
-        desigEl.textContent = profile.designation;
-        if (desigSep) desigSep.style.display = '';
+    if (nameEl && fullName) {
+        // Keep the role badge element — only replace the text node before it
+        const textNode = nameEl.childNodes[0];
+        if (textNode) textNode.textContent = fullName;
     }
 
-    // Set department
-    const deptMap = {
-        osh: 'Dept. of OSH',
-        company: 'Company',
-        general: 'General'
-    };
-    if (deptEl) {
-        deptEl.textContent = deptMap[profile.department] || profile.department || '';
+    // Set role badge
+    if (roleBadgeEl) {
+        roleBadgeEl.textContent = getRoleDisplayName(profile.role || 'viewer');
     }
 
-    // Set company name for company users
-    if (companyEl && profile.role === 'company' && profile.company_name) {
-        companyEl.textContent = profile.company_name;
+    // Set designation (if present), otherwise show company name for company users
+    if (desigEl) {
+        if (profile.designation) {
+            desigEl.textContent = profile.designation;
+        } else if (profile.role === 'company') {
+            desigEl.textContent = profile.company_name || 'Company';
+        } else {
+            desigEl.textContent = '';
+        }
     }
 }
 
@@ -246,35 +244,12 @@ function updateUIForRole() {
     applyNavVisibility();
 }
 
-// Add role badge to navbar
+// Add role badge to navbar — refreshes the badge text
 function addRoleBadge() {
-    const roleNames = {
-        viewer: 'Viewer',
-        worker: 'Worker',
-        officer: 'Officer',
-        admin: 'Admin',
-        super_admin: 'Super Admin',
-        company: 'Company'
-    };
-
-    const roleBadgeHTML = `
-        <span style="
-            background: #f0f0f0;
-            color: #666;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
-        ">${roleNames[currentUserRole] || 'User'}</span>
-    `;
-
-    const userNameElements = document.querySelectorAll('.user-name');
-    userNameElements.forEach(element => {
-        if (!element.querySelector('span[style*="border-radius: 12px"]')) {
-            element.insertAdjacentHTML('beforeend', roleBadgeHTML);
-        }
-    });
+    const el = document.getElementById('userRoleBadge');
+    if (el && currentUserRole) {
+        el.textContent = getRoleDisplayName(currentUserRole);
+    }
 }
 
 // Disable elements based on permissions
