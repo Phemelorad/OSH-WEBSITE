@@ -70,11 +70,99 @@
         background: #fafafa;
       }
 
+      /* Caret for dropdowns */
+      .osh-caret {
+        font-size: 9px;
+        opacity: 0.5;
+        margin-left: 2px;
+        transition: transform 0.2s;
+      }
+
+      .osh-nav-item:hover .osh-caret,
+      .osh-nav-item.open   .osh-caret {
+        transform: rotate(180deg);
+        opacity: 0.8;
+      }
+
+      /* Dropdown panel */
+      .osh-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 210px;
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        z-index: 600;
+        overflow: hidden;
+        animation: osh-drop-in 0.15s ease;
+      }
+
+      .osh-nav-item:hover .osh-dropdown,
+      .osh-nav-item.open   .osh-dropdown {
+        display: block;
+      }
+
+      @keyframes osh-drop-in {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .osh-dropdown a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 18px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #444;
+        text-decoration: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: background 0.15s, color 0.15s;
+        border-bottom: 1px solid #f5f5f5;
+      }
+
+      .osh-dropdown a:last-child { border-bottom: none; }
+
+      .osh-dropdown a:hover {
+        background: #f5f5f5;
+        color: #111;
+      }
+
+      .osh-dropdown a.active {
+        background: #f0f0f0;
+        color: #111;
+        font-weight: 700;
+      }
+
+      .osh-dropdown a .dd-icon {
+        font-size: 15px;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      /* Active parent highlight */
+      .osh-nav-item.has-active > .osh-nav-btn {
+        color: #111;
+        border-bottom: 3px solid #222;
+        background: #fafafa;
+      }
+
       @media (max-width: 768px) {
         .osh-nav { flex-direction: column; }
         .osh-nav-item { width: 100%; }
-        .osh-nav-btn { width: 100%; height: 48px; border-bottom: 1px solid #f0f0f0; }
-        .osh-nav-btn.active { border-bottom: 1px solid #f0f0f0; border-left: 4px solid #222; }
+        .osh-nav-btn { width: 100%; height: 48px; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
+        .osh-nav-btn.active, .osh-nav-item.has-active > .osh-nav-btn {
+          border-bottom: 1px solid #f0f0f0;
+          border-left: 4px solid #222;
+        }
+        .osh-dropdown { position: static; border-radius: 0; box-shadow: none; border: none; background: #fafafa; animation: none; }
+        .osh-nav-item:hover .osh-dropdown { display: none; }
+        .osh-nav-item.open .osh-dropdown  { display: block; }
+        .osh-dropdown a { padding-left: 32px; }
       }
     `;
     document.head.appendChild(s);
@@ -88,53 +176,66 @@
       id: 'dashboard',
       label: '⌂ Dashboard',
       href: 'dashboard.html',
+      single: true,
       hideFor: ['viewer', 'worker', 'company']
     },
     {
       id: 'company-view',
       label: '🏢 My Company',
       href: 'company-view.html',
+      single: true,
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
     },
     {
       id: 'inspection',
       label: '🔍 Inspections',
-      href: 'inspection-entries.html',
-      activeFor: ['inspection-records', 'inspection-form'],
-      hideFor: ['company', 'viewer', 'worker']
+      hideFor: ['company', 'viewer', 'worker'],
+      children: [
+        { id: 'inspection-form',    icon: '🔍', label: 'New Inspection',      href: 'inspection.html' },
+        { id: 'inspection-records', icon: '📁', label: 'Inspection Records',  href: 'inspection-entries.html' },
+      ]
     },
     {
       id: 'accident',
       label: '🚨 Accidents',
-      href: 'accident-entries.html',
-      activeFor: ['accident-entries', 'accident'],
-      hideFor: ['company', 'viewer', 'worker']
+      hideFor: ['company', 'viewer', 'worker'],
+      children: [
+        { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
+        { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
+      ]
     },
     {
       id: 'injury',
       label: '🏥 Injuries',
-      href: 'injury-disease-entries.html',
-      activeFor: ['injury-disease-entries', 'injury-disease', 'worker-profile'],
-      hideFor: ['company', 'viewer', 'worker']
+      hideFor: ['company', 'viewer', 'worker'],
+      children: [
+        { id: 'injury-disease',         icon: '🏥', label: 'New Report',             href: 'injury-disease-report.html' },
+        { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',           href: 'injury-disease-entries.html' },
+        { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',         href: 'worker-profile.html' },
+      ]
     },
     {
       id: 'claims',
       label: '📋 Claims',
-      href: 'entries.html',
-      activeFor: ['claims-entries', 'claims-submit'],
-      hideFor: ['company', 'viewer', 'worker']
+      hideFor: ['company', 'viewer', 'worker'],
+      children: [
+        { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
+        { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
+      ]
     },
     {
       id: 'company-register',
       label: '🏢 Companies',
       href: 'company-register.html',
+      single: true,
       hideFor: ['company']
     },
     {
       id: 'admin',
       label: '⚙ Admin',
       hideFor: ['company', 'viewer', 'worker', 'officer'],
-      href: 'admin.html'
+      href: 'admin.html',
+      single: true
     },
   ];
 
@@ -147,18 +248,44 @@
       const li = document.createElement('div');
       li.className = 'osh-nav-item';
 
-      // Check if this item is active
-      const isSelfActive = item.id === active || item.activeFor?.includes(active);
+      // Check if this item or any child is active
+      const isSelfActive = item.id === active;
+      const isChildActive = !item.single && item.children?.some(c => c.id === active);
+      if (isChildActive) li.classList.add('has-active');
 
       // Apply role-based visibility
       if (item.hideFor) li.dataset.hideFor = item.hideFor.join(',');
 
-      // Direct link button (all items are single links now)
-      const btn = document.createElement('button');
-      btn.className = 'osh-nav-btn' + (isSelfActive ? ' active' : '');
-      btn.textContent = item.label;
-      btn.onclick = () => { window.location.href = item.href; };
-      li.appendChild(btn);
+      if (item.single) {
+        // Direct link button
+        const btn = document.createElement('button');
+        btn.className = 'osh-nav-btn' + (isSelfActive ? ' active' : '');
+        btn.textContent = item.label;
+        btn.onclick = () => { window.location.href = item.href; };
+        li.appendChild(btn);
+      } else {
+        // Dropdown trigger
+        const btn = document.createElement('button');
+        btn.className = 'osh-nav-btn';
+        btn.innerHTML = `${item.label} <span class="osh-caret">▼</span>`;
+        btn.addEventListener('click', () => {
+          // Toggle on mobile
+          li.classList.toggle('open');
+        });
+        li.appendChild(btn);
+
+        // Dropdown panel
+        const dd = document.createElement('div');
+        dd.className = 'osh-dropdown';
+        item.children.forEach(child => {
+          const a = document.createElement('a');
+          a.href = child.href;
+          a.className = child.id === active ? 'active' : '';
+          a.innerHTML = `<span class="dd-icon">${child.icon}</span>${child.label}`;
+          dd.appendChild(a);
+        });
+        li.appendChild(dd);
+      }
 
       nav.appendChild(li);
     });
@@ -166,8 +293,15 @@
     return nav;
   }
 
+  // ── Close dropdowns when clicking outside ────────────────
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.osh-nav-item')) {
+      document.querySelectorAll('.osh-nav-item.open')
+        .forEach(el => el.classList.remove('open'));
+    }
+  });
+
   // ── Inject the nav ───────────────────────────────────────
-  // Replace any existing .site-nav, or insert after .navbar
   function inject() {
     const existing = document.querySelector('.site-nav');
     const nav = buildNav();
