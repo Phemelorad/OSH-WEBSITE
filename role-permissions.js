@@ -111,23 +111,17 @@ async function initializeRoleSystem() {
 
 // Populate header display from profile data (name, role badge, designation)
 // Always shows: Name [Role] · Designation (or company name for company users)
+// NOTE: #userName is a <span> sibling of #userRoleBadge — page scripts can safely
+// set userName.textContent without destroying the badge element.
 function updateHeaderDisplay(profile) {
     if (!profile) return;
     const nameEl = document.getElementById('userName');
-    const roleBadgeEl = document.getElementById('userRoleBadge');
     const desigEl = document.getElementById('userDesignation');
 
     // Set name
     const fullName = (profile.first_name + ' ' + profile.surname).trim();
     if (nameEl && fullName) {
-        // Keep the role badge element — only replace the text node before it
-        const textNode = nameEl.childNodes[0];
-        if (textNode) textNode.textContent = fullName;
-    }
-
-    // Set role badge
-    if (roleBadgeEl) {
-        roleBadgeEl.textContent = getRoleDisplayName(profile.role || 'viewer');
+        nameEl.textContent = fullName;
     }
 
     // Set designation (if present), otherwise show company name for company users

@@ -170,8 +170,8 @@
         </div>
         <div class="header-right">
           <div class="header-user">
-            <div class="user-name" id="userName">
-              Loading...
+            <div class="user-name">
+              <span id="userName">Loading...</span>
               <span class="role-badge" id="userRoleBadge"></span>
             </div>
             <div class="user-meta">
