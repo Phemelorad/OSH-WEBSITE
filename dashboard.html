@@ -177,6 +177,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
+    <!-- Role permissions -->
+    <script src="role-permissions.js"></script>
     <!-- Custom Modals -->
     <script src="modal.js"></script>
     <script src="common.js"></script>
@@ -191,6 +193,9 @@
                 window.location.href = 'index.html';
                 return;
             }
+
+            // Initialize role system (handles nav visibility, role badge, etc.)
+            await initializeRoleSystem();
 
             // Load user data
             await loadUserData();
