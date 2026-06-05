@@ -271,7 +271,7 @@ function enforcePermissions() {
     }
 }
 
-// Hide nav items based on role
+// Hide nav items based on role, then reveal nav
 function applyNavVisibility() {
     if (!currentUserRole) return;
     document.querySelectorAll('.osh-nav-item[data-hide-for]').forEach(item => {
@@ -282,6 +282,8 @@ function applyNavVisibility() {
             item.style.display = '';
         }
     });
+    // Reveal nav now that visibility is applied (no flicker)
+    document.querySelector('.osh-nav')?.classList.remove('osh-nav-loading');
 }
 
 // Check if the current user is a company account

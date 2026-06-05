@@ -25,8 +25,7 @@
   // ── Inject CSS once ──────────────────────────────────────
   if (!document.getElementById('osh-nav-styles')) {
     const s = document.createElement('style');
-    s.id = 'osh-nav-styles';
-    s.textContent = `
+    s.id = 'osh-nav-styles';        s.textContent = `
       .osh-nav {
         background: white;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
@@ -36,6 +35,13 @@
         position: relative;
         z-index: 500;
         flex-wrap: wrap;
+        opacity: 1;
+        transition: opacity 0.2s ease;
+      }
+
+      .osh-nav.osh-nav-loading {
+        opacity: 0;
+        pointer-events: none;
       }
 
       /* Top-level nav items */
@@ -272,7 +278,7 @@
   // ── Build HTML ───────────────────────────────────────────
   function buildNav() {
     const nav = document.createElement('nav');
-    nav.className = 'osh-nav';
+    nav.className = 'osh-nav osh-nav-loading';
 
     MENU.forEach(item => {
       const li = document.createElement('div');
