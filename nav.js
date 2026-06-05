@@ -225,11 +225,13 @@
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
     },
     {
-      id: 'company-book-inspection',
+      id: 'book-inspection',
       label: '📅 Book Inspection',
-      href: 'company-book-inspection.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
+      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin'],
+      children: [
+        { id: 'company-book-inspection', icon: '📝', label: 'New Booking',       href: 'company-book-inspection.html' },
+        { id: 'company-bookings',        icon: '📋', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
+      ]
     },
     {
       id: 'accident',

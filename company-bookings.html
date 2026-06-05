@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; font-size: 14px; }
+        .user-company-name { font-size: 12px; color: #888; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { color: #222; font-size: 28px; }
+        .page-header p { color: #888; font-size: 14px; margin-top: 4px; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid #333; transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .stat-icon { font-size: 18px; margin-bottom: 4px; }
+        .stat-card h3 { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .stat-card .stat-value { color: #222; font-size: 24px; font-weight: 700; }
+        .stat-card.blue   { border-left-color: #17a2b8; }
+        .stat-card.green  { border-left-color: #28a745; }
+        .stat-card.amber  { border-left-color: #ffc107; }
+        .stat-card.red    { border-left-color: #dc3545; }
+        .stat-card.purple { border-left-color: #6f42c1; }
+
+        .section-card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 24px; border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .section-header h2 { color: #333; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-header .section-link {
+            font-size: 13px; color: #666; text-decoration: none;
+            font-weight: 600; transition: color 0.2s;
+        }
+        .section-header .section-link:hover { color: #222; }
+
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table th {
+            background: #fafafa; padding: 12px 16px;
+            text-align: left; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #888; border-bottom: 1px solid #e8e8e8; white-space: nowrap;
+        }
+        table td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; color: #444; vertical-align: middle; }
+        table tr:hover td { background: #fafafa; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-pending   { background: #fff3cd; color: #856404; }
+        .badge-approved  { background: #d4edda; color: #155724; }
+        .badge-scheduled { background: #d1ecf1; color: #0c5460; }
+        .badge-completed { background: #cce5ff; color: #004085; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+
+        .action-btn {
+            padding: 6px 12px; background: white; color: #333;
+            border: 1px solid #ddd; border-radius: 4px;
+            cursor: pointer; font-size: 12px; font-family: inherit;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background: #f0f0f0; }
+
+        .loading { text-align: center; padding: 80px 20px; color: #666; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #333; border-radius: 50%; width: 44px; height: 44px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+        .empty-state .empty-icon { font-size: 32px; margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; }
+
+        /* Notification banner */
+        .notif-banner {
+            display: none; padding: 16px 24px; border-radius: 12px;
+            border-left: 4px solid #17a2b8; background: #f0fafc;
+            margin-bottom: 20px; align-items: center; gap: 12px;
+            font-size: 14px; color: #0c5460; line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .section-header { padding: 14px 16px; }
+            table th, table td { padding: 10px 12px; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📋 My Bookings</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-company-name" id="userCompanyName"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'company-bookings';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Loading your bookings…</p>
+    </div>
+
+    <div id="mainContent" class="container" style="display:none">
+        <!-- Notification banner -->
+        <div id="notifBanner" class="notif-banner"></div>
+
+        <div class="page-header">
+            <h1>📋 My Inspection Bookings</h1>
+            <p>View and track all your inspection booking requests. <a href="company-book-inspection.html" style="color:#17a2b8;font-weight:600">New Booking →</a></p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card amber"><div class="stat-icon">⏳</div><h3>Pending</h3><div class="stat-value" id="statPending">—</div></div>
+            <div class="stat-card blue"><div class="stat-icon">✅</div><h3>Approved</h3><div class="stat-value" id="statApproved">—</div></div>
+            <div class="stat-card purple"><div class="stat-icon">📅</div><h3>Scheduled</h3><div class="stat-value" id="statScheduled">—</div></div>
+            <div class="stat-card green"><div class="stat-icon">✔</div><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
+            <div class="stat-card red"><div class="stat-icon">✕</div><h3>Cancelled</h3><div class="stat-value" id="statCancelled">—</div></div>
+            <div class="stat-card"><div class="stat-icon">📋</div><h3>Total</h3><div class="stat-value" id="statTotal">—</div></div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📋 Booking Requests</h2>
+                <a href="company-book-inspection.html" class="section-link">+ New Booking</a>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date Requested</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Preferred</th>
+                            <th>Inspector</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTable"></tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state">
+                <div class="empty-icon">📅</div>
+                <p>No inspection booking requests yet.</p>
+                <p style="font-size:13px;color:#bbb;margin-top:6px"><a href="company-book-inspection.html" style="color:#17a2b8">Book your first inspection →</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+    let companyName = null;
+    let allBookings = [];
+
+    // ── Auth & init ───────────────────────────────────────────
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        if (currentUserRole !== 'company') { window.location.href = 'dashboard.html'; return; }
+
+        companyName = await window.getUserCompanyName(SB);
+        if (!companyName) {
+            document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:20px;text-align:center">Could not determine your company. Please contact an administrator.</p>';
+            return;
+        }
+
+        const userResult = await getCurrentUser();
+        if (userResult.success && userResult.user) {
+            const profile = await getUserProfile(userResult.user.id);
+            if (profile.success) {
+                document.getElementById('userName').textContent = profile.data.first_name + ' ' + profile.data.surname;
+            }
+        }
+        document.getElementById('userCompanyName').textContent = companyName;
+
+        await loadBookings();
+    });
+
+    // ── Load bookings ─────────────────────────────────────────
+    async function loadBookings() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('mainContent').style.display = 'none';
+
+        try {
+            const { data, error } = await SB
+                .from('inspection_bookings')
+                .select('*')
+                .eq('company_name', companyName)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            allBookings = data || [];
+            updateStats(allBookings);
+            renderTable(allBookings);
+            updateNotification(allBookings);
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        } catch (err) {
+            document.getElementById('loadingState').innerHTML =
+                '<p style="color:#e74c3c;padding:20px;text-align:center">Error loading bookings: ' + esc(err.message) +
+                '<br><br><button onclick="loadBookings()" style="padding:10px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">Retry</button></p>';
+        }
+    }
+
+    function updateStats(rows) {
+        document.getElementById('statPending').textContent   = rows.filter(r => r.status === 'pending').length;
+        document.getElementById('statApproved').textContent  = rows.filter(r => r.status === 'approved').length;
+        document.getElementById('statScheduled').textContent = rows.filter(r => r.status === 'scheduled').length;
+        document.getElementById('statCompleted').textContent = rows.filter(r => r.status === 'completed').length;
+        document.getElementById('statCancelled').textContent = rows.filter(r => r.status === 'cancelled').length;
+        document.getElementById('statTotal').textContent     = rows.length;
+    }
+
+    // ── Update notification badge ─────────────────────────────
+    function updateNotification(rows) {
+        const respondedCount = rows.filter(r => r.status !== 'pending').length;
+        try {
+            sessionStorage.setItem('company_booking_responses', String(respondedCount));
+        } catch (e) {}
+
+        // Show banner
+        const banner = document.getElementById('notifBanner');
+        if (respondedCount > 0) {
+            const approved  = rows.filter(r => r.status === 'approved').length;
+            const scheduled = rows.filter(r => r.status === 'scheduled').length;
+            const completed = rows.filter(r => r.status === 'completed').length;
+            const cancelled = rows.filter(r => r.status === 'cancelled').length;
+            const parts = [];
+            if (approved)  parts.push(approved + ' approved');
+            if (scheduled) parts.push(scheduled + ' scheduled');
+            if (completed) parts.push(completed + ' completed');
+            if (cancelled) parts.push(cancelled + ' cancelled');
+            banner.style.display = 'flex';
+            banner.innerHTML = '📬 <strong>Booking Updates:</strong> ' + parts.join(', ');
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    // ── Render table ──────────────────────────────────────────
+    function renderTable(rows) {
+        const tbody = document.getElementById('bookingsTable');
+        const empty = document.getElementById('emptyState');
+        const mainContent = document.getElementById('mainContent');
+
+        if (!rows.length) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+
+        tbody.innerHTML = rows.map(b => {
+            const statusClass = 'badge-' + (b.status || 'pending');
+            const prefDate = b.preferred_date ? fmtDate(b.preferred_date) : '—';
+            const prefTime = b.preferred_time || '';
+            const prefStr = prefTime ? `${prefDate} (${prefTime})` : prefDate;
+
+            return '<tr>'
+                + '<td style="white-space:nowrap">' + fmtDate(b.created_at) + '</td>'
+                + '<td>' + esc(b.inspection_type || '—') + '</td>'
+                + '<td>' + esc(b.location || '—') + '</td>'
+                + '<td style="white-space:nowrap">' + prefStr + '</td>'
+                + '<td>' + (b.assigned_inspector ? esc(b.assigned_inspector) : '<span style="color:#bbb">Not assigned</span>') + '</td>'
+                + '<td><span class="badge ' + statusClass + '">' + (b.status.charAt(0).toUpperCase() + b.status.slice(1)) + '</span></td>'
+                + '<td><button class="action-btn" onclick="viewBooking(\'' + b.id + '\')">View</button></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    // ── View booking details modal ────────────────────────────
+    async function viewBooking(id) {
+        try {
+            const r = allBookings.find(x => x.id === id);
+            if (!r) {
+                console.warn('Booking not found', id);
+                return;
+            }
+
+            const statusBadge = '<span class="badge badge-' + r.status + '">' + (r.status.charAt(0).toUpperCase() + r.status.slice(1)) + '</span>';
+
+            // Helper to render a section of fields
+            const section = (title, fields) => {
+                let html = '<div style="margin-bottom:16px">'
+                    + '<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">' + title + '</div>';
+                fields.forEach(f => {
+                    const [label, value] = f;
+                    const isHTML = value && value.indexOf('<') !== -1;
+                    html += '<div style="display:flex;justify-content:space-between;padding:6px 0;gap:12px">'
+                        + '<span style="color:#888;font-size:12px;min-width:110px;flex-shrink:0">' + label + '</span>'
+                        + '<span style="color:#333;font-size:13px;text-align:right;font-weight:' + (isHTML ? '400' : '500') + '">' + (value || '—') + '</span>'
+                        + '</div>';
+                });
+                html += '</div>';
+                return html;
+            };
+
+            const companyInfo = section('Booking Information', [
+                ['Company',       esc(r.company_name)],
+                ['Industry',      esc(r.industry_type || '—')],
+                ['Location',      esc(r.location)],
+                ['Nature of Work', esc(r.nature_of_work || '—')],
+            ]);
+
+            const contactInfo = section('Contact Person', [
+                ['Name',  esc(r.contact_name)],
+                ['Email', esc(r.contact_email)],
+                ['Phone', esc(r.contact_phone || '—')],
+            ]);
+
+            const bookingInfo = section('Booking Details', [
+                ['Status',         statusBadge],
+                ['Type',           esc(r.inspection_type || 'Routine')],
+                ['Submitted',      r.created_at ? fmtDate(r.created_at) : '—'],
+                ['Preferred Date', r.preferred_date ? fmtDate(r.preferred_date) : 'Not specified'],
+                ['Preferred Time', r.preferred_time || 'Not specified'],
+            ]);
+
+            const officerInfo = section('Officer Response', [
+                ['Inspector',  esc(r.assigned_inspector || 'Not assigned')],
+                ['Scheduled',  r.scheduled_date ? fmtDate(r.scheduled_date) + (r.scheduled_time ? ' ' + r.scheduled_time : '') : 'Not scheduled'],
+                ['Admin Notes', esc(r.admin_notes || 'None')],
+                ['Last Updated', r.updated_at ? fmtDate(r.updated_at) : '—'],
+            ]);
+
+            // Notes sections
+            let notesHTML = '';
+            if (r.notes) {
+                notesHTML += '<div style="margin-bottom:12px">'
+                    + '<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Your Notes</div>'
+                    + '<div style="background:#f9f9f9;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">' + esc(r.notes) + '</div>'
+                    + '</div>';
+            }
+            if (r.special_requirements) {
+                notesHTML += '<div style="margin-bottom:12px">'
+                    + '<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Special Requirements</div>'
+                    + '<div style="background:#f9f9f9;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">' + esc(r.special_requirements) + '</div>'
+                    + '</div>';
+            }
+
+            // Schedule confirmation
+            let scheduleHTML = '';
+            if (r.scheduled_date) {
+                scheduleHTML = '<div style="margin-top:12px;padding:14px;background:#e8f5e9;border-radius:8px;text-align:center;border:1px solid #c8e6c9">'
+                    + '<div style="font-size:20px;margin-bottom:4px">📅</div>'
+                    + '<strong style="color:#155724">Inspection Scheduled</strong>'
+                    + '<div style="font-size:13px;color:#155724;margin-top:4px">' + fmtDate(r.scheduled_date) + (r.scheduled_time ? ' at ' + r.scheduled_time : '') + '</div>'
+                    + (r.assigned_inspector ? '<div style="font-size:12px;color:#388e3c;margin-top:2px">Inspector: ' + esc(r.assigned_inspector) + '</div>' : '')
+                    + '</div>';
+            }
+
+            // Status timeline
+            let timelineHTML = '';
+            if (r.status !== 'pending') {
+                const steps = [
+                    { label: 'Submitted', date: r.created_at, done: true },
+                    { label: 'Reviewed', done: r.status !== 'pending' },
+                    { label: r.status === 'scheduled' || r.status === 'completed' ? 'Scheduled' : r.status === 'cancelled' ? 'Cancelled' : 'Approved',
+                      done: r.status !== 'pending' },
+                ];
+                if (r.status === 'completed') steps.push({ label: 'Completed', done: true });
+                if (r.status === 'cancelled') steps.push({ label: 'Cancelled', done: true });
+
+                timelineHTML = '<div style="margin-top:16px;padding:16px;background:#fafafa;border-radius:8px">'
+                    + '<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Status Timeline</div>'
+                    + '<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">';
+                steps.forEach((s, i) => {
+                    const color = s.done ? '#28a745' : '#ddd';
+                    timelineHTML += '<div style="display:flex;align-items:center;gap:4px;font-size:12px;color:' + (s.done ? '#333' : '#bbb') + '">'
+                        + '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block"></span>'
+                        + s.label
+                        + (i < steps.length - 1 ? '<span style="color:#ddd;font-size:10px">──</span>' : '')
+                        + '</div>';
+                });
+                timelineHTML += '</div></div>';
+            }
+
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+            overlay.innerHTML = '<div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);'
+                + 'width:100%;max-width:540px;max-height:90vh;overflow-y:auto;'
+                + 'padding:28px 26px;font-family:\'Segoe UI\',sans-serif;position:relative;">'
+
+                + '<div style="text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #f0f0f0">'
+                + '<div style="font-size:28px;margin-bottom:4px">📅</div>'
+                + '<h2 style="color:#222;font-size:18px;margin-bottom:2px">Inspection Booking Details</h2>'
+                + '<p style="color:#888;font-size:12px">' + esc(r.company_name) + ' · ' + statusBadge + '</p>'
+                + '</div>'
+
+                + companyInfo
+                + contactInfo
+                + bookingInfo
+                + officerInfo
+                + (notesHTML ? '<div style="margin-top:4px">' + notesHTML + '</div>' : '')
+                + scheduleHTML
+                + timelineHTML
+
+                + '<div style="margin-top:18px;padding-top:14px;border-top:2px solid #f0f0f0;text-align:center">'
+                + '<button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;'
+                + 'border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Close</button>'
+                + '</div>'
+                + '</div>';
+
+            overlay.querySelector('#closeBtn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
+        } catch (e) {
+            console.error('viewBooking error:', e);
+            await showAlert('Failed to open booking details: ' + e.message, { type: 'error', title: 'View Error' });
+        }
+    }
+
+    // ── Helper: format date ──────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+    </script>
+</body>
+</html>
