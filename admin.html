@@ -657,14 +657,14 @@
         }
 
         async function editUserRole(userId, currentRole, userName) {
-            const roles = ['viewer', 'officer', 'admin', 'super_admin'];
-            const roleNames = { viewer:'Viewer', officer:'Officer', admin:'Admin', super_admin:'Super Admin' };
+            const roles = ['viewer', 'worker', 'officer', 'company', 'admin', 'super_admin'];
+            const roleNames = { viewer:'Viewer', worker:'Worker', officer:'Officer', company:'Company', admin:'Admin', super_admin:'Super Admin' };
 
             const newRole = await showSelect(
-                `Current role: <strong>${roleNames[currentRole]}</strong>`,
+                `Current role: <strong>${roleNames[currentRole] || currentRole}</strong>`,
                 roles.map(r => ({ value: r, label: roleNames[r] })),
                 currentRole,
-                { title: `Change Role — ${userName}`, iconKey: 'role', confirmText: 'Save Role' }
+                { title: `Change Role — ${userName}`, confirmText: 'Save Role' }
             );
 
             if (!newRole || newRole === currentRole) return;
