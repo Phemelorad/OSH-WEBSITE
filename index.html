@@ -702,7 +702,7 @@
 
         // ── Blur validation ────────────────────────────
         ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
-         'registerPassword','confirmPassword','designation','location',
+         'registerPassword','confirmPassword','location',
          'companyName','ownerName','ownerEmail','companyPhone',
          'workplaceCompany','employeeId'].forEach(id => {
             const field = document.getElementById(id);
@@ -853,7 +853,7 @@
             });
 
             if (selectedRole.value === 'company') {
-                ['companyName', 'ownerName', 'ownerEmail', 'companyPhone', 'designation'].forEach(id => {
+                ['companyName', 'ownerName', 'ownerEmail', 'companyPhone'].forEach(id => {
                     const f = document.getElementById(id);
                     if (f && !f.value.trim()) { f.classList.add('error'); isValid = false; }
                 });
