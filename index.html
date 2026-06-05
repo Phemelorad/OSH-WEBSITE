@@ -756,26 +756,8 @@
                 if (userProfile.success) {
                     const profile = userProfile.data;
 
-                    // Map login role selection to DB role
-                    function mapLoginRole(r) {
-                        if (r === 'osh_officer') return 'officer';
-                        return r; // 'company' → 'company', 'worker' → 'worker'
-                    }
-                    const expectedDbRole = mapLoginRole(loginRoleValue);
-
-                    if (profile.role !== expectedDbRole) {
-                        const roleLabels = { company:'Company', worker:'Worker/Employee', officer:'OSH Officer' };
-                        await showAlert(
-                            `This account is registered as a <strong>${roleLabels[profile.role] || profile.role}</strong>. ` +
-                            `Please select the correct role to continue.`,
-                            { type: 'error', title: 'Role Mismatch' }
-                        );
-                        return;
-                    }
-
                     // For company users, verify the company name matches
                     if (profile.role === 'company' && loginCompanyName) {
-                        // Look up the user's company to verify name
                         if (profile.company_id) {
                             const { data: company } = await supabaseClient
                                 .from('companies')
@@ -795,8 +777,6 @@
                     sessionStorage.setItem('user', JSON.stringify(profile));
                     const redirectUrl = profile.role === 'company'
                         ? 'company-view.html'
-                        : profile.role === 'worker'
-                        ? 'dashboard.html'
                         : 'dashboard.html';
                     showToast('Login successful! Redirecting...', 'success', 1800);
                     setTimeout(() => { window.location.href = redirectUrl; }, 1200);
