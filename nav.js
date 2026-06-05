@@ -411,19 +411,17 @@
       const sb = window.supabaseClient;
       if (!sb) return;
 
-      // Map notification keys to Supabase queries
       // 'inspection-bookings-pending' → count of inspection_bookings where status = 'pending'
-      const { data: pendingCount } = await sb
+      const { count: pendingCount, error: pendingError } = await sb
         .from('inspection_bookings')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'pending');
 
-      if (pendingCount !== null) {
+      if (!pendingError && typeof pendingCount === 'number') {
         const badge = document.getElementById('notif-inspection-bookings-pending');
         if (badge) {
-          const count = typeof pendingCount === 'number' ? pendingCount : (pendingCount.length || 0);
-          badge.textContent = count;
-          badge.classList.toggle('zero', count === 0);
+          badge.textContent = pendingCount;
+          badge.classList.toggle('zero', pendingCount === 0);
         }
       }
     } catch (e) {
