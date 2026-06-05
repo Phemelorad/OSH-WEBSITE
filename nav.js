@@ -87,28 +87,24 @@
     {
       id: 'dashboard',
       label: '⌂ Dashboard',
-      href: 'dashboard.html',
-      single: true
+      href: 'dashboard.html'
     },
     {
       id: 'company-view',
       label: '🏢 My Company',
       href: 'company-view.html',
-      single: true,
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
     },
     {
       id: 'company-register',
       label: '🏢 Companies',
       href: 'company-register.html',
-      single: true,
       hideFor: ['company']
     },
     {
       id: 'inspection',
       label: '🔍 Inspections',
       href: 'inspection-entries.html',
-      single: true,
       activeFor: ['inspection-records', 'inspection-form'],
       hideFor: ['company', 'viewer', 'worker']
     },
@@ -116,7 +112,6 @@
       id: 'accident',
       label: '🚨 Accidents',
       href: 'accident-entries.html',
-      single: true,
       activeFor: ['accident-entries', 'accident'],
       hideFor: ['company', 'viewer', 'worker']
     },
@@ -124,7 +119,6 @@
       id: 'injury',
       label: '🏥 Injuries',
       href: 'injury-disease-entries.html',
-      single: true,
       activeFor: ['injury-disease-entries', 'injury-disease', 'worker-profile'],
       hideFor: ['company', 'viewer', 'worker']
     },
@@ -132,7 +126,6 @@
       id: 'claims',
       label: '📋 Claims',
       href: 'entries.html',
-      single: true,
       activeFor: ['claims-entries', 'claims-submit'],
       hideFor: ['company', 'viewer', 'worker']
     },
@@ -140,8 +133,7 @@
       id: 'admin',
       label: '⚙ Admin',
       hideFor: ['company', 'viewer', 'worker'],
-      href: 'admin.html',
-      single: true
+      href: 'admin.html'
     },
   ];
 
