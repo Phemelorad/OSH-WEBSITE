@@ -145,6 +145,7 @@ function updateHeaderDisplay(profile) {
 // it and attaches it so the header can display it.
 async function enrichProfileWithCompanyName(profile) {
     if (!profile || profile.role !== 'company' || !profile.company_id) return profile;
+    if (profile.company_name) return profile; // Already enriched
     try {
         const sb = window.supabaseClient;
         if (!sb) return profile;
