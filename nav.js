@@ -187,47 +187,38 @@
     },
     {
       id: 'company-register',
-      label: '🏢 Company Register',
+      label: '🏢 Companies',
       href: 'company-register.html',
       single: true,
       hideFor: ['company']
     },
     {
-      id: 'claims',
-      label: '📋 Claims Portal',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
-        { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
-      ]
-    },
-    {
       id: 'inspection',
-      label: '🔍 Inspection Portal',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'inspection-form',    icon: '🔍', label: 'New Inspection',      href: 'inspection.html' },
-        { id: 'inspection-records', icon: '📁', label: 'Inspection Records',  href: 'inspection-entries.html' },
-      ]
+      label: '🔍 Inspections',
+      href: 'inspection-entries.html',
+      single: true,
+      hideFor: ['company', 'viewer', 'worker']
     },
     {
       id: 'accident',
-      label: '🚨 Accident Portal',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
-        { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
-      ]
+      label: '🚨 Accidents',
+      href: 'accident-entries.html',
+      single: true,
+      hideFor: ['company', 'viewer', 'worker']
     },
     {
       id: 'injury',
-      label: '🏥 Injuries & Disease',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'injury-disease',         icon: '🏥', label: 'New Injury/Disease Report', href: 'injury-disease-report.html' },
-        { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',               href: 'injury-disease-entries.html' },
-        { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',             href: 'worker-profile.html' },
-      ]
+      label: '🏥 Injuries',
+      href: 'injury-disease-entries.html',
+      single: true,
+      hideFor: ['company', 'viewer', 'worker']
+    },
+    {
+      id: 'claims',
+      label: '📋 Claims',
+      href: 'entries.html',
+      single: true,
+      hideFor: ['company', 'viewer', 'worker']
     },
     {
       id: 'admin',
