@@ -34,7 +34,8 @@
                         surname: userData.surname,
                         department: userData.department || 'osh',
                         location: userData.location,
-                        role: userData.role || 'viewer'
+                        role: userData.role || 'viewer',
+                        company_name: userData.companyName || null
                     }
                 }
             });
@@ -46,11 +47,26 @@
                 throw new Error('User creation failed');
             }
 
-            // Wait a moment for the session to be established
+            // Wait a moment for session/trigger to settle
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // If this is a company registration, create the company record first
+            // Get the current session to ensure we're authenticated
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                // User created but not logged in (email confirmation required).
+                // Company/profile creation will happen on first login.
+                return { 
+                    success: true, 
+                    data: authData,
+                    message: 'Please verify your email before logging in'
+                };
+            }
+
+            // User is authenticated — safe to create records
             let companyId = null;
+
+            // If this is a company registration, create the company record first
             if (userData.role === 'company' && userData.companyName) {
                 const { data: companyData, error: companyError } = await supabaseClient
                     .from('companies')
@@ -63,29 +79,16 @@
                         owner_email: userData.ownerEmail || null
                     }])
                     .select('id')
-                    .single();
+                    .maybeSingle();
 
                 if (companyError) {
                     console.warn('Company creation failed:', companyError);
-                    // Non-fatal — profile will still be created without company link
                 } else if (companyData) {
                     companyId = companyData.id;
                 }
             }
 
-            // Get the current session to ensure we're authenticated
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (!session) {
-                // User created but not logged in (email confirmation required)
-                return { 
-                    success: true, 
-                    data: authData,
-                    message: 'Please verify your email before logging in'
-                };
-            }
-
-            // User is authenticated, now insert profile
+            // Create user profile
             const profileFields = {
                 user_id: authData.user.id,
                 first_name: userData.firstName,
@@ -101,14 +104,12 @@
                 profileFields.company_id = companyId;
             }
 
-            const { data: profileData, error: profileError } = await supabaseClient
+            const { error: profileError } = await supabaseClient
                 .from('user_profiles')
-                .insert([profileFields])
-                .select();
+                .insert([profileFields]);
 
             if (profileError) {
                 console.warn('Profile creation failed:', profileError);
-                // Don't throw error - profile can be created on first login
             }
 
             return { success: true, data: authData };
@@ -136,29 +137,106 @@
             if (data.user) {
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('user_profiles')
-                    .select('*')
+                    .select('*, company_id')
                     .eq('user_id', data.user.id)
-                    .single();
+                    .maybeSingle();
 
-                if (profileError && profileError.code === 'PGRST116') {
-                    // Profile doesn't exist, create it from user metadata
+                if (profileError) {
+                    console.warn('Profile lookup error:', profileError);
+                }
+
+                if (!profile) {
+                    // Profile doesn't exist — create it from user metadata
                     const metadata = data.user.user_metadata;
+                    const role = metadata.role || 'viewer';
+
+                    let companyId = null;
+
+                    // If this is a company user, try to find or create the company record
+                    if (role === 'company') {
+                        const companyName = metadata.company_name || metadata.companyName;
+                        if (companyName) {
+                            // Try to find existing company first
+                            const { data: existing } = await supabaseClient
+                                .from('companies')
+                                .select('id')
+                                .eq('company_name', companyName)
+                                .maybeSingle();
+
+                            if (existing) {
+                                companyId = existing.id;
+                            } else {
+                                // Create new company record
+                                const { data: newCompany, error: ce } = await supabaseClient
+                                    .from('companies')
+                                    .insert([{ company_name: companyName }])
+                                    .select('id')
+                                    .maybeSingle();
+
+                                if (ce) {
+                                    console.warn('Company creation on login failed:', ce);
+                                } else if (newCompany) {
+                                    companyId = newCompany.id;
+                                }
+                            }
+                        }
+                    }
+
+                    const profileFields = {
+                        user_id: data.user.id,
+                        first_name: metadata.first_name || 'User',
+                        surname: metadata.surname || 'Name',
+                        email: data.user.email,
+                        department: metadata.department || 'osh',
+                        location: metadata.location || 'Not specified',
+                        role: role,
+                        created_at: new Date().toISOString()
+                    };
+
+                    if (companyId) {
+                        profileFields.company_id = companyId;
+                    }
+
                     const { error: insertError } = await supabaseClient
                         .from('user_profiles')
-                        .insert([
-                            {
-                                user_id: data.user.id,
-                                first_name: metadata.first_name || 'User',
-                                surname: metadata.surname || 'Name',
-                                email: data.user.email,
-                                department: metadata.department || 'osh',
-                                location: metadata.location || 'Not specified',
-                                created_at: new Date().toISOString()
-                            }
-                        ]);
+                        .insert([profileFields]);
 
                     if (insertError) {
                         console.warn('Could not create profile on login:', insertError);
+                    }
+                } else {
+                    // Profile exists — fix any stale data
+                    const metadata = data.user.user_metadata;
+                    const expectedRole = metadata.role || 'viewer';
+                    const updates = {};
+
+                    // Fix role if it doesn't match (e.g. old profiles created without role defaulted to 'viewer')
+                    if (profile.role !== expectedRole) {
+                        updates.role = expectedRole;
+                    }
+
+                    // For company users, ensure company_id is linked
+                    if (profile.role === 'company' && !profile.company_id) {
+                        const companyName = metadata.company_name || metadata.companyName;
+                        if (companyName) {
+                            const { data: company } = await supabaseClient
+                                .from('companies')
+                                .select('id')
+                                .eq('company_name', companyName)
+                                .maybeSingle();
+
+                            if (company) {
+                                updates.company_id = company.id;
+                            }
+                        }
+                    }
+
+                    // Apply any fixes needed
+                    if (Object.keys(updates).length > 0) {
+                        await supabaseClient
+                            .from('user_profiles')
+                            .update(updates)
+                            .eq('user_id', data.user.id);
                     }
                 }
             }
@@ -199,9 +277,14 @@
                 .from('user_profiles')
                 .select('*')
                 .eq('user_id', userId)
-                .single();
+                .maybeSingle();
 
-            if (error) throw error;
+            if (error && error.code !== 'PGRST116') {
+                return { success: false, error: handleError(error) };
+            }
+            if (!data) {
+                return { success: false, error: 'Profile not found' };
+            }
             return { success: true, data: data };
         } catch (error) {
             return { success: false, error: handleError(error) };
