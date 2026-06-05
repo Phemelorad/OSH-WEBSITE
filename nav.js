@@ -139,6 +139,36 @@
         color: #111;
       }
 
+      /* Notification badge */
+      .notification-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 6px;
+        background: #e74c3c;
+        color: white;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+
+      .notification-badge.zero {
+        display: none;
+      }
+
+      .osh-nav-btn .notification-badge {
+        margin-left: 8px;
+        font-size: 9px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+      }
+
       .osh-dropdown a.active {
         background: #f0f0f0;
         color: #111;
@@ -227,8 +257,9 @@
       label: '🔍 Inspections',
       hideFor: ['company', 'viewer', 'worker'],
       children: [
-        { id: 'inspection-form',    icon: '🔍', label: 'New Inspection',      href: 'inspection.html' },
-        { id: 'inspection-records', icon: '📁', label: 'Inspection Records',  href: 'inspection-entries.html' },
+        { id: 'inspection-form',     icon: '🔍', label: 'New Inspection',       href: 'inspection.html' },
+        { id: 'inspection-bookings', icon: '📅', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
+        { id: 'inspection-records',  icon: '📁', label: 'Inspection Records',   href: 'inspection-entries.html' },
       ]
     },
     {
@@ -318,6 +349,13 @@
           a.href = child.href;
           a.className = child.id === active ? 'active' : '';
           a.innerHTML = `<span class="dd-icon">${child.icon}</span>${child.label}`;
+          // Add notification badge if configured
+          if (child.notification) {
+            const badge = document.createElement('span');
+            badge.className = 'notification-badge zero';
+            badge.id = 'notif-' + child.notification;
+            a.appendChild(badge);
+          }
           dd.appendChild(a);
         });
         li.appendChild(dd);
@@ -364,6 +402,48 @@
   } else {
     inject();
   }
+
+  // ── Fetch notification counts from Supabase ────────────
+  // Called shortly after injection to update notification badges.
+  // Uses the global supabaseClient (available once all scripts load).
+  async function fetchNotificationCounts() {
+    try {
+      const sb = window.supabaseClient;
+      if (!sb) return;
+
+      // Map notification keys to Supabase queries
+      // 'inspection-bookings-pending' → count of inspection_bookings where status = 'pending'
+      const { data: pendingCount } = await sb
+        .from('inspection_bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (pendingCount !== null) {
+        const badge = document.getElementById('notif-inspection-bookings-pending');
+        if (badge) {
+          const count = typeof pendingCount === 'number' ? pendingCount : (pendingCount.length || 0);
+          badge.textContent = count;
+          badge.classList.toggle('zero', count === 0);
+        }
+      }
+    } catch (e) {
+      // Silently fail — notifications are non-critical
+    }
+  }
+
+  // Schedule fetching after DOM is ready and scripts are loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(fetchNotificationCounts, 500));
+  } else {
+    setTimeout(fetchNotificationCounts, 500);
+  }
+
+  // Also re-fetch when returning to tab (user might have changed tabs)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      setTimeout(fetchNotificationCounts, 200);
+    }
+  });
 
   console.log('OSH nav loaded, active:', active);
 })();

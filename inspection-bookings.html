@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspection Bookings - OSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 22px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-left: 4px solid #333;
+        }
+        .stat-card h3 { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .stat-card .stat-value { color: #333; font-size: 26px; font-weight: 700; }
+        .stat-card.amber { border-left-color: #ffc107; }
+        .stat-card.amber .stat-value { color: #856404; }
+        .stat-card.green { border-left-color: #28a745; }
+        .stat-card.green .stat-value { color: #155724; }
+        .stat-card.blue { border-left-color: #17a2b8; }
+        .stat-card.blue .stat-value { color: #0c5460; }
+        .stat-card.red { border-left-color: #dc3545; }
+        .stat-card.red .stat-value { color: #721c24; }
+        .section-card {
+            background: white; border-radius: 12px; padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 30px;
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .section-header h2 { color: #333; font-size: 18px; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead { background: #f8f8f8; }
+        th {
+            text-align: left; padding: 12px 10px; color: #333;
+            font-weight: 700; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; white-space: nowrap;
+        }
+        td { padding: 10px; color: #555; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        tr:hover { background: #fafafa; }
+        .badge {
+            display: inline-block; padding: 3px 10px;
+            border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;
+        }
+        .badge-pending   { background: #fff3cd; color: #856404; }
+        .badge-approved  { background: #d4edda; color: #155724; }
+        .badge-scheduled { background: #d1ecf1; color: #0c5460; }
+        .badge-completed { background: #cce5ff; color: #004085; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+        .action-btn {
+            padding: 5px 10px; margin: 0 2px;
+            background: white; color: #333; border: 1px solid #ddd;
+            border-radius: 4px; cursor: pointer; font-size: 11px;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .action-btn:hover { background: #f0f0f0; }
+        .action-btn.approve { border-color: #28a745; color: #155724; }
+        .action-btn.approve:hover { background: #d4edda; }
+        .action-btn.schedule { border-color: #17a2b8; color: #0c5460; }
+        .action-btn.schedule:hover { background: #d1ecf1; }
+        .action-btn.cancel { border-color: #dc3545; color: #721c24; }
+        .action-btn.cancel:hover { background: #f8d7da; }
+        .loading { text-align: center; padding: 60px; color: #666; }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        .empty-state { text-align: center; padding: 60px; color: #999; }
+        .empty-state p { font-size: 16px; margin-bottom: 8px; }
+        .empty-state .sub { font-size: 13px; color: #bbb; }
+        .refresh-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 13px;
+            font-family: inherit;
+        }
+        .refresh-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .filter-group select, .filter-group input {
+            padding: 7px 10px; border: 2px solid #e0e0e0;
+            border-radius: 6px; font-size: 13px; font-family: inherit;
+        }
+        .notes-cell {
+            max-width: 200px; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; cursor: default;
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .section-header { flex-direction: column; align-items: flex-start; }
+            .filters { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📅 Inspection Bookings</h1>
+        <div class="user-info">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'inspection-bookings';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+
+        <!-- ── Stats ─────────────────────────────────────────── -->
+        <div class="stats-grid">
+            <div class="stat-card amber">
+                <h3>Pending</h3>
+                <div class="stat-value" id="statPending">—</div>
+            </div>
+            <div class="stat-card blue">
+                <h3>Approved</h3>
+                <div class="stat-value" id="statApproved">—</div>
+            </div>
+            <div class="stat-card blue">
+                <h3>Scheduled</h3>
+                <div class="stat-value" id="statScheduled">—</div>
+            </div>
+            <div class="stat-card green">
+                <h3>Completed</h3>
+                <div class="stat-value" id="statCompleted">—</div>
+            </div>
+            <div class="stat-card red">
+                <h3>Cancelled</h3>
+                <div class="stat-value" id="statCancelled">—</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total</h3>
+                <div class="stat-value" id="statTotal">—</div>
+            </div>
+        </div>
+
+        <!-- ── Table ─────────────────────────────────────────── -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📋 Booking Requests</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <select id="filterStatus" onchange="applyFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="filterSearch" placeholder="Search company…"
+                               oninput="applyFilters()" style="width:160px">
+                    </div>
+                    <button class="refresh-btn" onclick="loadBookings()">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>Loading booking requests…</p>
+            </div>
+
+            <div id="tableWrap" style="display:none">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Contact</th>
+                                <th>Location</th>
+                                <th>Preferred</th>
+                                <th>Notes</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display:none">
+                    <p>📅 No booking requests found</p>
+                    <p class="sub">Companies can submit inspection requests through the company portal.</p>
+                </div>
+                <div id="rowCount" style="margin-top:12px;font-size:13px;color:#888;text-align:right;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+    let allBookings = [];
+
+    // ── Auth & init ───────────────────────────────────────────
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        // Only officers/admin/super_admin can access
+        if (currentUserRole === 'company' || currentUserRole === 'worker' || currentUserRole === 'viewer') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+        await loadBookings();
+    });
+
+    // ── Load from Supabase ────────────────────────────────────
+    async function loadBookings() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('tableWrap').style.display    = 'none';
+
+        const { data, error } = await SB
+            .from('inspection_bookings')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            document.getElementById('loadingState').innerHTML =
+                `<p style="color:#e74c3c;padding:40px;text-align:center">
+                    Error loading bookings: ${error.message}
+                    <br><button onclick="loadBookings()" style="margin-top:12px;padding:8px 20px;
+                    background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer">Retry</button>
+                 </p>`;
+            return;
+        }
+
+        allBookings = data || [];
+        buildStats(allBookings);
+        renderTable(allBookings);
+
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('tableWrap').style.display    = 'block';
+    }
+
+    // ── Stats ─────────────────────────────────────────────────
+    function buildStats(rows) {
+        const pending   = rows.filter(r => r.status === 'pending').length;
+        const approved  = rows.filter(r => r.status === 'approved').length;
+        const scheduled = rows.filter(r => r.status === 'scheduled').length;
+        const completed = rows.filter(r => r.status === 'completed').length;
+        const cancelled = rows.filter(r => r.status === 'cancelled').length;
+        const total     = rows.length;
+
+        document.getElementById('statPending').textContent   = pending;
+        document.getElementById('statApproved').textContent  = approved;
+        document.getElementById('statScheduled').textContent = scheduled;
+        document.getElementById('statCompleted').textContent = completed;
+        document.getElementById('statCancelled').textContent = cancelled;
+        document.getElementById('statTotal').textContent     = total;
+    }
+
+    // ── Filter & render ───────────────────────────────────────
+    function applyFilters() {
+        const status = document.getElementById('filterStatus').value;
+        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+        const filtered = allBookings.filter(r => {
+            if (status && r.status !== status) return false;
+            if (search && !(r.company_name || '').toLowerCase().includes(search)) return false;
+            return true;
+        });
+
+        renderTable(filtered);
+    }
+
+    // ── Render table ──────────────────────────────────────────
+    function renderTable(rows) {
+        const tbody  = document.getElementById('tableBody');
+        const empty  = document.getElementById('emptyState');
+        const count  = document.getElementById('rowCount');
+
+        if (!rows.length) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            count.textContent   = '';
+            return;
+        }
+        empty.style.display = 'none';
+        count.textContent   = `Showing ${rows.length} booking${rows.length !== 1 ? 's' : ''}`;
+
+        tbody.innerHTML = rows.map(r => {
+            const canManage = currentUserRole === 'admin' || currentUserRole === 'super_admin'
+                || currentUserRole === 'officer';
+            const isPending   = r.status === 'pending';
+            const isApproved  = r.status === 'approved';
+            const isScheduled = r.status === 'scheduled';
+            const isCompleted = r.status === 'completed';
+            const isCancelled = r.status === 'cancelled';
+
+            const prefDate = r.preferred_date ? fmtDate(r.preferred_date) : '—';
+            const prefTime = r.preferred_time || '';
+            const prefStr  = prefTime ? `${prefDate} (${prefTime})` : prefDate;
+
+            return `<tr>
+                <td><strong>${r.company_name || '—'}</strong>
+                    ${r.industry_type ? `<br><span style="font-size:11px;color:#888">${r.industry_type}</span>` : ''}
+                </td>
+                <td>
+                    ${r.contact_name || '—'}
+                    <br><span style="font-size:11px;color:#888">${r.contact_email || ''}</span>
+                    ${r.contact_phone ? `<br><span style="font-size:11px;color:#888">${r.contact_phone}</span>` : ''}
+                </td>
+                <td>${r.location || '—'}</td>
+                <td style="white-space:nowrap">${prefStr}</td>
+                <td class="notes-cell" title="${(r.notes || '').replace(/"/g,'&quot;')}">${r.notes || '—'}</td>
+                <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                <td style="white-space:nowrap;font-size:12px">${r.created_at ? fmtDate(r.created_at) : '—'}</td>
+                <td style="white-space:nowrap">
+                    <button class="action-btn" onclick="viewBooking('${r.id}')">View</button>
+                    ${canManage && isPending
+                        ? `<button class="action-btn approve" onclick="updateStatus('${r.id}','approved')">✓ Approve</button>`
+                        : ''}
+                    ${canManage && (isPending || isApproved)
+                        ? `<button class="action-btn schedule" onclick="updateStatus('${r.id}','scheduled')">📅 Schedule</button>`
+                        : ''}
+                    ${canManage && (isPending || isApproved || isScheduled)
+                        ? `<button class="action-btn" onclick="updateStatus('${r.id}','completed')">✅ Complete</button>`
+                        : ''}
+                    ${canManage && !isCompleted && !isCancelled
+                        ? `<button class="action-btn cancel" onclick="updateStatus('${r.id}','cancelled')">✕ Cancel</button>`
+                        : ''}
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── View detail modal ─────────────────────────────────────
+    async function viewBooking(id) {
+        const r = allBookings.find(x => x.id === id);
+        if (!r) return;
+
+        const rows = [
+            ['Company',       r.company_name],
+            ['Contact',       r.contact_name],
+            ['Email',         r.contact_email],
+            ['Phone',         r.contact_phone || '—'],
+            ['Location',      r.location],
+            ['Nature of Work',r.nature_of_work || '—'],
+            ['Industry',      r.industry_type || '—'],
+            ['Preferred Date', r.preferred_date ? fmtDate(r.preferred_date) : '—'],
+            ['Preferred Time', r.preferred_time || '—'],
+            ['Status',        `<span class="badge badge-${r.status}">${r.status}</span>`],
+            ['Submitted',     r.created_at ? fmtDate(r.created_at) : '—'],
+            ['Assigned Inspector', r.assigned_inspector || '—'],
+            ['Scheduled Date', r.scheduled_date ? fmtDate(r.scheduled_date) : '—'],
+            ['Scheduled Time', r.scheduled_time || '—'],
+        ].map(([label, value]) =>
+            `<div style="display:flex;justify-content:space-between;padding:8px 0;
+                         border-bottom:1px solid #f5f5f5;gap:16px;">
+                <span style="color:#888;font-size:13px;min-width:130px;flex-shrink:0">${label}</span>
+                <span style="color:#333;font-size:13px;text-align:right">${value ?? '—'}</span>
+             </div>`
+        ).join('');
+
+        const notesHTML = r.notes ? `
+            <div style="margin-top:16px">
+                <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">NOTES / REASON</p>
+                <p style="font-size:13px;color:#333;line-height:1.5;background:#f9f9f9;padding:12px;border-radius:6px">${r.notes}</p>
+            </div>` : '';
+        const adminNotesHTML = r.admin_notes ? `
+            <div style="margin-top:12px">
+                <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">ADMIN NOTES</p>
+                <p style="font-size:13px;color:#333;line-height:1.5;background:#f0f8ff;padding:12px;border-radius:6px">${r.admin_notes}</p>
+            </div>` : '';
+        const specialHTML = r.special_requirements ? `
+            <div style="margin-top:12px">
+                <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">SPECIAL REQUIREMENTS</p>
+                <p style="font-size:13px;color:#333;line-height:1.5;background:#f9f9f9;padding:12px;border-radius:6px">${r.special_requirements}</p>
+            </div>` : '';
+
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+            overlay.innerHTML = `
+                <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);
+                            width:100%;max-width:540px;max-height:85vh;overflow-y:auto;
+                            padding:28px 26px;font-family:'Segoe UI',sans-serif;position:relative;">
+                    <div style="font-size:28px;text-align:center;margin-bottom:10px">📅</div>
+                    <h2 style="text-align:center;color:#222;font-size:18px;margin-bottom:4px">Inspection Booking</h2>
+                    <p style="text-align:center;font-size:13px;color:#888;margin-bottom:16px">${r.company_name}</p>
+                    ${rows}
+                    ${notesHTML}
+                    ${adminNotesHTML}
+                    ${specialHTML}
+                    ${r.scheduled_date ? `
+                    <div style="margin-top:16px;padding:12px;background:#e8f5e9;border-radius:8px;text-align:center">
+                        <strong style="color:#155724">Inspection scheduled for ${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' (' + r.scheduled_time + ')' : ''}</strong>
+                    </div>` : ''}
+                    <div style="margin-top:20px;text-align:center">
+                        <button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;
+                            border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+                            Close
+                        </button>
+                    </div>
+                </div>`;
+            overlay.querySelector('#closeBtn').addEventListener('click', () => { overlay.remove(); resolve(); });
+            overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(); } });
+            document.body.appendChild(overlay);
+        });
+    }
+
+    // ── Update status ─────────────────────────────────────────
+    async function updateStatus(id, newStatus) {
+        const r = allBookings.find(x => x.id === id);
+        if (!r) return;
+
+        let confirmMsg = `Change status to <strong>${newStatus}</strong>?`;
+        if (newStatus === 'cancelled') {
+            confirmMsg = 'Are you sure you want to <strong>cancel</strong> this booking request?';
+        }
+
+        const ok = await showConfirm(confirmMsg, {
+            title: 'Update Status',
+            icon: '📅',
+            confirmText: newStatus.charAt(0).toUpperCase() + newStatus.slice(1),
+            danger: newStatus === 'cancelled'
+        });
+        if (!ok) return;
+
+        let extraUpdates = { status: newStatus };
+
+        // If scheduling, ask for date/time
+        if (newStatus === 'scheduled') {
+            const dateVal = await showPrompt(
+                'Enter the scheduled inspection date (YYYY-MM-DD):',
+                new Date().toISOString().split('T')[0],
+                { title: 'Schedule Date', icon: '📅' }
+            );
+            if (!dateVal) return;
+            extraUpdates.scheduled_date = dateVal;
+
+            const timeVal = await showPrompt(
+                'Enter scheduled time (e.g. Morning, 09:00, or leave blank):',
+                '',
+                { title: 'Schedule Time (optional)' }
+            );
+            if (timeVal) extraUpdates.scheduled_time = timeVal;
+        }
+
+        // Ask for admin notes
+        const notes = await showPrompt(
+            'Add admin notes (optional):',
+            r.admin_notes || '',
+            { title: 'Admin Notes', icon: '📝' }
+        );
+        if (notes !== null) extraUpdates.admin_notes = notes;
+
+        const { error } = await SB
+            .from('inspection_bookings')
+            .update(extraUpdates)
+            .eq('id', id);
+
+        if (error) {
+            await showAlert(error.message, { type: 'error', title: 'Update Failed' });
+            return;
+        }
+
+        showToast(`Booking ${newStatus}`, 'success');
+        allBookings = allBookings.map(b => b.id === id ? { ...b, ...extraUpdates } : b);
+        buildStats(allBookings);
+        applyFilters();
+    }
+
+    // ── Helper: format date ──────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+    </script>
+</body>
+</html>
