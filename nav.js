@@ -250,7 +250,8 @@
       label: '📊 Monitoring Dashboard',
       href: 'company-monitoring.html',
       single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
+      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin'],
+      notification: 'company-bookings-responded'
     },
     {
       id: 'inspection',
@@ -329,6 +330,13 @@
         btn.className = 'osh-nav-btn' + (isSelfActive ? ' active' : '');
         btn.textContent = item.label;
         btn.onclick = () => { window.location.href = item.href; };
+        // Add notification badge if configured
+        if (item.notification) {
+          const badge = document.createElement('span');
+          badge.className = 'notification-badge zero';
+          badge.id = 'notif-' + item.notification;
+          btn.appendChild(badge);
+        }
         li.appendChild(btn);
       } else {
         // Dropdown trigger
@@ -411,7 +419,7 @@
       const sb = window.supabaseClient;
       if (!sb) return;
 
-      // 'inspection-bookings-pending' → count of inspection_bookings where status = 'pending'
+      // ── Officer-side: pending inspection bookings ──────
       const { count: pendingCount, error: pendingError } = await sb
         .from('inspection_bookings')
         .select('id', { count: 'exact', head: true })
@@ -422,6 +430,20 @@
         if (badge) {
           badge.textContent = pendingCount;
           badge.classList.toggle('zero', pendingCount === 0);
+        }
+      }
+
+      // ── Company-side: responded bookings (read from sessionStorage) ─
+      // The company-monitoring page stores this count after loading data
+      const respondedBadge = document.getElementById('notif-company-bookings-responded');
+      if (respondedBadge) {
+        try {
+          const cachedCount = sessionStorage.getItem('company_booking_responses');
+          const count = cachedCount ? parseInt(cachedCount, 10) : 0;
+          respondedBadge.textContent = count;
+          respondedBadge.classList.toggle('zero', count === 0);
+        } catch (e) {
+          respondedBadge.classList.add('zero');
         }
       }
     } catch (e) {
