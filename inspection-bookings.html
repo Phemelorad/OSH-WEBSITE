@@ -201,7 +201,7 @@
                                 <th>Contact</th>
                                 <th>Location</th>
                                 <th>Preferred</th>
-                                <th>Notes</th>
+                                <th>Inspector</th>
                                 <th>Status</th>
                                 <th>Submitted</th>
                                 <th>Actions</th>
@@ -339,11 +339,16 @@
                 </td>
                 <td>${r.location || '—'}</td>
                 <td style="white-space:nowrap">${prefStr}</td>
+                <td>${r.assigned_inspector || '<span style="color:#bbb">Unassigned</span>'}</td>
                 <td class="notes-cell" title="${(r.notes || '').replace(/"/g,'&quot;')}">${r.notes || '—'}</td>
                 <td><span class="badge badge-${r.status}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
                 <td style="white-space:nowrap;font-size:12px">${r.created_at ? fmtDate(r.created_at) : '—'}</td>
                 <td style="white-space:nowrap">
                     <button class="action-btn" onclick="viewBooking('${r.id}')">View</button>
+                    ${canManage && !isCompleted && !isCancelled
+                        ? `<button class="action-btn" onclick="assignInspector('${r.id}')" style="border-color:#6f42c1;color:#6f42c1">
+                            ${r.assigned_inspector ? '🔄 Reassign' : '👤 Assign'}</button>`
+                        : ''}
                     ${canManage && isPending
                         ? `<button class="action-btn approve" onclick="updateStatus('${r.id}','approved')">✓ Approve</button>`
                         : ''}
@@ -436,6 +441,89 @@
         });
     }
 
+    // ── Assign inspector ──────────────────────────────────────
+    let officersList = []; // cached list of available officers
+
+    async function loadOfficers() {
+        if (officersList.length) return officersList;
+        try {
+            const { data } = await SB
+                .from('user_profiles')
+                .select('first_name, surname, role, location')
+                .in('role', ['officer', 'admin', 'super_admin'])
+                .order('first_name');
+            officersList = data || [];
+        } catch (e) {
+            officersList = [];
+        }
+        return officersList;
+    }
+
+    async function assignInspector(id) {
+        const r = allBookings.find(x => x.id === id);
+        if (!r) return;
+
+        const officers = await loadOfficers();
+
+        // Build a nice list of officers with their full names and roles
+        const officerNames = officers.map(o => (o.first_name + ' ' + o.surname).trim());
+        // Add current user's name at the top as default suggestion
+        const currentName = document.getElementById('userName')?.textContent?.trim() || '';
+
+        // Create a prompt with the officers as options
+        const options = [
+            { value: '__myself__', label: `👤 Myself — ${currentName || 'Current User'}` },
+            { value: '', label: '— Clear assignment —' },
+        ];
+        officers.forEach(o => {
+            const name = (o.first_name + ' ' + o.surname).trim();
+            const roleStr = getRoleDisplayName(o.role);
+            const loc = o.location ? ` (${o.location})` : '';
+            options.push({ value: name, label: `${name} — ${roleStr}${loc}` });
+        });
+
+        const selected = await showSelect(
+            `Assign inspector for <strong>${r.company_name}</strong>`,
+            options,
+            r.assigned_inspector || '__myself__',
+            { title: 'Assign Inspector', icon: '👤', confirmText: 'Assign' }
+        );
+
+        if (selected === null || selected === undefined) return;
+
+        let inspectorName;
+        if (selected === '__myself__') {
+            inspectorName = currentName || 'Unknown';
+        } else {
+            inspectorName = selected;
+        }
+
+        // Ask for admin notes too
+        const adminNotes = await showPrompt(
+            'Add admin notes (optional):',
+            r.admin_notes || '',
+            { title: 'Admin Notes', icon: '📝' }
+        );
+        if (adminNotes === null) return;
+
+        const { error } = await SB
+            .from('inspection_bookings')
+            .update({
+                assigned_inspector: inspectorName,
+                admin_notes: adminNotes
+            })
+            .eq('id', id);
+
+        if (error) {
+            await showAlert(error.message, { type: 'error', title: 'Assignment Failed' });
+            return;
+        }
+
+        showToast(`Assigned: ${inspectorName}`, 'success');
+        allBookings = allBookings.map(b => b.id === id ? { ...b, assigned_inspector: inspectorName, admin_notes: adminNotes } : b);
+        applyFilters();
+    }
+
     // ── Update status ─────────────────────────────────────────
     async function updateStatus(id, newStatus) {
         const r = allBookings.find(x => x.id === id);
@@ -481,6 +569,23 @@
             { title: 'Admin Notes', icon: '📝' }
         );
         if (notes !== null) extraUpdates.admin_notes = notes;
+
+        // If approving and no inspector assigned, prompt to assign
+        if (newStatus === 'approved' && !r.assigned_inspector) {
+            const assignNow = await showConfirm(
+                'No inspector is assigned yet. Would you like to assign one now?',
+                { title: 'Assign Inspector?', icon: '👤', confirmText: 'Yes, Assign', cancelText: 'Skip' }
+            );
+            if (assignNow) {
+                await assignInspector(id);
+                // Refresh the booking data after assignment
+                const updated = allBookings.find(b => b.id === id);
+                if (updated) {
+                    extraUpdates.assigned_inspector = updated.assigned_inspector;
+                    extraUpdates.admin_notes = updated.admin_notes;
+                }
+            }
+        }
 
         const { error } = await SB
             .from('inspection_bookings')
