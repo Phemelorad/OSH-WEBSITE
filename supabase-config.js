@@ -169,16 +169,14 @@
 
             return { success: true, role: role, company_id: companyId };
         } else {
-            // Profile exists — fix any stale data
-            const metadata = user.user_metadata;
-            const expectedRole = mapRole(metadata.role || 'viewer');
+            // Profile exists — ensure company_id is set for company users
+            // NOTE: We do NOT overwrite role from metadata here because the
+            // database profile is the source of truth. Metadata only reflects
+            // the original registration role and would revert admin-upgraded roles.
             const updates = {};
 
-            if (profile.role !== expectedRole) {
-                updates.role = expectedRole;
-            }
-
-            if (expectedRole === 'company' && !profile.company_id) {
+            if (profile.role === 'company' && !profile.company_id) {
+                const metadata = user.user_metadata;
                 const companyName = metadata.company_name || metadata.companyName;
                 if (companyName) {
                     const { data: company } = await supabaseClient
