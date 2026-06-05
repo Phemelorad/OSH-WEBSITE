@@ -400,8 +400,9 @@
         ]);
 
         const bookingInfo = section('Booking Details', [
-            ['Status',        statusBadge],
-            ['Submitted',     r.created_at ? fmtDate(r.created_at) : '—'],
+            ['Status',         statusBadge],
+            ['Inspection Type', esc(r.inspection_type || 'Routine')],
+            ['Submitted',      r.created_at ? fmtDate(r.created_at) : '—'],
             ['Preferred Date', r.preferred_date ? fmtDate(r.preferred_date) : 'Not specified'],
             ['Preferred Time', r.preferred_time || 'Not specified'],
         ]);
@@ -517,34 +518,7 @@
         });
     }
 
-    // ── Helper: build mailto link for booking notification ───
-    function buildMailto(r) {
-        if (!r || !r.contact_email) return null;
-        const subject = encodeURIComponent(`Inspection Booking Update - ${r.company_name}`);
-        const body = encodeURIComponent(
-            `Dear ${r.contact_name || 'Sir/Madam'},\n\n` +
-            `We are writing regarding your inspection booking request for ${r.company_name}.\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `BOOKING SUMMARY\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Company: ${r.company_name}\n` +
-            `Location: ${r.location || '—'}\n` +
-            `Industry: ${r.industry_type || '—'}\n` +
-            `Status: ${r.status.toUpperCase()}\n` +
-            `Preferred Date: ${r.preferred_date || '—'}\n` +
-            `Preferred Time: ${r.preferred_time || 'Flexible'}\n\n` +
-            `Assigned Inspector: ${r.assigned_inspector || 'Pending assignment'}\n` +
-            `Scheduled Date: ${r.scheduled_date || 'Not yet scheduled'}\n` +
-            `Scheduled Time: ${r.scheduled_time || '—'}\n\n` +
-            `Officer Notes: ${r.admin_notes || 'None'}\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `Should you have any questions, please contact the OSH department.\n\n` +
-            `Regards,\n` +
-            `Occupational Health & Safety\n` +
-            `Ministry of Labour & Home Affairs`
-        );
-        return `mailto:${r.contact_email}?subject=${subject}&body=${body}`;
-    }
+    // ── Build mailto link inline in viewBooking() ───────────
 
     // ── Assign inspector ──────────────────────────────────────
     let officersList = []; // cached list of available officers
