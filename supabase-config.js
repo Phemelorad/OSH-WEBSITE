@@ -216,9 +216,18 @@
                 localStorage.setItem('rememberMe', 'true');
             }
 
-            // Ensure profile + company exist
+            // Ensure profile + company exist, then cache
             if (data.user) {
                 await window.ensureUserProfile(data.user);
+                // Cache the full profile for instant lookup on subsequent pages
+                const cacheResult = await supabaseClient
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('user_id', data.user.id)
+                    .maybeSingle();
+                if (cacheResult.data) {
+                    cacheUserProfile(cacheResult.data);
+                }
             }
 
             return { success: true, data: data };
@@ -233,6 +242,7 @@
             const { error } = await supabaseClient.auth.signOut();
             if (error) throw error;
             localStorage.removeItem('rememberMe');
+            clearCachedUserProfile();
             return { success: true };
         } catch (error) {
             return { success: false, error: handleError(error) };
@@ -324,6 +334,47 @@
         const { data: { session } } = await supabaseClient.auth.getSession();
         return session !== null;
     };
+
+    // ── User profile cache ──────────────────────────────────────
+    const CACHE_KEY = 'osh_user_profile';
+
+    function cacheUserProfile(profile) {
+        try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+                ...profile,
+                cached_at: Date.now()
+            }));
+        } catch (e) {
+            // sessionStorage may be full or unavailable
+        }
+    }
+
+    function getCachedUserProfile() {
+        try {
+            const raw = sessionStorage.getItem(CACHE_KEY);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            // Cache valid for 10 minutes, then force refresh
+            if (Date.now() - (data.cached_at || 0) > 10 * 60 * 1000) {
+                sessionStorage.removeItem(CACHE_KEY);
+                return null;
+            }
+            return data;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function clearCachedUserProfile() {
+        try {
+            sessionStorage.removeItem(CACHE_KEY);
+        } catch (e) {}
+    }
+
+    // Expose cache functions globally so all pages can use them
+    window.cacheUserProfile = cacheUserProfile;
+    window.getCachedUserProfile = getCachedUserProfile;
+    window.clearCachedUserProfile = clearCachedUserProfile;
 
     console.log('Supabase configuration loaded successfully');
 })();

@@ -63,9 +63,22 @@ const PERMISSIONS = {
 let currentUserRole = null;
 let currentUserId = null;
 
-// Initialize role system
+// Initialize role system — reads from sessionStorage cache first for instant load
 async function initializeRoleSystem() {
     try {
+        // ── Try cache first (synchronous — no lag) ────────────
+        const cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
+        if (cached && cached.user_id && cached.role) {
+            currentUserId = cached.user_id;
+            currentUserRole = cached.role;
+            console.log('User role (from cache):', currentUserRole);
+            updateUIForRole();
+            // Refresh cache in background (don't block UI)
+            setTimeout(() => refreshUserProfileInBackground(), 100);
+            return true;
+        }
+
+        // ── Fallback to API calls ────────────────────────────
         const userResult = await getCurrentUser();
         if (!userResult.success || !userResult.user) {
             console.error('No user logged in');
@@ -77,9 +90,13 @@ async function initializeRoleSystem() {
         const profileResult = await getUserProfile(currentUserId);
         if (profileResult.success && profileResult.data) {
             currentUserRole = profileResult.data.role || 'viewer';
-            console.log('User role:', currentUserRole);
+            console.log('User role (from API):', currentUserRole);
             
-            // Update UI based on role
+            // Cache for next page load
+            if (window.cacheUserProfile) {
+                window.cacheUserProfile(profileResult.data);
+            }
+            
             updateUIForRole();
             return true;
         }
@@ -87,6 +104,28 @@ async function initializeRoleSystem() {
     } catch (error) {
         console.error('Error initializing role system:', error);
         return false;
+    }
+}
+
+// Background refresh: fetch latest profile and update cache
+async function refreshUserProfileInBackground() {
+    try {
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) return;
+        const profileResult = await getUserProfile(userResult.user.id);
+        if (profileResult.success && profileResult.data) {
+            // Update role if it changed
+            if (profileResult.data.role !== currentUserRole) {
+                currentUserRole = profileResult.data.role;
+                updateUIForRole();
+            }
+            if (window.cacheUserProfile) {
+                window.cacheUserProfile(profileResult.data);
+            }
+            console.log('Profile cache refreshed');
+        }
+    } catch (e) {
+        // Silently fail — cache will refresh on next page load
     }
 }
 
@@ -250,10 +289,26 @@ function isCompanyUser() {
     return currentUserRole === 'company';
 }
 
+// Cached company name key
+const COMPANY_NAME_CACHE_KEY = 'osh_company_name';
+
 // Get the company name from the user's profile (for company users)
 // Uses the provided supabase client, or falls back to a global one
 window.getUserCompanyName = async function(supabaseClient) {
     try {
+        // Check cache first (synchronous)
+        try {
+            const cachedName = sessionStorage.getItem(COMPANY_NAME_CACHE_KEY);
+            if (cachedName) return cachedName;
+        } catch (e) {}
+
+        // Check if we have a cached profile with company_id
+        const cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
+        if (cached && cached.company_name) {
+            sessionStorage.setItem(COMPANY_NAME_CACHE_KEY, cached.company_name);
+            return cached.company_name;
+        }
+
         const userResult = await getCurrentUser();
         if (!userResult.success || !userResult.user) return null;
 
@@ -264,7 +319,6 @@ window.getUserCompanyName = async function(supabaseClient) {
 
         // If user has a company_id, look up the company name
         if (profile.company_id && profile.role === 'company') {
-            // Accept a passed client, or use window.SB (set by company-register.html), or create a fresh one
             const sb = supabaseClient || window.SB || null;
             if (!sb) return null;
 
@@ -274,7 +328,13 @@ window.getUserCompanyName = async function(supabaseClient) {
                 .eq('id', profile.company_id)
                 .maybeSingle();
 
-            if (data) return data.company_name;
+            if (data) {
+                // Cache for subsequent calls
+                try {
+                    sessionStorage.setItem(COMPANY_NAME_CACHE_KEY, data.company_name);
+                } catch (e) {}
+                return data.company_name;
+            }
         }
         return null;
     } catch (e) {
