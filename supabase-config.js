@@ -216,7 +216,7 @@
                     }
 
                     // For company users, ensure company_id is linked
-                    if (profile.role === 'company' && !profile.company_id) {
+                    if (expectedRole === 'company' && !profile.company_id) {
                         const companyName = metadata.company_name || metadata.companyName;
                         if (companyName) {
                             const { data: company } = await supabaseClient
