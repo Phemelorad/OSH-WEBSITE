@@ -280,23 +280,31 @@
             <div class="form-row form-row-2">
               <div class="form-group">
                 <label>No. of Employees — Male<span class="req">*</span></label>
-                <input type="number" name="employees_male" id="empMale" min="0" placeholder="0" required>
+                <input type="number" name="employees_male" id="empMale" min="0" placeholder="0" required oninput="updateEmpTotals()">
                 <span class="err-msg">Required</span>
               </div>
               <div class="form-group">
                 <label>No. of Foreign Employees — Male</label>
-                <input type="number" name="employees_foreign_male" id="empForeignMale" min="0" placeholder="0" value="0">
+                <input type="number" name="employees_foreign_male" id="empForeignMale" min="0" placeholder="0" value="0" oninput="updateEmpTotals()">
               </div>
             </div>
             <div class="form-row form-row-2">
               <div class="form-group">
                 <label>No. of Employees — Female<span class="req">*</span></label>
-                <input type="number" name="employees_female" id="empFemale" min="0" placeholder="0" required>
+                <input type="number" name="employees_female" id="empFemale" min="0" placeholder="0" required oninput="updateEmpTotals()">
                 <span class="err-msg">Required</span>
               </div>
               <div class="form-group">
                 <label>No. of Foreign Employees — Female</label>
-                <input type="number" name="employees_foreign_female" id="empForeignFemale" min="0" placeholder="0" value="0">
+                <input type="number" name="employees_foreign_female" id="empForeignFemale" min="0" placeholder="0" value="0" oninput="updateEmpTotals()">
+              </div>
+            </div>
+            <div class="form-row" style="background:#f5f5f5;border-radius:8px;padding:12px 16px;border-left:4px solid #333;">
+              <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;width:100%;">
+                <div><span style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total Employees</span></div>
+                <div><span style="font-size:22px;font-weight:700;color:#333;" id="empTotalLocal">0</span> <span style="font-size:12px;color:#888;">Local</span></div>
+                <div><span style="font-size:22px;font-weight:700;color:#17a2b8;" id="empTotalForeign">0</span> <span style="font-size:12px;color:#888;">Foreign</span></div>
+                <div style="border-left:2px solid #ddd;padding-left:24px;"><span style="font-size:26px;font-weight:700;color:#222;" id="empTotalAll">0</span> <span style="font-size:12px;color:#888;">All</span></div>
               </div>
             </div>
           </div>
@@ -537,6 +545,17 @@
       document.getElementById('followUpDateRow').style.display =
         this.value === 'Yes' ? '' : 'none';
     });
+
+    // Live employee totals
+    function updateEmpTotals() {
+      const mLocal  = parseInt(document.getElementById('empMale').value) || 0;
+      const fLocal  = parseInt(document.getElementById('empFemale').value) || 0;
+      const mForeign = parseInt(document.getElementById('empForeignMale').value) || 0;
+      const fForeign = parseInt(document.getElementById('empForeignFemale').value) || 0;
+      document.getElementById('empTotalLocal').textContent = mLocal + fLocal;
+      document.getElementById('empTotalForeign').textContent = mForeign + fForeign;
+      document.getElementById('empTotalAll').textContent = mLocal + fLocal + mForeign + fForeign;
+    }
 
     // Auto-fill days taken
     function calcDays() {
