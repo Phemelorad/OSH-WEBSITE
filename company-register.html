@@ -341,16 +341,7 @@
 
         allCompanies = data;
         buildStats(data);
-
-        // Auto-filter for company users
-        if (window._companyFilterName) {
-            document.getElementById('filterSearch').value = window._companyFilterName;
-            // Hide the search filter for company users — they only see their company
-            document.querySelector('.filters .filter-group:last-child')?.style.setProperty('display', 'none');
-            renderTable(data.filter(c => c.company_name === window._companyFilterName));
-        } else {
-            renderTable(data);
-        }
+        renderTable(data);
 
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('tableWrap').style.display    = 'block';
@@ -472,14 +463,7 @@
             );
 
             buildStats(allCompanies);
-
-            // Auto-filter for company users
-            if (window._companyFilterName) {
-                document.getElementById('filterSearch').value = window._companyFilterName;
-                renderTable(allCompanies.filter(c => c.company_name === window._companyFilterName));
-            } else {
-                renderTable(allCompanies);
-            }
+            renderTable(allCompanies);
 
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('tableWrap').style.display    = 'block';
