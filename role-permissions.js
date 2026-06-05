@@ -92,7 +92,10 @@ async function initializeRoleSystem() {
         if (profileResult.success && profileResult.data) {
             currentUserRole = profileResult.data.role || 'viewer';
             console.log('User role (from API):', currentUserRole);
-            
+
+            // Enrich with company name for company users
+            await enrichProfileWithCompanyName(profileResult.data);
+
             // Cache for next page load
             if (window.cacheUserProfile) {
                 window.cacheUserProfile(profileResult.data);
@@ -136,6 +139,32 @@ function updateHeaderDisplay(profile) {
     }
 }
 
+// ── Enrich a profile with company_name (from companies table) ──
+// Company users have company_id in user_profiles, but the actual
+// company_name lives in the companies table. This helper fetches
+// it and attaches it so the header can display it.
+async function enrichProfileWithCompanyName(profile) {
+    if (!profile || profile.role !== 'company' || !profile.company_id) return profile;
+    try {
+        const sb = window.supabaseClient;
+        if (!sb) return profile;
+        const { data } = await sb
+            .from('companies')
+            .select('company_name')
+            .eq('id', profile.company_id)
+            .maybeSingle();
+        if (data) {
+            profile.company_name = data.company_name;
+        }
+    } catch (e) {
+        // Silently fail — header will show "Company" as fallback
+    }
+    return profile;
+}
+
+// Expose so supabase-config.js's signIn() can also use it
+window.enrichProfileWithCompanyName = enrichProfileWithCompanyName;
+
 // Background refresh: fetch latest profile and update cache
 async function refreshUserProfileInBackground() {
     try {
@@ -143,6 +172,9 @@ async function refreshUserProfileInBackground() {
         if (!userResult.success || !userResult.user) return;
         const profileResult = await getUserProfile(userResult.user.id);
         if (profileResult.success && profileResult.data) {
+            // Enrich with company name for company users
+            await enrichProfileWithCompanyName(profileResult.data);
+
             // Update role if it changed
             if (profileResult.data.role !== currentUserRole) {
                 currentUserRole = profileResult.data.role;

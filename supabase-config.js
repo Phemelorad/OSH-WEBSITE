@@ -226,6 +226,10 @@
                     .eq('user_id', data.user.id)
                     .maybeSingle();
                 if (cacheResult.data) {
+                    // Enrich with company name so header shows it immediately
+                    if (window.enrichProfileWithCompanyName) {
+                        await window.enrichProfileWithCompanyName(cacheResult.data);
+                    }
                     cacheUserProfile(cacheResult.data);
                 }
             }
