@@ -41,7 +41,12 @@
                         department: userData.department || 'osh',
                         location: userData.location,
                         role: mapRole(userData.role || 'viewer'),
-                        company_name: userData.companyName || null
+                        company_name: userData.companyName || null,
+                        company_industry: userData.industry || null,
+                        company_location: userData.location || null,
+                        company_telephone: userData.companyPhone || null,
+                        company_owner_name: userData.ownerName || null,
+                        company_owner_email: userData.ownerEmail || null
                     }
                 }
             });
@@ -127,10 +132,18 @@
                             if (existing) {
                                 companyId = existing.id;
                             } else {
-                                // Create new company record
+                                // Create new company record with all available details
+                                const companyFields = {
+                                    company_name: companyName,
+                                    industry: metadata.company_industry || null,
+                                    location: metadata.company_location || null,
+                                    telephone: metadata.company_telephone || null,
+                                    owner_name: metadata.company_owner_name || null,
+                                    owner_email: metadata.company_owner_email || null
+                                };
                                 const { data: newCompany, error: ce } = await supabaseClient
                                     .from('companies')
-                                    .insert([{ company_name: companyName }])
+                                    .insert([companyFields])
                                     .select('id')
                                     .maybeSingle();
 
