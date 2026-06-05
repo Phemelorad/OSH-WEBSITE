@@ -240,30 +240,46 @@
   function hide(overlay) { overlay.remove(); }
 
   // ── 1. showAlert(message, opts) ────────────────────────────
-  // opts: { title, type:'success'|'error'|'warning'|'info', icon, btnText }
+  // opts: { title, type:'success'|'error'|'warning'|'info', icon, btnText, extraBtn }
+  //       extraBtn: { text, action } – renders a secondary button that doesn't close the modal
   window.showAlert = function (message, opts = {}) {
     return new Promise(resolve => {
       const type    = opts.type    || 'info';
       const title   = opts.title   || { success:'Success', error:'Error', warning:'Warning', info:'Notice' }[type];
       const icon    = opts.icon    || ICONS[type] || ICONS.info;
       const btnText = opts.btnText || 'OK';
+      const extraBtn = opts.extraBtn || null;
 
       const overlay = buildOverlay();
       const modal   = buildModal(type);
+
+      let extraBtnHTML = '';
+      if (extraBtn) {
+        extraBtnHTML = `<button class="osh-btn osh-btn-secondary" id="osh-extra">${extraBtn.text}</button>`;
+      }
 
       modal.innerHTML = `
         <div class="osh-modal-icon">${icon}</div>
         <div class="osh-modal-title">${title}</div>
         <div class="osh-modal-message">${message}</div>
         <div class="osh-modal-actions">
+          ${extraBtnHTML}
           <button class="osh-btn osh-btn-primary" id="osh-ok">${btnText}</button>
         </div>`;
 
       overlay._dismiss = () => { hide(overlay); resolve(); };
       overlay.appendChild(modal);
       show(overlay);
+
       modal.querySelector('#osh-ok').addEventListener('click', overlay._dismiss);
       modal.querySelector('#osh-ok').focus();
+
+      if (extraBtn) {
+        modal.querySelector('#osh-extra').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await extraBtn.action();
+        });
+      }
     });
   };
 

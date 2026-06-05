@@ -287,6 +287,21 @@
         }
     };
 
+    // Resend confirmation email
+    window.resendConfirmation = async function(email) {
+        try {
+            const { error } = await supabaseClient.auth.resend({
+                type: 'signup',
+                email: email
+            });
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: handleError(error) };
+        }
+    };
+
     // Reset password
     window.resetPassword = async function(email) {
         try {

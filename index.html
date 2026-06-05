@@ -414,7 +414,10 @@
                     <input type="checkbox" id="rememberMe">
                     Remember me
                 </label>
-                <a href="#" id="forgotPassword">Forgot password?</a>
+                <div style="display:flex;gap:12px;font-size:13px;">
+                    <a href="#" id="resendConfirm">Resend confirmation?</a>
+                    <a href="#" id="forgotPassword">Forgot password?</a>
+                </div>
             </div>
 
             <button type="submit" class="auth-button">Sign In</button>
@@ -557,6 +560,11 @@
             <span style="color: #999;">Occupational Safety &amp; Health</span>
         </div>
     </div>
+
+    <!-- Hidden form for resend email (no visible UI) -->
+    <form id="resendForm" style="display:none;">
+        <input type="email" id="resendEmail" />
+    </form>
 
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -804,6 +812,26 @@
             window.location.href = 'reset-password.html';
         });
 
+        // ── Resend confirmation email ───────────────────
+        document.getElementById('resendConfirm').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const email = await showPrompt(
+                'Enter the email address you registered with:',
+                '',
+                { title: 'Resend Confirmation', iconKey: 'email' }
+            );
+            if (!email) return;
+            const r = await window.resendConfirmation(email);
+            if (r.success) {
+                await showAlert(
+                    `Confirmation email resent to <strong>${email}</strong>. Please check your inbox (and spam folder).`,
+                    { type: 'success', title: 'Email Sent' }
+                );
+            } else {
+                await showAlert(r.error, { type: 'error', title: 'Failed' });
+            }
+        });
+
         // ── Register form submit ───────────────────────
         registerForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -875,10 +903,25 @@
             submitBtn.textContent = 'Create Account';
 
             if (result.success) {
-                const msg = selectedRole.value === 'company'
-                    ? 'Your company account has been created!\nPlease check your email to verify your account.'
-                    : 'Account created successfully!\nPlease check your email to verify your account.';
-                await showAlert(msg, { type: 'success', title: 'Account Created', btnText: 'Go to Login' });
+                const email = formData.email;
+                const msg = `Account created! A confirmation email has been sent to <strong>${email}</strong>.<br><br>` +
+                    `Please check your inbox (and spam folder) and click the link to activate your account.`;
+
+                await showAlert(msg, {
+                    type: 'success',
+                    title: 'Account Created',
+                    btnText: 'Go to Login',
+                    extraBtn: { text: '📧 Resend Email', action: async () => {
+                        const r = await resendConfirmation(email);
+                        if (r.success) {
+                            await showAlert(`Confirmation email resent to <strong>${email}</strong>.`, {
+                                type: 'success', title: 'Email Sent'
+                            });
+                        } else {
+                            await showAlert(r.error, { type: 'error', title: 'Failed' });
+                        }
+                    }}
+                });
                 loginTab.click();
             } else {
                 await showAlert(result.error, { type: 'error', title: 'Registration Failed' });
