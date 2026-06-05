@@ -340,7 +340,7 @@
                 <td>${r.location || '—'}</td>
                 <td style="white-space:nowrap">${prefStr}</td>
                 <td class="notes-cell" title="${(r.notes || '').replace(/"/g,'&quot;')}">${r.notes || '—'}</td>
-                <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                <td><span class="badge badge-${r.status}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
                 <td style="white-space:nowrap;font-size:12px">${r.created_at ? fmtDate(r.created_at) : '—'}</td>
                 <td style="white-space:nowrap">
                     <button class="action-btn" onclick="viewBooking('${r.id}')">View</button>
