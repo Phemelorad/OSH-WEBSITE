@@ -273,16 +273,17 @@ function enforcePermissions() {
 
 // Hide nav items based on role, then reveal nav
 function applyNavVisibility() {
-    if (!currentUserRole) return;
-    document.querySelectorAll('.osh-nav-item[data-hide-for]').forEach(item => {
-        const hideForRoles = (item.dataset.hideFor || '').split(',').map(r => r.trim());
-        if (hideForRoles.includes(currentUserRole)) {
-            item.style.display = 'none';
-        } else {
-            item.style.display = '';
-        }
-    });
-    // Reveal nav now that visibility is applied (no flicker)
+    if (currentUserRole) {
+        document.querySelectorAll('.osh-nav-item[data-hide-for]').forEach(item => {
+            const hideForRoles = (item.dataset.hideFor || '').split(',').map(r => r.trim());
+            if (hideForRoles.includes(currentUserRole)) {
+                item.style.display = 'none';
+            } else {
+                item.style.display = '';
+            }
+        });
+    }
+    // Always reveal nav — even if role is unknown (error fallback)
     document.querySelector('.osh-nav')?.classList.remove('osh-nav-loading');
 }
 
