@@ -69,27 +69,10 @@
                 };
             }
 
-            // User is authenticated — try to create company record if applicable
-            if (userData.role === 'company' && userData.companyName) {
-                const { error: companyError } = await supabaseClient
-                    .from('companies')
-                    .insert([{
-                        company_name: userData.companyName,
-                        industry: userData.industry || null,
-                        location: userData.location || null,
-                        telephone: userData.companyPhone || null,
-                        owner_name: userData.ownerName || null,
-                        owner_email: userData.ownerEmail || null
-                    }]);
-
-                if (companyError) {
-                    console.warn('Company creation failed (will retry on login):', companyError);
-                }
-            }
-
-            // Profile is created on first login via signIn() — avoids RLS timing issues
-            // with fresh auth sessions. signIn() handles role mapping, company linking,
-            // and stale data fixes.
+            // Everything (company record + profile) is created on first login via signIn().
+            // This avoids RLS timing issues where a fresh auth session isn't fully recognized.
+            // signIn() handles: company lookup/creation, role mapping, profile creation,
+            // company_id linking, and stale data fixes.
             return { success: true, data: authData };
         } catch (error) {
             return { success: false, error: handleError(error) };
