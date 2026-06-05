@@ -84,6 +84,125 @@
         }
     };
 
+    // ── Shared: ensure profile + company exist for a user ──
+    // Used by both signIn() and the auto-redirect handler
+    window.ensureUserProfile = async function(user) {
+        if (!user) return { success: false, error: 'No user provided' };
+
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('user_profiles')
+            .select('*, company_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (profileError) {
+            console.warn('Profile lookup error:', profileError);
+        }
+
+        if (!profile) {
+            // Profile doesn't exist — create it from user metadata
+            const metadata = user.user_metadata;
+            const role = mapRole(metadata.role || 'viewer');
+
+            let companyId = null;
+
+            // If this is a company user, try to find or create the company record
+            if (role === 'company') {
+                const companyName = metadata.company_name || metadata.companyName;
+                if (companyName) {
+                    const { data: existing } = await supabaseClient
+                        .from('companies')
+                        .select('id')
+                        .eq('company_name', companyName)
+                        .maybeSingle();
+
+                    if (existing) {
+                        companyId = existing.id;
+                    } else {
+                        const companyFields = {
+                            company_name: companyName,
+                            industry: metadata.company_industry || null,
+                            location: metadata.company_location || null,
+                            telephone: metadata.company_telephone || null,
+                            owner_name: metadata.company_owner_name || null,
+                            owner_email: metadata.company_owner_email || null
+                        };
+                        const { data: newCompany, error: ce } = await supabaseClient
+                            .from('companies')
+                            .insert([companyFields])
+                            .select('id')
+                            .maybeSingle();
+
+                        if (ce) {
+                            console.warn('Company creation failed:', ce);
+                        } else if (newCompany) {
+                            companyId = newCompany.id;
+                        }
+                    }
+                }
+            }
+
+            const profileFields = {
+                user_id: user.id,
+                first_name: metadata.first_name || 'User',
+                surname: metadata.surname || 'Name',
+                email: user.email,
+                department: metadata.department || 'osh',
+                location: metadata.location || 'Not specified',
+                role: role,
+                created_at: new Date().toISOString()
+            };
+
+            if (companyId) {
+                profileFields.company_id = companyId;
+            }
+
+            const { error: insertError } = await supabaseClient
+                .from('user_profiles')
+                .insert([profileFields]);
+
+            if (insertError) {
+                console.warn('Could not create profile:', insertError);
+                return { success: false, error: 'Profile creation failed' };
+            }
+
+            return { success: true, role: role, company_id: companyId };
+        } else {
+            // Profile exists — fix any stale data
+            const metadata = user.user_metadata;
+            const expectedRole = mapRole(metadata.role || 'viewer');
+            const updates = {};
+
+            if (profile.role !== expectedRole) {
+                updates.role = expectedRole;
+            }
+
+            if (expectedRole === 'company' && !profile.company_id) {
+                const companyName = metadata.company_name || metadata.companyName;
+                if (companyName) {
+                    const { data: company } = await supabaseClient
+                        .from('companies')
+                        .select('id')
+                        .eq('company_name', companyName)
+                        .maybeSingle();
+
+                    if (company) {
+                        updates.company_id = company.id;
+                    }
+                }
+            }
+
+            if (Object.keys(updates).length > 0) {
+                await supabaseClient
+                    .from('user_profiles')
+                    .update(updates)
+                    .eq('user_id', user.id);
+            }
+
+            return { success: true, role: profile.role, company_id: profile.company_id };
+        }
+    };
+
     // Sign in function
     window.signIn = async function(email, password, remember = false) {
         try {
@@ -94,125 +213,13 @@
 
             if (error) throw error;
 
-            // Store session info if "remember me" is checked
             if (remember) {
                 localStorage.setItem('rememberMe', 'true');
             }
 
-            // Check if user profile exists, create if not
+            // Ensure profile + company exist
             if (data.user) {
-                const { data: profile, error: profileError } = await supabaseClient
-                    .from('user_profiles')
-                    .select('*, company_id')
-                    .eq('user_id', data.user.id)
-                    .maybeSingle();
-
-                if (profileError) {
-                    console.warn('Profile lookup error:', profileError);
-                }
-
-                if (!profile) {
-                    // Profile doesn't exist — create it from user metadata
-                    const metadata = data.user.user_metadata;
-                    const role = mapRole(metadata.role || 'viewer');
-
-                    let companyId = null;
-
-                    // If this is a company user, try to find or create the company record
-                    if (role === 'company') {
-                        const companyName = metadata.company_name || metadata.companyName;
-                        if (companyName) {
-                            // Try to find existing company first
-                            const { data: existing } = await supabaseClient
-                                .from('companies')
-                                .select('id')
-                                .eq('company_name', companyName)
-                                .maybeSingle();
-
-                            if (existing) {
-                                companyId = existing.id;
-                            } else {
-                                // Create new company record with all available details
-                                const companyFields = {
-                                    company_name: companyName,
-                                    industry: metadata.company_industry || null,
-                                    location: metadata.company_location || null,
-                                    telephone: metadata.company_telephone || null,
-                                    owner_name: metadata.company_owner_name || null,
-                                    owner_email: metadata.company_owner_email || null
-                                };
-                                const { data: newCompany, error: ce } = await supabaseClient
-                                    .from('companies')
-                                    .insert([companyFields])
-                                    .select('id')
-                                    .maybeSingle();
-
-                                if (ce) {
-                                    console.warn('Company creation on login failed:', ce);
-                                } else if (newCompany) {
-                                    companyId = newCompany.id;
-                                }
-                            }
-                        }
-                    }
-
-                    const profileFields = {
-                        user_id: data.user.id,
-                        first_name: metadata.first_name || 'User',
-                        surname: metadata.surname || 'Name',
-                        email: data.user.email,
-                        department: metadata.department || 'osh',
-                        location: metadata.location || 'Not specified',
-                        role: role,
-                        created_at: new Date().toISOString()
-                    };
-
-                    if (companyId) {
-                        profileFields.company_id = companyId;
-                    }
-
-                    const { error: insertError } = await supabaseClient
-                        .from('user_profiles')
-                        .insert([profileFields]);
-
-                    if (insertError) {
-                        console.warn('Could not create profile on login:', insertError);
-                    }
-                } else {
-                    // Profile exists — fix any stale data
-                    const metadata = data.user.user_metadata;
-                    const expectedRole = mapRole(metadata.role || 'viewer');
-                    const updates = {};
-
-                    // Fix role if it doesn't match (e.g. old profiles created without role defaulted to 'viewer')
-                    if (profile.role !== expectedRole) {
-                        updates.role = expectedRole;
-                    }
-
-                    // For company users, ensure company_id is linked
-                    if (expectedRole === 'company' && !profile.company_id) {
-                        const companyName = metadata.company_name || metadata.companyName;
-                        if (companyName) {
-                            const { data: company } = await supabaseClient
-                                .from('companies')
-                                .select('id')
-                                .eq('company_name', companyName)
-                                .maybeSingle();
-
-                            if (company) {
-                                updates.company_id = company.id;
-                            }
-                        }
-                    }
-
-                    // Apply any fixes needed
-                    if (Object.keys(updates).length > 0) {
-                        await supabaseClient
-                            .from('user_profiles')
-                            .update(updates)
-                            .eq('user_id', data.user.id);
-                    }
-                }
+                await window.ensureUserProfile(data.user);
             }
 
             return { success: true, data: data };

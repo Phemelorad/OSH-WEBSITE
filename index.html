@@ -906,10 +906,16 @@
         companyFieldsDiv.appendChild(industryGroup);
 
         // ── Auto-redirect if already logged in ──────────
+        // This runs after email confirmation redirects back to the app.
+        // Since signIn() doesn't execute in this flow, we must create
+        // the profile/company record here if it doesn't exist yet.
         window.addEventListener('load', async function() {
             if (await isAuthenticated()) {
                 const userResult = await getCurrentUser();
                 if (userResult.success && userResult.user) {
+                    // Ensure profile + company exist (no-op if already created)
+                    await window.ensureUserProfile(userResult.user);
+
                     const profile = await getUserProfile(userResult.user.id);
                     if (profile.success && profile.data.role === 'company') {
                         window.location.href = 'company-view.html';
