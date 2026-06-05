@@ -74,11 +74,10 @@
                 };
             }
 
-            // Everything (company record + profile) is created on first login via signIn().
-            // This avoids RLS timing issues where a fresh auth session isn't fully recognized.
-            // signIn() handles: company lookup/creation, role mapping, profile creation,
-            // company_id linking, and stale data fixes.
-            return { success: true, data: authData };
+            // Auto-confirmed (email confirmation disabled).
+            // Profile/company creation is deferred to ensureUserProfile()
+            // which the registration handler will call before redirecting.
+            return { success: true, data: authData, autoConfirmed: true, session: session };
         } catch (error) {
             return { success: false, error: handleError(error) };
         }

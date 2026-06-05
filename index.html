@@ -900,6 +900,24 @@
             submitBtn.textContent = 'Create Account';
 
             if (result.success) {
+                // If auto-confirmed (email confirmation disabled), redirect immediately
+                if (result.autoConfirmed && result.session?.user) {
+                    await window.ensureUserProfile(result.session.user);
+                    const profile = await getUserProfile(result.session.user.id);
+                    if (profile.success && profile.data) {
+                        sessionStorage.setItem('user', JSON.stringify(profile.data));
+                        const redirectUrl = profile.data.role === 'company'
+                            ? 'company-view.html'
+                            : 'dashboard.html';
+                        showToast('Account created! Redirecting...', 'success', 1800);
+                        setTimeout(() => { window.location.href = redirectUrl; }, 1200);
+                        return;
+                    }
+                    showToast('Account created! Redirecting...', 'success', 1800);
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                    return;
+                }
+
                 const email = formData.email;
                 const msg = `Account created! A confirmation email has been sent to <strong>${email}</strong>.<br><br>` +
                     `Please check your inbox (and spam folder) and click the link to activate your account.`;
