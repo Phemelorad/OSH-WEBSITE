@@ -366,71 +366,147 @@
         }).join('');
     }
 
-    // ── View detail modal ─────────────────────────────────────
+    // ── View full booking details ────────────────────────────
+    // Shows ALL fields in a comprehensive modal with email notification
     async function viewBooking(id) {
         const r = allBookings.find(x => x.id === id);
         if (!r) return;
 
-        const rows = [
-            ['Company',       r.company_name],
-            ['Contact',       r.contact_name],
-            ['Email',         r.contact_email],
-            ['Phone',         r.contact_phone || '—'],
-            ['Location',      r.location],
-            ['Nature of Work',r.nature_of_work || '—'],
-            ['Industry',      r.industry_type || '—'],
-            ['Preferred Date', r.preferred_date ? fmtDate(r.preferred_date) : '—'],
-            ['Preferred Time', r.preferred_time || '—'],
-            ['Status',        `<span class="badge badge-${r.status}">${r.status}</span>`],
-            ['Submitted',     r.created_at ? fmtDate(r.created_at) : '—'],
-            ['Assigned Inspector', r.assigned_inspector || '—'],
-            ['Scheduled Date', r.scheduled_date ? fmtDate(r.scheduled_date) : '—'],
-            ['Scheduled Time', r.scheduled_time || '—'],
-        ].map(([label, value]) =>
-            `<div style="display:flex;justify-content:space-between;padding:8px 0;
-                         border-bottom:1px solid #f5f5f5;gap:16px;">
-                <span style="color:#888;font-size:13px;min-width:130px;flex-shrink:0">${label}</span>
-                <span style="color:#333;font-size:13px;text-align:right">${value ?? '—'}</span>
-             </div>`
-        ).join('');
+        const statusBadge = `<span class="badge badge-${r.status}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>`;
 
-        const notesHTML = r.notes ? `
-            <div style="margin-top:16px">
-                <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">NOTES / REASON</p>
-                <p style="font-size:13px;color:#333;line-height:1.5;background:#f9f9f9;padding:12px;border-radius:6px">${r.notes}</p>
+        // Group fields into sections
+        const section = (title, fields) => `
+            <div style="margin-bottom:16px">
+                <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">${title}</div>
+                ${fields.map(([label, value]) => `
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;gap:12px;">
+                        <span style="color:#888;font-size:12px;min-width:110px;flex-shrink:0">${label}</span>
+                        <span style="color:#333;font-size:13px;text-align:right;font-weight:${value.includes('<') ? '400' : '500'}">${value || '—'}</span>
+                    </div>
+                `).join('')}
+            </div>`;
+
+        const companyInfo = section('Company Information', [
+            ['Company Name',  esc(r.company_name)],
+            ['Industry',      esc(r.industry_type || '—')],
+            ['Location',      esc(r.location)],
+            ['Nature of Work',esc(r.nature_of_work || '—')],
+        ]);
+
+        const contactInfo = section('Contact Person', [
+            ['Name',          esc(r.contact_name)],
+            ['Email',         esc(r.contact_email)],
+            ['Phone',         esc(r.contact_phone || '—')],
+        ]);
+
+        const bookingInfo = section('Booking Details', [
+            ['Status',        statusBadge],
+            ['Submitted',     r.created_at ? fmtDate(r.created_at) : '—'],
+            ['Preferred Date', r.preferred_date ? fmtDate(r.preferred_date) : 'Not specified'],
+            ['Preferred Time', r.preferred_time || 'Not specified'],
+        ]);
+
+        const officerInfo = section('Officer Actions', [
+            ['Assigned Inspector', esc(r.assigned_inspector || '<span style="color:#bbb">Not assigned</span>')],
+            ['Scheduled Date',     r.scheduled_date ? fmtDate(r.scheduled_date) : '<span style="color:#bbb">Not scheduled</span>'],
+            ['Scheduled Time',      r.scheduled_time || '<span style="color:#bbb">—</span>'],
+            ['Last Updated',       r.updated_at ? fmtDate(r.updated_at) : '—'],
+        ]);
+
+        // Notes sections
+        const notesBlocks = [];
+        if (r.notes) notesBlocks.push(`
+            <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Company Notes / Reason</div>
+                <div style="background:#f9f9f9;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">${esc(r.notes)}</div>
+            </div>`);
+        if (r.special_requirements) notesBlocks.push(`
+            <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Special Requirements</div>
+                <div style="background:#f9f9f9;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">${esc(r.special_requirements)}</div>
+            </div>`);
+        if (r.admin_notes) notesBlocks.push(`
+            <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Officer Admin Notes</div>
+                <div style="background:#f0f8ff;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">${esc(r.admin_notes)}</div>
+            </div>`);
+
+        const notesHTML = notesBlocks.length ? `<div style="margin-top:4px">${notesBlocks.join('')}</div>` : '';
+
+        // Schedule confirmation
+        const scheduleHTML = r.scheduled_date ? `
+            <div style="margin-top:12px;padding:14px;background:#e8f5e9;border-radius:8px;text-align:center;border:1px solid #c8e6c9">
+                <div style="font-size:20px;margin-bottom:4px">📅</div>
+                <strong style="color:#155724">Inspection Scheduled</strong>
+                <div style="font-size:13px;color:#155724;margin-top:4px">${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' at ' + r.scheduled_time : ''}</div>
+                ${r.assigned_inspector ? `<div style="font-size:12px;color:#388e3c;margin-top:2px">Inspector: ${esc(r.assigned_inspector)}</div>` : ''}
             </div>` : '';
-        const adminNotesHTML = r.admin_notes ? `
-            <div style="margin-top:12px">
-                <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">ADMIN NOTES</p>
-                <p style="font-size:13px;color:#333;line-height:1.5;background:#f0f8ff;padding:12px;border-radius:6px">${r.admin_notes}</p>
-            </div>` : '';
-        const specialHTML = r.special_requirements ? `
-            <div style="margin-top:12px">
-                <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">SPECIAL REQUIREMENTS</p>
-                <p style="font-size:13px;color:#333;line-height:1.5;background:#f9f9f9;padding:12px;border-radius:6px">${r.special_requirements}</p>
-            </div>` : '';
+
+        // Build email body
+        const emailSubject = encodeURIComponent(`Inspection Booking Update - ${r.company_name}`);
+        const emailBody = encodeURIComponent(
+            `INSPECTION BOOKING UPDATE\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `COMPANY: ${r.company_name}\n` +
+            `STATUS: ${r.status.toUpperCase()}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Company Information\n` +
+            `  Location: ${r.location || '—'}\n` +
+            `  Industry: ${r.industry_type || '—'}\n` +
+            `  Nature of Work: ${r.nature_of_work || '—'}\n\n` +
+            `Contact Person\n` +
+            `  Name: ${r.contact_name}\n` +
+            `  Email: ${r.contact_email}\n` +
+            `  Phone: ${r.contact_phone || '—'}\n\n` +
+            `Booking\n` +
+            `  Requested: ${r.created_at ? fmtDate(r.created_at) : '—'}\n` +
+            `  Preferred: ${r.preferred_date ? fmtDate(r.preferred_date) : '—'} ${r.preferred_time ? '('+r.preferred_time+')' : ''}\n` +
+            `  Status: ${r.status}\n\n` +
+            `Officer Response\n` +
+            `  Inspector: ${r.assigned_inspector || 'Not assigned'}\n` +
+            `  Scheduled: ${r.scheduled_date ? fmtDate(r.scheduled_date) : 'Not scheduled'}${r.scheduled_time ? ' ' + r.scheduled_time : ''}\n` +
+            `  Admin Notes: ${r.admin_notes || 'None'}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `Occupational Health & Safety\n` +
+            `Ministry of Labour & Home Affairs\n`
+        );
+        const mailtoLink = `mailto:${r.contact_email}?subject=${emailSubject}&body=${emailBody}`;
 
         return new Promise(resolve => {
             const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
             overlay.innerHTML = `
-                <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);
-                            width:100%;max-width:540px;max-height:85vh;overflow-y:auto;
-                            padding:28px 26px;font-family:'Segoe UI',sans-serif;position:relative;">
-                    <div style="font-size:28px;text-align:center;margin-bottom:10px">📅</div>
-                    <h2 style="text-align:center;color:#222;font-size:18px;margin-bottom:4px">Inspection Booking</h2>
-                    <p style="text-align:center;font-size:13px;color:#888;margin-bottom:16px">${r.company_name}</p>
-                    ${rows}
+                <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);
+                            width:100%;max-width:580px;max-height:90vh;overflow-y:auto;
+                            padding:32px 30px;font-family:'Segoe UI',sans-serif;position:relative;">
+
+                    <!-- Header -->
+                    <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f0f0f0">
+                        <div style="font-size:32px;margin-bottom:6px">📅</div>
+                        <h2 style="color:#222;font-size:20px;margin-bottom:2px">Inspection Booking Details</h2>
+                        <p style="color:#888;font-size:13px">${esc(r.company_name)} · ${statusBadge}</p>
+                    </div>
+
+                    <!-- All sections -->
+                    ${companyInfo}
+                    ${contactInfo}
+                    ${bookingInfo}
+                    ${officerInfo}
                     ${notesHTML}
-                    ${adminNotesHTML}
-                    ${specialHTML}
-                    ${r.scheduled_date ? `
-                    <div style="margin-top:16px;padding:12px;background:#e8f5e9;border-radius:8px;text-align:center">
-                        <strong style="color:#155724">Inspection scheduled for ${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' (' + r.scheduled_time + ')' : ''}</strong>
-                    </div>` : ''}
-                    <div style="margin-top:20px;text-align:center">
-                        <button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;
-                            border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+                    ${scheduleHTML}
+
+                    <!-- Action buttons -->
+                    <div style="margin-top:20px;padding-top:16px;border-top:2px solid #f0f0f0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                        <a href="${mailtoLink}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:10px 22px;
+                            background:#17a2b8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;
+                            cursor:pointer;text-decoration:none;transition:all 0.2s;"
+                            onmouseover="this.style.background='#138496'" onmouseout="this.style.background='#17a2b8'">
+                            📧 Notify Company
+                        </a>
+                        <button id="closeBtn" style="padding:10px 22px;background:#333;color:#fff;border:none;
+                            border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+                            transition:all 0.2s;"
+                            onmouseover="this.style.background='#555'" onmouseout="this.style.background='#333'">
                             Close
                         </button>
                     </div>
@@ -439,6 +515,35 @@
             overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(); } });
             document.body.appendChild(overlay);
         });
+    }
+
+    // ── Helper: build mailto link for booking notification ───
+    function buildMailto(r) {
+        if (!r || !r.contact_email) return null;
+        const subject = encodeURIComponent(`Inspection Booking Update - ${r.company_name}`);
+        const body = encodeURIComponent(
+            `Dear ${r.contact_name || 'Sir/Madam'},\n\n` +
+            `We are writing regarding your inspection booking request for ${r.company_name}.\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `BOOKING SUMMARY\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `Company: ${r.company_name}\n` +
+            `Location: ${r.location || '—'}\n` +
+            `Industry: ${r.industry_type || '—'}\n` +
+            `Status: ${r.status.toUpperCase()}\n` +
+            `Preferred Date: ${r.preferred_date || '—'}\n` +
+            `Preferred Time: ${r.preferred_time || 'Flexible'}\n\n` +
+            `Assigned Inspector: ${r.assigned_inspector || 'Pending assignment'}\n` +
+            `Scheduled Date: ${r.scheduled_date || 'Not yet scheduled'}\n` +
+            `Scheduled Time: ${r.scheduled_time || '—'}\n\n` +
+            `Officer Notes: ${r.admin_notes || 'None'}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `Should you have any questions, please contact the OSH department.\n\n` +
+            `Regards,\n` +
+            `Occupational Health & Safety\n` +
+            `Ministry of Labour & Home Affairs`
+        );
+        return `mailto:${r.contact_email}?subject=${subject}&body=${body}`;
     }
 
     // ── Assign inspector ──────────────────────────────────────
