@@ -197,6 +197,7 @@
       label: '🔍 Inspections',
       href: 'inspection-entries.html',
       single: true,
+      activeFor: ['inspection-records', 'inspection-form'],
       hideFor: ['company', 'viewer', 'worker']
     },
     {
@@ -204,6 +205,7 @@
       label: '🚨 Accidents',
       href: 'accident-entries.html',
       single: true,
+      activeFor: ['accident-entries', 'accident'],
       hideFor: ['company', 'viewer', 'worker']
     },
     {
@@ -211,6 +213,7 @@
       label: '🏥 Injuries',
       href: 'injury-disease-entries.html',
       single: true,
+      activeFor: ['injury-disease-entries', 'injury-disease', 'worker-profile'],
       hideFor: ['company', 'viewer', 'worker']
     },
     {
@@ -218,6 +221,7 @@
       label: '📋 Claims',
       href: 'entries.html',
       single: true,
+      activeFor: ['claims-entries', 'claims-submit'],
       hideFor: ['company', 'viewer', 'worker']
     },
     {
@@ -238,10 +242,8 @@
       const li = document.createElement('div');
       li.className = 'osh-nav-item';
 
-      // Check if this item or any child is active
-      const isSelfActive = item.id === active;
-      const isChildActive = !item.single && item.children?.some(c => c.id === active);
-      if (isChildActive) li.classList.add('has-active');
+      // Check if this item is active
+      const isSelfActive = item.id === active || item.activeFor?.includes(active);
 
       // Apply role-based visibility
       if (item.hideFor) li.dataset.hideFor = item.hideFor.join(',');
