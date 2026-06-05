@@ -289,6 +289,16 @@
                 <span class="err-msg">Required</span>
               </div>
             </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>No. of Foreign Employees — Male</label>
+                <input type="number" name="employees_foreign_male" id="empForeignMale" min="0" placeholder="0" value="0">
+              </div>
+              <div class="form-group">
+                <label>No. of Foreign Employees — Female</label>
+                <input type="number" name="employees_foreign_female" id="empForeignFemale" min="0" placeholder="0" value="0">
+              </div>
+            </div>
           </div>
 
           <!-- ── SECTION 2: COMMON CONTRAVENTIONS ───────────────────── -->
@@ -622,8 +632,10 @@
           industry_type:      document.getElementById('industryType').value,
           registration_status:document.getElementById('regStatus').value,
           inspection_type:    document.getElementById('inspType').value,
-          employees_male:     parseInt(document.getElementById('empMale').value) || 0,
-          employees_female:   parseInt(document.getElementById('empFemale').value) || 0,
+          employees_male:          parseInt(document.getElementById('empMale').value) || 0,
+          employees_female:        parseInt(document.getElementById('empFemale').value) || 0,
+          employees_foreign_male:  parseInt(document.getElementById('empForeignMale').value) || 0,
+          employees_foreign_female: parseInt(document.getElementById('empForeignFemale').value) || 0,
           contraventions:     contraventions,
           total_contraventions: checked,
           non_compliance_pct: nonPct,

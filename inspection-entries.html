@@ -410,6 +410,9 @@
                 <td style="text-align:center">${totalEmp}
                     <span style="font-size:10px;color:#aaa;display:block">
                         M:${r.employees_male||0} F:${r.employees_female||0}
+                        ${r.employees_foreign_male||0 || r.employees_foreign_female||0
+                            ? ` · FM:${r.employees_foreign_male||0} FF:${r.employees_foreign_female||0}`
+                            : ''}
                     </span>
                 </td>
                 <td>${r.inspector_name || '—'}</td>
@@ -484,7 +487,7 @@
             ['Date',           fmtDate(r.inspection_date)],
             ['Report Sent',    r.date_report_sent ? fmtDate(r.date_report_sent) : '—'],
             ['Days to Respond',r.days_to_respond != null ? r.days_to_respond + ' days' : '—'],
-            ['Employees',      `${(r.employees_male||0)+(r.employees_female||0)} (M:${r.employees_male||0} F:${r.employees_female||0})`],
+            ['Employees',      `${(r.employees_male||0)+(r.employees_female||0)+(r.employees_foreign_male||0)+(r.employees_foreign_female||0)} total · Local M:${r.employees_male||0} F:${r.employees_female||0} · Foreign M:${r.employees_foreign_male||0} F:${r.employees_foreign_female||0}`],
             ['Contraventions', `<strong style="color:${compColor}">${contravCount}</strong> — ${contravList}`],
             ['Non-Compliance', `<strong style="color:${compColor}">${nonCompPct}%</strong>`],
             ['Compliance Level',`<strong style="color:${compColor}">${compLevel}%</strong>`],
@@ -569,7 +572,7 @@
             'File Number','Factory Name','Location','Nature of Work',
             'Industry','Registration','Inspection Type','Inspector',
             'Date','Report Sent','Days to Respond',
-            'Employees Male','Employees Female',
+            'Employees Male','Employees Female','Foreign Male','Foreign Female',
             'Contraventions','Non-Compliance %','Compliance Level %',
             'Action Taken','Follow-up Required','Follow-up Date',
             'Status'
@@ -582,7 +585,7 @@
                 r.file_number, r.factory_name, r.location, r.nature_of_work,
                 r.industry_type, r.registration_status, r.inspection_type, r.inspector_name,
                 r.inspection_date, r.date_report_sent || '', r.days_to_respond ?? '',
-                r.employees_male || 0, r.employees_female || 0,
+                r.employees_male || 0, r.employees_female || 0, r.employees_foreign_male || 0, r.employees_foreign_female || 0,
                 (r.total_contraventions || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)),
                 (r.non_compliance_pct ?? Math.round(((r.total_contraventions || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)) / 17) * 100)),
                 (r.compliance_level ?? (100 - Math.round(((r.total_contraventions || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)) / 17) * 100))),

@@ -42,8 +42,10 @@ CREATE TABLE IF NOT EXISTS workplace_inspections (
         CHECK (inspection_type IN ('Routine','Follow-up','Query','First Time')),
 
     -- ── Employees ───────────────────────────────────────────
-    employees_male      INTEGER NOT NULL DEFAULT 0 CHECK (employees_male   >= 0),
-    employees_female    INTEGER NOT NULL DEFAULT 0 CHECK (employees_female >= 0),
+    employees_male          INTEGER NOT NULL DEFAULT 0 CHECK (employees_male          >= 0),
+    employees_female        INTEGER NOT NULL DEFAULT 0 CHECK (employees_female        >= 0),
+    employees_foreign_male  INTEGER NOT NULL DEFAULT 0 CHECK (employees_foreign_male  >= 0),
+    employees_foreign_female INTEGER NOT NULL DEFAULT 0 CHECK (employees_foreign_female >= 0),
 
     -- ── Inspector ───────────────────────────────────────────
     inspector_name      TEXT NOT NULL,
@@ -240,7 +242,9 @@ SELECT
     wi.inspection_type,
     wi.employees_male,
     wi.employees_female,
-    (wi.employees_male + wi.employees_female) AS total_employees,
+    wi.employees_foreign_male,
+    wi.employees_foreign_female,
+    (wi.employees_male + wi.employees_female + wi.employees_foreign_male + wi.employees_foreign_female) AS total_employees,
     wi.inspector_name,
     wi.total_contraventions,
     wi.non_compliance_pct,
@@ -266,9 +270,11 @@ SELECT
     COUNT(*) FILTER (WHERE inspection_type = 'Routine')    AS routine,
     COUNT(*) FILTER (WHERE inspection_type = 'Follow-up')  AS follow_up,
     COUNT(*) FILTER (WHERE inspection_type = 'Query')      AS query,
-    SUM(employees_male)                          AS total_male,
-    SUM(employees_female)                        AS total_female,
-    SUM(employees_male + employees_female)       AS total_employees,
+    SUM(employees_male)                           AS total_male,
+    SUM(employees_female)                         AS total_female,
+    SUM(employees_foreign_male)                   AS total_foreign_male,
+    SUM(employees_foreign_female)                 AS total_foreign_female,
+    SUM(employees_male + employees_female + employees_foreign_male + employees_foreign_female) AS total_employees,
     ROUND(AVG(compliance_level), 1)              AS avg_compliance_pct,
     SUM(total_contraventions)                    AS total_contraventions,
     COUNT(*) FILTER (WHERE registration_status = 'Yes') AS registered,
