@@ -339,9 +339,17 @@
 
   // ── Inject the nav ───────────────────────────────────────
   function inject() {
-    const existing = document.querySelector('.site-nav');
     const nav = buildNav();
 
+    // If header.js has already injected .site-header, append nav inside it
+    const siteHeader = document.querySelector('.site-header');
+    if (siteHeader) {
+      siteHeader.appendChild(nav);
+      return;
+    }
+
+    // Fallback: replace existing .site-nav or insert after .navbar
+    const existing = document.querySelector('.site-nav');
     if (existing) {
       existing.replaceWith(nav);
     } else {
