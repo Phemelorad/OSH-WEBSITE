@@ -183,7 +183,7 @@
       label: '🏢 My Company',
       href: 'company-view.html',
       single: true,
-      hideFor: ['viewer', 'officer', 'admin', 'super_admin']
+      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
     },
     {
       id: 'company-register',
@@ -194,7 +194,7 @@
     {
       id: 'claims',
       label: '📋 Claims Portal',
-      hideFor: ['company'],
+      hideFor: ['company', 'viewer', 'worker'],
       children: [
         { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
         { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
@@ -203,7 +203,7 @@
     {
       id: 'inspection',
       label: '🔍 Inspection Portal',
-      hideFor: ['company'],
+      hideFor: ['company', 'viewer', 'worker'],
       children: [
         { id: 'inspection-form',    icon: '🔍', label: 'New Inspection',      href: 'inspection.html' },
         { id: 'inspection-records', icon: '📁', label: 'Inspection Records',  href: 'inspection-entries.html' },
@@ -212,7 +212,7 @@
     {
       id: 'accident',
       label: '🚨 Accident Portal',
-      hideFor: ['company'],
+      hideFor: ['company', 'viewer', 'worker'],
       children: [
         { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
         { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
@@ -221,7 +221,7 @@
     {
       id: 'injury',
       label: '🏥 Injuries & Disease',
-      hideFor: ['company'],
+      hideFor: ['company', 'viewer', 'worker'],
       children: [
         { id: 'injury-disease',         icon: '🏥', label: 'New Injury/Disease Report', href: 'injury-disease-report.html' },
         { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',               href: 'injury-disease-entries.html' },
@@ -231,7 +231,7 @@
     {
       id: 'admin',
       label: '⚙ Admin',
-      hideFor: ['company'],
+      hideFor: ['company', 'viewer', 'worker'],
       href: 'admin.html',
       single: true
     },

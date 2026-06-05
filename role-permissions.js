@@ -4,6 +4,7 @@
 
 const ROLES = {
     VIEWER: 'viewer',
+    WORKER: 'worker',
     OFFICER: 'officer',
     ADMIN: 'admin',
     SUPER_ADMIN: 'super_admin',
@@ -12,6 +13,13 @@ const ROLES = {
 
 const PERMISSIONS = {
     viewer: {
+        view_claims: true,
+        submit_claims: false,
+        edit_claims: false,
+        access_admin: false,
+        manage_users: false
+    },
+    worker: {
         view_claims: true,
         submit_claims: false,
         edit_claims: false,
@@ -166,6 +174,7 @@ function updateUIForRole() {
 function addRoleBadge() {
     const roleNames = {
         viewer: 'Viewer',
+        worker: 'Worker',
         officer: 'Officer',
         admin: 'Admin',
         super_admin: 'Super Admin',
@@ -283,6 +292,7 @@ function showPermissionDenied(action = 'perform this action') {
 function getRoleDisplayName(role) {
     const names = {
         viewer: 'Viewer',
+        worker: 'Worker',
         officer: 'Officer',
         admin: 'Admin',
         super_admin: 'Super Admin',
@@ -295,6 +305,7 @@ function getRoleDisplayName(role) {
 function getRoleColor(role) {
     const colors = {
         viewer: '#e2e3e5',
+        worker: '#cce5ff',
         officer: '#d1ecf1',
         admin: '#fff3cd',
         super_admin: '#d4edda',

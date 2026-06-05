@@ -13,6 +13,12 @@
     window.supabaseClient = supabaseClient;
 
     // Helper function to handle errors
+    // Map form role values to database role values
+    function mapRole(formRole) {
+        if (formRole === 'osh_officer') return 'officer';
+        return formRole; // 'company' → 'company', 'worker' → 'worker'
+    }
+
     function handleError(error) {
         console.error('Error:', error);
         if (error.message) {
@@ -34,7 +40,7 @@
                         surname: userData.surname,
                         department: userData.department || 'osh',
                         location: userData.location,
-                        role: userData.role || 'viewer',
+                        role: mapRole(userData.role || 'viewer'),
                         company_name: userData.companyName || null
                     }
                 }
@@ -96,7 +102,7 @@
                 email: userData.email,
                 department: userData.department || 'osh',
                 location: userData.location || 'Not specified',
-                role: userData.role || 'viewer',
+                role: mapRole(userData.role || 'viewer'),
                 created_at: new Date().toISOString()
             };
 
@@ -148,7 +154,7 @@
                 if (!profile) {
                     // Profile doesn't exist — create it from user metadata
                     const metadata = data.user.user_metadata;
-                    const role = metadata.role || 'viewer';
+                    const role = mapRole(metadata.role || 'viewer');
 
                     let companyId = null;
 
@@ -207,7 +213,7 @@
                 } else {
                     // Profile exists — fix any stale data
                     const metadata = data.user.user_metadata;
-                    const expectedRole = metadata.role || 'viewer';
+                    const expectedRole = mapRole(metadata.role || 'viewer');
                     const updates = {};
 
                     // Fix role if it doesn't match (e.g. old profiles created without role defaulted to 'viewer')

@@ -745,17 +745,20 @@
                 if (userProfile.success) {
                     const profile = userProfile.data;
 
-                    // Verify role matches what user selected
-                    if (loginRoleValue === 'company' && profile.role !== 'company') {
-                        await showAlert('This account is not registered as a company. Please select the correct role.', {
-                            type: 'error', title: 'Role Mismatch'
-                        });
-                        return;
+                    // Map login role selection to DB role
+                    function mapLoginRole(r) {
+                        if (r === 'osh_officer') return 'officer';
+                        return r; // 'company' → 'company', 'worker' → 'worker'
                     }
-                    if (loginRoleValue !== 'company' && profile.role === 'company') {
-                        await showAlert('This is a company account. Please select "Company" as your role.', {
-                            type: 'error', title: 'Role Mismatch'
-                        });
+                    const expectedDbRole = mapLoginRole(loginRoleValue);
+
+                    if (profile.role !== expectedDbRole) {
+                        const roleLabels = { company:'Company', worker:'Worker/Employee', officer:'OSH Officer' };
+                        await showAlert(
+                            `This account is registered as a <strong>${roleLabels[profile.role] || profile.role}</strong>. ` +
+                            `Please select the correct role to continue.`,
+                            { type: 'error', title: 'Role Mismatch' }
+                        );
                         return;
                     }
 
@@ -781,6 +784,8 @@
                     sessionStorage.setItem('user', JSON.stringify(profile));
                     const redirectUrl = profile.role === 'company'
                         ? 'company-view.html'
+                        : profile.role === 'worker'
+                        ? 'dashboard.html'
                         : 'dashboard.html';
                     showToast('Login successful! Redirecting...', 'success', 1800);
                     setTimeout(() => { window.location.href = redirectUrl; }, 1200);

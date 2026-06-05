@@ -271,6 +271,74 @@
             transform: none;
         }
 
+        /* Role filter tabs */
+        .role-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .role-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.25s;
+            flex: 1 1 auto;
+            justify-content: center;
+        }
+
+        .role-tab:hover {
+            border-color: #999;
+            color: #333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .role-tab.active {
+            border-color: #333;
+            background: #f8f8f8;
+            color: #222;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .role-tab .tab-icon {
+            font-size: 18px;
+        }
+
+        .role-tab .tab-count {
+            background: #f0f0f0;
+            color: #888;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .role-tab.active .tab-count {
+            background: #333;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .role-tabs {
+                flex-direction: column;
+            }
+            .role-tab {
+                justify-content: flex-start;
+            }
+        }
+
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -322,11 +390,34 @@
             </div>
         </div>
 
-        <!-- Registered Users Section -->
+        <!-- Role Filter Tabs -->
         <div class="section-card">
             <div class="section-header">
-                <h2>📋 Registered Users</h2>
+                <h2>📋 User Management</h2>
                 <button class="refresh-btn" onclick="loadUsers()">🔄 Refresh</button>
+            </div>
+
+            <div class="role-tabs">
+                <button class="role-tab active" data-filter="all" onclick="filterByRole('all')">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-label">All Users</span>
+                    <span class="tab-count" id="countAll">0</span>
+                </button>
+                <button class="role-tab" data-filter="company" onclick="filterByRole('company')">
+                    <span class="tab-icon">🏢</span>
+                    <span class="tab-label">Companies</span>
+                    <span class="tab-count" id="countCompany">0</span>
+                </button>
+                <button class="role-tab" data-filter="worker" onclick="filterByRole('worker')">
+                    <span class="tab-icon">👷</span>
+                    <span class="tab-label">Workers</span>
+                    <span class="tab-count" id="countWorker">0</span>
+                </button>
+                <button class="role-tab" data-filter="officer" onclick="filterByRole('officer')">
+                    <span class="tab-icon">👮</span>
+                    <span class="tab-label">OSH Officers</span>
+                    <span class="tab-count" id="countOfficer">0</span>
+                </button>
             </div>
             
             <div id="usersLoading" class="loading">
@@ -355,7 +446,7 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display: none;">
-                    <p>No users found</p>
+                    <p>No users found in this category</p>
                 </div>
             </div>
         </div>
@@ -413,12 +504,15 @@
             }
         }
 
+        // Current role filter (all, company, worker, officer)
+        let currentFilter = 'all';
+        let allUsersData = [];
+
         async function loadUsers() {
             document.getElementById('usersLoading').style.display = 'block';
             document.getElementById('usersContent').style.display = 'none';
 
             try {
-                // Get all user profiles (this will work with the RLS policy allowing authenticated users to view all)
                 const { data: profiles, error: profilesError } = await supabaseClient
                     .from('user_profiles')
                     .select('*')
@@ -426,20 +520,17 @@
 
                 if (profilesError) throw profilesError;
 
-                // Since we can't access admin.listUsers, we'll work with profile data only
-                const mergedData = profiles.map(profile => {
-                    return {
-                        ...profile,
-                        email_confirmed: true, // Assume verified if they have a profile
-                        last_sign_in: null // We don't have this data without admin access
-                    };
-                });
+                allUsersData = profiles.map(profile => ({
+                    ...profile,
+                    email_confirmed: true,
+                    last_sign_in: null
+                }));
 
-                // Update statistics
-                updateStatistics(mergedData);
+                // Update counts on tabs
+                updateRoleCounts(allUsersData);
 
-                // Render users table
-                renderUsersTable(mergedData);
+                // Apply filter and render
+                applyFilterAndRender();
 
                 document.getElementById('usersLoading').style.display = 'none';
                 document.getElementById('usersContent').style.display = 'block';
@@ -453,6 +544,31 @@
                         <button onclick="loadUsers()" style="margin-top: 20px; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button>
                     </div>`;
             }
+        }
+
+        function updateRoleCounts(users) {
+            document.getElementById('countAll').textContent = users.length;
+            document.getElementById('countCompany').textContent = users.filter(u => u.role === 'company').length;
+            document.getElementById('countWorker').textContent = users.filter(u => u.role === 'worker').length;
+            document.getElementById('countOfficer').textContent = users.filter(u => u.role === 'officer').length;
+        }
+
+        function filterByRole(role) {
+            currentFilter = role;
+            // Update active tab
+            document.querySelectorAll('.role-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.filter === role);
+            });
+            if (allUsersData.length) applyFilterAndRender();
+        }
+
+        function applyFilterAndRender() {
+            const filtered = currentFilter === 'all'
+                ? allUsersData
+                : allUsersData.filter(u => u.role === currentFilter);
+
+            updateStatistics(filtered);
+            renderUsersTable(filtered);
         }
 
         function updateStatistics(users) {
@@ -489,9 +605,9 @@
                 
                 return `
                 <tr>
-                    <td><strong>${user.first_name} ${user.surname}</strong></td>
-                    <td>${user.email}</td>
-                    <td>${user.location}</td>
+                    <td><strong>${esc(user.first_name)} ${esc(user.surname)}</strong></td>
+                    <td>${esc(user.email)}</td>
+                    <td>${esc(user.location)}</td>
                     <td>
                         <span class="badge" style="background: ${roleColor}; color: #333;">
                             ${getRoleDisplayName(user.role || 'viewer')}
@@ -505,12 +621,12 @@
                             ${user.email_confirmed ? 'Verified' : 'Pending'}
                         </span>
                     </td>
-                    <td>${formatDate(user.created_at)}</td>
-                    <td>${user.last_sign_in ? formatDate(user.last_sign_in) : 'N/A'}</td>
+                    <td>${fmtDate(user.created_at)}</td>
+                    <td>${user.last_sign_in ? fmtDate(user.last_sign_in) : 'N/A'}</td>
                     <td>
                         <button class="action-btn" onclick="viewUser('${user.user_id}')">View</button>
                         <button class="action-btn ${disabledClass}" ${disabledTitle} 
-                            onclick="editUserRole('${user.user_id}', '${user.role || 'viewer'}', '${user.first_name} ${user.surname}')"
+                            onclick="editUserRole('${user.user_id}', '${user.role || 'viewer'}', '${esc(user.first_name)} ${esc(user.surname)}')"
                             ${!canManage ? 'disabled' : ''}>
                             Change Role
                         </button>
