@@ -815,7 +815,7 @@
             const email = await showPrompt(
                 'Enter the email address you registered with:',
                 '',
-                { title: 'Resend Confirmation', iconKey: 'email' }
+                { title: 'Resend Confirmation', icon: '📧' }
             );
             if (!email) return;
             const r = await window.resendConfirmation(email);
