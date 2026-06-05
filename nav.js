@@ -189,7 +189,8 @@
       id: 'company-register',
       label: '🏢 Company Register',
       href: 'company-register.html',
-      single: true
+      single: true,
+      hideFor: ['company']
     },
     {
       id: 'claims',

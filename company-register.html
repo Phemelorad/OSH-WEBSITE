@@ -312,13 +312,10 @@
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
 
-        // If this is a company user, auto-filter to their company
+        // Company users should only see My Company page, not the full register
         if (currentUserRole === 'company') {
-            const companyName = await window.getUserCompanyName(SB);
-            if (companyName) {
-                // Store for auto-filtering after data loads
-                window._companyFilterName = companyName;
-            }
+            window.location.href = 'company-view.html';
+            return;
         }
 
         await loadData();
