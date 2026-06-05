@@ -168,7 +168,7 @@
             </div>
 
             <div class="section-title">Inspection Details</div>
-            <div class="form-row form-row-3">
+            <div class="form-row form-row-2">
               <div class="form-group">
                 <label>Preferred Date</label>
                 <input type="date" name="preferred_date" id="preferredDate">
@@ -181,17 +181,6 @@
                   <option value="Afternoon">Afternoon (12:00–16:00)</option>
                   <option value="Flexible">Flexible</option>
                 </select>
-              </div>
-              <div class="form-group">
-                <label>Inspection Type<span class="req">*</span></label>
-                <select name="inspection_type" id="inspectionType" required>
-                  <option value="">— Select —</option>
-                  <option value="Routine">Routine</option>
-                  <option value="Follow-up">Follow-up</option>
-                  <option value="First Time">First Time</option>
-                  <option value="Query">Query</option>
-                </select>
-                <span class="err-msg">Required</span>
               </div>
             </div>
             <div class="form-row form-row-2">
@@ -278,8 +267,26 @@
             if (companyName) {
                 document.getElementById('companyName').value = companyName;
                 document.getElementById('userCompanyName').textContent = companyName;
+
+                // Auto-fill all company info from companies table
+                const { data: companyData } = await window.supabaseClient
+                    .from('companies')
+                    .select('location, industry, telephone, owner_name, owner_email')
+                    .eq('company_name', companyName)
+                    .maybeSingle();
+
+                if (companyData) {
+                    if (companyData.location) document.getElementById('location').value = companyData.location;
+                    if (companyData.industry) document.getElementById('industryType').value = companyData.industry;
+                    if (companyData.telephone) document.getElementById('contactPhone').value = companyData.telephone;
+                    if (companyData.owner_name && !document.getElementById('contactName').value) {
+                        document.getElementById('contactName').value = companyData.owner_name;
+                    }
+                    if (companyData.owner_email && !document.getElementById('contactEmail').value) {
+                        document.getElementById('contactEmail').value = companyData.owner_email;
+                    }
+                }
             }
-        }
 
         // Set min date for preferred date to today
         document.getElementById('preferredDate').min = new Date().toISOString().split('T')[0];
@@ -334,7 +341,6 @@
                 contact_phone:       g('contactPhone'),
                 preferred_date:      g('preferredDate') || null,
                 preferred_time:      g('preferredTime') || null,
-                inspection_type:     g('inspectionType'),
                 location:            g('location'),
                 nature_of_work:      g('natureOfWork'),
                 industry_type:       g('industryType'),
@@ -358,13 +364,7 @@
             );
 
             document.getElementById('bookingForm').reset();
-            // Re-fill auto fields after reset
-            if (profile.success) {
-                document.getElementById('contactName').value = profile.data.first_name + ' ' + profile.data.surname;
-                document.getElementById('contactEmail').value = profile.data.email || '';
-            }
-            const companyName = await window.getUserCompanyName(window.supabaseClient);
-            if (companyName) document.getElementById('companyName').value = companyName;
+            await reFillCompanyData();
 
         } catch(err) {
             btn.disabled = false;
@@ -373,23 +373,38 @@
         }
     });
 
+    async function reFillCompanyData() {
+        const companyName = await window.getUserCompanyName(window.supabaseClient);
+        if (companyName) {
+            document.getElementById('companyName').value = companyName;
+            const { data: companyData } = await window.supabaseClient
+                .from('companies')
+                .select('location, industry, telephone')
+                .eq('company_name', companyName)
+                .maybeSingle();
+            if (companyData) {
+                if (companyData.location) document.getElementById('location').value = companyData.location;
+                if (companyData.industry) document.getElementById('industryType').value = companyData.industry;
+                if (companyData.telephone) document.getElementById('contactPhone').value = companyData.telephone;
+            }
+        }
+        const userResult = await getCurrentUser();
+        if (userResult.success && userResult.user) {
+            const profile = await getUserProfile(userResult.user.id);
+            if (profile.success) {
+                document.getElementById('contactName').value = profile.data.first_name + ' ' + profile.data.surname;
+                document.getElementById('contactEmail').value = profile.data.email || '';
+            }
+        }
+    }
+
     async function resetForm() {
         const ok = await showConfirm('All entered data will be cleared.', {
             title: 'Reset Form', icon: '🔄', confirmText: 'Reset', danger: true
         });
         if (ok) {
             document.getElementById('bookingForm').reset();
-            // Re-fill auto fields
-            const userResult = await getCurrentUser();
-            if (userResult.success && userResult.user) {
-                const profile = await getUserProfile(userResult.user.id);
-                if (profile.success) {
-                    document.getElementById('contactName').value = profile.data.first_name + ' ' + profile.data.surname;
-                    document.getElementById('contactEmail').value = profile.data.email || '';
-                }
-                const companyName = await window.getUserCompanyName(window.supabaseClient);
-                if (companyName) document.getElementById('companyName').value = companyName;
-            }
+            await reFillCompanyData();
             showToast('Form has been reset.', 'info');
         }
     }
