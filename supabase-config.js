@@ -69,12 +69,9 @@
                 };
             }
 
-            // User is authenticated — safe to create records
-            let companyId = null;
-
-            // If this is a company registration, create the company record first
+            // User is authenticated — try to create company record if applicable
             if (userData.role === 'company' && userData.companyName) {
-                const { data: companyData, error: companyError } = await supabaseClient
+                const { error: companyError } = await supabaseClient
                     .from('companies')
                     .insert([{
                         company_name: userData.companyName,
@@ -83,41 +80,16 @@
                         telephone: userData.companyPhone || null,
                         owner_name: userData.ownerName || null,
                         owner_email: userData.ownerEmail || null
-                    }])
-                    .select('id')
-                    .maybeSingle();
+                    }]);
 
                 if (companyError) {
-                    console.warn('Company creation failed:', companyError);
-                } else if (companyData) {
-                    companyId = companyData.id;
+                    console.warn('Company creation failed (will retry on login):', companyError);
                 }
             }
 
-            // Create user profile
-            const profileFields = {
-                user_id: authData.user.id,
-                first_name: userData.firstName,
-                surname: userData.surname,
-                email: userData.email,
-                department: userData.department || 'osh',
-                location: userData.location || 'Not specified',
-                role: mapRole(userData.role || 'viewer'),
-                created_at: new Date().toISOString()
-            };
-
-            if (companyId && userData.role === 'company') {
-                profileFields.company_id = companyId;
-            }
-
-            const { error: profileError } = await supabaseClient
-                .from('user_profiles')
-                .insert([profileFields]);
-
-            if (profileError) {
-                console.warn('Profile creation failed:', profileError);
-            }
-
+            // Profile is created on first login via signIn() — avoids RLS timing issues
+            // with fresh auth sessions. signIn() handles role mapping, company linking,
+            // and stale data fixes.
             return { success: true, data: authData };
         } catch (error) {
             return { success: false, error: handleError(error) };
