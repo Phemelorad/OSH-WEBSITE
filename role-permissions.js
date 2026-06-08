@@ -172,12 +172,13 @@ function updateHeaderDisplay(profile) {
     const fullName = (profile.first_name + ' ' + profile.surname).trim();
 
     if (profile.role === 'company') {
-        // Row 1: Company name, Row 2: Person's name
+        // Row 1: Company name only — hide designation row to avoid empty gap
         if (nameEl) {
             nameEl.textContent = profile.company_name || fullName || 'Company';
         }
         if (desigEl) {
-            desigEl.textContent = fullName || '';
+            desigEl.textContent = '';
+            desigEl.style.display = 'none';
         }
     } else {
         // Row 1: Person's name, Row 2: Designation (if any)
@@ -185,6 +186,7 @@ function updateHeaderDisplay(profile) {
             nameEl.textContent = fullName;
         }
         if (desigEl) {
+            desigEl.style.display = ''; // ensure visible
             if (profile.designation) {
                 desigEl.textContent = profile.designation;
             } else {
