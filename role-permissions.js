@@ -190,22 +190,41 @@ function updateHeaderDisplay(profile) {
 // Company users have company_id in user_profiles, but the actual
 // company_name lives in the companies table. This helper fetches
 // it and attaches it so the header can display it.
+
+// Check if a string is a valid UUID (v4 or v7 format)
+function isValidUUID(str) {
+    if (typeof str !== 'string') return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
+}
+
 async function enrichProfileWithCompanyName(profile) {
     if (!profile || profile.role !== 'company' || !profile.company_id) return profile;
     if (profile.company_name) return profile; // Already enriched
     try {
         const sb = window.supabaseClient;
         if (!sb) return profile;
-        const { data } = await sb
+
+        const companyId = ('' + profile.company_id).trim();
+        if (!isValidUUID(companyId)) {
+            console.warn('Invalid company_id format in profile:', profile.company_id);
+            return profile;
+        }
+
+        const { data, error } = await sb
             .from('companies')
             .select('company_name')
-            .eq('id', profile.company_id)
+            .eq('id', companyId)
             .maybeSingle();
+
+        if (error) {
+            console.warn('Failed to enrich company name:', error);
+            return profile;
+        }
         if (data) {
             profile.company_name = data.company_name;
         }
     } catch (e) {
-        // Silently fail — header will show "Company" as fallback
+        console.warn('Error enriching company name:', e);
     }
     return profile;
 }
@@ -424,12 +443,22 @@ window.getUserCompanyName = async function(supabaseClient) {
             const sb = supabaseClient || window.SB || null;
             if (!sb) return null;
 
-            const { data } = await sb
+            const companyId = ('' + profile.company_id).trim();
+            if (!isValidUUID(companyId)) {
+                console.warn('Invalid company_id format in getUserCompanyName:', profile.company_id);
+                return null;
+            }
+
+            const { data, error } = await sb
                 .from('companies')
                 .select('company_name')
-                .eq('id', profile.company_id)
+                .eq('id', companyId)
                 .maybeSingle();
 
+            if (error) {
+                console.warn('Failed to look up company name:', error);
+                return null;
+            }
             if (data) {
                 // Cache for subsequent calls — scoped to user ID
                 try {
