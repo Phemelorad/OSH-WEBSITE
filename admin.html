@@ -633,7 +633,8 @@
                     <td>
                         <button class="action-btn" onclick="viewUser('${user.user_id}')">View</button>
                         <button class="action-btn ${disabledClass}" ${disabledTitle} 
-                            onclick="editUserRole('${user.user_id}', '${user.role || 'viewer'}', '${esc(user.first_name)} ${esc(user.surname)}')"
+                            data-userid="${user.user_id}" data-role="${user.role || 'viewer'}" data-name="${esc(user.first_name)} ${esc(user.surname)}"
+                            onclick="editUserRole(this.dataset.userid, this.dataset.role, this.dataset.name)"
                             ${!canManage ? 'disabled' : ''}>
                             Change Role
                         </button>
@@ -671,13 +672,14 @@
                 `Current role: <strong>${roleNames[currentRole] || currentRole}</strong>`,
                 roles.map(r => ({ value: r, label: roleNames[r] })),
                 currentRole,
-                { title: `Change Role — ${userName}`, confirmText: 'Save Role' }
+                { title: `Change Role — ${userName}`, confirmText: 'Save Role', icon: '🔑' }
             );
 
             if (!newRole || newRole === currentRole) return;
 
-            if (!canManageUsers(newRole)) {
-                showPermissionDenied('assign the super_admin role');
+            // Check if the current admin can manage a user with the CURRENT role (not the new one)
+            if (!canManageUsers(currentRole)) {
+                showPermissionDenied('change the role of this user');
                 return;
             }
 
