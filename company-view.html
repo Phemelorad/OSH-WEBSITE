@@ -153,6 +153,63 @@
             .compliance-section { flex-direction: column; text-align: center; }
         }
         @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+        .btn-update {
+            padding: 10px 24px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .btn-save {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: #fff;
+            border-color: #28a745;
+        }
+        .btn-save:hover {
+            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+        }
+        .btn-cancel {
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #666;
+            border-color: #ddd;
+        }
+        .btn-cancel:hover {
+            background: #f5f5f5;
+        }
+        .edit-inline {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-family: inherit;
+            width: 180px;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+        .edit-inline:focus {
+            outline: none;
+            border-color: #999;
+        }
+        .edit-inline-wide {
+            width: 280px;
+        }
+        .update-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
@@ -188,7 +245,11 @@
                     <span class="company-meta-item">🏠 <strong>Address:</strong> <span id="companyAddress">&mdash;</span></span>
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
                     <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
-
+                </div>
+                <button class="btn-update" id="updateBtn" onclick="toggleEditMode()">✏️ Update Details</button>
+                <div class="update-actions" id="updateActions" style="display:none">
+                    <button class="btn-update btn-save" onclick="saveCompanyDetails()">💾 Save Changes</button>
+                    <button class="btn-update btn-cancel" onclick="cancelEdit()">Cancel</button>
                 </div>
             </div>
         </div>
@@ -401,6 +462,122 @@
                 + '<div class="activity-desc">' + (c.incapacity_percentage != null ? 'Incapacity: ' + c.incapacity_percentage + '%' : '') + '</div>'
                 + '</div><div class="activity-date">' + fmtDate(c.date_of_injury) + '</div></div>';
         }).join('');
+    }
+
+    // ── Edit mode — inline editing ────────────────────────────
+    let editState = {};
+
+    function toggleEditMode() {
+        const hero = document.getElementById('companyHero');
+        const btn = document.getElementById('updateBtn');
+        const actions = document.getElementById('updateActions');
+
+        // Show/hide
+        btn.style.display = 'none';
+        actions.style.display = 'flex';
+
+        // Capture current values and replace spans with inputs
+        const fields = [
+            { id:'companyIndustry', key:'industry' },
+            { id:'companyPlot', key:'plot_number' },
+            { id:'companyStreet', key:'street_name' },
+            { id:'companyAddress', key:'physical_address' },
+            { id:'companyPhone', key:'telephone' },
+            { id:'companyCipa', key:'cipa_number' },
+        ];
+
+        fields.forEach(f => {
+            const span = document.getElementById(f.id);
+            if (!span) return;
+            const current = span.textContent === '—' || span.textContent === 'Not specified' || span.textContent === 'Not provided' ? '' : span.textContent;
+            editState[f.id] = current;
+
+            if (f.id === 'companyIndustry') {
+                const options = ['','Manufacturing','Services','Construction','Agriculture','Transport','Retail','Government','Parastatal'];
+                const labels = ['— Select industry —','Manufacturing','Services','Construction','Agriculture','Transport','Retail','Government','Parastatal'];
+                let html = `<select id="${f.id}" class="edit-inline edit-inline-wide">`;
+                options.forEach((o, i) => {
+                    const sel = o === current ? ' selected' : '';
+                    html += `<option value="${o}"${sel}>${labels[i]}</option>`;
+                });
+                html += '</select>';
+                span.outerHTML = html;
+            } else {
+                const wide = f.id === 'companyAddress' ? ' edit-inline-wide' : '';
+                span.outerHTML = `<input type="text" id="${f.id}" class="edit-inline${wide}" value="${esc(current)}">`;
+            }
+        });
+    }
+
+    function cancelEdit() {
+        // Restore original values
+        Object.keys(editState).forEach(id => {
+            const input = document.getElementById(id);
+            if (!input) return;
+            input.outerHTML = `<span id="${id}">${esc(editState[id] || '—')}</span>`;
+        });
+        editState = {};
+        document.getElementById('updateBtn').style.display = '';
+        document.getElementById('updateActions').style.display = 'none';
+        showToast('Changes discarded.', 'info');
+    }
+
+    async function saveCompanyDetails() {
+        const btn = document.querySelector('.btn-save');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+
+        try {
+            const { data: companyProfile } = await SB.from('companies').select('id').eq('company_name', companyName).maybeSingle();
+            if (!companyProfile) {
+                await showAlert('Company record not found.', { type: 'error', title: 'Save Failed' });
+                btn.disabled = false;
+                btn.textContent = '💾 Save Changes';
+                return;
+            }
+
+            const updates = {
+                industry:          document.getElementById('companyIndustry')?.value?.trim() || null,
+                plot_number:       document.getElementById('companyPlot')?.value?.trim() || null,
+                street_name:       document.getElementById('companyStreet')?.value?.trim() || null,
+                physical_address:  document.getElementById('companyAddress')?.value?.trim() || null,
+                telephone:         document.getElementById('companyPhone')?.value?.trim() || null,
+                cipa_number:       document.getElementById('companyCipa')?.value?.trim() || null,
+            };
+
+            const { error } = await SB.from('companies').update(updates).eq('id', companyProfile.id);
+
+            btn.disabled = false;
+            btn.textContent = '💾 Save Changes';
+
+            if (error) throw error;
+
+            // Restore spans with updated values
+            const displayLabels = {
+                companyIndustry: updates.industry || 'Not specified',
+                companyPlot:     updates.plot_number || '—',
+                companyStreet:   updates.street_name || '—',
+                companyAddress:  updates.physical_address || '—',
+                companyPhone:    updates.telephone || 'Not specified',
+                companyCipa:     updates.cipa_number || 'Not provided',
+            };
+
+            Object.keys(displayLabels).forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+                input.outerHTML = `<span id="${id}">${esc(displayLabels[id])}</span>`;
+            });
+
+            editState = {};
+            document.getElementById('updateBtn').style.display = '';
+            document.getElementById('updateActions').style.display = 'none';
+            showToast('Company details updated successfully!', 'success');
+
+        } catch (err) {
+            btn.disabled = false;
+            btn.textContent = '💾 Save Changes';
+            await showAlert(err.message, { type: 'error', title: 'Save Failed' });
+        }
     }
     </script>
 </body>
