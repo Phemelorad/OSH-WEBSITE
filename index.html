@@ -771,9 +771,17 @@
             // Validate role selection
             const selectedRole = document.querySelector('input[name="loginRole"]:checked');
             if (!selectedRole) {
+                // Highlight role selection with error styling
+                const roleOptions = document.querySelectorAll('.role-option');
+                roleOptions.forEach(o => o.style.borderColor = '#e74c3c');
+                setTimeout(() => roleOptions.forEach(o => o.style.borderColor = ''), 3000);
+                // Scroll to top of form where roles are
+                loginForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 await showAlert('Please select your role to continue.', { type: 'warning', title: 'Role Required' });
                 return;
             }
+            // Clear any previous error styling on roles
+            document.querySelectorAll('.role-option').forEach(o => o.style.borderColor = '');
             const loginRoleValue = selectedRole.value;
 
             // Validate company name if company role
