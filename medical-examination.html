@@ -747,8 +747,10 @@
                 document.getElementById('userName').textContent = p.data.first_name + ' ' + p.data.surname;
                 document.getElementById('userDept').textContent = 'Medical Practitioner';
                 document.getElementById('practitionerName').value = p.data.first_name + ' ' + p.data.surname;
-                document.getElementById('practitionerDesignation').value =
-                    p.data.designation || getRoleDisplayName(p.data.role || 'officer');
+                // Set designation from profile if available, otherwise leave blank for practitioner to fill in
+                if (p.data.designation) {
+                    document.getElementById('practitionerDesignation').value = p.data.designation;
+                }
             }
         }
 
