@@ -36,6 +36,7 @@
             background: white; border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             padding: 40px; border: 1px solid #e0e0e0; margin-bottom: 20px;
+            position: relative;
         }
         .form-header {
             text-align: center; margin-bottom: 30px;
@@ -52,10 +53,7 @@
             object-fit: contain;
             display: block;
         }
-        .form-header .form-number {
-            font-size: 12px; font-weight: 700; color: #888;
-            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;
-        }
+
         .form-header h1 { color: #333; font-size: 22px; margin-bottom: 4px; }
         .form-header .subtitle { color: #666; font-size: 13px; line-height: 1.5; }
         .form-header .act-ref {
@@ -139,6 +137,20 @@
         .btn-secondary { background: white; color: #666; }
         .btn-secondary:hover { background: #f5f5f5; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .form-number-badge {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 6px;
+            z-index: 1;
+        }
         .hint {
             font-size: 12px; color: #888; margin-top: 4px;
             font-style: italic; line-height: 1.4;
@@ -182,8 +194,8 @@
               <div class="gov-logo">
                 <img src="Code-of-Arms-colour.png" alt="Republic of Botswana Coat of Arms">
               </div>
-              <div class="form-number">OHS Form 60</div>
               <h1>Notification of Accident and/or a<br>Dangerous Occurrence in a Factory</h1>
+              <div class="form-number-badge">OHS Form 60</div>
               <div class="subtitle">
                 Department of Occupational Health and Safety<br>
                 Ministry of Employment, Labour Productivity and Skills Development

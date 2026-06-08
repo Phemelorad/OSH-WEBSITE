@@ -69,6 +69,22 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             padding: 40px;
             border: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        .form-number-badge {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 6px;
+            z-index: 1;
         }
 
         .form-header {
@@ -272,6 +288,7 @@
                 <div class="form-header">
                     <h1>Injury Claim Form</h1>
                     <p>Department of Occupational Health &amp; Safety - Injury/Claim Report</p>
+                    <div class="form-number-badge">BL Form 43/10</div>
                 </div>
 
                 <div class="success-message" id="successMessage">
