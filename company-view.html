@@ -205,10 +205,18 @@
         .edit-inline-wide {
             width: 280px;
         }
+        .update-section {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #eee;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
         .update-actions {
             display: flex;
             gap: 10px;
-            margin-top: 12px;
         }
     </style>
 </head>
@@ -246,10 +254,12 @@
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
                     <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
                 </div>
-                <button class="btn-update" id="updateBtn" onclick="toggleEditMode()">✏️ Update Details</button>
-                <div class="update-actions" id="updateActions" style="display:none">
-                    <button class="btn-update btn-save" onclick="saveCompanyDetails()">💾 Save Changes</button>
-                    <button class="btn-update btn-cancel" onclick="cancelEdit()">Cancel</button>
+                <div class="update-section">
+                    <button class="btn-update" id="updateBtn" onclick="toggleEditMode()">✏️ Update Details</button>
+                    <div class="update-actions" id="updateActions" style="display:none">
+                        <button class="btn-update btn-save" onclick="saveCompanyDetails()">💾 Save Changes</button>
+                        <button class="btn-update btn-cancel" onclick="cancelEdit()">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -483,7 +493,7 @@
             { id:'companyStreet', key:'street_name' },
             { id:'companyAddress', key:'physical_address' },
             { id:'companyPhone', key:'telephone' },
-            { id:'companyCipa', key:'cipa_number' },
+            // cipa_number excluded — column may not exist in DB schema yet
         ];
 
         fields.forEach(f => {
@@ -542,8 +552,8 @@
                 street_name:       document.getElementById('companyStreet')?.value?.trim() || null,
                 physical_address:  document.getElementById('companyAddress')?.value?.trim() || null,
                 telephone:         document.getElementById('companyPhone')?.value?.trim() || null,
-                cipa_number:       document.getElementById('companyCipa')?.value?.trim() || null,
             };
+            // NOTE: cipa_number excluded — column may not exist in DB schema yet
 
             const { error } = await SB.from('companies').update(updates).eq('id', companyProfile.id);
 
@@ -559,7 +569,8 @@
                 companyStreet:   updates.street_name || '—',
                 companyAddress:  updates.physical_address || '—',
                 companyPhone:    updates.telephone || 'Not specified',
-                companyCipa:     updates.cipa_number || 'Not provided',
+                // CIPA is display-only — preserve the current displayed value from the DOM
+                companyCipa:     document.getElementById('companyCipa')?.textContent || 'Not provided',
             };
 
             Object.keys(displayLabels).forEach(id => {
