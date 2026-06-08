@@ -230,6 +230,17 @@
             // Ensure profile + company exist, then cache
             if (data.user) {
                 await window.ensureUserProfile(data.user);
+
+                // Record last sign-in timestamp (silently — column may not exist yet)
+                try {
+                    await supabaseClient
+                        .from('user_profiles')
+                        .update({ last_sign_in: new Date().toISOString() })
+                        .eq('user_id', data.user.id);
+                } catch (e) {
+                    // Column might not exist yet — non-critical
+                }
+
                 // Cache the full profile for instant lookup on subsequent pages
                 const cacheResult = await supabaseClient
                     .from('user_profiles')
