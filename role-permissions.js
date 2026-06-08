@@ -261,6 +261,12 @@ async function refreshUserProfileInBackground() {
             if (window.cacheUserProfile) {
                 window.cacheUserProfile(profileResult.data);
             }
+
+            // Re-apply header for company users (enrichment may just have fetched company_name)
+            if (effective === 'company' && profileResult.data.company_name) {
+                updateHeaderDisplay(profileResult.data);
+            }
+
             console.log('Profile cache refreshed');
         }
     } catch (e) {
@@ -569,3 +575,49 @@ if (typeof window !== 'undefined') {
 }
 
 console.log('Role permissions system loaded');
+
+// ── Guard header for company users ────────────────────────
+// Many page scripts overwrite #userName with the person's full name after our
+// updateHeaderDisplay() runs (inside window.load or DOMContentLoaded handlers).
+// This MutationObserver detects those overwrites and corrects them back to
+// the company name, without touching the element for non-company users.
+let _fixingHeader = false;
+const _headerGuard = new MutationObserver(() => {
+    if (_fixingHeader) return;
+    if (currentUserRole !== 'company') return;
+
+    const nameEl = document.getElementById('userName');
+    if (!nameEl) return;
+
+    // Check the cached profile for the correct company name
+    const cached = (typeof window.getCachedUserProfile === 'function')
+        ? window.getCachedUserProfile() : null;
+    const companyName = cached?.company_name;
+    if (!companyName) return;
+
+    if (nameEl.textContent !== companyName) {
+        _fixingHeader = true;
+        nameEl.textContent = companyName;
+        _fixingHeader = false;
+    }
+
+    // Also ensure designation row stays hidden
+    const desigEl = document.getElementById('userDesignation');
+    if (desigEl && desigEl.style.display !== 'none') {
+        desigEl.textContent = '';
+        desigEl.style.display = 'none';
+    }
+});
+
+function startHeaderGuard() {
+    const nameEl = document.getElementById('userName');
+    if (nameEl) {
+        _headerGuard.observe(nameEl, { childList: true, characterData: true, subtree: true });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startHeaderGuard);
+} else {
+    startHeaderGuard();
+}
