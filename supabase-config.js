@@ -249,6 +249,12 @@
             if (error) throw error;
             localStorage.removeItem('rememberMe');
             clearCachedUserProfile();
+            // Clear all stale data caches so next user doesn't see previous user's data
+            try {
+                sessionStorage.removeItem('osh_company_name');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('company_booking_responses');
+            } catch (e) {}
             return { success: true };
         } catch (error) {
             return { success: false, error: handleError(error) };

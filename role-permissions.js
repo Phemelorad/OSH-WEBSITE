@@ -338,23 +338,35 @@ const COMPANY_NAME_CACHE_KEY = 'osh_company_name';
 // Uses the provided supabase client, or falls back to a global one
 window.getUserCompanyName = async function(supabaseClient) {
     try {
-        // Check cache first (synchronous)
-        try {
-            const cachedName = sessionStorage.getItem(COMPANY_NAME_CACHE_KEY);
-            if (cachedName) return cachedName;
-        } catch (e) {}
-
-        // Check if we have a cached profile with company_id
-        const cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
-        if (cached && cached.company_name) {
-            sessionStorage.setItem(COMPANY_NAME_CACHE_KEY, cached.company_name);
-            return cached.company_name;
-        }
-
         const userResult = await getCurrentUser();
         if (!userResult.success || !userResult.user) return null;
 
-        const profileResult = await getUserProfile(userResult.user.id);
+        const userId = userResult.user.id;
+
+        // Check cache only if it belongs to THIS user (prevents cross-user data leak)
+        try {
+            const cachedRaw = sessionStorage.getItem(COMPANY_NAME_CACHE_KEY);
+            if (cachedRaw) {
+                const cached = JSON.parse(cachedRaw);
+                if (cached.userId === userId && cached.companyName) {
+                    return cached.companyName;
+                }
+            }
+        } catch (e) {}
+
+        // Check if we have a cached profile with company_name (only if for this user)
+        const cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
+        if (cached && cached.company_name && cached.user_id === userId) {
+            try {
+                sessionStorage.setItem(COMPANY_NAME_CACHE_KEY, JSON.stringify({
+                    userId: userId,
+                    companyName: cached.company_name
+                }));
+            } catch (e) {}
+            return cached.company_name;
+        }
+
+        const profileResult = await getUserProfile(userId);
         if (!profileResult.success || !profileResult.data) return null;
 
         const profile = profileResult.data;
@@ -371,9 +383,12 @@ window.getUserCompanyName = async function(supabaseClient) {
                 .maybeSingle();
 
             if (data) {
-                // Cache for subsequent calls
+                // Cache for subsequent calls — scoped to user ID
                 try {
-                    sessionStorage.setItem(COMPANY_NAME_CACHE_KEY, data.company_name);
+                    sessionStorage.setItem(COMPANY_NAME_CACHE_KEY, JSON.stringify({
+                        userId: userId,
+                        companyName: data.company_name
+                    }));
                 } catch (e) {}
                 return data.company_name;
             }
