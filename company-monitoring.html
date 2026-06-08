@@ -408,6 +408,7 @@
             try { sessionStorage.removeItem('company_booking_responses'); } catch (e) {}
 
             // Show notification banner if there are responded bookings
+            const respondedCount = bookings.filter(b => b.status !== 'pending').length;
             const banner = document.getElementById('bookingUpdateBanner');
             if (banner && respondedCount > 0) {
                 banner.style.display = 'flex';
