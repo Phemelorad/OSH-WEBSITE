@@ -88,21 +88,28 @@
         }
 
         .form-header {
+            text-align: center;
             margin-bottom: 30px;
-            padding-bottom: 20px;
+            padding-bottom: 24px;
             border-bottom: 2px solid #f0f0f0;
         }
 
-        .form-header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 8px;
+        .form-header .gov-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .form-header .gov-logo img {
+            width: 70px;
+            height: 54px;
+            object-fit: contain;
+            display: block;
         }
 
-        .form-header p {
-            color: #666;
-            font-size: 14px;
-        }
+        .form-header h1 { color: #333; font-size: 22px; margin-bottom: 4px; font-weight: 800; }
+        .form-header .act-title { font-weight: 700; font-size: 14px; color: #333; margin-bottom: 2px; }
+        .form-header .subtitle { color: #666; font-size: 13px; line-height: 1.5; }
+        .form-header .act-ref { margin-top: 10px; font-size: 12px; color: #888; font-style: italic; }
 
         .form-section {
             margin-bottom: 30px;
@@ -257,7 +264,7 @@
             }
 
             .form-header h1 {
-                font-size: 24px;
+                font-size: 20px;
             }
 
             .form-actions {
@@ -286,9 +293,14 @@
         <div class="container">
             <div class="form-card">
                 <div class="form-header">
-                    <h1>Injury Claim Form</h1>
-                    <p>Department of Occupational Health &amp; Safety - Injury/Claim Report</p>
+                    <div class="gov-logo">
+                        <img src="Code-of-Arms-colour.png" alt="Republic of Botswana Coat of Arms">
+                    </div>
+                    <div class="act-title">WORKER'S COMPENSATION ACT</div>
                     <div class="form-number-badge">BL Form 43/10</div>
+                    <div class="subtitle">Act No. 23 of 1998 &nbsp;·&nbsp; Section 10</div>
+                    <h1>Injury Claim Form</h1>
+                    <div class="act-ref">Republic of Botswana</div>
                 </div>
 
                 <div class="success-message" id="successMessage">
