@@ -126,6 +126,23 @@
         .form-group select.error ~ .err-msg,
         .form-group textarea.error ~ .err-msg { display: block; }
         .hint { font-size: 12px; color: #888; margin-top: 4px; font-style: italic; line-height: 1.4; }
+
+        .btn-search-claim {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .btn-search-claim:hover {
+            background: #f0f0f0;
+        }
         .divider { border: none; border-top: 1px solid #f0f0f0; margin: 20px 0; }
 
         /* ── Yes/No/NA radio group ─────────────── */
@@ -242,15 +259,22 @@
             <!-- ── Section 1: Worker Identity ────────── -->
             <div class="section-title">1. Identity of Worker</div>
 
-            <!-- Claim lookup -->
+            <!-- Claim lookup by ID / Passport -->
             <div style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
               <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
-                🔗 Link to Existing Claim
-                <span style="font-weight:400;color:#888;font-size:12px"> — optional: select a claim to auto-fill worker details</span>
+                🔍 Look Up Claimant by ID / Passport
+                <span style="font-weight:400;color:#888;font-size:12px"> — enter the worker's Omang or passport number to fetch their record</span>
               </label>
-              <select id="claimLookup" style="width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;font-family:inherit" onchange="onClaimSelected()">
-                <option value="">— No linked claim —</option>
-              </select>
+              <div style="display:flex;gap:10px">
+                <input type="text" id="claimIdSearch"
+                       placeholder="Enter Omang or Passport number…"
+                       style="flex:1;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;font-family:inherit;text-transform:uppercase"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();searchClaimById()}">
+                <button type="button" class="btn-search-claim" onclick="searchClaimById()">
+                  🔍 Search
+                </button>
+              </div>
+              <div id="claimSearchResult" style="margin-top:10px;display:none"></div>
             </div>
 
             <div class="form-row form-row-2">
@@ -533,45 +557,67 @@
         event.target.closest('.pct-row')?.classList.add('selected');
     }
 
-    // ── Load claims for lookup ──────────────────────
-    async function loadClaimList() {
+    // ── Search claim by ID / Passport number ────────
+    let _lastFoundClaim = null;
+
+    async function searchClaimById() {
+        const input = document.getElementById('claimIdSearch');
+        const resultDiv = document.getElementById('claimSearchResult');
+        const idNumber = input.value.trim();
+
+        if (!idNumber) {
+            resultDiv.innerHTML = '<span style="color:#e74c3c;font-size:13px">Please enter an Omang or passport number.</span>';
+            resultDiv.style.display = 'block';
+            input.focus();
+            return;
+        }
+
+        resultDiv.innerHTML = '<span style="color:#888;font-size:13px">Searching…</span>';
+        resultDiv.style.display = 'block';
+
         try {
             const { data, error } = await SB
                 .from('injury_claims')
-                .select('id, file_number, name_of_claimant, name_of_employer, claimant_id_number, nature')
-                .in('status', ['pending', 'under_review'])
+                .select('id, file_number, name_of_claimant, name_of_employer, claimant_id_number, nature, worker_registry_id')
+                .eq('claimant_id_number', idNumber)
+                .in('status', ['pending', 'under_review', 'submitted'])
                 .order('created_at', { ascending: false })
-                .limit(100);
+                .limit(5);
 
             if (error) throw error;
-            const select = document.getElementById('claimLookup');
-            (data || []).forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = (c.file_number || 'Draft') + ' — ' + (c.name_of_claimant || 'Unknown');
-                opt.dataset.claimant = c.name_of_claimant || '';
-                opt.dataset.idNumber = c.claimant_id_number || '';
-                opt.dataset.fileNumber = c.file_number || '';
-                opt.dataset.nature = c.nature || '';
-                opt.dataset.employer = c.name_of_employer || '';
-                opt.dataset.registryId = c.worker_registry_id || '';
-                select.appendChild(opt);
-            });
+
+            if (!data || data.length === 0) {
+                resultDiv.innerHTML = '<span style="color:#e74c3c;font-size:13px">No claims found for this ID number.</span>';
+                _lastFoundClaim = null;
+                return;
+            }
+
+            // Auto-select the most recent claim
+            const claim = data[0];
+            _lastFoundClaim = claim;
+
+            // Auto-fill worker details
+            document.getElementById('workerName').value = claim.name_of_claimant || '';
+            document.getElementById('workerIdNumber').value = claim.claimant_id_number || '';
+            document.getElementById('claimFileNumber').value = claim.file_number || '';
+            document.getElementById('natureOfInjuryDisease').value = claim.nature || '';
+
+            // Show success + details
+            const extraClaims = data.length > 1 ? ` (${data.length - 1} more older claims found)` : '';
+            resultDiv.innerHTML = '<span style="color:#155724;font-size:13px">✅ Found claim <strong>'
+                + esc(claim.file_number || 'Draft') + '</strong> — '
+                + esc(claim.name_of_claimant || 'Unknown') + extraClaims + '</span>';
+
+            // Scroll to highlight the filled fields
+            document.getElementById('workerName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
         } catch (e) {
-            console.warn('Could not load claim list:', e);
+            console.warn('Claim search error:', e);
+            resultDiv.innerHTML = '<span style="color:#e74c3c;font-size:13px">Error searching claims: ' + esc(e.message) + '</span>';
         }
     }
 
-    function onClaimSelected() {
-        const select = document.getElementById('claimLookup');
-        const opt = select.options[select.selectedIndex];
-        if (!opt || !opt.value) return;
-
-        document.getElementById('workerName').value = opt.dataset.claimant || '';
-        document.getElementById('workerIdNumber').value = opt.dataset.idNumber || '';
-        document.getElementById('claimFileNumber').value = opt.dataset.fileNumber || '';
-        document.getElementById('natureOfInjuryDisease').value = opt.dataset.nature || '';
-    }
+    // onClaimSelected() removed — replaced by searchClaimById()
 
     // ── Validation ──────────────────────────────────
     function validateForm() {
@@ -612,13 +658,9 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
-            const claimId = document.getElementById('claimLookup').value || null;
-            let workerRegistryId = null;
-            if (claimId) {
-                const sel = document.getElementById('claimLookup');
-                const opt = sel.options[sel.selectedIndex];
-                workerRegistryId = opt?.dataset?.registryId || null;
-            }
+            // Get linked claim info from last search result (if any)
+            const claimId = _lastFoundClaim?.id || null;
+            const workerRegistryId = _lastFoundClaim?.worker_registry_id || null;
 
             const payload = {
                 claim_id:                       claimId,
@@ -711,7 +753,7 @@
         }
 
         document.getElementById('reportDate').valueAsDate = new Date();
-        await loadClaimList();
+        // Claim lookup is now on-demand via search — no pre-loading of all claims
     });
     </script>
 </body>
