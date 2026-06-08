@@ -185,6 +185,7 @@
                     <span class="company-meta-item">🏭 <strong>Industry:</strong> <span id="companyIndustry">&mdash;</span></span>
                     <span class="company-meta-item">📍 <strong>Location:</strong> <span id="companyLocation">&mdash;</span></span>
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
+                    <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
                     <span class="company-meta-item">👤 <strong>Owner:</strong> <span id="companyOwner">&mdash;</span></span>
                     <span class="company-meta-item">📧 <strong>Email:</strong> <span id="companyOwnerEmail">&mdash;</span></span>
                 </div>
@@ -274,6 +275,7 @@
                 document.getElementById('companyPhone').textContent = companyProfile.telephone || 'Not specified';
                 document.getElementById('companyOwner').textContent = companyProfile.owner_name || 'Not specified';
                 document.getElementById('companyOwnerEmail').textContent = companyProfile.owner_email || 'Not specified';
+                document.getElementById('companyCipa').textContent = companyProfile.cipa_number || 'Not provided';
             } else {
                 document.getElementById('companyName').textContent = companyName;
             }

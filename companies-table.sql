@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS companies (
     telephone       TEXT,
     owner_name      TEXT,
     owner_email     TEXT,
+    cipa_number     TEXT,
     is_active       BOOLEAN DEFAULT true,
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()

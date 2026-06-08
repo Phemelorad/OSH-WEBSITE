@@ -487,24 +487,45 @@
             <div id="companyFields" class="role-specific-fields hidden">
                 <h3>Employer Details</h3>
                 <div class="form-group">
-                    <label for="companyName">Employer Name</label>
-                    <input type="text" id="companyName" name="companyName" placeholder="Enter company name">
+                    <label for="companyName">Employer Name<span class="req">*</span></label>
+                    <input type="text" id="companyName" name="companyName" placeholder="Registered company name">
                     <span class="error-message">Employer name is required</span>
                 </div>
                 <div class="form-group">
-                    <label for="ownerName">Owner Name</label>
-                    <input type="text" id="ownerName" name="ownerName" placeholder="Enter owner's full name">
-                    <span class="error-message">Owner name is required</span>
+                    <label for="ownerEmail">Company Email<span class="req">*</span></label>
+                    <input type="email" id="ownerEmail" name="ownerEmail" placeholder="info@company.com">
+                    <span class="error-message">Please enter a valid company email</span>
                 </div>
                 <div class="form-group">
-                    <label for="ownerEmail">Owner Email</label>
-                    <input type="email" id="ownerEmail" name="ownerEmail" placeholder="owner@company.com">
-                    <span class="error-message">Please enter a valid email</span>
-                </div>
-                <div class="form-group">
-                    <label for="companyPhone">Employer Phone</label>
-                    <input type="tel" id="companyPhone" name="companyPhone" placeholder="Enter company phone number">
+                    <label for="companyPhone">Employer Phone<span class="req">*</span></label>
+                    <input type="tel" id="companyPhone" name="companyPhone" placeholder="e.g. +267 71234567">
                     <span class="error-message">Employer phone is required</span>
+                </div>
+                <div class="form-group">
+                    <label for="cipaNumber">CIPA Registration Number<span class="req">*</span></label>
+                    <input type="text" id="cipaNumber" name="cipaNumber" placeholder="e.g. CIPA/BW/2024/00123">
+                    <span class="error-message">Please enter a valid CIPA number</span>
+                </div>
+                <h3 style="margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0">Authorised Person / Representative</h3>
+                <div class="form-group">
+                    <label for="companyIndustry">Industry Sector</label>
+                    <select id="companyIndustry" name="companyIndustry">
+                        <option value="">— Select industry —</option>
+                        <option>Manufacturing</option>
+                        <option>Services</option>
+                        <option>Construction</option>
+                        <option>Agriculture</option>
+                        <option>Transport</option>
+                        <option>Retail</option>
+                        <option>Government</option>
+                        <option>Parastatal</option>
+                    </select>
+                    <span class="error-message">Please select an industry</span>
+                </div>
+                <div class="form-group">
+                    <label for="ownerName">Representative Full Name<span class="req">*</span></label>
+                    <input type="text" id="ownerName" name="ownerName" placeholder="Full name of company representative">
+                    <span class="error-message">Representative name is required</span>
                 </div>
             </div>
 
@@ -701,7 +722,7 @@
         // ── Blur validation ────────────────────────────
         ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
          'registerPassword','confirmPassword','location',
-         'companyName','ownerName','ownerEmail','companyPhone',
+         'companyName','ownerName','ownerEmail','companyPhone','cipaNumber',
          'workplaceCompany','employeeId'].forEach(id => {
             const field = document.getElementById(id);
             if (field) {
@@ -831,7 +852,7 @@
             });
 
             if (selectedRole.value === 'company') {
-                ['companyName', 'ownerName', 'ownerEmail', 'companyPhone'].forEach(id => {
+                ['companyName', 'ownerName', 'ownerEmail', 'companyPhone', 'cipaNumber'].forEach(id => {
                     const f = document.getElementById(id);
                     if (f && !f.value.trim()) { f.classList.add('error'); isValid = false; }
                 });
@@ -865,6 +886,7 @@
                 formData.ownerName       = document.getElementById('ownerName').value;
                 formData.ownerEmail      = document.getElementById('ownerEmail').value;
                 formData.companyPhone    = document.getElementById('companyPhone').value;
+                formData.cipaNumber      = document.getElementById('cipaNumber').value;
                 formData.industry        = document.getElementById('companyIndustry')?.value || '';
                 formData.department      = 'company';
                 formData.designation     = document.getElementById('designation').value.trim() || 'Employer Representative';
@@ -878,9 +900,6 @@
                 ).map(cb => cb.value);
                 formData.department = 'osh';
             }
-
-            // Add designation
-            formData.designation = document.getElementById('designation').value.trim();
 
             const result = await signUp(formData);
 
@@ -930,26 +949,6 @@
                 await showAlert(result.error, { type: 'error', title: 'Registration Failed' });
             }
         });
-
-        // ── Inject industry dropdown into company fields ─
-        const companyFieldsDiv = document.getElementById('companyFields');
-        const industryGroup = document.createElement('div');
-        industryGroup.className = 'form-group';
-        industryGroup.innerHTML = `
-            <label for="companyIndustry">Industry Sector</label>
-            <select id="companyIndustry" name="companyIndustry">
-                <option value="">— Select industry —</option>
-                <option>Manufacturing</option>
-                <option>Services</option>
-                <option>Construction</option>
-                <option>Agriculture</option>
-                <option>Transport</option>
-                <option>Retail</option>
-                <option>Government</option>
-                <option>Parastatal</option>
-            </select>
-        `;
-        companyFieldsDiv.appendChild(industryGroup);
 
         // ── Auto-redirect if already logged in ──────────
         // This runs after email confirmation redirects back to the app.
