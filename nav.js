@@ -219,7 +219,7 @@
     },
     {
       id: 'company-view',
-      label: '🏢 My Employer',
+      label: '🏢 Employer Details',
       href: 'company-view.html',
       single: true,
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']

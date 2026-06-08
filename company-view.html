@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Employer - DOSH</title>
+    <title>Employer - DOSH</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -157,7 +157,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>🏢 My Employer</h1>
+        <h1>🏢 Employer</h1>
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name" id="userName">Loading...</div>
@@ -188,8 +188,7 @@
                     <span class="company-meta-item">🏠 <strong>Address:</strong> <span id="companyAddress">&mdash;</span></span>
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
                     <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
-                    <span class="company-meta-item">👤 <strong>Owner:</strong> <span id="companyOwner">&mdash;</span></span>
-                    <span class="company-meta-item">📧 <strong>Email:</strong> <span id="companyOwnerEmail">&mdash;</span></span>
+
                 </div>
             </div>
         </div>
@@ -277,8 +276,7 @@
                 document.getElementById('companyStreet').textContent = companyProfile.street_name || '—';
                 document.getElementById('companyAddress').textContent = companyProfile.physical_address || '—';
                 document.getElementById('companyPhone').textContent = companyProfile.telephone || 'Not specified';
-                document.getElementById('companyOwner').textContent = companyProfile.owner_name || 'Not specified';
-                document.getElementById('companyOwnerEmail').textContent = companyProfile.owner_email || 'Not specified';
+
                 document.getElementById('companyCipa').textContent = companyProfile.cipa_number || 'Not provided';
             } else {
                 document.getElementById('companyName').textContent = companyName;
