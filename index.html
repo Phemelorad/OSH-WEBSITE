@@ -909,7 +909,17 @@
             if (result.success) {
                 // If auto-confirmed (email confirmation disabled), redirect immediately
                 if (result.autoConfirmed && result.session?.user) {
-                    await window.ensureUserProfile(result.session.user);
+                    const profileResult = await window.ensureUserProfile(result.session.user);
+                    if (!profileResult.success) {
+                        await showAlert(
+                            'Account created but profile setup failed. This is often a database configuration issue. '
+                            + 'Please contact the system administrator with this error: ' + (profileResult.error || 'Unknown'),
+                            { type: 'error', title: 'Profile Setup Failed' }
+                        );
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Account';
+                        return;
+                    }
                     const profile = await getUserProfile(result.session.user.id);
                     if (profile.success && profile.data) {
                         sessionStorage.setItem('user', JSON.stringify(profile.data));
@@ -920,8 +930,15 @@
                         setTimeout(() => { window.location.href = redirectUrl; }, 1200);
                         return;
                     }
-                    showToast('Account created! Redirecting...', 'success', 1800);
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                    // Profile was created but we couldn't read it back
+                    await showAlert(
+                        'Account created successfully but we could not load your profile. '
+                        + 'Please try logging in.',
+                        { type: 'warning', title: 'Login Required' }
+                    );
+                    loginTab.click();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
                     return;
                 }
 
@@ -959,7 +976,11 @@
                 const userResult = await getCurrentUser();
                 if (userResult.success && userResult.user) {
                     // Ensure profile + company exist (no-op if already created)
-                    await window.ensureUserProfile(userResult.user);
+                    const setupResult = await window.ensureUserProfile(userResult.user);
+                    if (!setupResult.success) {
+                        console.error('Auto-redirect: profile setup failed', setupResult.error);
+                        // Don't block — just let dashboard load with error state
+                    }
 
                     const profile = await getUserProfile(userResult.user.id);
                     if (profile.success && profile.data.role === 'company') {

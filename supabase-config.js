@@ -47,7 +47,8 @@
                         company_location: userData.location || null,
                         company_telephone: userData.companyPhone || null,
                         company_owner_name: userData.ownerName || null,
-                        company_owner_email: userData.ownerEmail || null
+                        company_owner_email: userData.ownerEmail || null,
+                        company_cipa_number: userData.cipaNumber || null
                     }
                 }
             });
@@ -125,7 +126,8 @@
                             location: metadata.company_location || null,
                             telephone: metadata.company_telephone || null,
                             owner_name: metadata.company_owner_name || null,
-                            owner_email: metadata.company_owner_email || null
+                            owner_email: metadata.company_owner_email || null,
+                            cipa_number: metadata.company_cipa_number || null
                         };
                         const { data: newCompany, error: ce } = await supabaseClient
                             .from('companies')
@@ -163,8 +165,8 @@
                 .insert([profileFields]);
 
             if (insertError) {
-                console.warn('Could not create profile:', insertError);
-                return { success: false, error: 'Profile creation failed' };
+                console.error('Profile creation failed:', insertError);
+                return { success: false, error: 'Profile creation failed: ' + insertError.message };
             }
 
             return { success: true, role: role, company_id: companyId };

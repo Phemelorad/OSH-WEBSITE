@@ -5,13 +5,13 @@
 
 -- Add role column to user_profiles table
 ALTER TABLE user_profiles 
-ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'viewer' CHECK (role IN ('viewer', 'officer', 'admin', 'super_admin'));
+ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'viewer' CHECK (role IN ('viewer', 'officer', 'admin', 'super_admin', 'company', 'worker'));
 
 -- Add index for role column
 CREATE INDEX IF NOT EXISTS idx_user_profiles_role ON user_profiles(role);
 
 -- Add comment
-COMMENT ON COLUMN user_profiles.role IS 'User role: viewer, officer, admin, or super_admin';
+COMMENT ON COLUMN user_profiles.role IS 'User role: viewer, worker, officer, admin, super_admin, or company';
 
 -- ============================================
 -- UPDATE RLS POLICIES FOR user_profiles
