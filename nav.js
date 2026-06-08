@@ -15,6 +15,8 @@
 //   injury-disease          → injury-disease-report.html
 //   injury-disease-entries  → injury-disease-entries.html
 //   worker-profile          → worker-profile.html
+//   worker-claims           → worker-claims.html
+//   medical-examination     → medical-examination.html
 //   admin                   → admin.html
 //   company-book-inspection → company-book-inspection.html
 //   company-monitoring      → company-monitoring.html
@@ -282,6 +284,7 @@
         { id: 'injury-disease',         icon: '🏥', label: 'New Report',             href: 'injury-disease-report.html' },
         { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',           href: 'injury-disease-entries.html' },
         { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',         href: 'worker-profile.html' },
+        { id: 'medical-examination',    icon: '🩺', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
       ]
     },
     {
@@ -292,6 +295,13 @@
         { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
         { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
       ]
+    },
+    {
+      id: 'worker-claims',
+      label: '📋 My Claims',
+      href: 'worker-claims.html',
+      single: true,
+      hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company']
     },
     {
       id: 'company-register',

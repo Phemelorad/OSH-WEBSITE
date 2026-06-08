@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Claims - DOSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>\">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-department { font-size: 14px; color: #666; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+
+        /* ── Search card ───────────────────── */
+        .search-card {
+            background: white; border-radius: 14px; padding: 32px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            margin-bottom: 24px; text-align: center;
+        }
+        .search-card h2 { color: #333; font-size: 20px; margin-bottom: 8px; }
+        .search-card p { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .search-row { display: flex; gap: 12px; max-width: 500px; margin: 0 auto; }
+        .search-row input {
+            flex: 1; padding: 14px 18px;
+            border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 15px; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .search-row input:focus { outline: none; border-color: #333; }
+        .search-btn {
+            padding: 14px 28px; background: #333; color: white;
+            border: none; border-radius: 10px; cursor: pointer;
+            font-weight: 600; font-size: 14px; font-family: inherit;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .search-btn:hover { background: #111; transform: translateY(-1px); }
+        .search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── Loading state ──────────────────── */
+        .state-box {
+            background: white; border-radius: 14px; padding: 60px 30px;
+            text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .state-box .icon { font-size: 48px; margin-bottom: 16px; }
+        .state-box p { font-size: 16px; color: #666; margin-bottom: 6px; }
+        .state-box small { font-size: 13px; color: #999; }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        /* ── Claim card ─────────────────────── */
+        .claim-card {
+            background: white; border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px; overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .claim-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+        .claim-header {
+            padding: 24px 28px 16px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 16px; flex-wrap: wrap;
+        }
+        .claim-title { flex: 1; }
+        .claim-title h3 { font-size: 17px; color: #222; margin-bottom: 4px; }
+        .claim-title .claim-meta { font-size: 13px; color: #888; }
+        .claim-status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 16px; border-radius: 20px;
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0;
+        }
+        .badge-draft        { background: #e2e3e5; color: #383d41; }
+        .badge-pending      { background: #fff3cd; color: #856404; }
+        .badge-under_review { background: #d1ecf1; color: #0c5460; }
+        .badge-approved     { background: #d4edda; color: #155724; }
+        .badge-rejected     { background: #f8d7da; color: #721c24; }
+        .badge-closed       { background: #e2e3e5; color: #383d41; }
+
+        /* ── Stage / timeline ───────────────── */
+        .stages {
+            padding: 0 28px 24px;
+            display: flex; align-items: flex-start; gap: 0;
+            position: relative;
+        }
+        .stage {
+            flex: 1; text-align: center; position: relative;
+            min-width: 0;
+        }
+        .stage-dot {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 6px; font-size: 13px; font-weight: 700;
+            position: relative; z-index: 2;
+            transition: all 0.3s;
+        }
+        .stage-dot.completed { background: #28a745; color: white; }
+        .stage-dot.active     { background: #333; color: white; box-shadow: 0 0 0 4px rgba(51,51,51,0.15); }
+        .stage-dot.pending    { background: #e0e0e0; color: #999; }
+        .stage-dot.rejected   { background: #dc3545; color: white; }
+
+        .stage-label {
+            font-size: 10px; color: #888; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.3px;
+            line-height: 1.3;
+        }
+        .stage-label.completed { color: #28a745; }
+        .stage-label.active    { color: #333; }
+        .stage-label.rejected  { color: #dc3545; }
+
+        /* Connector line between dots */
+        .stage-connector {
+            position: absolute; top: 16px; left: 50%; right: -50%;
+            height: 3px; background: #e0e0e0; z-index: 1;
+        }
+        .stage-connector.completed { background: #28a745; }
+        .stage-connector.active    { background: #28a745; }
+        .stage:last-child .stage-connector { display: none; }
+
+        /* ── Claim details (expandable) ─────── */
+        .claim-details {
+            border-top: 1px solid #f0f0f0; padding: 20px 28px;
+            display: none; background: #fafafa;
+        }
+        .claim-details.open { display: block; }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px 24px;
+        }
+        .detail-item { padding: 4px 0; }
+        .detail-item .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .detail-item .value { font-size: 14px; color: #333; font-weight: 500; margin-top: 2px; }
+
+        .expand-btn {
+            padding: 10px 20px; background: transparent;
+            border: none; cursor: pointer; font-size: 13px;
+            color: #666; font-weight: 600; font-family: inherit;
+            width: 100%; text-align: center;
+            transition: background 0.2s;
+        }
+        .expand-btn:hover { background: #f5f5f5; }
+
+        /* ── No claims ──────────────────────── */
+        .no-claims { text-align: center; padding: 50px 20px; color: #aaa; }
+        .no-claims .icon { font-size: 40px; margin-bottom: 12px; }
+        .no-claims p { font-size: 15px; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            .search-row { flex-direction: column; }
+            .claim-header { flex-direction: column; }
+            .stages { overflow-x: auto; padding: 0 16px 20px; gap: 0; }
+            .stage { min-width: 70px; }
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📋 My Claims</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-department" id="userDept"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'worker-claims';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+        <!-- ── ID entry ────────────────────────── -->
+        <div class="search-card" id="searchCard">
+            <h2>🔍 Find Your Claims</h2>
+            <p>Enter your Omang (national ID) or passport number to look up your compensation claims</p>
+            <div class="search-row">
+                <input type="text" id="idInput"
+                       placeholder="Enter your Omang or passport number"
+                       onkeydown="if(event.key==='Enter') searchClaims()" autocomplete="off">
+                <button class="search-btn" id="searchBtn" onclick="searchClaims()">Search</button>
+            </div>
+        </div>
+
+        <!-- ── Loading ─────────────────────────── -->
+        <div class="state-box" id="loadingState" style="display:none">
+            <div class="spinner"></div>
+            <p>Searching for your claims…</p>
+        </div>
+
+        <!-- ── No results ─────────────────────── -->
+        <div class="state-box" id="noResultsState" style="display:none">
+            <div class="icon">🔎</div>
+            <p>No claims found for this ID</p>
+            <small>Double-check your Omang or passport number and try again. If you don't have any claims yet, contact your employer or the DOSH office.</small>
+        </div>
+
+        <!-- ── Results ─────────────────────────── -->
+        <div id="resultsArea" style="display:none">
+            <div id="claimsContainer"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+
+    // ── Helpers use globals from common.js (esc, fmtDate, normalizeIdentityId) ──
+
+    // ── Status display helpers ────────────────────
+    const STAGE_LABELS = {
+        draft:      ['Submitted', 'Under Review', 'Approved', 'Closed'],
+        pending:    ['Submitted', 'Under Review', 'Approved', 'Closed'],
+        under_review: ['Submitted', 'Under Review', 'Approved', 'Closed'],
+        approved:   ['Submitted', 'Under Review', 'Approved', 'Closed'],
+        rejected:   ['Submitted', 'Under Review', 'Rejected', 'Closed'],
+        closed:     ['Submitted', 'Under Review', 'Approved', 'Closed'],
+    };
+
+    const STAGE_STATES = {
+        draft:      ['active', 'pending', 'pending', 'pending'],
+        pending:    ['completed', 'active', 'pending', 'pending'],
+        under_review: ['completed', 'completed', 'active', 'pending'],
+        approved:   ['completed', 'completed', 'completed', 'active'],
+        rejected:   ['completed', 'completed', 'rejected', 'pending'],
+        closed:     ['completed', 'completed', 'completed', 'completed'],
+    };
+
+    function renderStages(status) {
+        const labels = STAGE_LABELS[status] || STAGE_LABELS.pending;
+        const states = STAGE_STATES[status] || STAGE_STATES.pending;
+        const icons = ['📝', '🔍', '✅', '📁'];
+
+        return labels.map((label, i) => {
+            const dotClass = states[i] === 'rejected' ? 'rejected' : states[i];
+            const labelClass = dotClass;
+            return `
+                <div class="stage">
+                    <div class="stage-dot ${dotClass}">${icons[i]}</div>
+                    <div class="stage-label ${labelClass}">${label}</div>
+                    ${i < labels.length - 1 ? `<div class="stage-connector ${states[i] === 'completed' ? 'completed' : states[i] === 'active' ? 'active' : ''}"></div>` : ''}
+                </div>`;
+        }).join('');
+    }
+
+    function getStatusBadge(status) {
+        const labels = {
+            draft: 'Draft',
+            pending: 'Pending Review',
+            under_review: 'Under Review',
+            approved: 'Approved',
+            rejected: 'Rejected',
+            closed: 'Closed',
+        };
+        return `<span class="claim-status-badge badge-${status}">${labels[status] || status}</span>`;
+    }
+
+    // ── Search claims ─────────────────────────────
+    async function searchClaims() {
+        const rawId = document.getElementById('idInput').value.trim();
+        if (!rawId) return;
+
+        const normId = normalizeIdentityId(rawId);
+
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('noResultsState').style.display = 'none';
+        document.getElementById('resultsArea').style.display = 'none';
+
+        try {
+            // Search by claimant_id_number
+            let { data: claims, error } = await SB
+                .from('injury_claims')
+                .select('*')
+                .eq('claimant_id_number', normId)
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            if (error) throw error;
+
+            // Also search by worker registry
+            const { data: registry } = await SB
+                .from('workers_registry')
+                .select('id')
+                .eq('id_number', normId)
+                .maybeSingle();
+
+            if (registry) {
+                const { data: registryClaims } = await SB
+                    .from('injury_claims')
+                    .select('*')
+                    .eq('worker_registry_id', registry.id)
+                    .order('created_at', { ascending: false });
+
+                if (registryClaims) {
+                    const seen = new Set((claims || []).map(c => c.id));
+                    registryClaims.forEach(c => {
+                        if (!seen.has(c.id)) {
+                            seen.add(c.id);
+                            claims = [...(claims || []), c];
+                        }
+                    });
+                }
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+
+            if (!claims || claims.length === 0) {
+                document.getElementById('noResultsState').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('resultsArea').style.display = 'block';
+            renderClaims(claims);
+        } catch (err) {
+            document.getElementById('loadingState').style.display = 'none';
+            await showAlert('Error searching for claims: ' + err.message, { type: 'error', title: 'Search Failed' });
+        }
+    }
+
+    // ── Render claims ─────────────────────────────
+    function renderClaims(claims) {
+        const container = document.getElementById('claimsContainer');
+        container.innerHTML = claims.map(c => {
+            const isDraft = c.status === 'draft';
+            return `
+            <div class="claim-card">
+                <div class="claim-header">
+                    <div class="claim-title">
+                        <h3>${esc(c.file_number || 'Draft Claim')}</h3>
+                        <div class="claim-meta">
+                            ${esc(c.name_of_employer || '—')}
+                            ${c.industry ? ' · ' + esc(c.industry) : ''}
+                            ${c.date_of_injury ? ' · ' + fmtDate(c.date_of_injury) : ''}
+                        </div>
+                    </div>
+                    ${getStatusBadge(c.status)}
+                </div>
+
+                <div class="stages">
+                    ${renderStages(c.status)}
+                </div>
+
+                <button class="expand-btn" onclick="toggleDetails('details-${c.id}')">
+                    📄 View details
+                </button>
+
+                <div class="claim-details" id="details-${c.id}">
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="label">Claimant</div>
+                            <div class="value">${esc(c.name_of_claimant || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">ID / Passport</div>
+                            <div class="value">${esc(c.claimant_id_number || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Employer</div>
+                            <div class="value">${esc(c.name_of_employer || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Industry</div>
+                            <div class="value">${esc(c.industry || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Date of Injury</div>
+                            <div class="value">${fmtDate(c.date_of_injury)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Date Reported</div>
+                            <div class="value">${fmtDate(c.date_reported)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Date Received</div>
+                            <div class="value">${fmtDate(c.date_received)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Incapacity</div>
+                            <div class="value">${c.incapacity_percentage != null ? c.incapacity_percentage + '%' : '—'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Cause</div>
+                            <div class="value">${esc(c.cause || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Nature of Injury</div>
+                            <div class="value">${esc(c.nature || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Claim Status</div>
+                            <div class="value">${esc(c.status || '—')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Submitted On</div>
+                            <div class="value">${fmtDate(c.created_at)}</div>
+                        </div>
+                    </div>
+                    ${isDraft ? `<div style="margin-top:14px;padding:12px 16px;background:#fff3cd;border-radius:8px;font-size:13px;color:#856404">
+                        This claim is still in <strong>draft</strong> status. Contact your employer or the DOSH office for assistance.
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function toggleDetails(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    // ── Init ──────────────────────────────────────
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        if (currentUserRole !== 'worker') { window.location.href = 'dashboard.html'; return; }
+
+        const ur = await getCurrentUser();
+        if (ur.success && ur.user) {
+            const p = await getUserProfile(ur.user.id);
+            if (p.success) {
+                document.getElementById('userName').textContent = p.data.first_name + ' ' + p.data.surname;
+                document.getElementById('userDept').textContent = getRoleDisplayName(p.data.role || 'worker');
+            }
+        }
+
+        // Pre-fill from URL param ?id=
+        const params = new URLSearchParams(window.location.search);
+        const prefill = params.get('id');
+        if (prefill) {
+            document.getElementById('idInput').value = prefill;
+            searchClaims();
+        }
+    });
+    </script>
+</body>
+</html>

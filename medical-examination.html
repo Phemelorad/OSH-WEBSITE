@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Examination Report - BL Form 43/03</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>\">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-department { font-size: 14px; color: #666; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .page-container { padding: 20px; }
+        .container { max-width: 850px; margin: 0 auto; }
+
+        /* ── Form card ────────────────────────── */
+        .form-card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px; border: 1px solid #e0e0e0; margin-bottom: 20px;
+            position: relative;
+        }
+        .form-card-large { padding: 40px; }
+
+        .form-header {
+            text-align: center; margin-bottom: 30px;
+            padding-bottom: 24px; border-bottom: 2px solid #f0f0f0;
+        }
+        .form-header .gov-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .form-header .gov-logo img {
+            width: 70px; height: 54px;
+            object-fit: contain; display: block;
+        }
+        .form-header .form-number-badge {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 6px;
+            z-index: 1;
+        }
+        .form-header .act-title { font-weight: 700; font-size: 15px; color: #333; margin-bottom: 2px; }
+        .form-header h1 { color: #333; font-size: 18px; margin-bottom: 4px; font-weight: 800; }
+        .form-header .subtitle { color: #666; font-size: 13px; line-height: 1.5; }
+        .form-header .act-ref { margin-top: 8px; font-size: 12px; color: #888; font-style: italic; }
+        .form-header .quad-note {
+            margin-top: 6px; font-size: 11px; color: #999;
+            font-style: italic;
+        }
+
+        /* ── Section titles ───────────────────── */
+        .section-title {
+            color: #333; font-size: 15px; font-weight: 700;
+            margin-bottom: 16px; padding: 10px 14px;
+            background: #f5f5f5; border-left: 4px solid #333;
+            border-radius: 0 6px 6px 0;
+        }
+        .section-title.medical { border-left-color: #0c5460; background: #f0fafc; }
+        .section-title.incapacity { border-left-color: #856404; background: #fffbeb; color: #856404; }
+
+        /* ── Form groups ───────────────────────── */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 16px;
+        }
+        .form-row-2 { grid-template-columns: repeat(2,1fr); }
+        .form-row-3 { grid-template-columns: repeat(3,1fr); }
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
+        .form-group { margin-bottom: 4px; }
+        .form-group label {
+            display: block; color: #444; font-weight: 600;
+            margin-bottom: 6px; font-size: 13px;
+        }
+        .form-group label .sub {
+            font-weight: 400; color: #888; font-size: 12px; font-style: italic;
+        }
+        .req { color: #dc3545; margin-left: 2px; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 10px 13px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 13px; font-family: inherit; transition: border-color 0.2s;
+            background: #fff;
+        }
+        .form-group textarea { resize: vertical; min-height: 90px; }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus { outline: none; border-color: #999; }
+        .form-group input.error,
+        .form-group select.error,
+        .form-group textarea.error { border-color: #dc3545; }
+        .err-msg { color: #dc3545; font-size: 11px; margin-top: 3px; display: none; }
+        .form-group input.error ~ .err-msg,
+        .form-group select.error ~ .err-msg,
+        .form-group textarea.error ~ .err-msg { display: block; }
+        .hint { font-size: 12px; color: #888; margin-top: 4px; font-style: italic; line-height: 1.4; }
+        .divider { border: none; border-top: 1px solid #f0f0f0; margin: 20px 0; }
+
+        /* ── Yes/No/NA radio group ─────────────── */
+        .yn-group {
+            display: flex; gap: 24px; align-items: center;
+            padding: 10px 0;
+        }
+        .yn-group label {
+            display: flex; align-items: center; gap: 8px;
+            font-weight: 500; cursor: pointer; font-size: 14px;
+        }
+        .yn-group input[type="radio"] { width: 18px; height: 18px; cursor: pointer; accent-color: #333; }
+
+        /* ── Incapacity type checkboxes ────────── */
+        .incapacity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .incapacity-item {
+            background: #f9f9f9; border: 1px solid #e0e0e0;
+            border-radius: 8px; padding: 12px 14px;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .incapacity-item:hover { border-color: #999; }
+        .incapacity-item.checked { background: #fff3cd; border-color: #856404; }
+        .incapacity-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #333; }
+        .incapacity-item label { cursor: pointer; font-size: 13px; font-weight: 600; color: #333; margin: 0; }
+        .incapacity-item .icn { font-size: 20px; }
+
+        /* ── Injuries schedule table ───────────── */
+        .schedule-table-wrap {
+            max-height: 400px; overflow-y: auto;
+            border: 1px solid #e0e0e0; border-radius: 8px;
+        }
+        .schedule-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .schedule-table th {
+            background: #f5f5f5; padding: 8px 10px; text-align: left;
+            font-size: 11px; font-weight: 700; color: #444;
+            border-bottom: 2px solid #e0e0e0; position: sticky; top: 0;
+        }
+        .schedule-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; color: #555; }
+        .schedule-table tr:hover { background: #fafafa; }
+        .schedule-table .pct { font-weight: 700; text-align: center; color: #333; }
+        .schedule-table .pct-row { cursor: pointer; transition: background 0.15s; }
+        .schedule-table .pct-row:hover { background: #fff3cd; }
+        .schedule-table .pct-row.selected { background: #fff3cd; font-weight: 600; }
+        .schedule-note {
+            font-size: 11px; color: #888; font-style: italic;
+            margin-top: 10px; line-height: 1.5;
+        }
+
+        /* ── Form actions ──────────────────────── */
+        .form-actions {
+            display: flex; gap: 15px; justify-content: flex-end;
+            padding-top: 20px; border-top: 2px solid #f0f0f0;
+        }
+        .btn {
+            padding: 12px 30px; border-radius: 8px; font-size: 15px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
+            border: 2px solid #ddd; font-family: inherit;
+        }
+        .btn-primary { background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color: #333; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .btn-secondary { background: white; color: #666; }
+        .btn-secondary:hover { background: #f5f5f5; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        @media (max-width: 768px) {
+            .form-card { padding: 24px; }
+            .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3 { grid-column: span 1; }
+            .form-actions { flex-direction: column; }
+            .btn { width: 100%; }
+            .yn-group { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Medical Examination Report</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-department" id="userDept"></div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'medical-examination';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div class="page-container">
+      <div class="container">
+        <form id="medicalExamForm">
+
+          <!-- ── HEADER ──────────────────────────────── -->
+          <div class="form-card form-card-large">
+            <div class="form-header">
+              <div class="gov-logo">
+                <img src="Code-of-Arms-colour.png" alt="Republic of Botswana Coat of Arms">
+              </div>
+              <div class="act-title">WORKER'S COMPENSATION ACT</div>
+              <div class="act-ref">(Act No. 23 of 1998) — Section 10</div>
+              <h1>Report of Results of Medical Examination</h1>
+              <div class="subtitle">To be completed in quadruplicate</div>
+              <div class="quad-note">Original — Commissioner · Duplicate — Employer · Triplicate — Worker · Quadruplicate — Medical Practitioner</div>
+              <div class="form-number-badge">BL Form 43/03</div>
+            </div>
+
+            <!-- ── Section 1: Worker Identity ────────── -->
+            <div class="section-title">1. Identity of Worker</div>
+
+            <!-- Claim lookup -->
+            <div style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
+              <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
+                🔗 Link to Existing Claim
+                <span style="font-weight:400;color:#888;font-size:12px"> — optional: select a claim to auto-fill worker details</span>
+              </label>
+              <select id="claimLookup" style="width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;font-family:inherit" onchange="onClaimSelected()">
+                <option value="">— No linked claim —</option>
+              </select>
+            </div>
+
+            <div class="form-row form-row-2">
+              <div class="form-group col-span-2">
+                <label>1. Name of Worker<span class="req">*</span></label>
+                <input type="text" name="worker_name" id="workerName"
+                       placeholder="Full name of the worker" required>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>Omang / Passport Number</label>
+                <input type="text" name="worker_id_number" id="workerIdNumber"
+                       placeholder="National ID or passport number"
+                       style="text-transform:uppercase">
+              </div>
+              <div class="form-group">
+                <label>Claim File Number</label>
+                <input type="text" name="claim_file_number" id="claimFileNumber"
+                       placeholder="e.g. OHS/COMP/12345/001/26" readonly
+                       style="background:#f5f5f5">
+              </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Section 2: Nature of injury ───────── -->
+            <div class="section-title medical">2. Nature of Injury or Disease</div>
+            <div class="form-group">
+              <label>Describe the nature of injury or disease diagnosed<span class="req">*</span></label>
+              <textarea name="nature_of_injury_or_disease" id="natureOfInjuryDisease" required
+                        placeholder="Describe the nature and extent of the injury or disease in detail…"></textarea>
+              <span class="err-msg">Required</span>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Section 3: Medical treatment ─────── -->
+            <div class="section-title medical">3. Full Particulars of Medical Treatment Including Hospitalization</div>
+            <div class="form-group">
+              <textarea name="medical_treatment_particulars" id="medicalTreatmentParticulars" required
+                        placeholder="Describe the full details of medical treatment provided, including any hospitalization, surgery, medication, rehabilitation, etc…"
+                        style="min-height:120px"></textarea>
+              <span class="err-msg">Required</span>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Section 4: Percentage of incapacity ── -->
+            <div class="section-title incapacity">4. Percentage of Incapacity</div>
+            <p class="hint" style="margin-bottom:16px">Select all that apply and specify the percentage (see Schedule of Percentage Incapacities below)</p>
+
+            <div class="incapacity-grid" id="incapacityGrid">
+              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'deathInput')">
+                <input type="checkbox" id="chkDeath" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
+                <span class="icn">⚰️</span>
+                <label>(a) Death</label>
+              </div>
+              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'permTotalInput')">
+                <input type="checkbox" id="chkPermTotal" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
+                <span class="icn">♿</span>
+                <label>(b) Permanent Total</label>
+              </div>
+              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'permPartialInput')">
+                <input type="checkbox" id="chkPermPartial" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
+                <span class="icn">🩹</span>
+                <label>(c) Permanent Partial</label>
+              </div>
+              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'tempInput')">
+                <input type="checkbox" id="chkTemporary" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked); toggleTempDuration()">
+                <span class="icn">🔄</span>
+                <label>(d) Temporary</label>
+              </div>
+            </div>
+
+            <div class="form-row form-row-3" style="margin-top:16px">
+              <div class="form-group">
+                <label>Incapacity Percentage (%)<span class="req">*</span></label>
+                <input type="number" name="incapacity_percentage" id="incapacityPercentage"
+                       min="0" max="100" step="0.01" placeholder="e.g. 50" required>
+                <span class="err-msg">Required (0-100)</span>
+              </div>
+              <div class="form-group" id="tempDurationGroup" style="display:none">
+                <label>Temporary — Probable Duration</label>
+                <input type="text" name="temporary_probable_duration" id="temporaryProbableDuration"
+                       placeholder="e.g. 6 weeks, 3 months">
+              </div>
+            </div>
+
+            <!-- Schedule of Percentage Incapacities -->
+            <details style="margin-top:16px">
+              <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#555;padding:8px 12px;background:#f8f8f8;border-radius:6px">
+                📋 View Schedule of Percentage Incapacities — click to select
+              </summary>
+              <div class="schedule-table-wrap" style="margin-top:8px">
+                <table class="schedule-table">
+                  <thead>
+                    <tr><th>Injury</th><th style="width:60px;text-align:center">%</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr class="pct-row" onclick="selectPct(100)">
+                      <td>Loss of two limbs / both hands / both feet / total loss of sight / total paralysis / any other injury causing permanent total disablement / permanently bedridden</td>
+                      <td class="pct">100</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(70)">
+                      <td>Loss of arm at shoulder</td>
+                      <td class="pct">70</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(60)">
+                      <td>Loss of arm between elbow and shoulder</td>
+                      <td class="pct">60</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(55)">
+                      <td>Loss of arm at elbow</td>
+                      <td class="pct">55</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(50)">
+                      <td>Loss of arm between wrist and elbow / Loss of hand at wrist / Loss of four fingers and thumb on one hand / Total loss of hearing</td>
+                      <td class="pct">50</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(40)">
+                      <td>Loss of foot</td>
+                      <td class="pct">40</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(35)">
+                      <td>Loss of four fingers / Loss of thumb (both phalanges)</td>
+                      <td class="pct">35</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(30)">
+                      <td>Loss of sight of one eye</td>
+                      <td class="pct">30</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(15)">
+                      <td>Loss of all toes of one foot</td>
+                      <td class="pct">15</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(10)">
+                      <td>Loss of hearing in one ear / Loss of thumb (one phalange) / Loss of index finger (three phalanges)</td>
+                      <td class="pct">10</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(8)">
+                      <td>Loss of index finger (two phalanges)</td>
+                      <td class="pct">8</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(6)">
+                      <td>Loss of middle finger (three phalanges)</td>
+                      <td class="pct">6</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(5)">
+                      <td>Loss of great toe (both phalanges) / Loss of ring finger (three phalanges)</td>
+                      <td class="pct">5</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(4)">
+                      <td>Loss of index finger (one phalange) / Loss of middle finger (two phalanges) / Loss of ring finger (two phalanges) / Loss of little finger (three phalanges)</td>
+                      <td class="pct">4</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(3)">
+                      <td>Loss of little finger (two phalanges) / Loss of first or second metacarpal</td>
+                      <td class="pct">3</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(2)">
+                      <td>Loss of great toe (one phalange) / Loss of middle finger (one phalange) / Loss of ring finger (one phalange) / Loss of little finger (one phalange) / Loss of third, fourth or fifth metacarpal</td>
+                      <td class="pct">2</td>
+                    </tr>
+                    <tr class="pct-row" onclick="selectPct(1)">
+                      <td>Loss of each toe (other than great) if more than one toe lost</td>
+                      <td class="pct">1</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="schedule-note">
+                <strong>Notes:</strong> Scars from injuries or burns resulting in disfigurement: 0–50%. Total permanent loss of use of a member treated as loss of such member. Loss of sexual organ or other internal organ: 0–75%. Ankylosis of any joint: 25–100% of loss of that joint. Loss of two or more parts of the hand: not more than loss of whole hand. Injuries not included in this schedule shall be assessed in relation to the percentages specified.
+              </div>
+            </details>
+
+            <hr class="divider">
+
+            <!-- ── Section 5: Light duties ──────────── -->
+            <div class="section-title">5. Is the Worker Capable of Undertaking Light Duties?</div>
+            <div class="yn-group">
+              <label><input type="radio" name="capable_light_duties" value="Yes"> Yes</label>
+              <label><input type="radio" name="capable_light_duties" value="No"> No</label>
+              <label><input type="radio" name="capable_light_duties" value="Not applicable"> Not applicable</label>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Section 6: Final examination ────── -->
+            <div class="section-title">6. Will a Final Examination Be Necessary Before Claimant Resumes Duty?</div>
+            <div class="yn-group">
+              <label><input type="radio" name="final_examination_necessary" value="Yes"> Yes</label>
+              <label><input type="radio" name="final_examination_necessary" value="No"> No</label>
+              <label><input type="radio" name="final_examination_necessary" value="Not applicable"> Not applicable</label>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Section 7: Resume work ──────────── -->
+            <div class="section-title">7. In Your Opinion, Will the Claimant Be Able to Resume the Work on Which He Was Employed at the Time of the Accident?</div>
+            <div class="yn-group">
+              <label><input type="radio" name="able_to_resume_work" value="Yes"> Yes</label>
+              <label><input type="radio" name="able_to_resume_work" value="No"> No</label>
+              <label><input type="radio" name="able_to_resume_work" value="Not applicable"> Not applicable</label>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Signatory ───────────────────────── -->
+            <div class="section-title">Signed by Medical Practitioner</div>
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label>Date<span class="req">*</span></label>
+                <input type="date" name="report_date" id="reportDate" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Practitioner Full Name<span class="req">*</span></label>
+                <input type="text" name="practitioner_name" id="practitionerName"
+                       placeholder="Full name of medical practitioner" required>
+                <span class="err-msg">Required</span>
+              </div>
+              <div class="form-group">
+                <label>Designation<span class="req">*</span></label>
+                <input type="text" name="practitioner_designation" id="practitionerDesignation"
+                       placeholder="e.g. Medical Officer, Specialist" required>
+                <span class="err-msg">Required</span>
+              </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ── Worker / Representative acknowledgment ── -->
+            <div class="section-title">To Worker / Representative / Dependent</div>
+            <div class="form-group">
+              <label>Full Name of Worker, Representative, or Dependent</label>
+              <input type="text" name="worker_representative_name" id="workerRepresentativeName"
+                     placeholder="Full name of the worker, their representative, or dependent">
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                Submit Medical Report
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="nationalities.js"></script>
+    <script src="common.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+
+    // ── Toggle incapacity type ──────────────────────
+    function toggleIncapacityType(item, inputId) {
+        const cb = item.querySelector('input[type="checkbox"]');
+        cb.checked = !cb.checked;
+        item.classList.toggle('checked', cb.checked);
+    }
+
+    function toggleTempDuration() {
+        const checked = document.getElementById('chkTemporary').checked;
+        document.getElementById('tempDurationGroup').style.display = checked ? 'block' : 'none';
+    }
+
+    // ── Select percentage from schedule ──────────────
+    function selectPct(pct) {
+        document.getElementById('incapacityPercentage').value = pct;
+        document.querySelectorAll('.pct-row').forEach(r => r.classList.remove('selected'));
+        event.target.closest('.pct-row')?.classList.add('selected');
+    }
+
+    // ── Load claims for lookup ──────────────────────
+    async function loadClaimList() {
+        try {
+            const { data, error } = await SB
+                .from('injury_claims')
+                .select('id, file_number, name_of_claimant, name_of_employer, claimant_id_number, nature')
+                .in('status', ['pending', 'under_review'])
+                .order('created_at', { ascending: false })
+                .limit(100);
+
+            if (error) throw error;
+            const select = document.getElementById('claimLookup');
+            (data || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = (c.file_number || 'Draft') + ' — ' + (c.name_of_claimant || 'Unknown');
+                opt.dataset.claimant = c.name_of_claimant || '';
+                opt.dataset.idNumber = c.claimant_id_number || '';
+                opt.dataset.fileNumber = c.file_number || '';
+                opt.dataset.nature = c.nature || '';
+                opt.dataset.employer = c.name_of_employer || '';
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.warn('Could not load claim list:', e);
+        }
+    }
+
+    function onClaimSelected() {
+        const select = document.getElementById('claimLookup');
+        const opt = select.options[select.selectedIndex];
+        if (!opt || !opt.value) return;
+
+        document.getElementById('workerName').value = opt.dataset.claimant || '';
+        document.getElementById('workerIdNumber').value = opt.dataset.idNumber || '';
+        document.getElementById('claimFileNumber').value = opt.dataset.fileNumber || '';
+        document.getElementById('natureOfInjuryDisease').value = opt.dataset.nature || '';
+    }
+
+    // ── Validation ──────────────────────────────────
+    function validateForm() {
+        const required = document.querySelectorAll('#medicalExamForm [required]');
+        let ok = true;
+        required.forEach(f => {
+            if (!f.value.trim()) { f.classList.add('error'); ok = false; }
+            else f.classList.remove('error');
+        });
+        return ok;
+    }
+
+    // ── Get radio value ─────────────────────────────
+    function radio(name) {
+        return document.querySelector(`input[name="${name}"]:checked`)?.value || null;
+    }
+
+    // ── Submit ───────────────────────────────────────
+    document.getElementById('medicalExamForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            await showAlert('Please fill in all required fields.', { type: 'warning', title: 'Incomplete Form' });
+            document.querySelector('#medicalExamForm .error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+
+        try {
+            const userResult = await getCurrentUser();
+            if (!userResult.success || !userResult.user) {
+                await showAlert('You must be logged in.', { type: 'warning', title: 'Not Authenticated', btnText: 'Go to Login' });
+                window.location.href = 'index.html'; return;
+            }
+
+            const g = id => document.getElementById(id)?.value?.trim() || null;
+
+            const claimId = document.getElementById('claimLookup').value || null;
+
+            const payload = {
+                claim_id:                       claimId,
+                worker_name:                    g('workerName'),
+                worker_id_number:               g('workerIdNumber'),
+                claim_file_number:              g('claimFileNumber'),
+                nature_of_injury_or_disease:     g('natureOfInjuryDisease'),
+                medical_treatment_particulars:   g('medicalTreatmentParticulars'),
+                death_incapacity:               document.getElementById('chkDeath').checked || null,
+                permanent_total_incapacity:      document.getElementById('chkPermTotal').checked || null,
+                permanent_partial_incapacity:    document.getElementById('chkPermPartial').checked || null,
+                temporary_incapacity:            document.getElementById('chkTemporary').checked || null,
+                temporary_probable_duration:     g('temporaryProbableDuration'),
+                incapacity_percentage:           document.getElementById('incapacityPercentage')?.value
+                                                  ? parseFloat(document.getElementById('incapacityPercentage').value) : null,
+                capable_light_duties:            radio('capable_light_duties'),
+                final_examination_necessary:     radio('final_examination_necessary'),
+                able_to_resume_work:             radio('able_to_resume_work'),
+                report_date:                     g('reportDate'),
+                practitioner_name:               g('practitionerName'),
+                practitioner_designation:        g('practitionerDesignation'),
+                worker_representative_name:      g('workerRepresentativeName'),
+                submitted_by:                    userResult.user.id,
+                status:                          'submitted'
+            };
+
+            const { data: inserted, error } = await SB
+                .from('medical_examination_reports')
+                .insert([payload])
+                .select('id')
+                .single();
+
+            btn.disabled = false;
+            btn.textContent = 'Submit Medical Report';
+
+            if (error) throw error;
+
+            await showAlert(
+                'Medical Examination Report (BL Form 43/03) submitted successfully.',
+                { type: 'success', title: 'Report Submitted', btnText: 'OK' }
+            );
+            document.getElementById('medicalExamForm').reset();
+            toggleTempDuration();
+
+        } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'Submit Medical Report';
+            await showAlert(err.message, { type: 'error', title: 'Submission Failed' });
+        }
+    });
+
+    // ── Reset ────────────────────────────────────────
+    async function resetForm() {
+        const ok = await showConfirm('All entered data will be cleared.', {
+            title: 'Reset Form', icon: '🔄', confirmText: 'Reset', danger: true
+        });
+        if (ok) {
+            document.getElementById('medicalExamForm').reset();
+            document.querySelectorAll('.incapacity-item').forEach(i => i.classList.remove('checked'));
+            toggleTempDuration();
+            showToast('Form has been reset.', 'info');
+        }
+    }
+
+    // ── Init ─────────────────────────────────────────
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        checkPageAccess();
+
+        const ur = await getCurrentUser();
+        if (ur.success && ur.user) {
+            const p = await getUserProfile(ur.user.id);
+            if (p.success) {
+                document.getElementById('userName').textContent = p.data.first_name + ' ' + p.data.surname;
+                document.getElementById('userDept').textContent = 'Medical Practitioner';
+                document.getElementById('practitionerName').value = p.data.first_name + ' ' + p.data.surname;
+                document.getElementById('practitionerDesignation').value =
+                    p.data.designation || getRoleDisplayName(p.data.role || 'officer');
+            }
+        }
+
+        document.getElementById('reportDate').valueAsDate = new Date();
+        await loadClaimList();
+    });
+    </script>
+</body>
+</html>
