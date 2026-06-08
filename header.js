@@ -160,7 +160,7 @@
           <img src="Code-of-Arms-colour.png" alt="Coat of Arms" class="header-crest-img">
           <div class="header-titles">
             <h1>${pageTitle}</h1>
-            <div class="header-subtitle">Ministry of Labour &amp; Home Affairs · Occupational Health &amp; Safety</div>
+            <div class="header-subtitle">Ministry of Labour &amp; Home Affairs · Department of Occupational Health &amp; Safety</div>
           </div>
         </div>
         <div class="header-right">
@@ -192,7 +192,7 @@
 
     // Extract the page title from the existing navbar h1
     const titleEl = navbar.querySelector('h1');
-    const pageTitle = titleEl ? titleEl.textContent.trim() : 'OSH Management System';
+    const pageTitle = titleEl ? titleEl.textContent.trim() : 'DOSH Management System';
 
     const header = buildHeader(pageTitle);
     navbar.replaceWith(header);
@@ -204,5 +204,5 @@
     inject();
   }
 
-  console.log('OSH header loaded');
+  console.log('DOSH header loaded');
 })();

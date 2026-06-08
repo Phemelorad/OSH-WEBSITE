@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSH System</title>
+    <title>DOSH System</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
         * {
@@ -368,7 +368,7 @@
                     <label class="role-option" data-role="company">
                         <input type="radio" name="loginRole" value="company" required>
                         <div class="icon">🏢</div>
-                        <div class="label">Company</div>
+                        <div class="label">Employer</div>
                     </label>
                     <label class="role-option" data-role="worker">
                         <input type="radio" name="loginRole" value="worker" required>
@@ -378,7 +378,7 @@
                     <label class="role-option" data-role="osh_officer">
                         <input type="radio" name="loginRole" value="osh_officer" required>
                         <div class="icon">👮</div>
-                        <div class="label">OSH Officer</div>
+                        <div class="label">DOSH Officer</div>
                     </label>
                 </div>
                 <span class="error-message">Please select your role</span>
@@ -386,11 +386,11 @@
 
             <!-- Login Company-specific fields -->
             <div id="loginCompanyFields" class="role-specific-fields hidden">
-                <h3>Company Account</h3>
+                <h3>Employer Account</h3>
                 <div class="form-group">
-                    <label for="loginCompanyName">Company Name</label>
+                    <label for="loginCompanyName">Employer Name</label>
                     <input type="text" id="loginCompanyName" name="loginCompanyName" placeholder="Enter your registered company name">
-                    <span class="error-message">Please enter your company name</span>
+                    <span class="error-message">Please enter your employer name</span>
                 </div>
             </div>
 
@@ -431,7 +431,7 @@
                     <label class="role-option" data-role="company">
                         <input type="radio" name="role" value="company" required>
                         <div class="icon">🏢</div>
-                        <div class="label">Company</div>
+                        <div class="label">Employer</div>
                     </label>
                     <label class="role-option" data-role="worker">
                         <input type="radio" name="role" value="worker" required>
@@ -441,7 +441,7 @@
                     <label class="role-option" data-role="osh_officer">
                         <input type="radio" name="role" value="osh_officer" required>
                         <div class="icon">👮</div>
-                        <div class="label">OSH Officer</div>
+                        <div class="label">DOSH Officer</div>
                     </label>
                 </div>
                 <span class="error-message">Please select a role</span>
@@ -485,11 +485,11 @@
 
             <!-- Company-specific fields -->
             <div id="companyFields" class="role-specific-fields hidden">
-                <h3>Company Details</h3>
+                <h3>Employer Details</h3>
                 <div class="form-group">
-                    <label for="companyName">Company Name</label>
+                    <label for="companyName">Employer Name</label>
                     <input type="text" id="companyName" name="companyName" placeholder="Enter company name">
-                    <span class="error-message">Company name is required</span>
+                    <span class="error-message">Employer name is required</span>
                 </div>
                 <div class="form-group">
                     <label for="ownerName">Owner Name</label>
@@ -502,9 +502,9 @@
                     <span class="error-message">Please enter a valid email</span>
                 </div>
                 <div class="form-group">
-                    <label for="companyPhone">Company Phone</label>
+                    <label for="companyPhone">Employer Phone</label>
                     <input type="tel" id="companyPhone" name="companyPhone" placeholder="Enter company phone number">
-                    <span class="error-message">Company phone is required</span>
+                    <span class="error-message">Employer phone is required</span>
                 </div>
             </div>
 
@@ -522,10 +522,9 @@
                 </div>
             </div>
 
-            <!-- OSH Officer-specific fields -->
+            <!-- DOSH Officer-specific fields -->
             <div id="oshOfficerFields" class="role-specific-fields hidden">
                 <h3>Officer Roles</h3>
-                <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Select all roles that apply:</p>
                 <div class="checkbox-group">
                     <div class="checkbox-option" data-role="claims_officer">
                         <input type="checkbox" id="roleClaimsOfficer" name="officerRoles" value="claims_officer">
@@ -562,8 +561,7 @@
             <span>OR</span>
         </div>
 
-        <div style="text-align: center; color: #666; font-size: 14px;">
-            <span style="color: #999;">Occupational Safety &amp; Health</span>
+        <div style="text-align: center; color: #666; font-size: 14px;">                <span style="color: #999;">Department of Occupational Health &amp; Safety</span>
         </div>
     </div>
 
@@ -727,7 +725,7 @@
             const loginCompanyName = document.getElementById('loginCompanyName').value.trim();
             if (loginRoleValue === 'company' && !loginCompanyName) {
                 document.getElementById('loginCompanyName').classList.add('error');
-                await showAlert('Please enter your company name.', { type: 'warning', title: 'Company Name Required' });
+                await showAlert('Please enter your employer name.', { type: 'warning', title: 'Employer Name Required' });
                 return;
             }
 
@@ -766,8 +764,8 @@
                                 .maybeSingle();
 
                             if (company && company.company_name.toLowerCase() !== loginCompanyName.toLowerCase()) {
-                                await showAlert(`Company name mismatch. This account is registered under "${company.company_name}".`, {
-                                    type: 'error', title: 'Company Name Mismatch'
+                                await showAlert(`Employer name mismatch. This account is registered under "${company.company_name}".`, {
+                                    type: 'error', title: 'Employer Name Mismatch'
                                 });
                                 return;
                             }
@@ -869,7 +867,7 @@
                 formData.companyPhone    = document.getElementById('companyPhone').value;
                 formData.industry        = document.getElementById('companyIndustry')?.value || '';
                 formData.department      = 'company';
-                formData.designation     = document.getElementById('designation').value.trim() || 'Company Representative';
+                formData.designation     = document.getElementById('designation').value.trim() || 'Employer Representative';
             } else if (selectedRole.value === 'worker') {
                 formData.workplaceCompany = document.getElementById('workplaceCompany').value;
                 formData.employeeId       = document.getElementById('employeeId').value || null;

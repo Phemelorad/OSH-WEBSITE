@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company Register - OSH</title>
+    <title>Employer Register - DOSH</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -172,7 +172,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>🏢 Company Register</h1>
+        <h1>🏢 Employer Register</h1>
         <div class="user-info">
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
@@ -197,7 +197,7 @@
         <!-- ── Table section ──────────────────────── -->
         <div class="section-card">
             <div class="section-header">
-                <h2>📋 Company Directory</h2>
+                <h2>📋 Employer Directory</h2>
                 <div class="filters">
                     <div class="filter-group">
                         <label>Industry</label>
@@ -233,7 +233,7 @@
 
             <div id="loadingState" class="loading">
                 <div class="spinner"></div>
-                <p>Loading company data…</p>
+                <p>Loading employer data…</p>
             </div>
 
             <div id="tableWrap" style="display:none">
@@ -256,7 +256,7 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display:none">
-                    <p>🏢 No companies found</p>
+                    <p>🏢 No employers found</p>
                     <p style="font-size:13px;color:#aaa">Try adjusting the filters.</p>
                 </div>
                 <div class="row-count" id="rowCount"></div>
@@ -271,7 +271,7 @@
             <div style="padding:24px 26px 16px;border-bottom:2px solid #f0f0f0;flex-shrink:0;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
                     <div>
-                        <div style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Company Profile</div>
+                        <div style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Employer Profile</div>
                         <h2 id="ddCompanyName" style="font-size:20px;color:#222;margin:0;"></h2>
                         <div id="ddCompanyMeta" style="font-size:13px;color:#888;margin-top:4px;"></div>
                     </div>
@@ -526,7 +526,7 @@
             return;
         }
         empty.style.display = 'none';
-        count.textContent   = `Showing ${rows.length} compan${rows.length !== 1 ? 'ies' : 'y'}`;
+        count.textContent   = `Showing ${rows.length} employer${rows.length !== 1 ? 's' : ''}`;
 
         tbody.innerHTML = rows.map(c => {
         const incidents   = (c.total_incidents ?? c.accident_count + c.injury_disease_count) || 0;

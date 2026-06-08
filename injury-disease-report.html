@@ -560,7 +560,7 @@
             if (profile.success) {
                 const name = profile.data.first_name + ' ' + profile.data.surname;
                 document.getElementById('userName').textContent       = name;
-                document.getElementById('userDept').textContent       = 'OSH Officer';
+                document.getElementById('userDept').textContent       = 'DOSH Officer';
                 document.getElementById('signatoryName').value        = name;
                 document.getElementById('signatoryDesignation').value =
                     profile.data.role ? getRoleDisplayName(profile.data.role) : 'Officer';

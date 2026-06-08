@@ -20,7 +20,7 @@ function esc(s) {
 
 // Universal logout handler (requires modal.js and supabase-config.js)
 async function handleLogout() {
-    const ok = await showConfirm('You will be signed out of the OSH system.', {
+    const ok = await showConfirm('You will be signed out of the DOSH system.', {
         title: 'Logout', icon: '\uD83D\uDC4B', confirmText: 'Logout', cancelText: 'Stay'
     });
     if (ok) {

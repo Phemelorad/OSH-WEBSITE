@@ -219,7 +219,7 @@
     },
     {
       id: 'company-view',
-      label: '🏢 My Company',
+      label: '🏢 My Employer',
       href: 'company-view.html',
       single: true,
       hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
@@ -295,7 +295,7 @@
     },
     {
       id: 'company-register',
-      label: '🏢 Companies',
+      label: '🏢 Employers',
       href: 'company-register.html',
       single: true,
       hideFor: ['company']
@@ -467,5 +467,5 @@
     }
   });
 
-  console.log('OSH nav loaded, active:', active);
+  console.log('DOSH nav loaded, active:', active);
 })();

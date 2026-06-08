@@ -468,5 +468,5 @@
     });
   };
 
-  console.log('OSH modal system loaded');
+  console.log('DOSH modal system loaded');
 })();

@@ -398,7 +398,7 @@ function getRoleDisplayName(role) {
         officer: 'Officer',
         admin: 'Admin',
         super_admin: 'Super Admin',
-        company: 'Company'
+        company: 'Employer'
     };
     return names[role] || role;
 }
