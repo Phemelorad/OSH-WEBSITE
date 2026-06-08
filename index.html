@@ -380,6 +380,11 @@
                         <div class="icon">👮</div>
                         <div class="label">DOSH Officer</div>
                     </label>
+                    <label class="role-option" data-role="medical_practitioner">
+                        <input type="radio" name="loginRole" value="medical_practitioner" required>
+                        <div class="icon">🩺</div>
+                        <div class="label">Medical Practitioner</div>
+                    </label>
                 </div>
                 <span class="error-message">Please select your role</span>
             </div>
@@ -442,6 +447,11 @@
                         <input type="radio" name="role" value="osh_officer" required>
                         <div class="icon">👮</div>
                         <div class="label">DOSH Officer</div>
+                    </label>
+                    <label class="role-option" data-role="medical_practitioner">
+                        <input type="radio" name="role" value="medical_practitioner" required>
+                        <div class="icon">🩺</div>
+                        <div class="label">Medical Practitioner</div>
                     </label>
                 </div>
                 <span class="error-message">Please select a role</span>
@@ -548,6 +558,20 @@
                 <div class="form-group">
                     <label for="employeeId">Employee ID (if applicable)</label>
                     <input type="text" id="employeeId" name="employeeId" placeholder="Enter your employee ID">
+                </div>
+            </div>
+
+            <!-- Medical Practitioner-specific fields -->
+            <div id="medicalPracFields" class="role-specific-fields hidden">
+                <h3>Medical Practice Details</h3>
+                <div class="form-group">
+                    <label for="practiceName">Practice / Hospital Name<span class="req">*</span></label>
+                    <input type="text" id="practiceName" name="practiceName" placeholder="Enter your practice or hospital name">
+                    <span class="error-message">Practice name is required</span>
+                </div>
+                <div class="form-group">
+                    <label for="medRegNumber">Medical Registration Number</label>
+                    <input type="text" id="medRegNumber" name="medRegNumber" placeholder="e.g. BPC/12345">
                 </div>
             </div>
 
@@ -659,6 +683,8 @@
                         document.getElementById('workerFields').classList.remove('hidden');
                     } else if (selectedRole === 'osh_officer') {
                         document.getElementById('oshOfficerFields').classList.remove('hidden');
+                    } else if (selectedRole === 'medical_practitioner') {
+                        document.getElementById('medicalPracFields').classList.remove('hidden');
                     }
                 }
             });
@@ -731,7 +757,7 @@
         ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
          'registerPassword','confirmPassword','location',
          'companyName','ownerName','ownerEmail','companyPhone','cipaNumber','plotNumber','streetName','physicalAddress',
-         'workplaceCompany','employeeId'].forEach(id => {
+         'workplaceCompany','employeeId','practiceName','medRegNumber'].forEach(id => {
             const field = document.getElementById(id);
             if (field) {
                 field.addEventListener('blur', function() { validateField(this); });
@@ -804,7 +830,9 @@
                     sessionStorage.setItem('user', JSON.stringify(profile));
                     const redirectUrl = profile.role === 'company'
                         ? 'company-view.html'
-                        : 'dashboard.html';
+                        : profile.role === 'medical_practitioner'
+                            ? 'medical-examination.html'
+                            : 'dashboard.html';
                     showToast('Login successful! Redirecting...', 'success', 1800);
                     setTimeout(() => { window.location.href = redirectUrl; }, 1200);
                 } else {
@@ -871,6 +899,9 @@
                 const selected = document.querySelectorAll('input[name="officerRoles"]:checked');
                 document.getElementById('rolesError').style.display = selected.length ? 'none' : 'block';
                 if (!selected.length) isValid = false;
+            } else if (selectedRole.value === 'medical_practitioner') {
+                const f = document.getElementById('practiceName');
+                if (f && !f.value.trim()) { f.classList.add('error'); isValid = false; }
             }
 
             if (!isValid) return;
@@ -910,6 +941,11 @@
                     document.querySelectorAll('input[name="officerRoles"]:checked')
                 ).map(cb => cb.value);
                 formData.department = 'osh';
+            } else if (selectedRole.value === 'medical_practitioner') {
+                formData.practiceName = document.getElementById('practiceName').value;
+                formData.medRegNumber = document.getElementById('medRegNumber').value || null;
+                formData.department = 'medical';
+                formData.designation = document.getElementById('designation').value.trim() || 'Medical Practitioner';
             }
 
             const result = await signUp(formData);
@@ -936,7 +972,9 @@
                         sessionStorage.setItem('user', JSON.stringify(profile.data));
                         const redirectUrl = profile.data.role === 'company'
                             ? 'company-view.html'
-                            : 'dashboard.html';
+                            : profile.data.role === 'medical_practitioner'
+                                ? 'medical-examination.html'
+                                : 'dashboard.html';
                         showToast('Account created! Redirecting...', 'success', 1800);
                         setTimeout(() => { window.location.href = redirectUrl; }, 1200);
                         return;
@@ -996,6 +1034,10 @@
                     const profile = await getUserProfile(userResult.user.id);
                     if (profile.success && profile.data.role === 'company') {
                         window.location.href = 'company-view.html';
+                        return;
+                    }
+                    if (profile.success && profile.data.role === 'medical_practitioner') {
+                        window.location.href = 'medical-examination.html';
                         return;
                     }
                 }

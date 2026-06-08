@@ -8,7 +8,8 @@ const ROLES = {
     OFFICER: 'officer',
     ADMIN: 'admin',
     SUPER_ADMIN: 'super_admin',
-    COMPANY: 'company'
+    COMPANY: 'company',
+    MEDICAL_PRACTITIONER: 'medical_practitioner'
 };
 
 const PERMISSIONS = {
@@ -56,6 +57,14 @@ const PERMISSIONS = {
         edit_claims: false,
         access_admin: false,
         manage_users: false
+    },
+    medical_practitioner: {
+        view_claims: true,
+        submit_claims: false,
+        edit_claims: false,
+        access_admin: false,
+        manage_users: false,
+        submit_medical_exams: true
     }
 };
 
@@ -413,7 +422,8 @@ function getRoleDisplayName(role) {
         officer: 'Officer',
         admin: 'Admin',
         super_admin: 'Super Admin',
-        company: 'Employer'
+        company: 'Employer',
+        medical_practitioner: 'Medical Practitioner'
     };
     return names[role] || role;
 }
@@ -426,7 +436,8 @@ function getRoleColor(role) {
         officer: '#d1ecf1',
         admin: '#fff3cd',
         super_admin: '#d4edda',
-        company: '#cce5ff'
+        company: '#cce5ff',
+        medical_practitioner: '#e8d5f5'
     };
     return colors[role] || '#f8f9fa';
 }

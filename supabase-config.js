@@ -16,6 +16,7 @@
     // Map form role values to database role values
     function mapRole(formRole) {
         if (formRole === 'osh_officer') return 'officer';
+        if (formRole === 'medical_practitioner') return 'medical_practitioner';
         return formRole; // 'company' → 'company', 'worker' → 'worker'
     }
 
@@ -51,7 +52,9 @@
                         company_cipa_number: userData.cipaNumber || null,
                         company_plot_number: userData.plotNumber || null,
                         company_street_name: userData.streetName || null,
-                        company_physical_address: userData.physicalAddress || null
+                        company_physical_address: userData.physicalAddress || null,
+                        practice_name: userData.practiceName || null,
+                        med_reg_number: userData.medRegNumber || null
                     }
                 }
             });

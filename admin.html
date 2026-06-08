@@ -419,6 +419,11 @@
                     <span class="tab-label">DOSH Officers</span>
                     <span class="tab-count" id="countOfficer">0</span>
                 </button>
+                <button class="role-tab" data-filter="medical_practitioner" onclick="filterByRole('medical_practitioner')">
+                    <span class="tab-icon">🩺</span>
+                    <span class="tab-label">Medical Practitioners</span>
+                    <span class="tab-count" id="countMedical">0</span>
+                </button>
             </div>
             
             <div id="usersLoading" class="loading">
@@ -552,6 +557,7 @@
             document.getElementById('countCompany').textContent = users.filter(u => u.role === 'company').length;
             document.getElementById('countWorker').textContent = users.filter(u => u.role === 'worker').length;
             document.getElementById('countOfficer').textContent = users.filter(u => u.role === 'officer').length;
+            document.getElementById('countMedical').textContent = users.filter(u => u.role === 'medical_practitioner').length;
         }
 
         function filterByRole(role) {
@@ -658,8 +664,8 @@
         }
 
         async function editUserRole(userId, currentRole, userName) {
-            const roles = ['viewer', 'worker', 'officer', 'company', 'admin', 'super_admin'];
-            const roleNames = { viewer:'Viewer', worker:'Worker', officer:'Officer', company:'Company', admin:'Admin', super_admin:'Super Admin' };
+            const roles = ['viewer', 'worker', 'officer', 'company', 'medical_practitioner', 'admin', 'super_admin'];
+            const roleNames = { viewer:'Viewer', worker:'Worker', officer:'Officer', company:'Company', medical_practitioner:'Medical Practitioner', admin:'Admin', super_admin:'Super Admin' };
 
             const newRole = await showSelect(
                 `Current role: <strong>${roleNames[currentRole] || currentRole}</strong>`,

@@ -688,7 +688,12 @@
     window.addEventListener('load', async function() {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
-        if (currentUserRole === 'worker' || currentUserRole === 'company' || currentUserRole === 'viewer') {
+        if (currentUserRole === 'worker' || currentUserRole === 'company' || currentUserRole === 'viewer' || currentUserRole === 'officer' || currentUserRole === 'admin' || currentUserRole === 'super_admin') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        if (currentUserRole !== 'medical_practitioner') {
             window.location.href = 'dashboard.html';
             return;
         }
