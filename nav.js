@@ -370,8 +370,12 @@
           badge.id = 'parent-notif-' + childNotif.notification;
           btn.appendChild(badge);
         }
-        btn.addEventListener('click', () => {
-          // Toggle on mobile
+        btn.addEventListener('click', (e) => {
+          // Close all OTHER open dropdowns first
+          document.querySelectorAll('.osh-nav-item.open').forEach(el => {
+            if (el !== li) el.classList.remove('open');
+          });
+          // Toggle this one
           li.classList.toggle('open');
         });
         li.appendChild(btn);
