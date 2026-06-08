@@ -213,117 +213,117 @@
 
   const MENU = [
     {
-      id: 'dashboard',
-      label: '⌂ Dashboard',
-      href: 'dashboard.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'company']
-    },
-    {
-      id: 'company-view',
-      label: '🏢 Employer Details',
-      href: 'company-view.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
-    },
-    {
-      id: 'book-inspection',
-      label: '📅 Book Inspection',
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin'],
-      children: [
-        { id: 'company-book-inspection', icon: '📝', label: 'New Booking',       href: 'company-book-inspection.html' },
-        { id: 'company-bookings',        icon: '📋', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
-      ]
-    },
-    {
-      id: 'accident',
-      label: '🚨 Report Accident',
-      href: 'accident-report.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
-    },
-    {
-      id: 'injury-disease',
-      label: '🏥 Report Injury / Disease',
-      href: 'injury-disease-report.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin']
-    },
-    {
-      id: 'company-monitoring',
-      label: '📊 Monitoring Dashboard',
-      href: 'company-monitoring.html',
-      single: true,
-      hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin'],
-      notification: 'company-bookings-responded'
-    },
-    {
-      id: 'inspection',
-      label: '🔍 Inspections',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'inspection-form',     icon: '🔍', label: 'New Inspection',       href: 'inspection.html' },
-        { id: 'inspection-bookings', icon: '📅', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
-        { id: 'inspection-records',  icon: '📁', label: 'Inspection Records',   href: 'inspection-entries.html' },
-      ]
-    },
-    {
-      id: 'accident',
-      label: '🚨 Accidents',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
-        { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
-      ]
-    },
-    {
-      id: 'injury',
-      label: '🏥 Injuries',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'injury-disease',         icon: '🏥', label: 'New Report',             href: 'injury-disease-report.html' },
-        { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',           href: 'injury-disease-entries.html' },
-        { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',         href: 'worker-profile.html' },
-      ]
-    },
-    {
-      id: 'claims',
-      label: '📋 Claims',
-      hideFor: ['company', 'viewer', 'worker'],
-      children: [
-        { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
-        { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
-      ]
-    },
-    {
-      id: 'worker-claims',
-      label: '📋 My Claims',
-      href: 'worker-claims.html',
-      single: true,
-      hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
-    },
-    {
-      id: 'medical-practitioner',
-      label: '🩺 Medical Exams',
-      hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
-      children: [
-        { id: 'medical-examination', icon: '🩺', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
-      ]
-    },
-    {
-      id: 'company-register',
-      label: '🏢 Employers',
-      href: 'company-register.html',
-      single: true,
-      hideFor: ['company']
-    },
-    {
-      id: 'admin',
-      label: '⚙ Admin',
-      hideFor: ['company', 'viewer', 'worker', 'officer'],
-      href: 'admin.html',
-      single: true
-    },
+        id: 'dashboard',
+        label: '⌂ Dashboard',
+        href: 'dashboard.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'company', 'medical_practitioner']
+      },
+      {
+        id: 'company-view',
+        label: '🏢 Employer Details',
+        href: 'company-view.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+      },
+      {
+        id: 'book-inspection',
+        label: '📅 Book Inspection',
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        children: [
+          { id: 'company-book-inspection', icon: '📝', label: 'New Booking',       href: 'company-book-inspection.html' },
+          { id: 'company-bookings',        icon: '📋', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
+        ]
+      },
+      {
+        id: 'accident',
+        label: '🚨 Report Accident',
+        href: 'accident-report.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+      },
+      {
+        id: 'injury-disease',
+        label: '🏥 Report Injury / Disease',
+        href: 'injury-disease-report.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+      },
+      {
+        id: 'company-monitoring',
+        label: '📊 Monitoring Dashboard',
+        href: 'company-monitoring.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        notification: 'company-bookings-responded'
+      },
+      {
+        id: 'inspection',
+        label: '🔍 Inspections',
+        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        children: [
+          { id: 'inspection-form',     icon: '🔍', label: 'New Inspection',       href: 'inspection.html' },
+          { id: 'inspection-bookings', icon: '📅', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
+          { id: 'inspection-records',  icon: '📁', label: 'Inspection Records',   href: 'inspection-entries.html' },
+        ]
+      },
+      {
+        id: 'accident',
+        label: '🚨 Accidents',
+        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        children: [
+          { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
+          { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
+        ]
+      },
+      {
+        id: 'injury',
+        label: '🏥 Injuries',
+        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        children: [
+          { id: 'injury-disease',         icon: '🏥', label: 'New Report',             href: 'injury-disease-report.html' },
+          { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',           href: 'injury-disease-entries.html' },
+          { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',         href: 'worker-profile.html' },
+        ]
+      },
+      {
+        id: 'claims',
+        label: '📋 Claims',
+        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        children: [
+          { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
+          { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
+        ]
+      },
+      {
+        id: 'worker-claims',
+        label: '📋 My Claims',
+        href: 'worker-claims.html',
+        single: true,
+        hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
+      },
+      {
+        id: 'medical-practitioner',
+        label: '🩺 Medical Exams',
+        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
+        children: [
+          { id: 'medical-examination', icon: '🩺', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
+        ]
+      },
+      {
+        id: 'company-register',
+        label: '🏢 Employers',
+        href: 'company-register.html',
+        single: true,
+        hideFor: ['company', 'medical_practitioner']
+      },
+      {
+        id: 'admin',
+        label: '⚙ Admin',
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
+        href: 'admin.html',
+        single: true
+      },
   ];
 
   // ── Build HTML ───────────────────────────────────────────
