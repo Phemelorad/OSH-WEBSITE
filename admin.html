@@ -665,17 +665,38 @@
         }
 
         async function editUserRole(userId, currentRole, userName) {
+            console.log('[editUserRole] called with:', { userId, currentRole, userName });
+
             const roles = ['viewer', 'worker', 'officer', 'company', 'medical_practitioner', 'admin', 'super_admin'];
             const roleNames = { viewer:'Viewer', worker:'Worker', officer:'Officer', company:'Company', medical_practitioner:'Medical Practitioner', admin:'Admin', super_admin:'Super Admin' };
 
-            const newRole = await showSelect(
-                `Current role: <strong>${roleNames[currentRole] || currentRole}</strong>`,
-                roles.map(r => ({ value: r, label: roleNames[r] })),
-                currentRole,
-                { title: `Change Role — ${userName}`, confirmText: 'Save Role', icon: '🔑' }
-            );
+            // safety: ensure showSelect exists before awaiting it
+            if (typeof showSelect !== 'function') {
+                console.error('[editUserRole] showSelect is not a function!');
+                alert('Internal error: showSelect is missing. Check modal.js loaded correctly.');
+                return;
+            }
 
-            if (!newRole || newRole === currentRole) return;
+            console.log('[editUserRole] calling showSelect...');
+            let newRole;
+            try {
+                newRole = await showSelect(
+                    `Current role: <strong>${roleNames[currentRole] || currentRole}</strong>`,
+                    roles.map(r => ({ value: r, label: roleNames[r] })),
+                    currentRole,
+                    { title: `Change Role — ${userName}`, confirmText: 'Save Role', icon: '🔑' }
+                );
+                console.log('[editUserRole] showSelect returned:', newRole);
+            } catch (e) {
+                console.error('[editUserRole] showSelect threw:', e);
+                await showAlert('Something went wrong opening the role selector. See console for details.', { type: 'error', title: 'Error' });
+                return;
+            }
+
+            if (!newRole || newRole === currentRole) {
+                console.log('[editUserRole] user cancelled or selected same role');
+                return;
+            }
 
             // Check if the current admin can manage a user with the CURRENT role (not the new one)
             if (!canManageUsers(currentRole)) {
