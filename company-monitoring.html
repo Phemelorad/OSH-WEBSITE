@@ -404,11 +404,8 @@
                          + claims.filter(c => c.status === 'draft' || c.status === 'pending').length;
             document.getElementById('statPending').textContent = pending;
 
-            // Count responded bookings (not pending - officer has replied)
-            const respondedCount = bookings.filter(b => b.status !== 'pending').length;
-            try {
-                sessionStorage.setItem('company_booking_responses', String(respondedCount));
-            } catch (e) {}
+            // Clear responded badge — user is viewing updates now
+            try { sessionStorage.removeItem('company_booking_responses'); } catch (e) {}
 
             // Show notification banner if there are responded bookings
             const banner = document.getElementById('bookingUpdateBanner');

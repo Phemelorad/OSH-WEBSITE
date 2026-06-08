@@ -265,6 +265,10 @@
         buildStats(allBookings);
         renderTable(allBookings);
 
+        // Mark pending count as seen so nav badge disappears
+        const pendingCount = allBookings.filter(r => r.status === 'pending').length;
+        try { sessionStorage.setItem('inspections_seen_pending', String(pendingCount)); } catch (e) {}
+
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('tableWrap').style.display    = 'block';
     }

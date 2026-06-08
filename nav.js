@@ -424,6 +424,7 @@
   // ── Fetch notification counts from Supabase ────────────
   // Called shortly after injection to update notification badges.
   // Uses the global supabaseClient (available once all scripts load).
+  // Badges auto-dismiss once the user visits the relevant page.
   async function fetchNotificationCounts() {
     try {
       const sb = window.supabaseClient;
@@ -436,21 +437,32 @@
         .eq('status', 'pending');
 
       if (!pendingError && typeof pendingCount === 'number') {
+        // Check if user has already seen this many (or more) pending bookings
+        let show = true;
+        try {
+          const seenRaw = sessionStorage.getItem('inspections_seen_pending');
+          if (seenRaw !== null) {
+            const seen = parseInt(seenRaw, 10);
+            if (pendingCount <= seen) show = false;
+          }
+        } catch (e) {}
+
+        const count = show ? pendingCount : 0;
         const badge = document.getElementById('notif-inspection-bookings-pending');
         if (badge) {
-          badge.textContent = pendingCount;
-          badge.classList.toggle('zero', pendingCount === 0);
+          badge.textContent = count;
+          badge.classList.toggle('zero', count === 0);
         }
-        // Also update parent nav button badge
         const parentBadge = document.getElementById('parent-notif-inspection-bookings-pending');
         if (parentBadge) {
-          parentBadge.textContent = pendingCount;
-          parentBadge.classList.toggle('zero', pendingCount === 0);
+          parentBadge.textContent = count;
+          parentBadge.classList.toggle('zero', count === 0);
         }
       }
 
       // ── Company-side: responded bookings (read from sessionStorage) ─
-      // The company-monitoring page stores this count after loading data
+      // The company-monitoring page stores this count after loading data.
+      // Dismissed when the user opens company-bookings.html or company-monitoring.html.
       const respondedBadge = document.getElementById('notif-company-bookings-responded');
       if (respondedBadge) {
         try {
@@ -461,7 +473,6 @@
         } catch (e) {
           respondedBadge.classList.add('zero');
         }
-        // Also update parent nav button badge
         const parentBadge = document.getElementById('parent-notif-company-bookings-responded');
         if (parentBadge) {
           parentBadge.textContent = respondedBadge?.textContent || '0';

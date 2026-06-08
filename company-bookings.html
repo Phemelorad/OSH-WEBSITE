@@ -247,6 +247,9 @@
             renderTable(allBookings);
             updateNotification(allBookings);
 
+            // Clear responded badge — user has seen the updates now
+            try { sessionStorage.removeItem('company_booking_responses'); } catch (e) {}
+
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
         } catch (err) {
@@ -265,14 +268,10 @@
         document.getElementById('statTotal').textContent     = rows.length;
     }
 
-    // ── Update notification badge ─────────────────────────────
+    // ── Update notification banner ───────────────────────────
     function updateNotification(rows) {
         const respondedCount = rows.filter(r => r.status !== 'pending').length;
-        try {
-            sessionStorage.setItem('company_booking_responses', String(respondedCount));
-        } catch (e) {}
-
-        // Show banner
+        // Show banner (badge is dismissed separately after load)
         const banner = document.getElementById('notifBanner');
         if (respondedCount > 0) {
             const approved  = rows.filter(r => r.status === 'approved').length;
