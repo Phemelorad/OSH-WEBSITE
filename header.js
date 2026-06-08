@@ -75,28 +75,51 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        gap: 2px;
+        gap: 4px;
       }
 
-      .header-user .user-name {
-        font-size: 13px;
-        font-weight: 600;
-        color: #333;
+      .header-user-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.3;
       }
 
-      .header-user .user-meta {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .header-user .user-designation {
-        font-size: 11px;
+      .header-user-designation {
+        font-size: 12px;
         color: #777;
+        line-height: 1.3;
+      }
+
+      .header-user-role {
+        line-height: 1;
+      }
+
+      .header-user-role .role-badge {
+        display: inline-block;
+        background: #e8e8e8;
+        color: #555;
+        padding: 3px 14px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
+      }
+
+      .header-user-role .role-badge:hover {
+        background: #d5d5d5;
+      }
+
+      .header-user-role .role-badge.has-override {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
       }
 
       .header-logout {
-        padding: 8px 18px;
+        padding: 6px 18px;
         background: none;
         border: 1.5px solid #ddd;
         border-radius: 6px;
@@ -107,38 +130,13 @@
         font-family: inherit;
         transition: all 0.2s;
         white-space: nowrap;
+        margin-top: 2px;
       }
 
       .header-logout:hover {
         background: #f5f5f5;
         border-color: #bbb;
         color: #222;
-      }
-
-      .header-user .user-name .role-badge {
-        display: inline-block;
-        background: #e8e8e8;
-        color: #555;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-left: 8px;
-        vertical-align: middle;
-        line-height: normal;
-        cursor: pointer;
-        transition: background 0.15s;
-        position: relative;
-      }
-
-      .header-user .user-name .role-badge:hover {
-        background: #d5d5d5;
-      }
-
-      .header-user .user-name .role-badge.has-override {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
       }
 
       .role-switcher {
@@ -237,22 +235,21 @@
             <div class="header-subtitle">Ministry of Labour &amp; Home Affairs · Department of Occupational Health &amp; Safety</div>
           </div>
         </div>
-        <div class="header-right">            <div class="header-user">
-            <div class="user-name">
-              <span id="userName">Loading...</span>
+        <div class="header-right">
+          <div class="header-user">
+            <div class="header-user-name" id="userName">Loading...</div>
+            <div class="header-user-designation" id="userDesignation"></div>
+            <div class="header-user-role">
               <span class="role-badge" id="userRoleBadge" onclick="toggleRoleSwitcher(event)">
                 <div class="role-switcher" id="roleSwitcher"></div>
               </span>
             </div>
-            <div class="user-meta">
-              <span class="user-designation" id="userDesignation"></span>
-              <!-- Hidden fallback IDs for backward compatibility with page scripts -->
-              <span id="userDept" style="display:none"></span>
-              <span id="userDepartment" style="display:none"></span>
-              <span id="userCompanyName" style="display:none"></span>
-            </div>
+            <button class="header-logout" onclick="handleLogout()">Sign Out</button>
+            <!-- Hidden fallback IDs for backward compatibility with page scripts -->
+            <span id="userDept" style="display:none"></span>
+            <span id="userDepartment" style="display:none"></span>
+            <span id="userCompanyName" style="display:none"></span>
           </div>
-          <button class="header-logout" onclick="handleLogout()">Sign Out</button>
         </div>
       </div>
     `;
