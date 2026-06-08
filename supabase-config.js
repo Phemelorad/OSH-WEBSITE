@@ -48,7 +48,10 @@
                         company_telephone: userData.companyPhone || null,
                         company_owner_name: userData.ownerName || null,
                         company_owner_email: userData.ownerEmail || null,
-                        company_cipa_number: userData.cipaNumber || null
+                        company_cipa_number: userData.cipaNumber || null,
+                        company_plot_number: userData.plotNumber || null,
+                        company_street_name: userData.streetName || null,
+                        company_physical_address: userData.physicalAddress || null
                     }
                 }
             });
@@ -127,7 +130,10 @@
                             telephone: metadata.company_telephone || null,
                             owner_name: metadata.company_owner_name || null,
                             owner_email: metadata.company_owner_email || null,
-                            cipa_number: metadata.company_cipa_number || null
+                            cipa_number: metadata.company_cipa_number || null,
+                            plot_number: metadata.company_plot_number || null,
+                            street_name: metadata.company_street_name || null,
+                            physical_address: metadata.company_physical_address || null
                         };
                         const { data: newCompany, error: ce } = await supabaseClient
                             .from('companies')

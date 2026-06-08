@@ -345,6 +345,14 @@
         const btn = document.createElement('button');
         btn.className = 'osh-nav-btn';
         btn.innerHTML = `${item.label} <span class="osh-caret">▼</span>`;
+        // Add notification badge to parent button if any child has notifications
+        const childNotif = item.children?.find(c => c.notification);
+        if (childNotif) {
+          const badge = document.createElement('span');
+          badge.className = 'notification-badge zero';
+          badge.id = 'parent-notif-' + childNotif.notification;
+          btn.appendChild(badge);
+        }
         btn.addEventListener('click', () => {
           // Toggle on mobile
           li.classList.toggle('open');
@@ -433,6 +441,12 @@
           badge.textContent = pendingCount;
           badge.classList.toggle('zero', pendingCount === 0);
         }
+        // Also update parent nav button badge
+        const parentBadge = document.getElementById('parent-notif-inspection-bookings-pending');
+        if (parentBadge) {
+          parentBadge.textContent = pendingCount;
+          parentBadge.classList.toggle('zero', pendingCount === 0);
+        }
       }
 
       // ── Company-side: responded bookings (read from sessionStorage) ─
@@ -446,6 +460,12 @@
           respondedBadge.classList.toggle('zero', count === 0);
         } catch (e) {
           respondedBadge.classList.add('zero');
+        }
+        // Also update parent nav button badge
+        const parentBadge = document.getElementById('parent-notif-company-bookings-responded');
+        if (parentBadge) {
+          parentBadge.textContent = respondedBadge?.textContent || '0';
+          parentBadge.classList.toggle('zero', respondedBadge?.classList.contains('zero'));
         }
       }
     } catch (e) {

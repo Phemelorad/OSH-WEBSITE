@@ -183,7 +183,9 @@
                 <h2 id="companyName">&mdash;</h2>
                 <div class="company-meta">
                     <span class="company-meta-item">🏭 <strong>Industry:</strong> <span id="companyIndustry">&mdash;</span></span>
-                    <span class="company-meta-item">📍 <strong>Location:</strong> <span id="companyLocation">&mdash;</span></span>
+                    <span class="company-meta-item">📍 <strong>Plot:</strong> <span id="companyPlot">&mdash;</span></span>
+                    <span class="company-meta-item">🛣️ <strong>Street:</strong> <span id="companyStreet">&mdash;</span></span>
+                    <span class="company-meta-item">🏠 <strong>Address:</strong> <span id="companyAddress">&mdash;</span></span>
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
                     <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
                     <span class="company-meta-item">👤 <strong>Owner:</strong> <span id="companyOwner">&mdash;</span></span>
@@ -271,7 +273,9 @@
             if (companyProfile) {
                 document.getElementById('companyName').textContent = companyProfile.company_name || companyName;
                 document.getElementById('companyIndustry').textContent = companyProfile.industry || 'Not specified';
-                document.getElementById('companyLocation').textContent = companyProfile.location || 'Not specified';
+                document.getElementById('companyPlot').textContent = companyProfile.plot_number || '—';
+                document.getElementById('companyStreet').textContent = companyProfile.street_name || '—';
+                document.getElementById('companyAddress').textContent = companyProfile.physical_address || '—';
                 document.getElementById('companyPhone').textContent = companyProfile.telephone || 'Not specified';
                 document.getElementById('companyOwner').textContent = companyProfile.owner_name || 'Not specified';
                 document.getElementById('companyOwnerEmail').textContent = companyProfile.owner_email || 'Not specified';

@@ -506,6 +506,14 @@
                     <input type="text" id="cipaNumber" name="cipaNumber" placeholder="e.g. CIPA/BW/2024/00123">
                     <span class="error-message">Please enter a valid CIPA number</span>
                 </div>
+                <div class="form-group">
+                    <label>📍 Location Details</label>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <input type="text" id="plotNumber" name="plotNumber" placeholder="Plot number (e.g. Plot 12345)" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;width:100%">
+                        <input type="text" id="streetName" name="streetName" placeholder="Street name" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;width:100%">
+                        <input type="text" id="physicalAddress" name="physicalAddress" placeholder="Physical / postal address" style="padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;width:100%">
+                    </div>
+                </div>
                 <h3 style="margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0">Authorised Person / Representative</h3>
                 <div class="form-group">
                     <label for="companyIndustry">Industry Sector</label>
@@ -722,7 +730,7 @@
         // ── Blur validation ────────────────────────────
         ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
          'registerPassword','confirmPassword','location',
-         'companyName','ownerName','ownerEmail','companyPhone','cipaNumber',
+         'companyName','ownerName','ownerEmail','companyPhone','cipaNumber','plotNumber','streetName','physicalAddress',
          'workplaceCompany','employeeId'].forEach(id => {
             const field = document.getElementById(id);
             if (field) {
@@ -888,6 +896,9 @@
                 formData.companyPhone    = document.getElementById('companyPhone').value;
                 formData.cipaNumber      = document.getElementById('cipaNumber').value;
                 formData.industry        = document.getElementById('companyIndustry')?.value || '';
+                formData.plotNumber      = document.getElementById('plotNumber').value;
+                formData.streetName      = document.getElementById('streetName').value;
+                formData.physicalAddress = document.getElementById('physicalAddress').value;
                 formData.department      = 'company';
                 formData.designation     = document.getElementById('designation').value.trim() || 'Employer Representative';
             } else if (selectedRole.value === 'worker') {
