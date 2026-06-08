@@ -351,13 +351,15 @@
     // ── Fallback: build from individual tables ───────────────
     async function loadFromTables() {
         try {
-            const [accRes, insRes, idrRes, clmRes] = await Promise.all([
+            const [compRes, accRes, insRes, idrRes, clmRes] = await Promise.all([
+                SB.from('companies').select('company_name, industry'),
                 SB.from('accident_reports').select('occupier_name, industry_sector, accident_date, injury_fatal, report_type, id').not('occupier_name', 'is', null),
                 SB.from('workplace_inspections').select('factory_name, industry_type, compliance_level, inspection_date, follow_up_required, employees_male, employees_female, id').not('factory_name', 'is', null),
                 SB.from('injury_disease_reports').select('employer_name, incident_type, resulted_death, incident_date, id').not('employer_name', 'is', null),
                 SB.from('injury_claims').select('name_of_employer, industry, status, date_of_injury, incapacity_percentage, id').not('name_of_employer', 'is', null),
             ]);
 
+            const dbCompanies = compRes.data || [];
             const accidents   = accRes.data || [];
             const inspections = insRes.data || [];
             const injuries    = idrRes.data || [];
@@ -387,6 +389,9 @@
                 const c = companyMap.get(key);
                 if (industry && !c.industry) c.industry = industry;
             }
+
+            // Start with all registered companies from the companies table
+            dbCompanies.forEach(c => addCompany(c.company_name, c.industry));
 
             accidents.forEach(a => {
                 addCompany(a.occupier_name, a.industry_sector);

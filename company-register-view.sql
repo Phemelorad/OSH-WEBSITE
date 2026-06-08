@@ -9,15 +9,23 @@
 
 CREATE OR REPLACE VIEW company_register_view AS
 WITH companies AS (
+    -- Registered companies (from the companies table — includes those with no incidents)
+    SELECT DISTINCT company_name AS company_name, industry AS industry
+    FROM companies WHERE company_name IS NOT NULL AND company_name != ''
+    UNION
+    -- Companies found in accident reports
     SELECT DISTINCT occupier_name AS company_name, industry_sector AS industry
     FROM accident_reports WHERE occupier_name IS NOT NULL AND occupier_name != ''
     UNION
+    -- Companies found in workplace inspections
     SELECT DISTINCT factory_name AS company_name, industry_type AS industry
     FROM workplace_inspections WHERE factory_name IS NOT NULL AND factory_name != ''
     UNION
+    -- Companies found in injury/disease reports
     SELECT DISTINCT employer_name AS company_name, NULL::TEXT AS industry
     FROM injury_disease_reports WHERE employer_name IS NOT NULL AND employer_name != ''
     UNION
+    -- Companies found in compensation claims
     SELECT DISTINCT name_of_employer AS company_name, industry AS industry
     FROM injury_claims WHERE name_of_employer IS NOT NULL AND name_of_employer != ''
 )
