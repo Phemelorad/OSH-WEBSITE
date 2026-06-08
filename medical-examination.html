@@ -554,6 +554,7 @@
                 opt.dataset.fileNumber = c.file_number || '';
                 opt.dataset.nature = c.nature || '';
                 opt.dataset.employer = c.name_of_employer || '';
+                opt.dataset.registryId = c.worker_registry_id || '';
                 select.appendChild(opt);
             });
         } catch (e) {
@@ -612,9 +613,16 @@
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
             const claimId = document.getElementById('claimLookup').value || null;
+            let workerRegistryId = null;
+            if (claimId) {
+                const sel = document.getElementById('claimLookup');
+                const opt = sel.options[sel.selectedIndex];
+                workerRegistryId = opt?.dataset?.registryId || null;
+            }
 
             const payload = {
                 claim_id:                       claimId,
+                worker_registry_id:             workerRegistryId,
                 worker_name:                    g('workerName'),
                 worker_id_number:               g('workerIdNumber'),
                 claim_file_number:              g('claimFileNumber'),
@@ -680,7 +688,10 @@
     window.addEventListener('load', async function() {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
-        checkPageAccess();
+        if (currentUserRole === 'worker' || currentUserRole === 'company' || currentUserRole === 'viewer') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
 
         const ur = await getCurrentUser();
         if (ur.success && ur.user) {

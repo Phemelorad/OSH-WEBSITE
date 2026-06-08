@@ -291,7 +291,7 @@
         const rawId = document.getElementById('idInput').value.trim();
         if (!rawId) return;
 
-        const normId = normalizeIdentityId(rawId);
+        const normId = (window.normalizeIdentityId || function(v){return v.trim().toUpperCase().replace(/\s+/g,'');})(rawId);
 
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('noResultsState').style.display = 'none';
