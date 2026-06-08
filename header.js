@@ -126,6 +126,80 @@
         margin-left: 8px;
         vertical-align: middle;
         line-height: normal;
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
+      }
+
+      .header-user .user-name .role-badge:hover {
+        background: #d5d5d5;
+      }
+
+      .header-user .user-name .role-badge.has-override {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .role-switcher {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        min-width: 180px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        z-index: 700;
+        overflow: hidden;
+        margin-top: 4px;
+      }
+
+      .role-switcher.open {
+        display: block;
+      }
+
+      .role-switcher-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #444;
+        cursor: pointer;
+        transition: background 0.12s;
+        border-bottom: 1px solid #f5f5f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .role-switcher-item:last-child {
+        border-bottom: none;
+      }
+
+      .role-switcher-item:hover {
+        background: #f5f5f5;
+      }
+
+      .role-switcher-item.active {
+        background: #f0f0f0;
+        font-weight: 700;
+        color: #111;
+      }
+
+      .role-switcher-item .rs-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: inline-block;
+      }
+
+      .role-switcher-divider {
+        border: none;
+        border-top: 1px solid #eee;
+        margin: 0;
       }
 
       @media (max-width: 768px) {
@@ -163,11 +237,12 @@
             <div class="header-subtitle">Ministry of Labour &amp; Home Affairs · Department of Occupational Health &amp; Safety</div>
           </div>
         </div>
-        <div class="header-right">
-          <div class="header-user">
+        <div class="header-right">            <div class="header-user">
             <div class="user-name">
               <span id="userName">Loading...</span>
-              <span class="role-badge" id="userRoleBadge"></span>
+              <span class="role-badge" id="userRoleBadge" onclick="toggleRoleSwitcher(event)">
+                <div class="role-switcher" id="roleSwitcher"></div>
+              </span>
             </div>
             <div class="user-meta">
               <span class="user-designation" id="userDesignation"></span>
@@ -203,6 +278,115 @@
   } else {
     inject();
   }
+
+  // ── Build role switcher dropdown contents ────────────────
+  function buildRoleSwitcher() {
+    const sw = document.getElementById('roleSwitcher');
+    if (!sw) return;
+
+    const roles = ['viewer', 'worker', 'company', 'medical_practitioner', 'officer', 'admin', 'super_admin'];
+    const labels = {
+      viewer: '👁 Viewer', worker: '👷 Worker', company: '🏢 Employer',
+      medical_practitioner: '🩺 Medical Practitioner', officer: '👮 Officer',
+      admin: '⚙ Admin', super_admin: '🔧 Super Admin'
+    };
+    const colors = {
+      viewer: '#e2e3e5', worker: '#cce5ff', company: '#cce5ff',
+      medical_practitioner: '#e8d5f5', officer: '#d1ecf1',
+      admin: '#fff3cd', super_admin: '#d4edda'
+    };
+
+    let currentRole = '';
+    try {
+      // Use the exported getter (let doesn't create window property)
+      if (window.RolePermissions?.getCurrentUserRole) {
+        const r = window.RolePermissions.getCurrentUserRole();
+        if (r) currentRole = r;
+      }
+      // Fallback: read from cached profile
+      if (!currentRole) {
+        const cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
+        if (cached) currentRole = cached.role || '';
+      }
+    } catch (e) {}
+
+    const hasOverride = window.hasRoleOverride ? window.hasRoleOverride() : false;
+
+    // Role items
+    roles.forEach(role => {
+      const item = document.createElement('div');
+      item.className = 'role-switcher-item' + (role === currentRole ? ' active' : '');
+      item.innerHTML = `<span class="rs-dot" style="background:${colors[role] || '#ccc'}"></span> ${labels[role] || role}`;
+      item.onclick = function(e) {
+        e.stopPropagation();
+        closeRoleSwitcher();
+        if (role !== currentRole) {
+          window.switchRole(role);
+        }
+      };
+      sw.appendChild(item);
+    });
+
+    // Divider + Reset option (only show if override is active)
+    if (hasOverride) {
+      const divider = document.createElement('hr');
+      divider.className = 'role-switcher-divider';
+      sw.appendChild(divider);
+
+      const reset = document.createElement('div');
+      reset.className = 'role-switcher-item';
+      reset.innerHTML = '↩ Reset to real role';
+      reset.onclick = function(e) {
+        e.stopPropagation();
+        closeRoleSwitcher();
+        window.clearRoleOverride();
+      };
+      sw.appendChild(reset);
+    }
+  }
+
+  // ── Toggle role switcher ──────────────────────────────────
+  window.toggleRoleSwitcher = function(e) {
+    e.stopPropagation();
+    const sw = document.getElementById('roleSwitcher');
+    if (!sw) return;
+    // Build contents once
+    if (!sw.children.length) {
+      buildRoleSwitcher();
+    }
+    sw.classList.toggle('open');
+  };
+
+  function closeRoleSwitcher() {
+    const sw = document.getElementById('roleSwitcher');
+    if (sw) sw.classList.remove('open');
+  }
+
+  // Close on click outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.role-badge')) {
+      closeRoleSwitcher();
+    }
+  });
+
+  // Mark badge if override is active
+  function markOverrideBadge() {
+    const badge = document.getElementById('userRoleBadge');
+    if (badge && window.hasRoleOverride && window.hasRoleOverride()) {
+      badge.classList.add('has-override');
+    }
+  }
+
+  // Wait for role badge to be populated before marking
+  const badgeObserver = new MutationObserver(function() {
+    markOverrideBadge();
+  });
+  const badgeEl = document.getElementById('userRoleBadge');
+  if (badgeEl) {
+    badgeObserver.observe(badgeEl, { childList: true, subtree: true, characterData: true });
+  }
+  // Also try immediately
+  setTimeout(markOverrideBadge, 500);
 
   console.log('DOSH header loaded');
 })();

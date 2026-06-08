@@ -72,6 +72,44 @@ const PERMISSIONS = {
 let currentUserRole = null;
 let currentUserId = null;
 
+// ── Dev role override ──────────────────────────────────────
+// Allows a developer to quickly test different roles using a single account.
+// Stores the desired role in sessionStorage; cleared on logout.
+const DEV_ROLE_KEY = 'dev_role_override';
+
+// Switch to a different role (dev/testing only — no database changes)
+// Sets the override in sessionStorage and reloads the page.
+window.switchRole = function(role) {
+    if (!role) return;
+    sessionStorage.setItem(DEV_ROLE_KEY, role);
+    window.location.reload();
+};
+
+// Clear the dev role override and reload to the user's real role
+window.clearRoleOverride = function() {
+    sessionStorage.removeItem(DEV_ROLE_KEY);
+    window.location.reload();
+};
+
+// Check if a dev role override is active
+window.hasRoleOverride = function() {
+    try {
+        return !!sessionStorage.getItem(DEV_ROLE_KEY);
+    } catch (e) { return false; }
+};
+
+// Get the current effective role (considering any dev override)
+function getEffectiveRole(realRole) {
+    try {
+        const override = sessionStorage.getItem(DEV_ROLE_KEY);
+        if (override && ['viewer','worker','officer','admin','super_admin','company','medical_practitioner'].includes(override)) {
+            console.log('Dev role override active:', override, '(real role:', realRole + ')');
+            return override;
+        }
+    } catch (e) {}
+    return realRole;
+}
+
 // Initialize role system — reads from sessionStorage cache first for instant load
 async function initializeRoleSystem() {
     try {
@@ -79,7 +117,7 @@ async function initializeRoleSystem() {
         const cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
         if (cached && cached.user_id && cached.role) {
             currentUserId = cached.user_id;
-            currentUserRole = cached.role;
+            currentUserRole = getEffectiveRole(cached.role);
             console.log('User role (from cache):', currentUserRole);
             updateHeaderDisplay(cached);
             updateUIForRole();
@@ -99,7 +137,7 @@ async function initializeRoleSystem() {
 
         const profileResult = await getUserProfile(currentUserId);
         if (profileResult.success && profileResult.data) {
-            currentUserRole = profileResult.data.role || 'viewer';
+            currentUserRole = getEffectiveRole(profileResult.data.role || 'viewer');
             console.log('User role (from API):', currentUserRole);
 
             // Enrich with company name for company users
@@ -185,9 +223,10 @@ async function refreshUserProfileInBackground() {
             // Enrich with company name for company users
             await enrichProfileWithCompanyName(profileResult.data);
 
-            // Update role if it changed
-            if (profileResult.data.role !== currentUserRole) {
-                currentUserRole = profileResult.data.role;
+            // Respect dev role override — use effective role
+            const effective = getEffectiveRole(profileResult.data.role);
+            if (effective !== currentUserRole) {
+                currentUserRole = effective;
                 updateUIForRole();
             }
             if (window.cacheUserProfile) {
@@ -463,6 +502,9 @@ function checkPageAccess() {
     return true;
 }
 
+// All available roles for the dev switcher
+const ALL_ROLES = ['viewer', 'worker', 'company', 'medical_practitioner', 'officer', 'admin', 'super_admin'];
+
 // Export for use in other scripts
 if (typeof window !== 'undefined') {
     window.RolePermissions = {
@@ -482,7 +524,8 @@ if (typeof window !== 'undefined') {
         getRoleColor,
         checkPageAccess,
         getCurrentUserRole: () => currentUserRole,
-        getCurrentUserId: () => currentUserId
+        getCurrentUserId: () => currentUserId,
+        ALL_ROLES
     };
 }
 
