@@ -160,7 +160,8 @@ async function initializeRoleSystem() {
 }
 
 // Populate header display from profile data (name, role badge, designation)
-// Always shows: Name [Role] · Designation (or company name for company users)
+// For company users, Row 1 shows the company name and Row 2 shows the person's name.
+// For other roles, Row 1 shows the person's name and Row 2 shows their designation (if any).
 // NOTE: #userName is a <span> sibling of #userRoleBadge — page scripts can safely
 // set userName.textContent without destroying the badge element.
 function updateHeaderDisplay(profile) {
@@ -168,20 +169,27 @@ function updateHeaderDisplay(profile) {
     const nameEl = document.getElementById('userName');
     const desigEl = document.getElementById('userDesignation');
 
-    // Set name
     const fullName = (profile.first_name + ' ' + profile.surname).trim();
-    if (nameEl && fullName) {
-        nameEl.textContent = fullName;
-    }
 
-    // Set designation (if present), otherwise show company name for company users
-    if (desigEl) {
-        if (profile.designation) {
-            desigEl.textContent = profile.designation;
-        } else if (profile.role === 'company') {
-            desigEl.textContent = profile.company_name || 'Company';
-        } else {
-            desigEl.textContent = '';
+    if (profile.role === 'company') {
+        // Row 1: Company name, Row 2: Person's name
+        if (nameEl) {
+            nameEl.textContent = profile.company_name || fullName || 'Company';
+        }
+        if (desigEl) {
+            desigEl.textContent = fullName || '';
+        }
+    } else {
+        // Row 1: Person's name, Row 2: Designation (if any)
+        if (nameEl && fullName) {
+            nameEl.textContent = fullName;
+        }
+        if (desigEl) {
+            if (profile.designation) {
+                desigEl.textContent = profile.designation;
+            } else {
+                desigEl.textContent = '';
+            }
         }
     }
 }
