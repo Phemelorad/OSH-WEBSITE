@@ -493,7 +493,7 @@
             { id:'companyStreet', key:'street_name' },
             { id:'companyAddress', key:'physical_address' },
             { id:'companyPhone', key:'telephone' },
-            // cipa_number excluded — column may not exist in DB schema yet
+            { id:'companyCipa', key:'cipa_number' },
         ];
 
         fields.forEach(f => {
@@ -552,8 +552,8 @@
                 street_name:       document.getElementById('companyStreet')?.value?.trim() || null,
                 physical_address:  document.getElementById('companyAddress')?.value?.trim() || null,
                 telephone:         document.getElementById('companyPhone')?.value?.trim() || null,
+                cipa_number:       document.getElementById('companyCipa')?.value?.trim() || null,
             };
-            // NOTE: cipa_number excluded — column may not exist in DB schema yet
 
             const { error } = await SB.from('companies').update(updates).eq('id', companyProfile.id);
 
@@ -569,8 +569,7 @@
                 companyStreet:   updates.street_name || '—',
                 companyAddress:  updates.physical_address || '—',
                 companyPhone:    updates.telephone || 'Not specified',
-                // CIPA is display-only — preserve the current displayed value from the DOM
-                companyCipa:     document.getElementById('companyCipa')?.textContent || 'Not provided',
+                companyCipa:     updates.cipa_number || 'Not provided',
             };
 
             Object.keys(displayLabels).forEach(id => {
