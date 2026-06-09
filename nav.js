@@ -377,7 +377,7 @@
         label: 'Medical Exams',
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
-          { id: 'medical-examination', icon: '\uD83D\uDCDD', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
+          { id: 'medical-examination', icon: '', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
         ]
       },
       {
@@ -457,7 +457,7 @@
           const a = document.createElement('a');
           a.href = child.href;
           a.className = child.id === active ? 'active' : '';
-          a.innerHTML = `<span class=\"dd-icon\">${child.icon}</span>${child.label}`;
+          a.innerHTML = (child.icon ? `<span class=\"dd-icon\">${child.icon}</span>` : '') + child.label;
           // Add notification badge if configured
           if (child.notification) {
             const badge = document.createElement('span');
