@@ -379,8 +379,14 @@
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
           { id: 'medical-examination', icon: '', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
-          { id: 'clientele', icon: '\uD83D\uDC65', label: 'My Clientele', href: 'clientele.html' },
         ]
+      },
+      {
+        id: 'clientele',
+        label: '\uD83D\uDC65 Clientele',
+        href: 'clientele.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
       },
       {
         id: 'company-register',
