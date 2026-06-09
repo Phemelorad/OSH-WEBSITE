@@ -447,11 +447,42 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr class="sched-row" data-code="total_disablement" data-pct="100">
+                    <tr class="sched-row" data-code="two_limbs" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of two limbs / both hands / both feet / total loss of sight / total paralysis / any other injury causing permanent total disablement / permanently bedridden</td>
+                      <td class="desc">Loss of two limbs</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
+                    <tr class="sched-row" data-code="both_hands" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of both hands or all fingers and thumbs</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="both_feet" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of both feet</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="total_sight_loss" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Total loss of sight</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="total_paralysis" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Total paralysis</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="perm_total_disablement" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Any other injury causing permanent total disablement</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="bedridden" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Injuries resulting in being permanently bedridden</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
+                    </tr>
+                    <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
                     <tr class="sched-row" data-code="arm_shoulder" data-pct="70">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">Loss of arm at shoulder</td>
@@ -467,81 +498,168 @@
                       <td class="desc">Loss of arm at elbow</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 55</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="arm_wrist" data-pct="50">
+                    <tr class="sched-row" data-code="arm_wrist_elbow" data-pct="50">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of arm between wrist and elbow / Loss of hand at wrist / Loss of four fingers and thumb on one hand / Total loss of hearing</td>
+                      <td class="desc">Loss of arm between wrist and elbow</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 50</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="hand_wrist" data-pct="50">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of hand at wrist</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 50</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="four_fingers_thumb" data-pct="50">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of four fingers and thumb on one hand</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 50</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="four_fingers" data-pct="35">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of four fingers</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 35</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="thumb_both" data-pct="35">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of thumb — both phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 35</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="thumb_one" data-pct="10">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— one phalange</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 10</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="index_three" data-pct="10">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of index finger — three phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 10</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="index_two" data-pct="8">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— two phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 8</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="index_one" data-pct="4">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— one phalange</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 4</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="middle_three" data-pct="6">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of middle finger — three phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 6</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="middle_two" data-pct="4">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— two phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 4</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="middle_one" data-pct="2">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— one phalange</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="ring_three" data-pct="5">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of ring finger — three phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 5</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="ring_two" data-pct="4">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— two phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 4</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="ring_one" data-pct="2">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— one phalange</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="little_three" data-pct="4">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of little finger — three phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 4</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="little_two" data-pct="3">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— two phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 3</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="little_one" data-pct="2">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— one phalange</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="metacarpal_first" data-pct="3">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of metacarpals — first or second</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 3</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="metacarpal_third" data-pct="2">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— third, fourth or fifth (additional)</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
+                    </tr>
+                    <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
+                    <tr class="sched-row" data-code="leg_above_knee" data-pct="70">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of leg — at or above knee</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 70</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="leg_below_knee" data-pct="60">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— below knee</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 60</span></td>
                     </tr>
                     <tr class="sched-row" data-code="foot" data-pct="40">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">Loss of foot</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 40</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="four_fingers" data-pct="35">
+                    <tr class="sched-row" data-code="toes_all" data-pct="15">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of four fingers / Loss of thumb (both phalanges)</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 35</span></td>
+                      <td class="desc">Loss of toes — all of one foot</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 15</span></td>
                     </tr>
+                    <tr class="sched-row" data-code="toe_great_both" data-pct="5">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— great, both phalanges</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 5</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="toe_great_one" data-pct="2">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— great, one phalange</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
+                    </tr>
+                    <tr class="sched-row" data-code="toe_other" data-pct="1">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc" style="padding-left:24px">— other than great, if more than one toe lost — each</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 1</span></td>
+                    </tr>
+                    <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
                     <tr class="sched-row" data-code="sight_one_eye" data-pct="30">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">Loss of sight of one eye</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 30</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="all_toes" data-pct="15">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of all toes of one foot</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 15</span></td>
-                    </tr>
                     <tr class="sched-row" data-code="hearing_one_ear" data-pct="10">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of hearing in one ear / Loss of thumb (one phalange) / Loss of index finger (three phalanges)</td>
+                      <td class="desc">Loss of hearing in one ear</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 10</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="index_two" data-pct="8">
+                    <tr class="sched-row" data-code="total_hearing_loss" data-pct="50">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of index finger (two phalanges)</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 8</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="middle_three" data-pct="6">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of middle finger (three phalanges)</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 6</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="toe_great_both" data-pct="5">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of great toe (both phalanges) / Loss of ring finger (three phalanges)</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 5</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="index_one" data-pct="4">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of index finger (one phalange) / Loss of middle finger (two phalanges) / Loss of ring finger (two phalanges) / Loss of little finger (three phalanges)</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 4</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="little_two" data-pct="3">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of little finger (two phalanges) / Loss of first or second metacarpal</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 3</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="toe_great_one" data-pct="2">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of great toe (one phalange) / Loss of middle finger (one phalange) / Loss of ring finger (one phalange) / Loss of little finger (one phalange) / Loss of third, fourth or fifth metacarpal</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="toe_other" data-pct="1">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of each toe (other than great) if more than one toe lost</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 1</span></td>
+                      <td class="desc">Total loss of hearing</td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 50</span></td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
               <div class="schedule-note">
-                <strong style="font-size:13px;color:#333">Additional Incapacity Awards — tick and enter the percentage awarded</strong>
+                <strong style="font-size:13px;color:#333">Schedule Notes — tick and enter the percentage awarded</strong>
 
                 <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
                   <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
-                  <span class="note-text">Scars from injuries or burns which result in disfigurement — according to size and location</span>
+                  <span class="note-text">Scars from injuries or burns which result in disfigurement shall be treated as resulting in from 0 to 50% permanent incapacity according to their size and location.</span>
                   <span class="note-award">
                     <input type="number" class="note-pct" placeholder="0" min="0" max="50" step="0.01" disabled>
                     <span class="note-max">Max 50%</span>
@@ -550,7 +668,16 @@
 
                 <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
                   <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
-                  <span class="note-text">Total loss of a sexual organ or other internal organ — depending on location and effects</span>
+                  <span class="note-text">Total permanent loss of the use of a member shall be treated as loss of such member.</span>
+                  <span class="note-award">
+                    <input type="number" class="note-pct" placeholder="0" min="0" max="100" step="0.01" disabled>
+                    <span class="note-max">Max 100%</span>
+                  </span>
+                </div>
+
+                <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
+                  <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
+                  <span class="note-text">The total loss of a sexual organ or other internal organ shall be treated as resulting in from 0 to 75% of the incapacity depending on the location and effects of such loss.</span>
                   <span class="note-award">
                     <input type="number" class="note-pct" placeholder="0" min="0" max="75" step="0.01" disabled>
                     <span class="note-max">Max 75%</span>
@@ -559,17 +686,28 @@
 
                 <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
                   <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
-                  <span class="note-text">Ankylosis of any joint — 25 to 100% of the incapacity for loss of that joint, according to position (favorable or unfavorable)</span>
+                  <span class="note-text">The percentage of incapacity for ankyloses of any joint shall be reckoned as from 25 to 100% of the incapacity for loss of the part of that joint, according to whether the joint is ankylosed in a favorable or unfavorable position.</span>
                   <span class="note-award">
                     <input type="number" class="note-pct" placeholder="0" min="0" max="100" step="0.01" disabled>
                     <span class="note-max">Max 100%</span>
                   </span>
                 </div>
 
-                <div class="note-item">
-                  <span class="note-text" style="font-style:italic;color:#999">
-                    <strong style="color:#888">Also:</strong>
-                    Total permanent loss of the use of a member shall be treated as loss of such member. Loss of two or more parts of the hand: not more than loss of whole hand. Injuries not in this schedule assessed in relation to the specified percentages.
+                <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
+                  <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
+                  <span class="note-text">Where there is a loss of two or more parts of the hand, the percentage of incapacity shall not be more than for the loss of the whole hand.</span>
+                  <span class="note-award">
+                    <input type="number" class="note-pct" placeholder="0" min="0" max="100" step="0.01" disabled>
+                    <span class="note-max">Max 100%</span>
+                  </span>
+                </div>
+
+                <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
+                  <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
+                  <span class="note-text">Injuries which result in permanent incapacity but which are not included in this schedule shall be assessed in relation to the percentages of incapacity specified in this schedule, whenever possible.</span>
+                  <span class="note-award">
+                    <input type="number" class="note-pct" placeholder="0" min="0" max="100" step="0.01" disabled>
+                    <span class="note-max">Max 100%</span>
                   </span>
                 </div>
               </div>
@@ -740,7 +878,7 @@
             let code = 'note_award';
             if (text.includes('Scars')) code = 'scars_disfigurement';
             else if (text.includes('sexual organ') || text.includes('internal organ')) code = 'organ_loss';
-            else if (text.includes('Ankylosis')) code = 'ankylosis';
+            else if (text.toLowerCase().includes('ankylos')) code = 'ankylosis';
 
             items.push({
                 code: code,
