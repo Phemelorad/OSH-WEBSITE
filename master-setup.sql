@@ -529,6 +529,26 @@ CREATE TABLE IF NOT EXISTS medical_examination_reports (
 
 COMMENT ON TABLE medical_examination_reports IS 'BL Form 43/03 — Report of Results of Medical Examination (Worker''s Compensation Act, Section 10)';
 
+-- ── 3i. Practitioner clients (clientele tracking) ──────────
+CREATE TABLE IF NOT EXISTS practitioner_clients (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+
+    practitioner_id     UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    worker_registry_id  UUID REFERENCES workers_registry(id) ON DELETE SET NULL,
+
+    worker_name         TEXT NOT NULL,
+    worker_id_number    TEXT,
+    last_exam_date      DATE,
+    notes               TEXT,
+
+    created_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE practitioner_clients IS 'Tracks which medical practitioners have examined which workers (clientele)';
+COMMENT ON COLUMN practitioner_clients.practitioner_id IS 'The medical practitioner who examined the worker';
+COMMENT ON COLUMN practitioner_clients.worker_registry_id IS 'Reference to the worker in the registry';
+
 -- ============================================================
 --  SECTION 4 — CONSTRAINT FIXES & MIGRATIONS
 --     (These are safe to run even if constraints already exist)
@@ -689,6 +709,11 @@ CREATE INDEX IF NOT EXISTS idx_ib_status         ON inspection_bookings(status);
 CREATE INDEX IF NOT EXISTS idx_ib_company_id     ON inspection_bookings(company_id);
 CREATE INDEX IF NOT EXISTS idx_ib_submitted_by   ON inspection_bookings(submitted_by);
 
+-- Practitioner clients
+CREATE INDEX IF NOT EXISTS idx_pc_practitioner_id    ON practitioner_clients(practitioner_id);
+CREATE INDEX IF NOT EXISTS idx_pc_worker_registry_id ON practitioner_clients(worker_registry_id);
+CREATE INDEX IF NOT EXISTS idx_pc_created_at         ON practitioner_clients(created_at DESC);
+
 -- Medical examination reports
 CREATE INDEX IF NOT EXISTS idx_mer_claim_id           ON medical_examination_reports(claim_id);
 CREATE INDEX IF NOT EXISTS idx_mer_worker_registry_id ON medical_examination_reports(worker_registry_id);
@@ -734,6 +759,7 @@ ALTER TABLE workplace_inspections      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workers_registry           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE inspection_bookings        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE medical_examination_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE practitioner_clients     ENABLE ROW LEVEL SECURITY;
 
 -- ── 7b. Departments ─────────────────────────────────────────
 DROP POLICY IF EXISTS "Authenticated users can view departments" ON departments;
@@ -1022,6 +1048,23 @@ CREATE POLICY "Users can update own medical reports"
     USING (auth.uid() = submitted_by)
     WITH CHECK (auth.uid() = submitted_by);
 
+-- ── 7q. Practitioner clients ──────────────────────────────
+DROP POLICY IF EXISTS "Practitioners can view own clients" ON practitioner_clients;
+DROP POLICY IF EXISTS "Practitioners can insert own clients" ON practitioner_clients;
+DROP POLICY IF EXISTS "Practitioners can delete own clients" ON practitioner_clients;
+
+CREATE POLICY "Practitioners can view own clients"
+    ON practitioner_clients FOR SELECT TO authenticated
+    USING (auth.uid() = practitioner_id);
+
+CREATE POLICY "Practitioners can insert own clients"
+    ON practitioner_clients FOR INSERT TO authenticated
+    WITH CHECK (auth.uid() = practitioner_id);
+
+CREATE POLICY "Practitioners can delete own clients"
+    ON practitioner_clients FOR DELETE TO authenticated
+    USING (auth.uid() = practitioner_id);
+
 -- ============================================================
 --  SECTION 8 — FUNCTIONS & TRIGGERS
 -- ============================================================
@@ -1074,6 +1117,11 @@ CREATE TRIGGER update_workers_registry_updated_at
 DROP TRIGGER IF EXISTS update_inspection_bookings_updated_at ON inspection_bookings;
 CREATE TRIGGER update_inspection_bookings_updated_at
     BEFORE UPDATE ON inspection_bookings FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_practitioner_clients_updated_at ON practitioner_clients;
+CREATE TRIGGER update_practitioner_clients_updated_at
+    BEFORE UPDATE ON practitioner_clients FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
 DROP TRIGGER IF EXISTS update_mer_updated_at ON medical_examination_reports;
@@ -1774,6 +1822,7 @@ GRANT SELECT, INSERT, UPDATE ON workers_registry            TO authenticated;
 GRANT SELECT, INSERT       ON inspection_bookings           TO authenticated;
 GRANT UPDATE               ON inspection_bookings           TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON medical_examination_reports TO authenticated;
+GRANT SELECT, INSERT, DELETE ON practitioner_clients       TO authenticated;
 
 -- Views
 GRANT SELECT ON accident_report_view       TO authenticated;

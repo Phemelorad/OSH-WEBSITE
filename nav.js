@@ -17,6 +17,7 @@
 //   worker-profile          → worker-profile.html
 //   worker-claims           → worker-claims.html
 //   medical-examination     → medical-examination.html
+//   clientele               → clientele.html
 //   admin                   → admin.html
 //   company-book-inspection → company-book-inspection.html
 //   company-monitoring      → company-monitoring.html
@@ -378,6 +379,7 @@
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
           { id: 'medical-examination', icon: '', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
+          { id: 'clientele', icon: '\uD83D\uDC65', label: 'My Clientele', href: 'clientele.html' },
         ]
       },
       {

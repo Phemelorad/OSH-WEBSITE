@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Clientele - Medical Practitioner</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-department { font-size: 14px; color: #666; }
+        .logout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+
+        /* ── Section titles ────────────────────────── */
+        .section-title {
+            font-size: 16px; font-weight: 700; color: #333;
+            padding: 12px 16px; margin-bottom: 16px;
+            background: #f5f5f5; border-left: 4px solid #333;
+            border-radius: 0 6px 6px 0;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title.blue { border-left-color: #0c5460; background: #f0fafc; color: #0c5460; }
+        .section-title.green { border-left-color: #27ae60; background: #eafaf1; color: #1a7a4a; }
+
+        /* ── Card ──────────────────────────────────── */
+        .card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 24px; margin-bottom: 24px;
+        }
+
+        /* ── Search ────────────────────────────────── */
+        .search-row {
+            display: flex; gap: 10px; align-items: stretch; margin-bottom: 16px;
+        }
+        .search-row input {
+            flex: 1; padding: 12px 16px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .search-row input:focus { outline: none; border-color: #333; }
+        .search-btn {
+            padding: 12px 24px;
+            background: #333; color: white;
+            border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: background 0.2s; white-space: nowrap;
+        }
+        .search-btn:hover { background: #111; }
+        .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .search-tabs {
+            display: flex; gap: 0; margin-bottom: 12px;
+            border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden;
+        }
+        .search-tab {
+            flex: 1; padding: 8px 16px; border: none; background: white;
+            font-size: 13px; font-weight: 600; color: #666;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .search-tab.active { background: #333; color: white; }
+        .search-tab:hover:not(.active) { background: #f5f5f5; }
+
+        .search-status {
+            font-size: 13px; margin-top: 8px; min-height: 20px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .search-status.found   { color: #155724; }
+        .search-status.notfound { color: #856404; }
+        .search-status.error   { color: #721c24; }
+        .search-status.loading { color: #888; }
+
+        /* ── Worker profile banner ─────────────────── */
+        .worker-banner {
+            display: none; margin-top: 12px;
+            padding: 16px 20px;
+            background: #d4edda; border: 1px solid #c3e6cb;
+            border-radius: 10px;
+        }
+        .worker-banner.show { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+        .worker-banner .wb-avatar {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #333; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 700; flex-shrink: 0;
+        }
+        .worker-banner .wb-info { flex: 1; min-width: 200px; }
+        .worker-banner .wb-name { font-size: 16px; font-weight: 700; color: #155724; }
+        .worker-banner .wb-details { font-size: 13px; color: #555; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .worker-banner .wb-chip {
+            display: inline-block; background: rgba(0,0,0,0.08);
+            padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;
+        }
+        .worker-banner .wb-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-sm {
+            padding: 8px 16px; border-radius: 6px;
+            font-size: 12px; font-weight: 600; font-family: inherit;
+            cursor: pointer; border: 1.5px solid #ddd;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-sm:hover { transform: translateY(-1px); }
+        .btn-sm.primary { background: #333; color: white; border-color: #333; }
+        .btn-sm.primary:hover { background: #111; }
+        .btn-sm.primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-sm.danger { background: #fff; color: #dc3545; border-color: #dc3545; }
+        .btn-sm.danger:hover { background: #dc3545; color: white; }
+
+        /* ── Past reports table ────────────────────── */
+        .reports-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .reports-table th {
+            background: #f5f5f5; padding: 10px 12px; text-align: left;
+            font-size: 11px; font-weight: 700; color: #444;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .reports-table td {
+            padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #555;
+        }
+        .reports-table tr:hover td { background: #f8f9fb; }
+        .reports-table .status-badge {
+            display: inline-block; padding: 2px 10px; border-radius: 10px;
+            font-size: 11px; font-weight: 600;
+        }
+        .reports-table .status-badge.draft { background: #fff3cd; color: #856404; }
+        .reports-table .status-badge.submitted { background: #d4edda; color: #155724; }
+        .empty-state { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+
+        /* ── Clientele list ────────────────────────── */
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .client-card {
+            background: white; border-radius: 10px;
+            border: 1px solid #e8e8e8; padding: 16px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .client-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-color: #ccc;
+        }
+        .client-card .cc-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .client-card .cc-name { font-size: 15px; font-weight: 700; color: #333; }
+        .client-card .cc-id { font-size: 12px; color: #888; margin-top: 2px; }
+        .client-card .cc-meta { font-size: 12px; color: #888; margin-top: 8px; }
+        .client-card .cc-actions { margin-top: 10px; display: flex; gap: 6px; }
+        .client-card .cc-remove {
+            padding: 4px 10px; border: 1px solid #e0e0e0; border-radius: 4px;
+            background: white; color: #999; font-size: 11px; cursor: pointer;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .client-card .cc-remove:hover { background: #fee; color: #dc3545; border-color: #dc3545; }
+        .client-card .cc-reports-count {
+            font-size: 11px; color: #3498db; font-weight: 600;
+        }
+
+        .loading { text-align: center; padding: 60px; color: #666; }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            .search-row { flex-direction: column; }
+            .client-grid { grid-template-columns: 1fr; }
+            .worker-banner.show { flex-direction: column; }
+            .worker-banner .wb-actions { width: 100%; }
+            .worker-banner .wb-actions .btn-sm { flex: 1; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>👥 My Clientele</h1>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-department" id="userDepartment">Medical Practitioner</div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'clientele';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+
+        <!-- ── Search Section ──────────────────────────── -->
+        <div class="section-title blue">🔍 Search Worker by ID / Passport</div>
+        <div class="card">
+            <div class="search-tabs">
+                <button class="search-tab active" id="tabOmang" onclick="setSearchType('Omang')">🪪 Omang (National ID)</button>
+                <button class="search-tab" id="tabPassport" onclick="setSearchType('Passport')">📘 Passport</button>
+            </div>
+            <div class="search-row">
+                <input type="text" id="searchInput"
+                       placeholder="Enter Omang number…"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();searchWorker()}"
+                       autocomplete="off">
+                <button class="search-btn" id="searchBtn" onclick="searchWorker()">🔍 Search</button>
+            </div>
+            <div class="search-status" id="searchStatus"></div>
+
+            <!-- Worker found banner -->
+            <div class="worker-banner" id="workerBanner">
+                <div class="wb-avatar" id="wbAvatar">?</div>
+                <div class="wb-info">
+                    <div class="wb-name" id="wbName"></div>
+                    <div class="wb-details" id="wbDetails"></div>
+                </div>
+                <div class="wb-actions">
+                    <button class="btn-sm primary" id="btnAddClient" onclick="addToClientele()">➕ Add to Clientele</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Past Reports ───────────────────────────── -->
+        <div id="pastReportsSection" style="display:none">
+            <div class="section-title blue">📋 Past Medical Examination Reports</div>
+            <div class="card">
+                <div id="pastReportsContent">
+                    <div class="empty-state">Search for a worker to see their past reports.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── My Clientele ────────────────────────────── -->
+        <div class="section-title green">👥 My Clientele</div>
+        <div class="card">
+            <div id="clienteleContent">
+                <div class="loading">Loading your clientele…</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+
+    <script>
+    const SB = window.supabaseClient;
+    let _currentSearchType = 'Omang';
+    let _lastFoundWorker = null;  // { registry, reports }
+
+    // ── Page Init ────────────────────────────────────────
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        if (currentUserRole !== 'medical_practitioner') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        const ur = await getCurrentUser();
+        if (ur.success && ur.user) {
+            const p = await getUserProfile(ur.user.id);
+            if (p.success) {
+                document.getElementById('userName').textContent =
+                    p.data.first_name + ' ' + p.data.surname;
+            }
+        }
+
+        await loadClientele();
+        document.getElementById('searchInput').focus();
+    });
+
+    // ── Search type toggle ───────────────────────────────
+    function setSearchType(type) {
+        _currentSearchType = type;
+        document.getElementById('tabOmang').classList.toggle('active', type === 'Omang');
+        document.getElementById('tabPassport').classList.toggle('active', type === 'Passport');
+        document.getElementById('searchInput').placeholder =
+            type === 'Omang' ? 'Enter Omang number…' : 'Enter Passport number…';
+        clearSearch();
+    }
+
+    function clearSearch() {
+        document.getElementById('searchStatus').textContent = '';
+        document.getElementById('searchStatus').className = 'search-status';
+        document.getElementById('workerBanner').classList.remove('show');
+        document.getElementById('pastReportsSection').style.display = 'none';
+        document.getElementById('btnAddClient').disabled = false;
+        document.getElementById('btnAddClient').textContent = '➕ Add to Clientele';
+        _lastFoundWorker = null;
+    }
+
+    // ── Search worker by ID ──────────────────────────────
+    async function searchWorker() {
+        const input = document.getElementById('searchInput');
+        const idRaw = input.value.trim();
+        if (!idRaw) {
+            setSearchStatus('Please enter an ID number.', 'error');
+            return;
+        }
+
+        // Normalize: trim + uppercase
+        const normalizedId = idRaw.toUpperCase();
+        const btn = document.getElementById('searchBtn');
+        btn.disabled = true;
+        setSearchStatus('Searching…', 'loading');
+
+        try {
+            // Step 1: Look up in workers_registry
+            const { data: registry, error: regErr } = await SB
+                .from('workers_registry')
+                .select('*')
+                .eq('id_number', normalizedId)
+                .maybeSingle();
+
+            if (regErr) throw regErr;
+
+            if (!registry) {
+                setSearchStatus(`⚠ No worker found with ID: ${normalizedId}`, 'notfound');
+                btn.disabled = false;
+                document.getElementById('workerBanner').classList.remove('show');
+                document.getElementById('pastReportsSection').style.display = 'none';
+                return;
+            }
+
+            // Step 2: Get past medical examination reports for this worker
+            // Search by worker_registry_id or worker_id_number
+            const { data: reports, error: repErr } = await SB
+                .from('medical_examination_reports')
+                .select('*')
+                .or(`worker_registry_id.eq.${registry.id},worker_id_number.eq.${normalizedId}`)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (repErr) throw repErr;
+
+            // Step 3: Check if already in clientele
+            const userId = (await getCurrentUser()).user?.id;
+            const { data: existingClient } = await SB
+                .from('practitioner_clients')
+                .select('id')
+                .eq('practitioner_id', userId)
+                .eq('worker_registry_id', registry.id)
+                .maybeSingle();
+
+            _lastFoundWorker = { registry, reports: reports || [] };
+            showWorkerBanner(registry, !!existingClient);
+            showPastReports(reports || []);
+            setSearchStatus(`✅ Found: ${registry.full_name}`, 'found');
+            btn.disabled = false;
+
+        } catch (e) {
+            console.warn('Search error:', e);
+            setSearchStatus('Error searching: ' + e.message, 'error');
+            btn.disabled = false;
+        }
+    }
+
+    function showWorkerBanner(worker, alreadyInClientele) {
+        const banner = document.getElementById('workerBanner');
+        document.getElementById('wbAvatar').textContent = (worker.full_name || '?')[0];
+        document.getElementById('wbName').textContent = worker.full_name || 'Unknown';
+        const chips = [
+            worker.id_number ? `🪪 ${worker.id_number}` : null,
+            worker.id_type ? worker.id_type : null,
+            worker.sex ? worker.sex : null,
+            worker.occupation ? worker.occupation : null,
+            worker.employer_name ? `🏢 ${worker.employer_name}` : null,
+        ].filter(c => c).join(' · ') || 'No details';
+
+        document.getElementById('wbDetails').textContent = chips;
+        banner.classList.add('show');
+
+        const btn = document.getElementById('btnAddClient');
+        if (alreadyInClientele) {
+            btn.textContent = '✅ Already in Clientele';
+            btn.disabled = true;
+        } else {
+            btn.textContent = '➕ Add to Clientele';
+            btn.disabled = false;
+        }
+    }
+
+    function showPastReports(reports) {
+        const section = document.getElementById('pastReportsSection');
+        section.style.display = 'block';
+        const container = document.getElementById('pastReportsContent');
+
+        if (!reports || reports.length === 0) {
+            container.innerHTML = '<div class="empty-state">No past medical examination reports found for this worker.</div>';
+            return;
+        }
+
+        let html = `<table class="reports-table">
+            <thead><tr>
+                <th>Date</th>
+                <th>Report ID</th>
+                <th>Nature of Injury</th>
+                <th>Incapacity %</th>
+                <th>Status</th>
+            </tr></thead><tbody>`;
+
+        reports.forEach(r => {
+            const date = r.report_date || (r.created_at ? r.created_at.substring(0, 10) : '—');
+            const id = r.id ? r.id.substring(0, 8) + '…' : '—';
+            const nature = r.nature_of_injury_or_disease
+                ? r.nature_of_injury_or_disease.substring(0, 60) + (r.nature_of_injury_or_disease.length > 60 ? '…' : '')
+                : '—';
+            const pct = r.incapacity_percentage != null ? r.incapacity_percentage + '%' : '—';
+            const status = r.status === 'submitted'
+                ? '<span class="status-badge submitted">Submitted</span>'
+                : '<span class="status-badge draft">Draft</span>';
+
+            html += `<tr>
+                <td>${date}</td>
+                <td style="font-family:monospace;font-size:11px">${id}</td>
+                <td>${nature}</td>
+                <td style="font-weight:700">${pct}</td>
+                <td>${status}</td>
+            </tr>`;
+        });
+
+        html += '</tbody></table>';
+        html += `<div style="margin-top:12px;font-size:12px;color:#888">Showing ${reports.length} report${reports.length !== 1 ? 's' : ''}</div>`;
+        container.innerHTML = html;
+    }
+
+    function setSearchStatus(msg, cls) {
+        const el = document.getElementById('searchStatus');
+        el.textContent = msg;
+        el.className = 'search-status ' + (cls || '');
+    }
+
+    // ── Add to Clientele ─────────────────────────────────
+    async function addToClientele() {
+        if (!_lastFoundWorker) return;
+        const worker = _lastFoundWorker.registry;
+        const btn = document.getElementById('btnAddClient');
+        btn.disabled = true;
+        btn.textContent = 'Adding…';
+
+        try {
+            const userResult = await getCurrentUser();
+            if (!userResult.success || !userResult.user) throw new Error('Not authenticated');
+
+            const { error } = await SB
+                .from('practitioner_clients')
+                .insert([{
+                    practitioner_id: userResult.user.id,
+                    worker_registry_id: worker.id,
+                    worker_name: worker.full_name,
+                    worker_id_number: worker.id_number,
+                    last_exam_date: new Date().toISOString().substring(0, 10),
+                }]);
+
+            if (error) throw error;
+
+            btn.textContent = '✅ Added to Clientele';
+            showToast(`${worker.full_name} added to your clientele.`, 'success');
+            await loadClientele();
+
+        } catch (e) {
+            console.warn('Add clientele error:', e);
+            btn.textContent = '➕ Add to Clientele';
+            btn.disabled = false;
+            showToast('Failed to add: ' + e.message, 'error');
+        }
+    }
+
+    // ── Load My Clientele ────────────────────────────────
+    async function loadClientele() {
+        const container = document.getElementById('clienteleContent');
+
+        try {
+            const userResult = await getCurrentUser();
+            if (!userResult.success || !userResult.user) {
+                container.innerHTML = '<div class="empty-state">Please log in.</div>';
+                return;
+            }
+
+            // Get all clients for this practitioner, ordered by most recent first
+            const { data: clients, error } = await SB
+                .from('practitioner_clients')
+                .select('*')
+                .eq('practitioner_id', userResult.user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            if (!clients || clients.length === 0) {
+                container.innerHTML = '<div class="empty-state">No clients in your clientele yet. Search for a worker above to add them.</div>';
+                return;
+            }
+
+            let html = '<div class="client-grid">';
+
+            for (const client of clients) {
+                const initials = (client.worker_name || '?').split(' ').map(s => s[0]).join('').substring(0, 2).toUpperCase();
+                const colors = ['#333','#e67e22','#27ae60','#3498db','#8e44ad','#c0392b'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                html += `<div class="client-card">
+                    <div class="cc-header">
+                        <div>
+                            <div class="cc-name">${client.worker_name}</div>
+                            <div class="cc-id">${client.worker_id_number || 'No ID on record'}</div>
+                        </div>
+                        <div style="width:40px;height:40px;border-radius:50%;background:${color};color:white;
+                                    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;
+                                    flex-shrink:0">
+                            ${initials}
+                        </div>
+                    </div>
+                    <div class="cc-meta">
+                        Added: ${client.created_at ? new Date(client.created_at).toLocaleDateString() : '—'}
+                        ${client.last_exam_date ? ' · Last exam: ' + new Date(client.last_exam_date).toLocaleDateString() : ''}
+                    </div>
+                    <div class="cc-reports-count">📋 Past reports available</div>
+                    <div class="cc-actions">
+                        <button class="cc-remove" onclick="removeClient('${client.id}', '${client.worker_name.replace(/'/g, "\\'")}')">✕ Remove</button>
+                    </div>
+                </div>`;
+            }
+
+            html += '</div>';
+            html += `<div style="margin-top:14px;font-size:13px;color:#888;text-align:right">${clients.length} client${clients.length !== 1 ? 's' : ''} in your clientele</div>`;
+            container.innerHTML = html;
+
+        } catch (e) {
+            console.warn('Load clientele error:', e);
+            container.innerHTML = '<div class="empty-state">Failed to load clientele.</div>';
+        }
+    }
+
+    // ── Remove from Clientele ────────────────────────────
+    async function removeClient(clientId, workerName) {
+        const confirmed = await showConfirm(`Remove ${workerName} from your clientele?`, {
+            title: 'Remove Client',
+            icon: '⚠️',
+            confirmText: 'Remove',
+            danger: true,
+        });
+        if (!confirmed) return;
+
+        try {
+            const { error } = await SB
+                .from('practitioner_clients')
+                .delete()
+                .eq('id', clientId);
+
+            if (error) throw error;
+
+            showToast(`${workerName} removed from clientele.`, 'info');
+            await loadClientele();
+
+            // If this worker was the last searched, update the add button
+            if (_lastFoundWorker && _lastFoundWorker.registry) {
+                const btn = document.getElementById('btnAddClient');
+                btn.textContent = '➕ Add to Clientele';
+                btn.disabled = false;
+            }
+
+        } catch (e) {
+            console.warn('Remove client error:', e);
+            showToast('Failed to remove: ' + e.message, 'error');
+        }
+    }
+    </script>
+</body>
+</html>
