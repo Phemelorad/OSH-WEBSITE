@@ -572,11 +572,11 @@
                       <td class="desc">Loss of four fingers</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 35</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="thumb_class" data-pct="0">
+                    <tr class="sched-row" data-code="thumb_class" data-base-code="thumb_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">
                         Loss of thumb
-                        <select class="sched-classification" disabled onchange="updateFingerClassification(this)">
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
                           <option value="">— Select classification —</option>
                           <option value="thumb_both" data-pct="35">Both phalanges</option>
                           <option value="thumb_one" data-pct="10">One phalange</option>
@@ -584,11 +584,11 @@
                       </td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="index_class" data-pct="0">
+                    <tr class="sched-row" data-code="index_class" data-base-code="index_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">
                         Loss of index finger
-                        <select class="sched-classification" disabled onchange="updateFingerClassification(this)">
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
                           <option value="">— Select classification —</option>
                           <option value="index_three" data-pct="10">Three phalanges</option>
                           <option value="index_two" data-pct="8">Two phalanges</option>
@@ -597,11 +597,11 @@
                       </td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="middle_class" data-pct="0">
+                    <tr class="sched-row" data-code="middle_class" data-base-code="middle_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">
                         Loss of middle finger
-                        <select class="sched-classification" disabled onchange="updateFingerClassification(this)">
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
                           <option value="">— Select classification —</option>
                           <option value="middle_three" data-pct="6">Three phalanges</option>
                           <option value="middle_two" data-pct="4">Two phalanges</option>
@@ -610,11 +610,11 @@
                       </td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="ring_class" data-pct="0">
+                    <tr class="sched-row" data-code="ring_class" data-base-code="ring_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">
                         Loss of ring finger
-                        <select class="sched-classification" disabled onchange="updateFingerClassification(this)">
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
                           <option value="">— Select classification —</option>
                           <option value="ring_three" data-pct="5">Three phalanges</option>
                           <option value="ring_two" data-pct="4">Two phalanges</option>
@@ -623,11 +623,11 @@
                       </td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="little_class" data-pct="0">
+                    <tr class="sched-row" data-code="little_class" data-base-code="little_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">
                         Loss of little finger
-                        <select class="sched-classification" disabled onchange="updateFingerClassification(this)">
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
                           <option value="">— Select classification —</option>
                           <option value="little_three" data-pct="4">Three phalanges</option>
                           <option value="little_two" data-pct="3">Two phalanges</option>
@@ -636,51 +636,49 @@
                       </td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="metacarpal_first" data-pct="3">
+                    <tr class="sched-row" data-code="metacarpal_class" data-base-code="metacarpal_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of metacarpals — first or second</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 3</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="metacarpal_third" data-pct="2">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc sub-item">(additional) -third, fourth or fifth (additional)</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
+                      <td class="desc">
+                        Loss of metacarpals
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
+                          <option value="">— Select classification —</option>
+                          <option value="metacarpal_first" data-pct="3">First or second (metacarpal)</option>
+                          <option value="metacarpal_third" data-pct="2">Third, fourth or fifth (additional)</option>
+                        </select>
+                      </td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
                     <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
-                    <tr class="sched-row" data-code="leg_above_knee" data-pct="70">
+                    <tr class="sched-row" data-code="leg_class" data-base-code="leg_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of leg — at or above knee</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 70</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="leg_below_knee" data-pct="60">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc" style="padding-left:24px">— below knee</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 60</span></td>
+                      <td class="desc">
+                        Loss of leg
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
+                          <option value="">— Select classification —</option>
+                          <option value="leg_above_knee" data-pct="70">At or above knee</option>
+                          <option value="leg_below_knee" data-pct="60">Below knee</option>
+                        </select>
+                      </td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
                     <tr class="sched-row" data-code="foot" data-pct="40">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
                       <td class="desc">Loss of foot</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 40</span></td>
                     </tr>
-                    <tr class="sched-row" data-code="toes_all" data-pct="15">
+                    <tr class="sched-row" data-code="toes_class" data-base-code="toes_class" data-pct="0">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of toes — all of one foot</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 15</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="toe_great_both" data-pct="5">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc" style="padding-left:24px">— great, both phalanges</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 5</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="toe_great_one" data-pct="2">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc" style="padding-left:24px">— great, one phalange</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
-                    </tr>
-                    <tr class="sched-row" data-code="toe_other" data-pct="1">
-                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc" style="padding-left:24px">— other than great, if more than one toe lost — each</td>
-                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 1</span></td>
+                      <td class="desc">
+                        Loss of toes
+                        <select class="sched-classification" disabled onchange="updateClassification(this)">
+                          <option value="">— Select classification —</option>
+                          <option value="toes_all" data-pct="15">All of one foot</option>
+                          <option value="toe_great_both" data-pct="5">Great, both phalanges</option>
+                          <option value="toe_great_one" data-pct="2">Great, one phalange</option>
+                          <option value="toe_other" data-pct="1">Other than great, if more than one toe lost — each</option>
+                        </select>
+                      </td>
+                      <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Select first</span></td>
                     </tr>
                     <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
                     <tr class="sched-row" data-code="sight_one_eye" data-pct="30">
@@ -897,7 +895,8 @@
             classSel.disabled = !checked;
             if (!checked) {
                 classSel.value = '';
-                tr.dataset.code = tr.dataset.code.replace(/_(?:three|two|one|both)_?.*/i, '_class') || tr.dataset.code;
+                tr.dataset.code = tr.dataset.baseCode || tr.dataset.code;
+                tr.dataset.pct = 0;
                 const maxLabel = tr.querySelector('.sched-max-label');
                 if (maxLabel) maxLabel.textContent = 'Select first';
                 if (pctInput) { pctInput.value = ''; pctInput.disabled = true; }
@@ -905,8 +904,8 @@
         }
     }
 
-    // ── Finger classification dropdown ───────────────
-    function updateFingerClassification(sel) {
+    // ── Classification dropdown ─────────────────────────
+    function updateClassification(sel) {
         const tr = sel.closest('.sched-row');
         const cb = tr.querySelector('.sched-cb');
 
@@ -1272,8 +1271,11 @@
                 // Reset classification dropdown
                 const cls = tr.querySelector('.sched-classification');
                 if (cls) { cls.value = ''; cls.disabled = true; }
+                // Reset data-code from base-code (bypasses toggleSchedRow)
+                if (tr.dataset.baseCode) tr.dataset.code = tr.dataset.baseCode;
+                tr.dataset.pct = 0;
                 const lbl = tr.querySelector('.sched-max-label');
-                if (lbl && tr.dataset.code.includes('_class')) lbl.textContent = 'Select first';
+                if (lbl) lbl.textContent = 'Select first';
             });
             document.querySelectorAll('.note-item.has-award.checked').forEach(item => {
                 item.classList.remove('checked');
