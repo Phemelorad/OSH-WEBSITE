@@ -377,7 +377,7 @@
         label: 'Medical Exams',
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
-          { id: 'medical-examination', icon: '\uD83E\uDD7A', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
+          { id: 'medical-examination', icon: '\uD83D\uDCDD', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
         ]
       },
       {

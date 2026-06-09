@@ -6,128 +6,185 @@
     <title>Dashboard - DOSH</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
             min-height: 100vh;
         }
-
         .navbar {
-            background: white;
-            padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: white; padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .navbar h1 {
-            color: #333;
-            font-size: 24px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-details {
-            text-align: right;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .user-department {
-            font-size: 14px;
-            color: #666;
-        }
-
+        .navbar h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .user-details { text-align: right; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-department { font-size: 14px; color: #666; }
         .logout-btn {
             padding: 10px 20px;
-            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
-            color: #333;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
+            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
+            color: #333; border: 2px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
         }
-
-        .logout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
+            max-width: 1200px; margin: 40px auto; padding: 0 20px;
         }
 
-        .welcome-card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+        /* ── Dashboard Header ──────────────────────────── */
+        .dash-header {
+            margin-bottom: 32px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .dash-header h1 { font-size: 24px; color: #222; font-weight: 800; }
+        .dash-header .dash-sub {
+            font-size: 14px; color: #888; font-weight: 500;
+            margin-top: 2px;
+        }
+        .dash-header .dash-role-badge {
+            display: inline-block; padding: 6px 16px;
+            background: #f0fafc; color: #0c5460;
+            border-radius: 20px; font-size: 13px; font-weight: 600;
         }
 
-        .welcome-card h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .welcome-card p {
-            color: #666;
-            font-size: 16px;
-        }
-
-        .info-grid {
+        /* ── Stats Grid ─────────────────────────────────── */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
         }
-
-        .info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .info-card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .info-card p {
-            color: #666;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .loading {
+        .stat-card {
+            background: white; border-radius: 16px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
             text-align: center;
-            padding: 60px;
-            color: #666;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
+        .stat-card .stat-ring-wrap {
+            position: relative;
+            width: 120px; height: 120px;
+            margin: 0 auto 12px;
+        }
+        .stat-card .stat-ring-wrap svg {
+            width: 120px; height: 120px;
+            transform: rotate(-90deg);
+        }
+        .stat-card .stat-ring-bg {
+            fill: none; stroke: #f0f0f0; stroke-width: 8;
+        }
+        .stat-card .stat-ring-fg {
+            fill: none; stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stat-card .stat-ring-fg.anim-ready {
+            stroke-dashoffset: var(--target-offset);
+        }
+        .stat-card .stat-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .stat-card .stat-number {
+            font-size: 28px; font-weight: 800; line-height: 1;
+            transition: color 0.3s;
+        }
+        .stat-card .stat-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: #999; margin-top: 2px;
+        }
+        .stat-card .stat-sub {
+            font-size: 12px; color: #aaa; margin-top: 10px;
+            font-weight: 500;
+        }
+        .stat-card .stat-footer {
+            margin-top: 14px;
+            height: 4px; border-radius: 4px;
+            background: #f0f0f0; overflow: hidden;
+        }
+        .stat-card .stat-footer-bar {
+            height: 100%; border-radius: 4px;
+            width: 0%;
+            transition: width 1s ease;
+        }
+        .stat-card .stat-footer-bar.anim-ready {
+            width: var(--target-pct);
         }
 
+        /* Color themes */
+        .stat-card.theme-dark  .stat-ring-fg { stroke: #333; }
+        .stat-card.theme-dark  .stat-number { color: #333; }
+        .stat-card.theme-dark  .stat-footer-bar { background: #333; }
+
+        .stat-card.theme-orange .stat-ring-fg { stroke: #e67e22; }
+        .stat-card.theme-orange .stat-number { color: #e67e22; }
+        .stat-card.theme-orange .stat-footer-bar { background: #e67e22; }
+
+        .stat-card.theme-green .stat-ring-fg { stroke: #27ae60; }
+        .stat-card.theme-green .stat-number { color: #27ae60; }
+        .stat-card.theme-green .stat-footer-bar { background: #27ae60; }
+
+        .stat-card.theme-blue .stat-ring-fg { stroke: #3498db; }
+        .stat-card.theme-blue .stat-number { color: #3498db; }
+        .stat-card.theme-blue .stat-footer-bar { background: #3498db; }
+
+        /* ── Quick Actions ──────────────────────────────── */
+        .actions-row {
+            display: flex; gap: 14px; flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .action-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 14px 28px;
+            background: white; color: #333;
+            border: 2px solid #ddd; border-radius: 12px;
+            font-weight: 600; font-size: 14px; font-family: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+            border-color: #bbb;
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, #333 0%, #444 100%);
+            color: white; border-color: #333;
+        }
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, #222 0%, #333 100%);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+        }
+
+        .loading { text-align: center; padding: 60px; color: #666; }
+
+        /* ── Responsive ─────────────────────────────────── */
         @media (max-width: 768px) {
             .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            .dash-header { flex-direction: column; align-items: flex-start; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+            .stat-card { padding: 20px 16px; }
+            .stat-card .stat-ring-wrap,
+            .stat-card .stat-ring-wrap svg { width: 90px; height: 90px; }
+            .stat-card .stat-number { font-size: 22px; }
+            .actions-row { justify-content: stretch; }
+            .action-btn { flex: 1; justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -148,70 +205,10 @@
     <script src="nav.js"></script>
 
     <div class="container">
-        <div class="welcome-card">
-            <h2>Welcome to Your Dashboard</h2>
-            <p>You have successfully logged in to the DOSH system.</p>
-            <div style="margin-top: 20px;">
-                <a href="form.html" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%); color: #333; text-decoration: none; border-radius: 8px; border: 2px solid #ddd; font-weight: 600; transition: all 0.3s;">
-                    📋 Submit Injury Claim
-                </a>
-            </div>
-        </div>
 
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>Email</h3>
-                <p id="userEmail">-</p>
-            </div>
-            <div class="info-card">
-                <h3>Department</h3>
-                <p id="departmentName">-</p>
-            </div>
-            <div class="info-card">
-                <h3>Location</h3>
-                <p id="userLocation">-</p>
-            </div>
-        </div>
+        <!-- ── Dynamic content (filled by JS) ──────────── -->
+        <div id="dashContent"></div>
 
-        <!-- ── Medical Practitioner Dashboard ──────────────── -->
-        <div id="medPractSection" style="display:none; margin-top:30px">
-            <h2 style="color:#333; font-size:18px; margin-bottom:16px; padding:10px 14px;
-                       background:#f0fafc; border-left:4px solid #0c5460;
-                       border-radius:0 6px 6px 0;">
-                🩺 Medical Practitioner — Case Overview
-            </h2>
-            <div class="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
-                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #333;">
-                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">Total Cases</div>
-                    <div class="stat-value" id="mpTotalCases" style="font-size:36px; font-weight:800; color:#333; margin-top:8px;">—</div>
-                    <div style="font-size:12px; color:#999; margin-top:4px;">All medical reports</div>
-                </div>
-                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #e67e22;">
-                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">In Progress</div>
-                    <div class="stat-value" id="mpDrafts" style="font-size:36px; font-weight:800; color:#e67e22; margin-top:8px;">—</div>
-                    <div style="font-size:12px; color:#999; margin-top:4px;">Drafts awaiting submission</div>
-                </div>
-                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #27ae60;">
-                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">Submitted</div>
-                    <div class="stat-value" id="mpSubmitted" style="font-size:36px; font-weight:800; color:#27ae60; margin-top:8px;">—</div>
-                    <div style="font-size:12px; color:#999; margin-top:4px;">Completed reports</div>
-                </div>
-                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #3498db;">
-                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">This Month</div>
-                    <div class="stat-value" id="mpThisMonth" style="font-size:36px; font-weight:800; color:#3498db; margin-top:8px;">—</div>
-                    <div style="font-size:12px; color:#999; margin-top:4px;">Reports created this month</div>
-                </div>
-            </div>
-            <div style="margin-top:16px; text-align:right;">
-                <a href="medical-examination.html" style="display:inline-block; padding:12px 24px;
-                   background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333;
-                   text-decoration:none; border-radius:8px; border:2px solid #ddd;
-                   font-weight:600; font-size:14px; transition:all 0.3s;
-                   font-family:inherit;">
-                    🩺 New Medical Exam (Form 43/03)
-                </a>
-            </div>
-        </div>
     </div>
 
     <!-- Supabase JS Client -->
@@ -227,117 +224,196 @@
     <script>
     const SB = window.supabaseClient;
 
-        // Check authentication on page load
-        window.addEventListener('load', async function() {
-            const authenticated = await isAuthenticated();
-            
-            if (!authenticated) {
-                // Redirect to login if not authenticated
-                window.location.href = 'index.html';
-                return;
-            }
+    // ── SVG ring circumference ───────────────────────────
+    const RING_RADIUS = 36;
+    const RING_CIRCUM = 2 * Math.PI * RING_RADIUS; // ≈ 226.19
 
-            // Initialize role system (handles nav visibility, role badge, etc.)
-            await initializeRoleSystem();
+    function buildRingSvg(pct) {
+        const offset = RING_CIRCUM - (RING_CIRCUM * pct / 100);
+        return `<svg viewBox="0 0 100 100">
+          <circle class="stat-ring-bg" cx="50" cy="50" r="${RING_RADIUS}"/>
+          <circle class="stat-ring-fg" cx="50" cy="50" r="${RING_RADIUS}"
+            stroke-dasharray="${RING_CIRCUM}" stroke-dashoffset="${RING_CIRCUM}"
+            style="--target-offset:${offset}"/>
+        </svg>`;
+    }
 
-            // Load user data
-            await loadUserData();
+    function buildStatCard(id, label, theme, subtitle) {
+        return `<div class="stat-card theme-${theme}">
+          <div class="stat-ring-wrap">
+            ${buildRingSvg(0)}
+            <div class="stat-center">
+              <div class="stat-number" id="stat-${id}">—</div>
+              <div class="stat-label">${label}</div>
+            </div>
+          </div>
+          <div class="stat-sub">${subtitle}</div>
+          <div class="stat-footer">
+            <div class="stat-footer-bar" id="bar-${id}" style="--target-pct:0%"></div>
+          </div>
+        </div>`;
+    }
+
+    // ── Animate rings on next frame ──────────────────────
+    function animateRings() {
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.stat-ring-fg').forEach(el => {
+                el.classList.add('anim-ready');
+            });
+            document.querySelectorAll('.stat-footer-bar').forEach(el => {
+                el.classList.add('anim-ready');
+            });
         });
+    }
 
-        async function loadUserData() {
-            const userResult = await getCurrentUser();
-            
-            if (userResult.success && userResult.user) {
-                const profileResult = await getUserProfile(userResult.user.id);
-                
-                if (profileResult.success) {
-                    const profile = profileResult.data;
-                    
-                    // Update UI with user data
-                    document.getElementById('userName').textContent = 
-                        `${profile.first_name} ${profile.surname}`;
-                    document.getElementById('userDept').textContent = 
-                        getDepartmentName(profile.department);
-                    document.getElementById('userEmail').textContent = profile.email;
-                    document.getElementById('departmentName').textContent = 
-                        getDepartmentName(profile.department);
-                    document.getElementById('userLocation').textContent = profile.location;
+    // ── Update ring percentages ──────────────────────────
+    function updateRing(id, value, total) {
+        const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+        const ring = document.querySelector(`#stat-${id}`)?.closest('.stat-card')?.querySelector('.stat-ring-fg');
+        if (ring) {
+            const offset = RING_CIRCUM - (RING_CIRCUM * pct / 100);
+            ring.style.setProperty('--target-offset', offset);
+            ring.classList.add('anim-ready');
+        }
+        const bar = document.getElementById(`bar-${id}`);
+        if (bar) {
+            bar.style.setProperty('--target-pct', pct + '%');
+            bar.classList.add('anim-ready');
+        }
+    }
 
-                    // Show medical practitioner dashboard section
-                    if (profile.role === 'medical_practitioner') {
-                        loadMedPractStats(userResult.user.id);
-                    }
-                } else {
-                    // Fallback to auth data
-                    document.getElementById('userName').textContent = 
-                        userResult.user.email.split('@')[0];
-                    document.getElementById('userEmail').textContent = userResult.user.email;
-                }
-            }
+    // ── Page load ─────────────────────────────────────────
+    window.addEventListener('load', async function() {
+        const authenticated = await isAuthenticated();
+        if (!authenticated) { window.location.href = 'index.html'; return; }
+
+        await initializeRoleSystem();
+
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) return;
+
+        const profileResult = await getUserProfile(userResult.user.id);
+        const profile = profileResult.success ? profileResult.data : null;
+
+        // Update header
+        if (profile) {
+            document.getElementById('userName').textContent =
+                `${profile.first_name} ${profile.surname}`;
+            document.getElementById('userDepartment').textContent =
+                getRoleDisplayName(profile.role) || 'Department of Occupational Health & Safety';
+        } else {
+            document.getElementById('userName').textContent =
+                userResult.user.email.split('@')[0];
         }
 
-        async function loadMedPractStats(userId) {
-            const section = document.getElementById('medPractSection');
-            if (!section) return;
-            section.style.display = 'block';
+        // Render role-based content
+        const role = profile?.role || 'viewer';
+        const content = document.getElementById('dashContent');
 
-            try {
-                // Get the start of the current month for "This Month" query
-                const now = new Date();
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-
-                // Count all reports submitted by this practitioner
-                const { count: totalCount, error: totalErr } = await SB
-                    .from('medical_examination_reports')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('submitted_by', userId);
-
-                // Count drafts (in progress)
-                const { count: draftCount, error: draftErr } = await SB
-                    .from('medical_examination_reports')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('submitted_by', userId)
-                    .eq('status', 'draft');
-
-                // Count submitted (completed)
-                const { count: submittedCount, error: subErr } = await SB
-                    .from('medical_examination_reports')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('submitted_by', userId)
-                    .eq('status', 'submitted');
-
-                // Count reports created this month
-                const { count: monthCount, error: monthErr } = await SB
-                    .from('medical_examination_reports')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('submitted_by', userId)
-                    .gte('created_at', monthStart);
-
-                // Update the stat cards
-                document.getElementById('mpTotalCases').textContent = totalCount ?? '—';
-                document.getElementById('mpDrafts').textContent = draftCount ?? '—';
-                document.getElementById('mpSubmitted').textContent = submittedCount ?? '—';
-                document.getElementById('mpThisMonth').textContent = monthCount ?? '—';
-
-                // Log errors silently (non-blocking)
-                if (totalErr) console.warn('Stats error (total):', totalErr);
-                if (draftErr) console.warn('Stats error (drafts):', draftErr);
-                if (subErr) console.warn('Stats error (submitted):', subErr);
-                if (monthErr) console.warn('Stats error (month):', monthErr);
-
-            } catch (e) {
-                console.warn('Failed to load medical practitioner stats:', e);
-                document.getElementById('mpTotalCases').textContent = '!';
-                document.getElementById('mpDrafts').textContent = '!';
-                document.getElementById('mpSubmitted').textContent = '!';
-                document.getElementById('mpThisMonth').textContent = '!';
-            }
+        if (role === 'medical_practitioner') {
+            renderMedPractDashboard(content, userResult.user.id);
+        } else {
+            renderGenericDashboard(content, profile, userResult);
         }
+    });
 
-        function getDepartmentName(code) {
-            return 'Department of Occupational Health & Safety';
+    // ── Generic dashboard ─────────────────────────────────
+    function renderGenericDashboard(container, profile, userResult) {
+        container.innerHTML = `
+          <div class="dash-header">
+            <div>
+              <h1>Welcome, ${profile?.first_name || userResult.user.email.split('@')[0]}</h1>
+              <div class="dash-sub">You are logged in to the DOSH system.</div>
+            </div>
+            <span class="dash-role-badge">${getRoleDisplayName(profile?.role || 'viewer')}</span>
+          </div>
+          <div class="actions-row">
+            <a href="form.html" class="action-btn primary">📋 Submit Injury Claim</a>
+          </div>
+        `;
+    }
+
+    // ── Medical Practitioner Dashboard ────────────────────
+    function renderMedPractDashboard(container, userId) {
+        container.innerHTML = `
+          <div class="dash-header">
+            <div>
+              <h1>🩺 Medical Practitioner Overview</h1>
+              <div class="dash-sub">Your case load at a glance</div>
+            </div>
+            <span class="dash-role-badge">Medical Practitioner</span>
+          </div>
+
+          <div class="stats-grid" id="mpStatsGrid">
+            ${buildStatCard('total',   'Total',   'dark',   'All medical reports')}
+            ${buildStatCard('drafts',  'Drafts',  'orange', 'Awaiting submission')}
+            ${buildStatCard('done',    'Done',    'green',  'Completed & submitted')}
+            ${buildStatCard('month',   'Month',   'blue',   'Reports this month')}
+          </div>
+
+          <div class="actions-row">
+            <a href="medical-examination.html" class="action-btn primary">📝 New Medical Exam (Form 43/03)</a>
+
+          </div>
+        `;
+
+        // Trigger ring entrance animation
+        animateRings();
+        loadMedPractStats(userId);
+    }
+
+    // ── Fetch and display stats ───────────────────────────
+    async function loadMedPractStats(userId) {
+        try {
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+            const { count: total,   error: e1 } = await SB
+                .from('medical_examination_reports')
+                .select('id', { count: 'exact', head: true })
+                .eq('submitted_by', userId);
+
+            const { count: drafts,  error: e2 } = await SB
+                .from('medical_examination_reports')
+                .select('id', { count: 'exact', head: true })
+                .eq('submitted_by', userId)
+                .eq('status', 'draft');
+
+            const { count: done,    error: e3 } = await SB
+                .from('medical_examination_reports')
+                .select('id', { count: 'exact', head: true })
+                .eq('submitted_by', userId)
+                .eq('status', 'submitted');
+
+            const { count: month,   error: e4 } = await SB
+                .from('medical_examination_reports')
+                .select('id', { count: 'exact', head: true })
+                .eq('submitted_by', userId)
+                .gte('created_at', monthStart);
+
+            const t = total ?? 0;
+            document.getElementById('stat-total').textContent  = t;
+            document.getElementById('stat-drafts').textContent = drafts ?? 0;
+            document.getElementById('stat-done').textContent   = done ?? 0;
+            document.getElementById('stat-month').textContent  = month ?? 0;
+
+            // Update SVG rings & progress bars
+            updateRing('drafts', drafts ?? 0, t);
+            updateRing('done',   done ?? 0,   t);
+            updateRing('month',  month ?? 0,  t);
+
+            if (e1) console.warn('Stats error (total):', e1);
+            if (e2) console.warn('Stats error (drafts):', e2);
+            if (e3) console.warn('Stats error (done):', e3);
+            if (e4) console.warn('Stats error (month):', e4);
+
+        } catch (e) {
+            console.warn('Failed to load med pract stats:', e);
+            ['total','drafts','done','month'].forEach(id => {
+                document.getElementById(`stat-${id}`).textContent = '!';
+            });
         }
-
+    }
     </script>
 </body>
 </html>
