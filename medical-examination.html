@@ -232,6 +232,23 @@
         .schedule-table .sched-pct.readonly-pct { background: #fafafa; border-color: #e0e0e0; cursor: default; }
         .schedule-table td.desc.sub-item { padding-left: 28px; }
 
+        /* ── Max percentage enforcement ──────────── */
+        .pct-overmax {
+            border-color: #dc3545 !important;
+            background: #fff5f5 !important;
+            box-shadow: 0 0 0 2px rgba(220,53,69,0.15);
+        }
+        @keyframes pctShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-3px); }
+            40% { transform: translateX(3px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+        }
+        .pct-overmax-pulse {
+            animation: pctShake 0.3s ease-in-out;
+        }
+
         .schedule-note {
             font-size: 12px; color: #555;
             margin-top: 12px; line-height: 1.6;
@@ -923,6 +940,65 @@
         });
         return items;
     }
+
+    // ── Max percentage enforcement ──────────────────
+    function enforceMaxPct(input) {
+        const max = parseFloat(input.max);
+        const min = parseFloat(input.min) || 0;
+        let val = parseFloat(input.value);
+
+        if (isNaN(val) || input.disabled) return;
+
+        if (val > max) {
+            input.value = max;
+            input.classList.add('pct-overmax', 'pct-overmax-pulse');
+            // Find label for context in toast
+            const container = input.closest('.sched-row, .incapacity-row, .note-item');
+            const label = container?.querySelector('.desc, .type-label, .note-text');
+            const name = label ? label.textContent.trim().substring(0, 35) : 'this item';
+            showToast(`Max ${max}% — value clamped for "${name}"`, 'warning', 2500);
+            setTimeout(() => {
+                input.classList.remove('pct-overmax', 'pct-overmax-pulse');
+            }, 2000);
+        } else if (val < min) {
+            input.value = min;
+            input.classList.add('pct-overmax', 'pct-overmax-pulse');
+            setTimeout(() => {
+                input.classList.remove('pct-overmax', 'pct-overmax-pulse');
+            }, 2000);
+        } else {
+            input.classList.remove('pct-overmax', 'pct-overmax-pulse');
+        }
+    }
+
+    // Live feedback — show red border on input when value exceeds max
+    function previewOvermax(input) {
+        const max = parseFloat(input.max);
+        let val = parseFloat(input.value);
+        if (!isNaN(val) && val > max && !input.disabled) {
+            input.classList.add('pct-overmax');
+        } else {
+            input.classList.remove('pct-overmax');
+        }
+    }
+
+    // Attach max enforcement to all percentage inputs via delegation (inline — script tag at bottom of <body>)
+    (function() {
+        const form = document.getElementById('medicalExamForm');
+        if (!form) return;
+        // On focusout (bubbles, unlike blur) → clamp + toast
+        form.addEventListener('focusout', function(e) {
+            if (e.target.matches('.sched-pct, .incap-pct-input, .note-pct')) {
+                enforceMaxPct(e.target);
+            }
+        });
+        // On input → live red border preview only (no toast)
+        form.addEventListener('input', function(e) {
+            if (e.target.matches('.sched-pct, .incap-pct-input, .note-pct')) {
+                previewOvermax(e.target);
+            }
+        });
+    })();
 
     // ── Search claim by ID / Passport number ────────
     let _lastFoundClaim = null;
