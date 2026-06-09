@@ -172,6 +172,46 @@
                 <p id="userLocation">-</p>
             </div>
         </div>
+
+        <!-- ── Medical Practitioner Dashboard ──────────────── -->
+        <div id="medPractSection" style="display:none; margin-top:30px">
+            <h2 style="color:#333; font-size:18px; margin-bottom:16px; padding:10px 14px;
+                       background:#f0fafc; border-left:4px solid #0c5460;
+                       border-radius:0 6px 6px 0;">
+                🩺 Medical Practitioner — Case Overview
+            </h2>
+            <div class="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #333;">
+                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">Total Cases</div>
+                    <div class="stat-value" id="mpTotalCases" style="font-size:36px; font-weight:800; color:#333; margin-top:8px;">—</div>
+                    <div style="font-size:12px; color:#999; margin-top:4px;">All medical reports</div>
+                </div>
+                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #e67e22;">
+                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">In Progress</div>
+                    <div class="stat-value" id="mpDrafts" style="font-size:36px; font-weight:800; color:#e67e22; margin-top:8px;">—</div>
+                    <div style="font-size:12px; color:#999; margin-top:4px;">Drafts awaiting submission</div>
+                </div>
+                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #27ae60;">
+                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">Submitted</div>
+                    <div class="stat-value" id="mpSubmitted" style="font-size:36px; font-weight:800; color:#27ae60; margin-top:8px;">—</div>
+                    <div style="font-size:12px; color:#999; margin-top:4px;">Completed reports</div>
+                </div>
+                <div class="stat-card" style="background:white; border-radius:12px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #3498db;">
+                    <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; font-weight:600;">This Month</div>
+                    <div class="stat-value" id="mpThisMonth" style="font-size:36px; font-weight:800; color:#3498db; margin-top:8px;">—</div>
+                    <div style="font-size:12px; color:#999; margin-top:4px;">Reports created this month</div>
+                </div>
+            </div>
+            <div style="margin-top:16px; text-align:right;">
+                <a href="medical-examination.html" style="display:inline-block; padding:12px 24px;
+                   background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333;
+                   text-decoration:none; border-radius:8px; border:2px solid #ddd;
+                   font-weight:600; font-size:14px; transition:all 0.3s;
+                   font-family:inherit;">
+                    🩺 New Medical Exam (Form 43/03)
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Supabase JS Client -->
@@ -185,6 +225,8 @@
     <script src="common.js"></script>
 
     <script>
+    const SB = window.supabaseClient;
+
         // Check authentication on page load
         window.addEventListener('load', async function() {
             const authenticated = await isAuthenticated();
@@ -220,12 +262,75 @@
                     document.getElementById('departmentName').textContent = 
                         getDepartmentName(profile.department);
                     document.getElementById('userLocation').textContent = profile.location;
+
+                    // Show medical practitioner dashboard section
+                    if (profile.role === 'medical_practitioner') {
+                        loadMedPractStats(userResult.user.id);
+                    }
                 } else {
                     // Fallback to auth data
                     document.getElementById('userName').textContent = 
                         userResult.user.email.split('@')[0];
                     document.getElementById('userEmail').textContent = userResult.user.email;
                 }
+            }
+        }
+
+        async function loadMedPractStats(userId) {
+            const section = document.getElementById('medPractSection');
+            if (!section) return;
+            section.style.display = 'block';
+
+            try {
+                // Get the start of the current month for "This Month" query
+                const now = new Date();
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+                // Count all reports submitted by this practitioner
+                const { count: totalCount, error: totalErr } = await SB
+                    .from('medical_examination_reports')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('submitted_by', userId);
+
+                // Count drafts (in progress)
+                const { count: draftCount, error: draftErr } = await SB
+                    .from('medical_examination_reports')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('submitted_by', userId)
+                    .eq('status', 'draft');
+
+                // Count submitted (completed)
+                const { count: submittedCount, error: subErr } = await SB
+                    .from('medical_examination_reports')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('submitted_by', userId)
+                    .eq('status', 'submitted');
+
+                // Count reports created this month
+                const { count: monthCount, error: monthErr } = await SB
+                    .from('medical_examination_reports')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('submitted_by', userId)
+                    .gte('created_at', monthStart);
+
+                // Update the stat cards
+                document.getElementById('mpTotalCases').textContent = totalCount ?? '—';
+                document.getElementById('mpDrafts').textContent = draftCount ?? '—';
+                document.getElementById('mpSubmitted').textContent = submittedCount ?? '—';
+                document.getElementById('mpThisMonth').textContent = monthCount ?? '—';
+
+                // Log errors silently (non-blocking)
+                if (totalErr) console.warn('Stats error (total):', totalErr);
+                if (draftErr) console.warn('Stats error (drafts):', draftErr);
+                if (subErr) console.warn('Stats error (submitted):', subErr);
+                if (monthErr) console.warn('Stats error (month):', monthErr);
+
+            } catch (e) {
+                console.warn('Failed to load medical practitioner stats:', e);
+                document.getElementById('mpTotalCases').textContent = '!';
+                document.getElementById('mpDrafts').textContent = '!';
+                document.getElementById('mpSubmitted').textContent = '!';
+                document.getElementById('mpThisMonth').textContent = '!';
             }
         }
 

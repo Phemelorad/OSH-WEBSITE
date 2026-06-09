@@ -287,7 +287,7 @@
         label: '\u2302 Dashboard',
         href: 'dashboard.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'company', 'medical_practitioner']
+        hideFor: ['viewer', 'worker', 'company']
       },
       {
         id: 'company-view',
