@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BL FORM 43/03 – Report of Results of Medical Examination</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11pt;
+    background: #fff;
+    color: #000;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 18mm 20mm 15mm 20mm;
+    background: #fff;
+    position: relative;
+  }
+
+  /* ── Form number top-right ── */
+  .form-number {
+    text-align: right;
+    font-weight: bold;
+    font-size: 11pt;
+    margin-bottom: 10mm;
+  }
+
+  /* ── Crest ── */
+  .crest-area {
+    text-align: center;
+    margin-bottom: 4mm;
+  }
+  .crest-area img {
+    height: 28mm;
+  }
+  .crest-placeholder {
+    display: inline-block;
+    width: 28mm;
+    height: 28mm;
+    border: 1px solid #000;
+    line-height: 28mm;
+    font-size: 8pt;
+    color: #555;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  /* ── Header titles ── */
+  .header-titles {
+    text-align: center;
+    margin-bottom: 5mm;
+    line-height: 1.7;
+  }
+  .header-titles p {
+    font-size: 11pt;
+  }
+  .header-titles .main-title {
+    font-weight: bold;
+    font-size: 11pt;
+    letter-spacing: 0.04em;
+  }
+  .header-titles .italic-note {
+    font-style: italic;
+    font-size: 10.5pt;
+  }
+
+  /* ── Field rows ── */
+  .fields { margin-top: 3mm; }
+
+  .field-row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 3mm;
+    line-height: 1.5;
+  }
+  .field-label {
+    white-space: nowrap;
+    min-width: 8mm;
+    font-size: 11pt;
+    padding-right: 2mm;
+    padding-top: 1px;
+  }
+  .field-label-text {
+    white-space: nowrap;
+    font-size: 11pt;
+    padding-right: 2mm;
+    padding-top: 1px;
+  }
+  .field-content {
+    flex: 1;
+  }
+
+  /* dotted lines */
+  .dotline {
+    border-bottom: 1px dotted #000;
+    min-height: 5.5mm;
+    width: 100%;
+    display: block;
+    margin-bottom: 1.5mm;
+  }
+  .dotline-inline {
+    border-bottom: 1px dotted #000;
+    display: inline-block;
+    min-width: 60mm;
+    margin-bottom: 1mm;
+  }
+
+  /* ── Section headings inside fields ── */
+  .subsection {
+    margin-bottom: 1.5mm;
+  }
+  .subsection-label {
+    font-size: 11pt;
+    margin-bottom: 1mm;
+  }
+
+  /* ── Incapacity table ── */
+  .incap-table {
+    width: 100%;
+    margin-top: 1mm;
+  }
+  .incap-table td {
+    font-size: 11pt;
+    padding: 0.5mm 0;
+    vertical-align: bottom;
+  }
+  .incap-table td:first-child {
+    width: 72%;
+  }
+  .incap-table td:last-child {
+    width: 28%;
+  }
+  .incap-row-label {
+    font-weight: normal;
+    font-size: 11pt;
+  }
+  .incap-pct {
+    border-bottom: 1px dotted #000;
+    min-width: 48mm;
+    display: inline-block;
+    height: 5mm;
+  }
+
+  /* ── Yes/No questions ── */
+  .yn-question {
+    margin-bottom: 3.5mm;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .yn-question .answer {
+    margin-left: 18mm;
+    font-size: 11pt;
+  }
+
+  /* ── Signature block ── */
+  .sig-block {
+    margin-top: 4mm;
+    font-size: 11pt;
+    line-height: 2;
+  }
+  .sig-row {
+    display: flex;
+    gap: 10mm;
+    margin-bottom: 1mm;
+  }
+  .sig-cell {
+    flex: 1;
+  }
+  .sig-cell span {
+    font-size: 11pt;
+  }
+  .sig-line {
+    border-bottom: 1px dotted #000;
+    display: inline-block;
+    min-width: 52mm;
+    height: 5mm;
+  }
+
+  /* ── Footer note ── */
+  .footer-note {
+    margin-top: 3mm;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  /* ── To Worker block ── */
+  .to-worker {
+    margin-top: 4mm;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .to-worker p {
+    margin-bottom: 1mm;
+  }
+
+  /* ══════ PAGE 2 – Schedule ══════ */
+  .page-break { page-break-before: always; }
+
+  .schedule-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 12pt;
+    margin-bottom: 4mm;
+    margin-top: 2mm;
+  }
+
+  .sched-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11pt;
+  }
+  .sched-table th {
+    border-bottom: 1.5px solid #000;
+    text-align: left;
+    padding: 1.5mm 2mm;
+    font-size: 11pt;
+  }
+  .sched-table th:last-child {
+    text-align: right;
+  }
+  .sched-table td {
+    padding: 0.8mm 2mm;
+    vertical-align: top;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .sched-table td:last-child {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .sched-table tr.sub-item td:first-child {
+    padding-left: 14mm;
+  }
+  .sched-table tr.sub-item2 td:first-child {
+    padding-left: 28mm;
+  }
+
+  .sched-notes {
+    margin-top: 5mm;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .sched-notes p {
+    margin-bottom: 2.5mm;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ PAGE 1 ═══════════════════ -->
+<div class="page">
+
+  <div class="form-number">BL FORM 43/03</div>
+
+  <!-- Coat of arms -->
+  <div class="crest-area">
+    <!-- Botswana coat of arms – replace src with actual image path if available -->
+    <span class="crest-placeholder">[ Coat of Arms ]</span>
+  </div>
+
+  <!-- Titles -->
+  <div class="header-titles">
+    <p class="main-title">WORKER'S COMPENSATION ACT</p>
+    <p>(Act No. 23 of 1998)</p>
+    <p>(Section 10)</p>
+    <p class="main-title">REPORT OF RESULTS OF MEDICAL EXAMINATION</p>
+    <p class="italic-note">(To be completed in quadruplicate)</p>
+  </div>
+
+  <!-- Fields -->
+  <div class="fields">
+
+    <!-- 1. Name -->
+    <div class="field-row">
+      <span class="field-label">1.</span>
+      <div class="field-content">
+        <span class="field-label-text">Name of worker</span><span class="dotline-inline" style="min-width:100mm;"></span><br>
+        <span class="dotline" style="margin-top:1mm;"></span>
+      </div>
+    </div>
+
+    <!-- 2. Nature of injury -->
+    <div class="field-row">
+      <span class="field-label">2.</span>
+      <div class="field-content">
+        <span class="field-label-text">Nature of injury or disease</span><span class="dotline-inline" style="min-width:70mm;"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+      </div>
+    </div>
+
+    <!-- 3. Medical treatment -->
+    <div class="field-row">
+      <span class="field-label">3.</span>
+      <div class="field-content">
+        <span class="field-label-text">Full particulars of medical treatment including hospitalization:</span><br>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+        <span class="dotline" style="width:85%;"></span>
+      </div>
+    </div>
+
+    <!-- 4. Percentage of incapacity -->
+    <div class="field-row">
+      <span class="field-label">4.</span>
+      <div class="field-content">
+        <span class="field-label-text">Percentage of incapacity (see overleaf for % disabilities)</span>
+        <table class="incap-table">
+          <tr>
+            <td class="incap-row-label" style="font-weight:normal;">Type</td>
+            <td>%</td>
+          </tr>
+          <tr>
+            <td>(a) &nbsp;Death</td>
+            <td><span class="incap-pct"></span></td>
+          </tr>
+          <tr>
+            <td>(b) &nbsp;Permanent total*</td>
+            <td><span class="incap-pct"></span></td>
+          </tr>
+          <tr>
+            <td>(c) &nbsp;Permanent partial</td>
+            <td><span class="incap-pct"></span></td>
+          </tr>
+          <tr>
+            <td>(d) &nbsp;Temporary (and probable durations)</td>
+            <td><span class="incap-pct"></span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="field-row" style="margin-top:2mm;">
+      <span class="field-label">5.</span>
+      <div class="field-content">
+        <div class="yn-question">
+          If temporary, is worker capable of undertaking light duties?
+          <div class="answer">Yes/No/ Not applicable <em>(delete as necessary)</em></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="field-row">
+      <span class="field-label">6.</span>
+      <div class="field-content">
+        <div class="yn-question">
+          Will a final examination be necessary before claimant resumes duty?
+          <div class="answer">Yes/No/Not applicable <em>(delete as necessary)</em></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resume work question (page 2 top in PDF, fits on page 1 here) -->
+    <div class="field-row" style="margin-top:1mm;">
+      <div class="field-content">
+        <div class="yn-question">
+          In your opinion, will the claimant be able to resume work on which he was employed at the time of the accident?
+          <div class="answer">Yes/No/ Not applicable <em>(delete as necessary)</em></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /fields -->
+
+  <!-- Signature block -->
+  <div class="sig-block">
+    <div class="sig-row">
+      <div class="sig-cell">
+        Date: <span class="sig-line" style="min-width:38mm;"></span>
+      </div>
+      <div class="sig-cell">
+        Signature: <span class="sig-line" style="min-width:52mm;"></span>
+      </div>
+    </div>
+    <div class="sig-row">
+      <div class="sig-cell">
+        &nbsp;
+      </div>
+      <div class="sig-cell">
+        Designation: <span class="sig-line" style="min-width:50mm;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div class="footer-note">
+    * May not be less 100%. See interpretation section in the Act.
+  </div>
+
+  <!-- To Worker -->
+  <div class="to-worker">
+    <p><strong>To Worker/Representative/Dependent:</strong></p>
+    <p>Full Name:</p>
+    <span class="dotline"></span>
+    <span class="dotline"></span>
+    <span class="dotline"></span>
+  </div>
+
+</div><!-- /page 1 -->
+
+
+<!-- ═══════════════════ PAGE 2 – Schedule ═══════════════════ -->
+<div class="page page-break">
+
+  <div class="form-number">BL FORM 43/03</div>
+
+  <div class="schedule-title">Schedule of Percentage Incapacities</div>
+
+  <table class="sched-table">
+    <thead>
+      <tr>
+        <th>Injury</th>
+        <th>% of incapacity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Loss of two limbs )</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Loss of both hands or all fingers and thumbs )</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Loss of both feet )</td>
+        <td>…………..…100</td>
+      </tr>
+      <tr>
+        <td>Total loss of sight )</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Total paralysis )</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Any other injury causing permanent total disablement )</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Injuries resulting in being permanently bedridden )</td>
+        <td></td>
+      </tr>
+      <tr><td style="padding-top:2mm;"></td><td></td></tr>
+      <tr><td>Loss of arm at shoulder</td><td>……..…….. 70</td></tr>
+      <tr><td>Loss of arm between elbow and shoulder</td><td>……..….. 60</td></tr>
+      <tr><td>Loss of arm at elbow</td><td>………… 55</td></tr>
+      <tr><td>Loss of arm between wrist and elbow</td><td>………… 50</td></tr>
+      <tr><td>Loss of hand at wrist</td><td>………… 50</td></tr>
+      <tr><td>Loss of four fingers and thumb on one hand</td><td>………... 50</td></tr>
+      <tr><td>Loss of four fingers</td><td>………... 35</td></tr>
+      <tr><td>Loss of thumb &nbsp;&nbsp;-both phalanges</td><td>………… 35</td></tr>
+      <tr class="sub-item"><td>-one phalange</td><td>………… 10</td></tr>
+      <tr><td>Loss of index finger &nbsp;&nbsp;-three phalanges</td><td>………… 10</td></tr>
+      <tr class="sub-item"><td>-two phalanges</td><td>………… 8</td></tr>
+      <tr class="sub-item"><td>-one phalange</td><td>………… 4</td></tr>
+      <tr><td>Loss of middle finger &nbsp;&nbsp;-three phalanges</td><td>………… 6</td></tr>
+      <tr class="sub-item"><td>-two phalanges</td><td>………… 4</td></tr>
+      <tr class="sub-item"><td>-one phalange</td><td>…………. 2</td></tr>
+      <tr><td>Loss of ring finger &nbsp;&nbsp;-three phalanges</td><td>………… 5</td></tr>
+      <tr class="sub-item"><td>-two phalanges</td><td>…………. 4</td></tr>
+      <tr class="sub-item"><td>-one phalange</td><td>………….. 2</td></tr>
+      <tr><td>Loss of little finger &nbsp;&nbsp;-three phalanges</td><td>………….. 4</td></tr>
+      <tr class="sub-item"><td>-two phalanges</td><td>………….. 3</td></tr>
+      <tr class="sub-item"><td>-one phalange</td><td>………….. 2</td></tr>
+      <tr><td>Loss of metacarpals &nbsp;&nbsp;-first or second</td><td>…………. 3</td></tr>
+      <tr class="sub-item"><td>(additional) -third, fourth or fifth (additional)</td><td>..………… 2</td></tr>
+      <tr><td>Loss of leg &nbsp;&nbsp;-at or above knee</td><td>………….. 70</td></tr>
+      <tr class="sub-item"><td>-below knee</td><td>………….. 60</td></tr>
+      <tr><td>Loss of foot</td><td>………….. 40</td></tr>
+      <tr><td>Loss of toes &nbsp;&nbsp;-all of one foot</td><td>…………. 15</td></tr>
+      <tr class="sub-item"><td>-great, both phalanges</td><td>…………. 5</td></tr>
+      <tr class="sub-item"><td>-great, one phalange</td><td>…………. 2</td></tr>
+      <tr class="sub-item"><td>-other than great, if more than one toe lost – each</td><td>………….. 1</td></tr>
+      <tr><td style="padding-top:2mm;">Loss of sight of one eye</td><td>………….. 30</td></tr>
+      <tr><td>Loss of hearing in one ear</td><td>………….. 10</td></tr>
+      <tr><td>Total loss of hearing</td><td>………….. 50</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sched-notes">
+    <p>Scars from injuries or burns which result in disfigurement shall be treated as resulting in from 0 to 50% permanent incapacity according to their size and location.</p>
+    <p>Total permanent loss of the use of a member shall be treated as loss of such member.</p>
+    <p>The total loss of a sexual organ or other internal organ shall be treated as resulting in from 0 to 75% of the incapacity depending on the location and effects of such loss.</p>
+    <p>The percentage of incapacity for ankyloses of any joint shall be reckoned as from 25 to 100% of the incapacity for loss of the part of that joint, according to whether the joint is ankylosed in a favorable or unfavorable position.</p>
+    <p>Where there is a loss of two or more parts of the hand, the percentage of incapacity shall not be more than for the loss of the whole hand.</p>
+    <p>Injuries which result in permanent incapacity but which are not included in this schedule shall be assessed in relation to the percentages of incapacity specified in this schedule, whenever possible.</p>
+  </div>
+
+</div><!-- /page 2 -->
+
+</body>
+</html>

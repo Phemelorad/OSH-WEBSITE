@@ -215,8 +215,51 @@
         .schedule-table .sched-pct.readonly-pct { background: #fafafa; border-color: #e0e0e0; cursor: default; }
 
         .schedule-note {
-            font-size: 11px; color: #888; font-style: italic;
-            margin-top: 10px; line-height: 1.5;
+            font-size: 12px; color: #555;
+            margin-top: 12px; line-height: 1.6;
+        }
+        .note-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 8px 10px; border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s;
+            margin-bottom: 4px;
+        }
+        .note-item.has-award {
+            background: #fafafa; border-color: #e8e8e8;
+            cursor: pointer;
+        }
+        .note-item.has-award:hover { border-color: #ccc; }
+        .note-item.has-award.checked {
+            background: #fff8e6; border-color: #ffeeba;
+        }
+        .note-item .note-cb {
+            width: 17px; height: 17px; cursor: pointer; accent-color: #333;
+            margin-top: 3px; flex-shrink: 0;
+        }
+        .note-item .note-text {
+            flex: 1; font-size: 12px; color: #555; line-height: 1.5;
+        }
+        .note-item.has-award.checked .note-text { font-weight: 600; color: #333; }
+        .note-item .note-award {
+            display: flex; align-items: center; gap: 4px;
+            flex-shrink: 0;
+        }
+        .note-item .note-pct {
+            width: 58px; padding: 4px 6px; text-align: center;
+            border: 2px solid #e0e0e0; border-radius: 6px;
+            font-size: 12px; font-weight: 700; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .note-item .note-pct:focus { outline: none; border-color: #333; }
+        .note-item .note-pct:disabled { background: #f5f5f5; border-color: #eee; }
+        .note-item .note-max {
+            font-size: 9px; color: #999; font-weight: 500;
+            white-space: nowrap;
+        }
+        .note-item .note-rule {
+            color: #888; font-style: italic; font-size: 12px;
+            padding: 4px 0;
         }
 
         /* ── Form actions ──────────────────────── */
@@ -494,15 +537,41 @@
               </div>
 
               <div class="schedule-note">
-                <strong>Notes:</strong>
-                <ul style="margin:6px 0 0 18px;padding:0">
-                  <li>Scars from injuries or burns which result in disfigurement shall be treated as resulting in from 0 to 50% permanent incapacity according to their size and location.</li>
-                  <li>Total permanent loss of the use of a member shall be treated as loss of such member.</li>
-                  <li>The total loss of a sexual organ or other internal organ shall be treated as resulting in from 0 to 75% of the incapacity depending on the location and effects of such loss.</li>
-                  <li>The percentage of incapacity for ankyloses of any joint shall be reckoned as from 25 to 100% of the incapacity for loss of the part of that joint, according to whether the joint is ankylosed in a favorable or unfavorable position.</li>
-                  <li>Where there is a loss of two or more parts of the hand, the percentage of incapacity shall not be more than for the loss of the whole hand.</li>
-                  <li>Injuries which result in permanent incapacity but which are not included in this schedule shall be assessed in relation to the percentages of incapacity specified in this schedule, whenever possible.</li>
-                </ul>
+                <strong style="font-size:13px;color:#333">Additional Incapacity Awards — tick and enter the percentage awarded</strong>
+
+                <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
+                  <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
+                  <span class="note-text">Scars from injuries or burns which result in disfigurement — according to size and location</span>
+                  <span class="note-award">
+                    <input type="number" class="note-pct" placeholder="0" min="0" max="50" step="0.01" disabled>
+                    <span class="note-max">Max 50%</span>
+                  </span>
+                </div>
+
+                <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
+                  <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
+                  <span class="note-text">Total loss of a sexual organ or other internal organ — depending on location and effects</span>
+                  <span class="note-award">
+                    <input type="number" class="note-pct" placeholder="0" min="0" max="75" step="0.01" disabled>
+                    <span class="note-max">Max 75%</span>
+                  </span>
+                </div>
+
+                <div class="note-item has-award" onclick="toggleNoteAward(event, this)">
+                  <input type="checkbox" class="note-cb" onchange="this.closest('.note-item').classList.toggle('checked', this.checked); toggleNotePct(this)">
+                  <span class="note-text">Ankylosis of any joint — 25 to 100% of the incapacity for loss of that joint, according to position (favorable or unfavorable)</span>
+                  <span class="note-award">
+                    <input type="number" class="note-pct" placeholder="0" min="0" max="100" step="0.01" disabled>
+                    <span class="note-max">Max 100%</span>
+                  </span>
+                </div>
+
+                <div class="note-item">
+                  <span class="note-text" style="font-style:italic;color:#999">
+                    <strong style="color:#888">Also:</strong>
+                    Total permanent loss of the use of a member shall be treated as loss of such member. Loss of two or more parts of the hand: not more than loss of whole hand. Injuries not in this schedule assessed in relation to the specified percentages.
+                  </span>
+                </div>
               </div>
             </details>
 
@@ -635,6 +704,53 @@
         return items;
     }
 
+    // ── Note award toggles ────────────────────────────
+    function toggleNoteAward(e, item) {
+        // Only toggle if click wasn't on the checkbox or input directly
+        if (e.target.tagName === 'INPUT') return;
+        const cb = item.querySelector('.note-cb');
+        if (cb) {
+            cb.checked = !cb.checked;
+            item.classList.toggle('checked', cb.checked);
+            toggleNotePct(cb);
+        }
+    }
+
+    function toggleNotePct(cb) {
+        const item = cb.closest('.note-item');
+        const pctInput = item.querySelector('.note-pct');
+        if (pctInput) {
+            pctInput.disabled = !cb.checked;
+            if (cb.checked) {
+                pctInput.focus();
+                pctInput.select();
+            } else {
+                pctInput.value = '';
+            }
+        }
+    }
+
+    function getNoteAwardData() {
+        const items = [];
+        document.querySelectorAll('.note-item.has-award.checked').forEach(item => {
+            const pctInput = item.querySelector('.note-pct');
+            const textEl = item.querySelector('.note-text');
+            // Determine a code from the text
+            const text = textEl?.textContent?.trim() || '';
+            let code = 'note_award';
+            if (text.includes('Scars')) code = 'scars_disfigurement';
+            else if (text.includes('sexual organ') || text.includes('internal organ')) code = 'organ_loss';
+            else if (text.includes('Ankylosis')) code = 'ankylosis';
+
+            items.push({
+                code: code,
+                percentage: parseFloat(pctInput?.value) || 0,
+                description: text
+            });
+        });
+        return items;
+    }
+
     // ── Search claim by ID / Passport number ────────
     let _lastFoundClaim = null;
 
@@ -756,6 +872,7 @@
                 incapacity_percentage:           document.getElementById('incapacityPercentage')?.value
                                                   ? parseFloat(document.getElementById('incapacityPercentage').value) : null,
                 schedule_incapacities:           JSON.stringify(getSchedData()),
+                note_incapacity_awards:          JSON.stringify(getNoteAwardData()),
                 capable_light_duties:            radio('capable_light_duties'),
                 final_examination_necessary:     radio('final_examination_necessary'),
                 able_to_resume_work:             radio('able_to_resume_work'),
@@ -805,6 +922,13 @@
                 const cb = tr.querySelector('.sched-cb');
                 if (cb) cb.checked = false;
                 const inp = tr.querySelector('.sched-pct');
+                if (inp) { inp.value = ''; inp.disabled = true; }
+            });
+            document.querySelectorAll('.note-item.has-award.checked').forEach(item => {
+                item.classList.remove('checked');
+                const cb = item.querySelector('.note-cb');
+                if (cb) cb.checked = false;
+                const inp = item.querySelector('.note-pct');
                 if (inp) { inp.value = ''; inp.disabled = true; }
             });
             toggleTempDuration();
