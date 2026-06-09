@@ -103,7 +103,7 @@ function getEffectiveRole(realRole) {
     try {
         const override = sessionStorage.getItem(DEV_ROLE_KEY);
         if (override && ['viewer','worker','officer','admin','super_admin','company','medical_practitioner'].includes(override)) {
-            console.log('Dev role override active:', override, '(real role:', realRole + ')');
+
             return override;
         }
     } catch (e) {}
@@ -118,7 +118,7 @@ async function initializeRoleSystem() {
         if (cached && cached.user_id && cached.role) {
             currentUserId = cached.user_id;
             currentUserRole = getEffectiveRole(cached.role);
-            console.log('User role (from cache):', currentUserRole);
+
             updateHeaderDisplay(cached);
             updateUIForRole();
             // Refresh cache in background (don't block UI)
@@ -129,7 +129,6 @@ async function initializeRoleSystem() {
         // ── Fallback to API calls ────────────────────────────
         const userResult = await getCurrentUser();
         if (!userResult.success || !userResult.user) {
-            console.error('No user logged in');
             return false;
         }
 
@@ -138,7 +137,7 @@ async function initializeRoleSystem() {
         const profileResult = await getUserProfile(currentUserId);
         if (profileResult.success && profileResult.data) {
             currentUserRole = getEffectiveRole(profileResult.data.role || 'viewer');
-            console.log('User role (from API):', currentUserRole);
+
 
             // Enrich with company name for company users
             await enrichProfileWithCompanyName(profileResult.data);
@@ -267,7 +266,7 @@ async function refreshUserProfileInBackground() {
                 updateHeaderDisplay(profileResult.data);
             }
 
-            console.log('Profile cache refreshed');
+
         }
     } catch (e) {
         // Silently fail — cache will refresh on next page load
@@ -574,50 +573,68 @@ if (typeof window !== 'undefined') {
     };
 }
 
-console.log('Role permissions system loaded');
 
-// ── Guard header for company users ────────────────────────
-// Many page scripts overwrite #userName with the person's full name after our
-// updateHeaderDisplay() runs (inside window.load or DOMContentLoaded handlers).
-// This MutationObserver detects those overwrites and corrects them back to
-// the company name, without touching the element for non-company users.
-let _fixingHeader = false;
-const _headerGuard = new MutationObserver(() => {
-    if (_fixingHeader) return;
-    if (currentUserRole !== 'company') return;
 
-    const nameEl = document.getElementById('userName');
-    if (!nameEl) return;
+// ── Header guard for company users ─────────────────────────
+// Page scripts often overwrite #userName with the person's full name after
+// updateHeaderDisplay() has already set it to the company name for company users.
+// This guard uses a lightweight setInterval polling approach (cleaned up after
+// the first correction) to ensure the company name stays visible.
+//
+// Root cause: page-specific scripts (e.g., admin.html, dashboard.html) run their
+// own window.load handlers that set userName.textContent directly. The proper
+// fix would be to have those scripts check the user role first, but this guard
+// provides backwards compatibility without changing every page.
+let _headerGuardInterval = null;
+let _headerGuardAttempts = 0;
 
-    // Check the cached profile for the correct company name
+function protectCompanyUserName() {
+    if (currentUserRole !== 'company') {
+        cleanupHeaderGuard();
+        return;
+    }
+
     const cached = (typeof window.getCachedUserProfile === 'function')
         ? window.getCachedUserProfile() : null;
     const companyName = cached?.company_name;
     if (!companyName) return;
 
+    const nameEl = document.getElementById('userName');
+    if (!nameEl) return;
+
     if (nameEl.textContent !== companyName) {
-        _fixingHeader = true;
         nameEl.textContent = companyName;
-        _fixingHeader = false;
     }
 
-    // Also ensure designation row stays hidden
     const desigEl = document.getElementById('userDesignation');
     if (desigEl && desigEl.style.display !== 'none') {
         desigEl.textContent = '';
         desigEl.style.display = 'none';
     }
-});
 
-function startHeaderGuard() {
-    const nameEl = document.getElementById('userName');
-    if (nameEl) {
-        _headerGuard.observe(nameEl, { childList: true, characterData: true, subtree: true });
+    // After 5 successful checks (5 seconds total), clean up
+    _headerGuardAttempts++;
+    if (_headerGuardAttempts >= 5) {
+        cleanupHeaderGuard();
     }
 }
 
+function cleanupHeaderGuard() {
+    if (_headerGuardInterval) {
+        clearInterval(_headerGuardInterval);
+        _headerGuardInterval = null;
+    }
+}
+
+// Start polling 1 second after page load (allow page scripts to run first)
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startHeaderGuard);
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            _headerGuardInterval = setInterval(protectCompanyUserName, 1000);
+        }, 500);
+    });
 } else {
-    startHeaderGuard();
+    setTimeout(() => {
+        _headerGuardInterval = setInterval(protectCompanyUserName, 1000);
+    }, 500);
 }

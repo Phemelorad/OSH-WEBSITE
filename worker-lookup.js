@@ -60,10 +60,9 @@
   }
 
   function getSB() {
-    return window.supabaseClient || window.supabase?.createClient(
-      'https://qblogmmknnacaaircrlt.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-    );
+    // Uses the shared Supabase client from supabase-config.js
+    // Must be loaded before this script on every page
+    return window.supabaseClient;
   }
 
   // ── Normalization (single source of truth) ─────────────────
@@ -202,7 +201,6 @@
       .maybeSingle();
 
     if (error) {
-      console.warn('workers_registry upsert:', error.message);
       return window._resolvedWorkerId || existing?.id || null;
     }
 
@@ -264,7 +262,6 @@
   window.attachWorkerLookup = function (config) {
     const container = document.getElementById(config.containerId);
     if (!container) {
-      console.warn('worker-lookup: container not found:', config.containerId);
       return;
     }
 
@@ -426,6 +423,4 @@
       window._resolvedWorkerId = null;
     }
   };
-
-  console.log('worker-lookup.js loaded');
 })();

@@ -3,13 +3,21 @@
 // Include this script on every page after modal.js
 // ============================================
 
-// Format date to dd Mon yyyy (e.g. "14 Mar 2026")
+/**
+ * Format a date value to a human-readable string (e.g. "14 Mar 2026").
+ * @param {Date|string|number|null|undefined} d - Date value (ISO string, timestamp, or Date object)
+ * @returns {string} Formatted date string or em-dash if input is null/undefined
+ */
 function fmtDate(d) {
     if (!d) return '\u2014';
     return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 }
 
-// Escape HTML special characters
+/**
+ * Escape HTML special characters to prevent XSS.
+ * @param {*} s - Value to escape (converted to string)
+ * @returns {string} HTML-escaped string or empty string if input is null/undefined
+ */
 function esc(s) {
     if (s == null) return '';
     return String(s)
@@ -18,7 +26,13 @@ function esc(s) {
         .replace(/'/g,'&#39;');
 }
 
-// Universal logout handler (requires modal.js and supabase-config.js)
+/**
+ * Universal logout handler.
+ * Confirms with the user, then calls signOut() and redirects to login.
+ * @requires modal.js (showConfirm, showAlert)
+ * @requires supabase-config.js (signOut)
+ * @returns {Promise<void>}
+ */
 async function handleLogout() {
     const ok = await showConfirm('You will be signed out of the DOSH system.', {
         title: 'Logout', icon: '\uD83D\uDC4B', confirmText: 'Logout', cancelText: 'Stay'
@@ -30,4 +44,3 @@ async function handleLogout() {
     }
 }
 
-console.log('Common utilities loaded');

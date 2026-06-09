@@ -5,10 +5,9 @@
 (function () {
 
   function getSB() {
-    return window.supabaseClient || window.supabase?.createClient(
-      'https://qblogmmknnacaaircrlt.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG9nbW1rbm5hY2FhaXJjcmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODM5MzcsImV4cCI6MjA5NTk1OTkzN30.qQB1DhoAn-W1wqSMyJpwQ3cqX0JWhw54kb_XOb5fU5s'
-    );
+    // Uses the shared Supabase client from supabase-config.js
+    // Must be loaded before this script on every page
+    return window.supabaseClient;
   }
 
   function todayISO() {
@@ -93,7 +92,7 @@
     };
 
     if (!draft.claimant_id_number) {
-      console.warn('claim-draft: no claimant ID — skipping auto draft');
+      // Cannot create draft without an ID number — skip silently
       return null;
     }
 
@@ -104,7 +103,6 @@
       .maybeSingle();
 
     if (error) {
-      console.warn('claim-draft from accident:', error.message);
       return null;
     }
     return data?.id || null;
@@ -145,7 +143,7 @@
     };
 
     if (!draft.claimant_id_number) {
-      console.warn('claim-draft: no worker ID — skipping auto draft');
+      // Cannot create draft without an ID number — skip silently
       return null;
     }
 
@@ -156,7 +154,6 @@
       .maybeSingle();
 
     if (error) {
-      console.warn('claim-draft from injury/disease:', error.message);
       return null;
     }
     return data?.id || null;
@@ -257,6 +254,4 @@
     }
     return true;
   };
-
-  console.log('claim-draft.js loaded');
 })();

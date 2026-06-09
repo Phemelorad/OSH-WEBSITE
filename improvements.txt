@@ -1,0 +1,413 @@
+================================================================================
+                    OSH WEB APPLICATION — IMPROVEMENTS LIST
+================================================================================
+
+This document catalogs potential improvements across architecture, security,
+UX/UI, performance, database, and features for the DOSH (Department of
+Occupational Health & Safety) web application.
+
+================================================================================
+1. ARCHITECTURE & BUILD SYSTEM
+================================================================================
+
+[1.1] Adopt a module bundler (Vite, Webpack, or Parcel)
+      → Replace 17+ separate <script> tags with ES module imports
+      → Enable tree-shaking, code splitting, and asset optimization
+      → Benefits: faster page loads, smaller bundles, better DX
+
+[1.2] Add TypeScript
+      → All 10 JS files would benefit from typing
+      → Catches null-reference bugs, improper API response handling, etc.
+      → Shared interfaces for database row types (e.g., AccidentReport, Claim)
+
+[1.3] Introduce a UI component framework (React, Svelte, or Vue)
+      → Eliminates HTML/CSS duplication across 23+ pages
+      → Shared components: DataTable, FormField, Modal, StatCard, Badge, etc.
+      → Simpler state management than sessionStorage + global window.* functions
+
+[1.4] Standardize CSS (move inline <style> blocks to external files)
+      → Each HTML page has its own <style> block → ~2,500 lines of CSS duped
+      → Extract shared CSS to common.css or use CSS custom properties
+      → Add PostCSS/Autoprefixer for browser compatibility
+
+[1.5] Adopt a CSS framework (Tailwind CSS, Bootstrap, or similar)
+      → Faster UI development, consistent design tokens
+      → Responsive design out of the box
+      → Dark mode support
+
+[1.6] Set up ESLint + Prettier
+      → Enforce consistent code style across all 10 JS files
+      → Catch common bugs (unused variables, async errors, etc.)
+
+[1.7] Create a CI/CD pipeline (GitHub Actions)
+      → Run linting, type-checking, and tests on every push
+      → Auto-deploy to hosting (e.g., GitHub Pages, Netlify, Vercel)
+
+[1.8] Add unit & integration tests
+      → Jest or Vitest for utility functions (fmtDate, esc, normalizeSex)
+      → Playwright/Cypress for end-to-end flows (login → submit claim → view)
+      → Critical paths: registration, login, claims workflow, inspection workflow
+
+[1.9] Environment variable management
+      → Move SUPABASE_URL and SUPABASE_ANON_KEY to .env files
+      → Vite-style import.meta.env or build-time substitution
+      → Different values for dev/staging/prod
+
+[1.10] Adopt a proper state management approach
+      → Current: sessionStorage.getItem/setItem scattered across pages
+      → Replace with a shared reactive store (e.g., Zustand, Pinia, or Context)
+      → Eliminates cross-page data-leak bugs
+
+[1.11] Remove console.log statements from production code
+      → All JS files contain debug console.log/warn statements
+      → Add a proper logging utility that can be toggled off
+
+================================================================================
+2. SECURITY
+================================================================================
+
+[2.1] Remove hardcoded Supabase anon key duplication
+      → Currently duplicated in supabase-config.js, claim-draft.js, worker-lookup.js
+      → Expose once from supabase-config.js and import everywhere
+
+[2.2] Audit Row Level Security (RLS) policies
+      → 40+ policies across 15 tables — complex interdependencies
+      → Test each policy with edge cases (deleted users, cross-tenant access)
+      → Verify company users cannot see other companies' data
+
+[2.3] Add rate limiting on login endpoint
+      → Current: no protection against brute force attacks
+      → Implement via Supabase Auth hooks or a third-party service
+
+[2.4] Add CAPTCHA on registration form
+      → Prevents bot account creation
+      → hCaptcha or Google reCAPTCHA v3
+
+[2.5] Strengthen input sanitization
+      → esc() handles basic HTML but doesn't cover all XSS vectors
+      → Use DOMPurify or similar library for user-supplied content
+      → Sanitize database values before rendering in detail modals
+
+[2.6] Implement session timeout
+      → No idle timeout — user remains authenticated indefinitely
+      → Implement 15–30 minute inactivity timeout with warning
+
+[2.7] Add two-factor authentication (2FA)
+      → Especially for admin and super_admin roles
+      → TOTP via authenticator app (Supabase supports this)
+
+[2.8] Add password strength meter
+      → During registration, show real-time strength feedback
+      → Enforce minimum complexity (uppercase, number, special char)
+
+[2.9] Audit log for all sensitive operations
+      → Currently only logs role changes
+      → Should log: profile updates, status changes, data exports, admin actions
+
+[2.10] SQL injection risk in search_workers_by_identity()
+      → Uses ILIKE with string concatenation (%q_pat%)
+      → While Supabase JS SDK parameterizes queries, the RPC function could be risky
+      → Use parameterized queries (pgSQL EXECUTE USING or fts)
+
+================================================================================
+3. UX / UI IMPROVEMENTS
+================================================================================
+
+[3.1] Add pagination to all data tables
+      → Accident entries, claims entries, inspections, injury reports
+      → Current: loads ALL records — slow with 1000+ records
+      → Implement server-side pagination (range queries) + page controls
+
+[3.2] Implement loading skeletons
+      → Replace spinner text with skeleton placeholders matching layout
+      → Significantly improves perceived performance
+
+[3.3] Add print-friendly CSS
+      → OHS forms need to be printed and filed
+      → @media print rules: hide nav, header, buttons; expand all details
+
+[3.4] Implement dark mode
+      → Add CSS custom properties for light/dark themes
+      → Follow system preference via prefers-color-scheme
+      → Toggle switch in header
+
+[3.5] Form autosave
+      → If user closes browser mid-form, data is lost
+      → Debounce-save form state to localStorage on each input
+      → Restore on page load with "You have unsaved changes" notice
+
+[3.6] Add keyboard shortcuts
+      → Ctrl+Enter to submit forms
+      → / to focus search, Escape to close modals
+      → Power-user navigation (g + d → dashboard, g + a → accidents, etc.)
+
+[3.7] PDF export for forms and reports
+      → "Print as PDF" for OHS Form 60, BL Form 43/10, etc.
+      → Use a library like jsPDF or a server-side PDF generator
+      → Include official DOSH letterhead/crest formatting
+
+[3.8] Add data visualization / charts
+      → Dashboard statistics are just numbers
+      → Add charts for: accidents by month, compliance trends, claims by industry
+      → Use Chart.js or D3.js (lightweight, well-maintained)
+
+[3.9] Notification system
+      → In-app notification bell for status updates
+      → Email notifications: claim status changed, inspection scheduled, etc.
+      → Push notifications for urgent items (fatal accident reported)
+
+[3.10] Bulk operations on data tables
+      → Select multiple items → batch status update, batch export
+      → Current: each item must be actioned individually
+
+[3.11] Advanced search across all modules
+      → Current: each page has its own search
+      → Unified global search bar: "Find worker, claim, inspection, accident"
+      → Results grouped by type with quick links
+
+[3.12] Onboarding wizard for new users
+      → First-login guided tour highlighting key features
+      → Role-specific onboarding (company → bookings; officer → reports)
+
+[3.13] Responsive design improvements
+      → Some tables don't handle mobile well (horizontal scroll missing)
+      → Navigation collapses to hamburger on small screens
+      → Touch-friendly form controls
+
+[3.14] Tooltips for all icon-only buttons
+      → Action buttons like "View", "Edit", "Status" need title attributes
+      → Helps screen readers and new users
+
+================================================================================
+4. PERFORMANCE
+================================================================================
+
+[4.1] Lazy-load scripts
+      → All 10 JS files loaded on every page, even when not needed
+      → Load only scripts relevant to the current page
+      → Use <script type="module"> or dynamic import()
+
+[4.2] Minify CSS and JS
+      → Current: all CSS/JS is unminified (adds ~30-50% to file sizes)
+      → Add build step for minification
+
+[4.3] Optimize images
+      → Code-of-Arms-colour.png could be compressed (WebP or AVIF)
+      → Add responsive image sizing
+
+[4.4] Implement data caching
+      → Repeated database queries for the same data (e.g., nav counts, stats)
+      → Short-lived client-side cache with ETags or SWR pattern
+      → Reduce Supabase query volume
+
+[4.5] Add database connection pooling
+      → Ensure Supabase is configured for connection pooling (PgBouncer)
+      → Currently uses anon key — may hit connection limits under load
+
+[4.6] Implement paginated database queries
+      → .select('*').limit(50) with range() for offset
+      → Reduces payload size and query time for large datasets
+
+[4.7] Add database indexes for common query patterns
+      → Many indexes already exist (good!) but verify they're used
+      → Add missing composite indexes (e.g., (occupier_name, accident_date))
+
+[4.8] Consider materialized views for expensive queries
+      → company_register_view joins 5 tables — slow for large datasets
+      → Materialize and refresh periodically
+
+================================================================================
+5. DATABASE & BACKEND
+================================================================================
+
+[5.1] Implement database migration system
+      → Current: one huge master-setup.sql with IF NOT EXISTS everywhere
+      → Use Supabase migrations or a tool like Flyway/Node-pg-migrate
+      → Small, versioned, reversible migration files
+
+[5.2] Add proper foreign key constraints on all relationships
+      → Some columns reference other tables but don't have FK constraints
+      → E.g., accident_reports.worker_registry_id, injury_claims.source_id
+      → Cascade deletes where appropriate
+
+[5.3] Remove backfill scripts from main setup (Section 12)
+      → Backfill scripts run on every deployment — wasteful
+      → Move to one-time migration files
+
+[5.4] Add data archival strategy
+      → Old records (5+ years) should be archived or soft-deleted
+      → Add archived_at / archived_to columns
+      → Keep UI responsive by querying only active records by default
+
+[5.5] Add database monitoring
+      → Track query performance, slow queries, error rates
+      → Supabase provides some monitoring, but add custom analytics
+
+[5.6] Implement row-level timestamps for soft deletes
+      → deleted_at columns for safety — data recovery, auditing
+      → Update views to filter WHERE deleted_at IS NULL
+
+================================================================================
+6. MISSING FEATURES
+================================================================================
+
+[6.1] Document / file upload system
+      → Accident photos, medical certificates, scanned forms
+      → Store in Supabase Storage (bucket per category)
+      → Link to records via metadata
+
+[6.2] Multi-step approval workflow for claims
+      → Current: single-step submit
+      → Add: Officer review → Supervisor approval → Director sign-off
+      → Each step logs action + timestamp
+
+[6.3] Calendar view for inspection bookings
+      → Visual calendar showing scheduled inspections
+      → Drag-and-drop rescheduling
+      → Integration with Google Calendar / Outlook
+
+[6.4] SMS notifications
+      → Critical: inspection reminders, claim status updates
+      → Use Twilio or Africa's Talking (good for Botswana)
+      → Phone numbers are already collected during registration
+
+[6.5] Worker self-service portal
+      → Workers can view their own incident history, claim status
+      → Submit injury/disease reports directly
+      → Track compensation payments
+
+[6.6] API for external integrations
+      → RESTful API for insurance companies, medical practitioners
+      → API key management in admin panel
+      → Rate-limited, documented with OpenAPI/Swagger
+
+[6.7] Data import from Excel/CSV
+      → Bulk import of inspection data (common starting point)
+      → Import worker registry from HR systems
+      → Template download + validation + preview
+
+[6.8] System health dashboard for admins
+      → Supabase status, API response times, error rates
+      → Recent failed login attempts
+      → Storage usage, database size
+
+[6.9] Passwordless login option (magic link)
+      → Email-based magic link as alternative to passwords
+      → Reduces password fatigue
+
+[6.10] Offline support (PWA)
+      → Service worker caches critical pages
+      → Basic offline form filling → sync when online
+      → Add manifest.json + install prompt
+
+================================================================================
+7. CODE QUALITY & MAINTAINABILITY
+================================================================================
+
+[7.1] Modularize master-setup.sql
+      → Single 1800+ line SQL file is hard to maintain
+      → Split into: schema.sql, functions.sql, triggers.sql, views.sql, seeds.sql, rls.sql
+
+[7.2] Reduce global namespace pollution
+      → All functions are on window.* — risk of naming collisions
+      → Use ES module exports/imports
+
+[7.3] Eliminate circular and implicit script dependencies
+      → e.g., header.js depends on modal.js and common.js
+      → Make dependencies explicit via import statements
+
+[7.4] Add JSDoc type annotations to all functions
+      → Improves IDE intellisense and catches type errors
+      → Document parameter types, return types, and side effects
+
+[7.5] Standardize error handling patterns
+      → Mix of try-catch, .catch(), and if(error) patterns
+      → Adopt a consistent pattern: async function with try-catch + user-facing messages
+
+[7.6] Replace MutationObserver hack with proper initialization ordering
+      → role-permissions.js uses MutationObserver to prevent header overwrites
+      → Fix the root cause: ensure scripts run in correct order
+
+[7.7] Extract magic strings to constants
+      → Role names, industry sectors, status values are hardcoded everywhere
+      → Define once in a shared constants file
+
+[7.8] Add proper date/time handling
+      → fmtDate uses toLocaleDateString('en-GB') — inconsistent locale handling
+      → Use a library like date-fns or day.js for consistent formatting
+      → Handle timezone properly
+
+[7.9] Consolidate all Supabase client references
+      → window.supabaseClient is defined in supabase-config.js
+      → But claim-draft.js and worker-lookup.js have fallback createClient() calls
+      → Remove duplication — trust the shared instance
+
+================================================================================
+8. ACCESSIBILITY
+================================================================================
+
+[8.1] Add ARIA labels to interactive elements
+      → Buttons, navigation items, modals, table sort controls
+      → Screen reader announcements for dynamic content changes
+
+[8.2] Ensure proper color contrast
+      → Some badge/status colors may fail WCAG AA contrast requirements
+      → Audit with a tool like axe DevTools or Lighthouse
+
+[8.3] Add focus management in modals
+      → current: modals don't trap focus
+      → Tab should cycle within modal, Escape closes it
+      → Return focus to triggering element on close
+
+[8.4] Add skip-to-content links
+      → For keyboard and screen reader users
+      → Skip nav, skip to main content
+
+[8.5] Add form error announcements for screen readers
+      → Current: error-message is visually hidden until shown
+      → Add role="alert" or aria-describedby to associate errors with fields
+
+================================================================================
+9. TESTING & QA
+================================================================================
+
+[9.1] Write unit tests for utility functions
+      → fmtDate(), esc(), normalizeSex(), normalizeIdentityId(), fmtDate(), etc.
+      → Edge cases: null/undefined inputs, special characters, leap years
+
+[9.2] Write integration tests for critical flows
+      → User registration → email confirmation → login → dashboard
+      → Company registration → create booking → view monitoring dashboard
+      → Officer → create accident report → view in entries
+
+[9.3] Add visual regression testing
+      → Screenshot comparison for all 23+ HTML pages
+      → Catch unintended CSS changes
+
+[9.4] Performance budget
+      → Set targets: < 2s first paint, < 50KB JS per page, < 5 Supabase queries per page load
+      → Monitor with Lighthouse CI in the CI pipeline
+
+================================================================================
+10. DEVOPS & HOSTING
+================================================================================
+
+[10.1] Set up staging environment
+      → Mirror of production for testing
+      → Separate Supabase project + GitHub Pages site
+
+[10.2] Add feature flags
+      → Toggle new features on/off without deployment
+      → Gradual rollouts (e.g., 10% → 50% → 100% of users)
+
+[10.3] Add error tracking
+      → Sentry or Rollbar for frontend JavaScript errors
+      → Stack traces with source maps (post-build)
+
+[10.4] Set up monitoring / uptime checks
+      → Monitor: is the site accessible? Is Supabase responding?
+      → Alert on repeated 500 errors or auth failures
+
+[10.5] Database backup automation
+      → Ensure Supabase Point-in-Time Recovery is configured
+      → Regular pg_dump exports to off-site storage

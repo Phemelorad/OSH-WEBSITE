@@ -408,5 +408,4 @@
     window.getCachedUserProfile = getCachedUserProfile;
     window.clearCachedUserProfile = clearCachedUserProfile;
 
-    console.log('Supabase configuration loaded successfully');
 })();

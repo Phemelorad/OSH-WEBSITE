@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS departments (
     created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Add missing columns if departments table already existed from a previous run
+-- (Must run BEFORE INSERT to avoid column-not-found error)
+ALTER TABLE departments
+    ADD COLUMN IF NOT EXISTS description TEXT,
+    ADD COLUMN IF NOT EXISTS is_active   BOOLEAN DEFAULT true,
+    ADD COLUMN IF NOT EXISTS created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
 INSERT INTO departments (code, name, description) VALUES
     ('osh',     'Dept. of Occupational Health and Safety', 'Workplace health and safety regulations')
 ON CONFLICT (code) DO NOTHING;
@@ -55,6 +62,14 @@ COMMENT ON COLUMN user_profiles.role IS 'User role: viewer, worker, medical_prac
 COMMENT ON COLUMN user_profiles.company_id IS 'FK to companies table — set when user is a company representative';
 COMMENT ON COLUMN user_profiles.designation IS 'Job title or designation (e.g. Deputy Director, Safety Officer)';
 COMMENT ON COLUMN user_profiles.last_sign_in IS 'Timestamp of the most recent successful sign-in';
+
+-- Add missing columns if user_profiles table already existed from a previous run
+-- (No FK here — added after companies table exists in Section 5)
+ALTER TABLE user_profiles
+    ADD COLUMN IF NOT EXISTS company_id    UUID,
+    ADD COLUMN IF NOT EXISTS role          TEXT DEFAULT 'viewer',
+    ADD COLUMN IF NOT EXISTS designation   TEXT,
+    ADD COLUMN IF NOT EXISTS last_sign_in  TIMESTAMPTZ;
 
 -- ── 2c. Login history ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS login_history (
@@ -542,11 +557,11 @@ ALTER TABLE injury_claims ALTER COLUMN file_number DROP NOT NULL;
 --  SECTION 5 — ADD MISSING COLUMNS (belt-and-suspenders)
 -- ============================================================
 
+-- Add FK constraint for user_profiles.company_id (column added in Section 2b, FK now that companies exists)
 ALTER TABLE user_profiles
-    ADD COLUMN IF NOT EXISTS company_id    UUID REFERENCES companies(id) ON DELETE SET NULL,
-    ADD COLUMN IF NOT EXISTS role          TEXT DEFAULT 'viewer',
-    ADD COLUMN IF NOT EXISTS designation   TEXT,
-    ADD COLUMN IF NOT EXISTS last_sign_in  TIMESTAMPTZ;
+    DROP CONSTRAINT IF EXISTS fk_user_profiles_company,
+    ADD CONSTRAINT fk_user_profiles_company
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL;
 
 ALTER TABLE companies
     ADD COLUMN IF NOT EXISTS industry         TEXT,
@@ -1379,7 +1394,8 @@ $$ LANGUAGE plpgsql;
 -- ============================================================
 
 -- ── 9a. Active users summary ────────────────────────────────
-CREATE OR REPLACE VIEW active_users_summary AS
+DROP VIEW IF EXISTS active_users_summary;
+CREATE VIEW active_users_summary AS
 SELECT
     up.department,
     d.name as department_name,
@@ -1390,7 +1406,8 @@ LEFT JOIN departments d ON up.department = d.code
 GROUP BY up.department, d.name;
 
 -- ── 9b. Recent login activity ───────────────────────────────
-CREATE OR REPLACE VIEW recent_login_activity AS
+DROP VIEW IF EXISTS recent_login_activity;
+CREATE VIEW recent_login_activity AS
 SELECT
     lh.id,
     up.first_name || ' ' || up.surname as full_name,
@@ -1406,7 +1423,8 @@ ORDER BY lh.login_time DESC
 LIMIT 100;
 
 -- ── 9c. Accident report view (with submitter name) ──────────
-CREATE OR REPLACE VIEW accident_report_view AS
+DROP VIEW IF EXISTS accident_report_view;
+CREATE VIEW accident_report_view AS
 SELECT
     ar.id, ar.report_type, ar.occupier_name, ar.premises_address,
     ar.nature_of_industry, ar.industry_sector, ar.injured_name,
@@ -1419,7 +1437,8 @@ LEFT JOIN user_profiles up ON ar.submitted_by = up.user_id
 ORDER BY ar.accident_date DESC NULLS LAST;
 
 -- ── 9d. Accident statistics ──────────────────────────────────
-CREATE OR REPLACE VIEW accident_statistics AS
+DROP VIEW IF EXISTS accident_statistics;
+CREATE VIEW accident_statistics AS
 SELECT
     COUNT(*)                                           AS total_reports,
     COUNT(*) FILTER (WHERE report_type = 'accident')           AS accidents,
@@ -1435,7 +1454,8 @@ SELECT
 FROM accident_reports;
 
 -- ── 9e. Injury claims summary ────────────────────────────────
-CREATE OR REPLACE VIEW injury_claims_summary AS
+DROP VIEW IF EXISTS injury_claims_summary;
+CREATE VIEW injury_claims_summary AS
 SELECT
     status,
     COUNT(*) as total_claims,
@@ -1446,7 +1466,8 @@ FROM injury_claims
 GROUP BY status;
 
 -- ── 9f. Claims by industry ───────────────────────────────────
-CREATE OR REPLACE VIEW injury_claims_by_industry AS
+DROP VIEW IF EXISTS injury_claims_by_industry;
+CREATE VIEW injury_claims_by_industry AS
 SELECT
     industry,
     COUNT(*) as total_claims,
@@ -1459,7 +1480,8 @@ GROUP BY industry
 ORDER BY total_claims DESC;
 
 -- ── 9g. Recent injury claims ─────────────────────────────────
-CREATE OR REPLACE VIEW recent_injury_claims AS
+DROP VIEW IF EXISTS recent_injury_claims;
+CREATE VIEW recent_injury_claims AS
 SELECT
     ic.id, ic.file_number, ic.name_of_employer, ic.name_of_claimant,
     ic.date_of_injury, ic.incapacity_percentage, ic.status, ic.created_at,
@@ -1470,7 +1492,8 @@ ORDER BY ic.created_at DESC
 LIMIT 100;
 
 -- ── 9h. Claims requiring attention ───────────────────────────
-CREATE OR REPLACE VIEW claims_requiring_attention AS
+DROP VIEW IF EXISTS claims_requiring_attention;
+CREATE VIEW claims_requiring_attention AS
 SELECT
     ic.id, ic.file_number, ic.name_of_employer, ic.name_of_claimant,
     ic.date_of_injury, ic.status, ic.created_at,
@@ -1480,7 +1503,8 @@ WHERE ic.status = 'pending' AND ic.created_at < NOW() - INTERVAL '7 days'
 ORDER BY ic.created_at ASC;
 
 -- ── 9i. Injury / disease report view ─────────────────────────
-CREATE OR REPLACE VIEW injury_disease_report_view AS
+DROP VIEW IF EXISTS injury_disease_report_view;
+CREATE VIEW injury_disease_report_view AS
 SELECT
     idr.id, idr.worker_name, idr.occupation, idr.incident_date,
     idr.incident_type, idr.place_of_accident, idr.resulted_death,
@@ -1492,7 +1516,8 @@ LEFT JOIN user_profiles up ON idr.submitted_by = up.user_id
 ORDER BY idr.incident_date DESC NULLS LAST;
 
 -- ── 9j. Injury / disease statistics ──────────────────────────
-CREATE OR REPLACE VIEW injury_disease_statistics AS
+DROP VIEW IF EXISTS injury_disease_statistics;
+CREATE VIEW injury_disease_statistics AS
 SELECT
     COUNT(*)                                                  AS total_reports,
     COUNT(*) FILTER (WHERE incident_type = 'Injury')         AS injuries,
@@ -1507,7 +1532,8 @@ SELECT
 FROM injury_disease_reports;
 
 -- ── 9k. Inspection report view ───────────────────────────────
-CREATE OR REPLACE VIEW inspection_report_view AS
+DROP VIEW IF EXISTS inspection_report_view;
+CREATE VIEW inspection_report_view AS
 SELECT
     wi.id, wi.file_number, wi.inspection_date, wi.date_report_sent,
     wi.days_to_respond, wi.factory_name, wi.location, wi.nature_of_work,
@@ -1524,7 +1550,8 @@ LEFT JOIN user_profiles up ON wi.submitted_by = up.user_id
 ORDER BY wi.inspection_date DESC;
 
 -- ── 9l. Inspection monthly summary ──────────────────────────
-CREATE OR REPLACE VIEW inspection_monthly_summary AS
+DROP VIEW IF EXISTS inspection_monthly_summary;
+CREATE VIEW inspection_monthly_summary AS
 SELECT
     TO_CHAR(inspection_date, 'YYYY-MM')          AS month,
     TO_CHAR(inspection_date, 'Month YYYY')       AS month_label,
@@ -1548,7 +1575,8 @@ GROUP BY TO_CHAR(inspection_date, 'YYYY-MM'),
 ORDER BY month DESC, industry_type;
 
 -- ── 9m. Inspector performance summary ───────────────────────
-CREATE OR REPLACE VIEW inspection_inspector_summary AS
+DROP VIEW IF EXISTS inspection_inspector_summary;
+CREATE VIEW inspection_inspector_summary AS
 SELECT
     inspector_name,
     TO_CHAR(inspection_date, 'YYYY-MM') AS month,
@@ -1560,7 +1588,8 @@ GROUP BY inspector_name, TO_CHAR(inspection_date, 'YYYY-MM'), industry_type
 ORDER BY month DESC, inspector_name;
 
 -- ── 9n. Contravention frequency ─────────────────────────────
-CREATE OR REPLACE VIEW contravention_frequency AS
+DROP VIEW IF EXISTS contravention_frequency;
+CREATE VIEW contravention_frequency AS
 SELECT
     section_id,
     COUNT(*) AS times_breached,
@@ -1571,7 +1600,8 @@ GROUP BY section_id
 ORDER BY times_breached DESC;
 
 -- ── 9o. Inspections pending follow-up ────────────────────────
-CREATE OR REPLACE VIEW inspections_pending_followup AS
+DROP VIEW IF EXISTS inspections_pending_followup;
+CREATE VIEW inspections_pending_followup AS
 SELECT
     id, file_number, factory_name, location, inspection_date,
     follow_up_date, inspector_name, compliance_level, action_taken
@@ -1580,7 +1610,8 @@ WHERE follow_up_required = TRUE AND status != 'closed'
 ORDER BY follow_up_date ASC NULLS LAST;
 
 -- ── 9p. Company register view (aggregated) ──────────────────
-CREATE OR REPLACE VIEW company_register_view AS
+DROP VIEW IF EXISTS company_register_view;
+CREATE VIEW company_register_view AS
 WITH companies AS (
     SELECT company_name AS company_name, industry AS industry
     FROM companies WHERE company_name IS NOT NULL AND company_name != ''
@@ -1767,86 +1798,11 @@ GRANT EXECUTE ON FUNCTION search_workers_by_identity(TEXT, INT)  TO authenticate
 
 -- ============================================================
 --  SECTION 12 — BACKFILL SCRIPTS (One-time fixes)
---     Note: These are safe to run multiple times.
---     They update existing records to ensure data consistency
---     without affecting new records.
--- ============================================================
-
--- ── 12a. Backfill normalized ID numbers ────────────────────
-UPDATE accident_reports
-SET injured_id_number = normalize_identity_id(injured_id_number)
-WHERE injured_id_number IS NOT NULL
-  AND injured_id_number IS DISTINCT FROM normalize_identity_id(injured_id_number);
-
-UPDATE injury_disease_reports
-SET worker_id_number = normalize_identity_id(worker_id_number)
-WHERE worker_id_number IS NOT NULL
-  AND worker_id_number IS DISTINCT FROM normalize_identity_id(worker_id_number);
-
-UPDATE injury_claims
-SET claimant_id_number = normalize_identity_id(claimant_id_number)
-WHERE claimant_id_number IS NOT NULL
-  AND claimant_id_number IS DISTINCT FROM normalize_identity_id(claimant_id_number);
-
-UPDATE workers_registry
-SET id_number = normalize_identity_id(id_number)
-WHERE id_number IS DISTINCT FROM normalize_identity_id(id_number);
-
--- ── 12b. Backfill compliance totals for workplace_inspections ──
--- Sets individual boolean columns from the contraventions array
-UPDATE workplace_inspections
-SET
-    s9  = ('S9'  = ANY(contraventions)),
-    s13 = ('S13' = ANY(contraventions)),
-    s14 = ('S14' = ANY(contraventions)),
-    s15 = ('S15' = ANY(contraventions)),
-    s16 = ('S16' = ANY(contraventions)),
-    s18 = ('S18' = ANY(contraventions)),
-    s41 = ('S41' = ANY(contraventions)),
-    s42 = ('S42' = ANY(contraventions)),
-    s46 = ('S46' = ANY(contraventions)),
-    s47 = ('S47' = ANY(contraventions)),
-    s48 = ('S48' = ANY(contraventions)),
-    s49 = ('S49' = ANY(contraventions)),
-    s52 = ('S52' = ANY(contraventions)),
-    s53 = ('S53' = ANY(contraventions)),
-    s62 = ('S62' = ANY(contraventions)),
-    s66 = ('S66' = ANY(contraventions)),
-    s67 = ('S67' = ANY(contraventions)),
-    s17 = ('S17' = ANY(contraventions)),
-    s23 = ('S23' = ANY(contraventions)),
-    s29 = ('S29' = ANY(contraventions)),
-    s30 = ('S30' = ANY(contraventions)),
-    s31 = ('S31' = ANY(contraventions)),
-    s32 = ('S32' = ANY(contraventions)),
-    s34 = ('S34' = ANY(contraventions)),
-    s37 = ('S37' = ANY(contraventions)),
-    s38 = ('S38' = ANY(contraventions)),
-    s39 = ('S39' = ANY(contraventions)),
-    s51 = ('S51' = ANY(contraventions)),
-    s54 = ('S54' = ANY(contraventions)),
-    s57 = ('S57' = ANY(contraventions)),
-    s58 = ('S58' = ANY(contraventions))
-WHERE contraventions IS NOT NULL AND array_length(contraventions, 1) > 0;
-
--- Recompute totals from boolean columns
-UPDATE workplace_inspections
-SET
-    total_contraventions = (
-        s9::int + s13::int + s14::int + s15::int + s16::int + s18::int +
-        s41::int + s42::int + s46::int + s47::int + s48::int + s49::int +
-        s52::int + s53::int + s62::int + s66::int + s67::int
-    ),
-    non_compliance_pct = ROUND(
-        (s9::int + s13::int + s14::int + s15::int + s16::int + s18::int +
-         s41::int + s42::int + s46::int + s47::int + s48::int + s49::int +
-         s52::int + s53::int + s62::int + s66::int + s67::int)::NUMERIC / 17 * 100
-    ),
-    compliance_level = 100 - ROUND(
-        (s9::int + s13::int + s14::int + s15::int + s16::int + s18::int +
-         s41::int + s42::int + s46::int + s47::int + s48::int + s49::int +
-         s52::int + s53::int + s62::int + s66::int + s67::int)::NUMERIC / 17 * 100
-    );
+--  ============================================================
+--  Backfill scripts have been moved to a separate file:
+--  Run backfill-migration.sql ONCE after master-setup.sql
+--  to normalize existing data and compute compliance totals.
+--  ============================================================
 
 -- ============================================================
 --  VERIFICATION

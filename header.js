@@ -385,5 +385,4 @@
   // Also try immediately
   setTimeout(markOverrideBadge, 500);
 
-  console.log('DOSH header loaded');
 })();

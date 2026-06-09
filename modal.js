@@ -468,5 +468,5 @@
     });
   };
 
-  console.log('DOSH modal system loaded');
+
 })();

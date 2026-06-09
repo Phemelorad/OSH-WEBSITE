@@ -27,7 +27,8 @@
   // ── Inject CSS once ──────────────────────────────────────
   if (!document.getElementById('osh-nav-styles')) {
     const s = document.createElement('style');
-    s.id = 'osh-nav-styles';        s.textContent = `
+    s.id = 'osh-nav-styles';
+    s.textContent = `
       .osh-nav {
         background: white;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
@@ -51,6 +52,32 @@
         position: relative;
       }
 
+      /* ── Animated bottom-border indicator ────────────── */
+      .osh-nav-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 3px;
+        background: #222;
+        border-radius: 2px 2px 0 0;
+        transform: translateX(-50%);
+        transition: width 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .osh-nav-item:hover::after {
+        width: 70%;
+      }
+
+      /* Active item: full-width bottom border (override the hover indicator) */
+      .osh-nav-item.has-active::after,
+      .osh-nav-item:has(> .osh-nav-btn.active)::after {
+        content: none;
+      }
+
       .osh-nav-btn {
         display: flex;
         align-items: center;
@@ -64,14 +91,30 @@
         font-weight: 600;
         color: #555;
         cursor: pointer;
-        transition: background 0.18s, color 0.18s;
-        border-bottom: 3px solid transparent;
+        transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
         white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Subtle background shimmer on hover */
+      .osh-nav-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.03) 50%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .osh-nav-btn:hover::before {
+        opacity: 1;
       }
 
       .osh-nav-btn:hover {
-        background: #f8f8f8;
-        color: #222;
+        background: #f7f7f7;
+        color: #1a1a1a;
       }
 
       .osh-nav-btn.active {
@@ -80,34 +123,34 @@
         background: #fafafa;
       }
 
-      /* Caret for dropdowns */
+      /* ── Caret for dropdowns ─────────────────────────── */
       .osh-caret {
         font-size: 9px;
-        opacity: 0.5;
+        opacity: 0.45;
         margin-left: 2px;
-        transition: transform 0.2s;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
       }
 
       .osh-nav-item:hover .osh-caret,
       .osh-nav-item.open   .osh-caret {
-        transform: rotate(180deg);
-        opacity: 0.8;
+        transform: rotate(180deg) translateY(1px);
+        opacity: 0.85;
       }
 
-      /* Dropdown panel */
+      /* ── Dropdown panel ──────────────────────────────── */
       .osh-dropdown {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
-        min-width: 210px;
+        min-width: 220px;
         background: white;
         border: 1px solid #e8e8e8;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.13);
         z-index: 600;
         overflow: hidden;
-        animation: osh-drop-in 0.15s ease;
+        animation: osh-drop-in 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
 
       .osh-nav-item:hover .osh-dropdown,
@@ -116,32 +159,58 @@
       }
 
       @keyframes osh-drop-in {
-        from { opacity: 0; transform: translateY(-6px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
       }
 
+      /* ── Dropdown links ──────────────────────────────── */
       .osh-dropdown a {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 11px 18px;
+        padding: 12px 18px;
+        padding-left: 16px;
         font-size: 13px;
         font-weight: 500;
         color: #444;
         text-decoration: none;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        transition: background 0.15s, color 0.15s;
+        transition: background 0.18s ease, color 0.18s ease, padding-left 0.18s ease;
         border-bottom: 1px solid #f5f5f5;
+        border-left: 3px solid transparent;
+        position: relative;
       }
 
       .osh-dropdown a:last-child { border-bottom: none; }
 
       .osh-dropdown a:hover {
-        background: #f5f5f5;
+        background: #f5f7fa;
         color: #111;
+        padding-left: 24px;
+        border-left-color: #222;
       }
 
-      /* Notification badge */
+      /* ── Dropdown active state ────────────────────────── */
+      .osh-dropdown a.active {
+        background: #f0f2f5;
+        color: #111;
+        font-weight: 700;
+        border-left-color: #222;
+      }
+
+      .osh-dropdown a .dd-icon {
+        font-size: 15px;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+        transition: transform 0.18s ease;
+      }
+
+      .osh-dropdown a:hover .dd-icon {
+        transform: scale(1.15);
+      }
+
+      /* ── Notification badge ──────────────────────────── */
       .notification-badge {
         display: inline-flex;
         align-items: center;
@@ -157,10 +226,15 @@
         line-height: 1;
         margin-left: auto;
         flex-shrink: 0;
+        transition: transform 0.2s ease;
       }
 
       .notification-badge.zero {
         display: none;
+      }
+
+      .osh-dropdown a:hover .notification-badge {
+        transform: scale(1.1);
       }
 
       .osh-nav-btn .notification-badge {
@@ -171,17 +245,8 @@
         padding: 0 4px;
       }
 
-      .osh-dropdown a.active {
-        background: #f0f0f0;
-        color: #111;
-        font-weight: 700;
-      }
-
-      .osh-dropdown a .dd-icon {
-        font-size: 15px;
-        width: 20px;
-        text-align: center;
-        flex-shrink: 0;
+      .osh-nav-btn:hover .notification-badge {
+        transform: scale(1.1);
       }
 
       /* Active parent highlight */
@@ -191,10 +256,14 @@
         background: #fafafa;
       }
 
+      /* ── Responsive (mobile) ──────────────────────────── */
       @media (max-width: 768px) {
         .osh-nav { flex-direction: column; }
         .osh-nav-item { width: 100%; }
+        .osh-nav-item::after { display: none; }
         .osh-nav-btn { width: 100%; height: 48px; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
+        .osh-nav-btn::before { display: none; }
+        .osh-nav-btn:hover { background: #f5f5f5; }
         .osh-nav-btn.active, .osh-nav-item.has-active > .osh-nav-btn {
           border-bottom: 1px solid #f0f0f0;
           border-left: 4px solid #222;
@@ -203,6 +272,7 @@
         .osh-nav-item:hover .osh-dropdown { display: none; }
         .osh-nav-item.open .osh-dropdown  { display: block; }
         .osh-dropdown a { padding-left: 32px; }
+        .osh-dropdown a:hover { padding-left: 38px; }
       }
     `;
     document.head.appendChild(s);
@@ -214,44 +284,44 @@
   const MENU = [
     {
         id: 'dashboard',
-        label: '⌂ Dashboard',
+        label: '\u2302 Dashboard',
         href: 'dashboard.html',
         single: true,
         hideFor: ['viewer', 'worker', 'company', 'medical_practitioner']
       },
       {
         id: 'company-view',
-        label: '🏢 Employer Details',
+        label: '\uD83C\uDFE2 Employer Details',
         href: 'company-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'book-inspection',
-        label: '📅 Book Inspection',
+        label: '\uD83D\uDCC5 Book Inspection',
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
-          { id: 'company-book-inspection', icon: '📝', label: 'New Booking',       href: 'company-book-inspection.html' },
-          { id: 'company-bookings',        icon: '📋', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
+          { id: 'company-book-inspection', icon: '\uD83D\uDCDD', label: 'New Booking',       href: 'company-book-inspection.html' },
+          { id: 'company-bookings',        icon: '\uD83D\uDCCB', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
         ]
       },
       {
         id: 'accident',
-        label: '🚨 Report Accident',
+        label: '\uD83D\uDEA8 Report Accident',
         href: 'accident-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'injury-disease',
-        label: '🏥 Report Injury / Disease',
+        label: '\uD83C\uDFE5 Report Injury / Disease',
         href: 'injury-disease-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'company-monitoring',
-        label: '📊 Monitoring Dashboard',
+        label: '\uD83D\uDCCA Monitoring Dashboard',
         href: 'company-monitoring.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
@@ -259,67 +329,67 @@
       },
       {
         id: 'inspection',
-        label: '🔍 Inspections',
+        label: '\uD83D\uDD0D Inspections',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'inspection-form',     icon: '🔍', label: 'New Inspection',       href: 'inspection.html' },
-          { id: 'inspection-bookings', icon: '📅', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
-          { id: 'inspection-records',  icon: '📁', label: 'Inspection Records',   href: 'inspection-entries.html' },
+          { id: 'inspection-form',     icon: '\uD83D\uDD0D', label: 'New Inspection',       href: 'inspection.html' },
+          { id: 'inspection-bookings', icon: '\uD83D\uDCC5', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
+          { id: 'inspection-records',  icon: '\uD83D\uDCC1', label: 'Inspection Records',   href: 'inspection-entries.html' },
         ]
       },
       {
         id: 'accident',
-        label: '🚨 Accidents',
+        label: '\uD83D\uDEA8 Accidents',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'accident',         icon: '🚨', label: 'New Accident Report', href: 'accident-report.html' },
-          { id: 'accident-entries', icon: '📊', label: 'View Reports',        href: 'accident-entries.html' },
+          { id: 'accident',         icon: '\uD83D\uDEA8', label: 'New Accident Report', href: 'accident-report.html' },
+          { id: 'accident-entries', icon: '\uD83D\uDCCA', label: 'View Reports',        href: 'accident-entries.html' },
         ]
       },
       {
         id: 'injury',
-        label: '🏥 Injuries',
+        label: '\uD83C\uDFE5 Injuries',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'injury-disease',         icon: '🏥', label: 'New Report',             href: 'injury-disease-report.html' },
-          { id: 'injury-disease-entries', icon: '📊', label: 'View Reports',           href: 'injury-disease-entries.html' },
-          { id: 'worker-profile',         icon: '👤', label: 'Worker Profile',         href: 'worker-profile.html' },
+          { id: 'injury-disease',         icon: '\uD83C\uDFE5', label: 'New Report',             href: 'injury-disease-report.html' },
+          { id: 'injury-disease-entries', icon: '\uD83D\uDCCA', label: 'View Reports',           href: 'injury-disease-entries.html' },
+          { id: 'worker-profile',         icon: '\uD83D\uDC64', label: 'Worker Profile',         href: 'worker-profile.html' },
         ]
       },
       {
         id: 'claims',
-        label: '📋 Claims',
+        label: '\uD83D\uDCCB Claims',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'claims-submit',  icon: '📝', label: 'Submit Claim',  href: 'form.html' },
-          { id: 'claims-entries', icon: '📊', label: 'View Entries',  href: 'entries.html' },
+          { id: 'claims-submit',  icon: '\uD83D\uDCDD', label: 'Submit Claim',  href: 'form.html' },
+          { id: 'claims-entries', icon: '\uD83D\uDCCA', label: 'View Entries',  href: 'entries.html' },
         ]
       },
       {
         id: 'worker-claims',
-        label: '📋 My Claims',
+        label: '\uD83D\uDCCB My Claims',
         href: 'worker-claims.html',
         single: true,
         hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'medical-practitioner',
-        label: '🩺 Medical Exams',
+        label: '\uD83E\uDD7A Medical Exams',
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
-          { id: 'medical-examination', icon: '🩺', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
+          { id: 'medical-examination', icon: '\uD83E\uDD7A', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
         ]
       },
       {
         id: 'company-register',
-        label: '🏢 Employers',
+        label: '\uD83C\uDFE2 Employers',
         href: 'company-register.html',
         single: true,
         hideFor: ['company', 'medical_practitioner']
       },
       {
         id: 'admin',
-        label: '⚙ Admin',
+        label: '\u2699 Admin',
         hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         href: 'admin.html',
         single: true
@@ -361,7 +431,7 @@
         // Dropdown trigger
         const btn = document.createElement('button');
         btn.className = 'osh-nav-btn';
-        btn.innerHTML = `${item.label} <span class="osh-caret">▼</span>`;
+        btn.innerHTML = `${item.label} <span class=\"osh-caret\">\u25BC</span>`;
         // Add notification badge to parent button if any child has notifications
         const childNotif = item.children?.find(c => c.notification);
         if (childNotif) {
@@ -387,7 +457,7 @@
           const a = document.createElement('a');
           a.href = child.href;
           a.className = child.id === active ? 'active' : '';
-          a.innerHTML = `<span class="dd-icon">${child.icon}</span>${child.label}`;
+          a.innerHTML = `<span class=\"dd-icon\">${child.icon}</span>${child.label}`;
           // Add notification badge if configured
           if (child.notification) {
             const badge = document.createElement('span');
@@ -519,5 +589,5 @@
     }
   });
 
-  console.log('DOSH nav loaded, active:', active);
+
 })();

@@ -176,7 +176,7 @@
 
         /* ── Injuries schedule table ───────────── */
         .schedule-table-wrap {
-            max-height: 400px; overflow-y: auto;
+            max-height: 420px; overflow-y: auto;
             border: 1px solid #e0e0e0; border-radius: 8px;
         }
         .schedule-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -184,13 +184,56 @@
             background: #f5f5f5; padding: 8px 10px; text-align: left;
             font-size: 11px; font-weight: 700; color: #444;
             border-bottom: 2px solid #e0e0e0; position: sticky; top: 0;
+            white-space: nowrap;
         }
-        .schedule-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; color: #555; }
-        .schedule-table tr:hover { background: #fafafa; }
-        .schedule-table .pct { font-weight: 700; text-align: center; color: #333; }
-        .schedule-table .pct-row { cursor: pointer; transition: background 0.15s; }
-        .schedule-table .pct-row:hover { background: #fff3cd; }
-        .schedule-table .pct-row.selected { background: #fff3cd; font-weight: 600; }
+        .schedule-table th.cb-col { width: 36px; text-align: center; }
+        .schedule-table th.pct-col { width: 70px; text-align: center; }
+        .schedule-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; color: #555; }
+        .schedule-table td.desc { color: #444; line-height: 1.4; }
+        .schedule-table tr:hover { background: #f8f9fb; }
+        .schedule-table .sched-row { transition: background 0.15s; }
+        .schedule-table .sched-row.checked { background: #fff8e6; }
+        .schedule-table .sched-row.checked td { color: #333; }
+        .schedule-table .sched-row.checked td.desc { font-weight: 600; }
+        .schedule-table .sched-cb {
+            width: 17px; height: 17px; cursor: pointer; accent-color: #333;
+            display: block; margin: 0 auto;
+        }
+        .schedule-table .sched-pct {
+            width: 58px; padding: 4px 6px; text-align: center;
+            border: 2px solid #e0e0e0; border-radius: 6px;
+            font-size: 12px; font-weight: 700; font-family: inherit;
+            transition: border-color 0.2s; display: block; margin: 0 auto;
+        }
+        .schedule-table .sched-pct:focus { outline: none; border-color: #333; }
+        .schedule-table .sched-pct:disabled { background: #f5f5f5; border-color: #eee; }
+        .schedule-table .sched-pct.readonly-pct { background: #fafafa; border-color: #e0e0e0; cursor: default; }
+
+        /* ── Schedule selected summary ──────────── */
+        .sched-summary {
+            margin-top: 12px; padding: 12px 16px;
+            background: #f8f9fa; border: 1px solid #e0e0e0;
+            border-radius: 8px; display: none;
+        }
+        .sched-summary.visible { display: block; }
+        .sched-summary-title {
+            font-size: 12px; font-weight: 700; color: #333;
+            margin-bottom: 8px;
+        }
+        .sched-summary-items {
+            display: flex; flex-wrap: wrap; gap: 6px;
+        }
+        .sched-summary-chip {
+            background: #fff3cd; border: 1px solid #ffeeba;
+            padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600; color: #856404;
+        }
+        .sched-summary-total {
+            margin-top: 8px; padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 13px; font-weight: 700; color: #333;
+        }
+
         .schedule-note {
             font-size: 11px; color: #888; font-style: italic;
             margin-top: 10px; line-height: 1.5;
@@ -256,8 +299,8 @@
               <div class="form-number-badge">BL Form 43/03</div>
             </div>
 
-            <!-- ── Section 1: Worker Identity ────────── -->
-            <div class="section-title">1. Identity of Worker</div>
+            <!-- ── Section 1: Name of Worker ────────── -->
+            <div class="section-title">1. Name of Worker</div>
 
             <!-- Claim lookup by ID / Passport -->
             <div style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
@@ -303,8 +346,8 @@
 
             <hr class="divider">
 
-            <!-- ── Section 2: Nature of injury ───────── -->
-            <div class="section-title medical">2. Nature of Injury or Disease</div>
+            <!-- ── Section 2: Nature of injury or disease ───────── -->
+            <div class="section-title medical">2. Nature of injury or disease</div>
             <div class="form-group">
               <label>Describe the nature of injury or disease diagnosed<span class="req">*</span></label>
               <textarea name="nature_of_injury_or_disease" id="natureOfInjuryDisease" required
@@ -315,7 +358,7 @@
             <hr class="divider">
 
             <!-- ── Section 3: Medical treatment ─────── -->
-            <div class="section-title medical">3. Full Particulars of Medical Treatment Including Hospitalization</div>
+            <div class="section-title medical">3. Full particulars of medical treatment including hospitalization:</div>
             <div class="form-group">
               <textarea name="medical_treatment_particulars" id="medicalTreatmentParticulars" required
                         placeholder="Describe the full details of medical treatment provided, including any hospitalization, surgery, medication, rehabilitation, etc…"
@@ -326,8 +369,8 @@
             <hr class="divider">
 
             <!-- ── Section 4: Percentage of incapacity ── -->
-            <div class="section-title incapacity">4. Percentage of Incapacity</div>
-            <p class="hint" style="margin-bottom:16px">Select all that apply and specify the percentage (see Schedule of Percentage Incapacities below)</p>
+            <div class="section-title incapacity">4. Percentage of incapacity (see overleaf for % disabilities)</div>
+            <p class="hint" style="margin-bottom:16px">Select all that apply and specify the percentage</p>
 
             <div class="incapacity-grid" id="incapacityGrid">
               <div class="incapacity-item" onclick="toggleIncapacityType(this, 'deathInput')">
@@ -338,7 +381,7 @@
               <div class="incapacity-item" onclick="toggleIncapacityType(this, 'permTotalInput')">
                 <input type="checkbox" id="chkPermTotal" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
                 <span class="icn">♿</span>
-                <label>(b) Permanent Total</label>
+                <label>(b) Permanent total*</label>
               </div>
               <div class="incapacity-item" onclick="toggleIncapacityType(this, 'permPartialInput')">
                 <input type="checkbox" id="chkPermPartial" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
@@ -348,7 +391,7 @@
               <div class="incapacity-item" onclick="toggleIncapacityType(this, 'tempInput')">
                 <input type="checkbox" id="chkTemporary" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked); toggleTempDuration()">
                 <span class="icn">🔄</span>
-                <label>(d) Temporary</label>
+                <label>(d) Temporary (and probable durations)</label>
               </div>
             </div>
 
@@ -367,96 +410,125 @@
             </div>
 
             <!-- Schedule of Percentage Incapacities -->
-            <details style="margin-top:16px">
-              <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#555;padding:8px 12px;background:#f8f8f8;border-radius:6px">
-                📋 View Schedule of Percentage Incapacities — click to select
+            <details style="margin-top:16px" id="scheduleDetails" open>
+              <summary style="cursor:pointer;font-size:13px;font-weight:700;color:#333;padding:8px 12px;background:#fffbeb;border:1px solid #ffeeba;border-radius:6px">
+                📋 Schedule of Percentage Incapacities — tick the applicable injuries and set percentages
               </summary>
               <div class="schedule-table-wrap" style="margin-top:8px">
                 <table class="schedule-table">
                   <thead>
-                    <tr><th>Injury</th><th style="width:60px;text-align:center">%</th></tr>
+                    <tr>
+                      <th class="cb-col">✓</th>
+                      <th>Injury</th>
+                      <th class="pct-col">%</th>
+                    </tr>
                   </thead>
                   <tbody>
-                    <tr class="pct-row" onclick="selectPct(100)">
-                      <td>Loss of two limbs / both hands / both feet / total loss of sight / total paralysis / any other injury causing permanent total disablement / permanently bedridden</td>
-                      <td class="pct">100</td>
+                    <tr class="sched-row" data-code="total_disablement" data-pct="100">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of two limbs / both hands / both feet / total loss of sight / total paralysis / any other injury causing permanent total disablement / permanently bedridden</td>
+                      <td><input type="number" class="sched-pct" value="100" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(70)">
-                      <td>Loss of arm at shoulder</td>
-                      <td class="pct">70</td>
+                    <tr class="sched-row" data-code="arm_shoulder" data-pct="70">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of arm at shoulder</td>
+                      <td><input type="number" class="sched-pct" value="70" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(60)">
-                      <td>Loss of arm between elbow and shoulder</td>
-                      <td class="pct">60</td>
+                    <tr class="sched-row" data-code="arm_elbow_shoulder" data-pct="60">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of arm between elbow and shoulder</td>
+                      <td><input type="number" class="sched-pct" value="60" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(55)">
-                      <td>Loss of arm at elbow</td>
-                      <td class="pct">55</td>
+                    <tr class="sched-row" data-code="arm_elbow" data-pct="55">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of arm at elbow</td>
+                      <td><input type="number" class="sched-pct" value="55" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(50)">
-                      <td>Loss of arm between wrist and elbow / Loss of hand at wrist / Loss of four fingers and thumb on one hand / Total loss of hearing</td>
-                      <td class="pct">50</td>
+                    <tr class="sched-row" data-code="arm_wrist" data-pct="50">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of arm between wrist and elbow / Loss of hand at wrist / Loss of four fingers and thumb on one hand / Total loss of hearing</td>
+                      <td><input type="number" class="sched-pct" value="50" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(40)">
-                      <td>Loss of foot</td>
-                      <td class="pct">40</td>
+                    <tr class="sched-row" data-code="foot" data-pct="40">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of foot</td>
+                      <td><input type="number" class="sched-pct" value="40" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(35)">
-                      <td>Loss of four fingers / Loss of thumb (both phalanges)</td>
-                      <td class="pct">35</td>
+                    <tr class="sched-row" data-code="four_fingers" data-pct="35">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of four fingers / Loss of thumb (both phalanges)</td>
+                      <td><input type="number" class="sched-pct" value="35" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(30)">
-                      <td>Loss of sight of one eye</td>
-                      <td class="pct">30</td>
+                    <tr class="sched-row" data-code="sight_one_eye" data-pct="30">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of sight of one eye</td>
+                      <td><input type="number" class="sched-pct" value="30" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(15)">
-                      <td>Loss of all toes of one foot</td>
-                      <td class="pct">15</td>
+                    <tr class="sched-row" data-code="all_toes" data-pct="15">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of all toes of one foot</td>
+                      <td><input type="number" class="sched-pct" value="15" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(10)">
-                      <td>Loss of hearing in one ear / Loss of thumb (one phalange) / Loss of index finger (three phalanges)</td>
-                      <td class="pct">10</td>
+                    <tr class="sched-row" data-code="hearing_one_ear" data-pct="10">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of hearing in one ear / Loss of thumb (one phalange) / Loss of index finger (three phalanges)</td>
+                      <td><input type="number" class="sched-pct" value="10" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(8)">
-                      <td>Loss of index finger (two phalanges)</td>
-                      <td class="pct">8</td>
+                    <tr class="sched-row" data-code="index_two" data-pct="8">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of index finger (two phalanges)</td>
+                      <td><input type="number" class="sched-pct" value="8" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(6)">
-                      <td>Loss of middle finger (three phalanges)</td>
-                      <td class="pct">6</td>
+                    <tr class="sched-row" data-code="middle_three" data-pct="6">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of middle finger (three phalanges)</td>
+                      <td><input type="number" class="sched-pct" value="6" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(5)">
-                      <td>Loss of great toe (both phalanges) / Loss of ring finger (three phalanges)</td>
-                      <td class="pct">5</td>
+                    <tr class="sched-row" data-code="toe_great_both" data-pct="5">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of great toe (both phalanges) / Loss of ring finger (three phalanges)</td>
+                      <td><input type="number" class="sched-pct" value="5" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(4)">
-                      <td>Loss of index finger (one phalange) / Loss of middle finger (two phalanges) / Loss of ring finger (two phalanges) / Loss of little finger (three phalanges)</td>
-                      <td class="pct">4</td>
+                    <tr class="sched-row" data-code="index_one" data-pct="4">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of index finger (one phalange) / Loss of middle finger (two phalanges) / Loss of ring finger (two phalanges) / Loss of little finger (three phalanges)</td>
+                      <td><input type="number" class="sched-pct" value="4" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(3)">
-                      <td>Loss of little finger (two phalanges) / Loss of first or second metacarpal</td>
-                      <td class="pct">3</td>
+                    <tr class="sched-row" data-code="little_two" data-pct="3">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of little finger (two phalanges) / Loss of first or second metacarpal</td>
+                      <td><input type="number" class="sched-pct" value="3" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(2)">
-                      <td>Loss of great toe (one phalange) / Loss of middle finger (one phalange) / Loss of ring finger (one phalange) / Loss of little finger (one phalange) / Loss of third, fourth or fifth metacarpal</td>
-                      <td class="pct">2</td>
+                    <tr class="sched-row" data-code="toe_great_one" data-pct="2">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of great toe (one phalange) / Loss of middle finger (one phalange) / Loss of ring finger (one phalange) / Loss of little finger (one phalange) / Loss of third, fourth or fifth metacarpal</td>
+                      <td><input type="number" class="sched-pct" value="2" min="0" max="100" step="0.01" disabled></td>
                     </tr>
-                    <tr class="pct-row" onclick="selectPct(1)">
-                      <td>Loss of each toe (other than great) if more than one toe lost</td>
-                      <td class="pct">1</td>
+                    <tr class="sched-row" data-code="toe_other" data-pct="1">
+                      <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
+                      <td class="desc">Loss of each toe (other than great) if more than one toe lost</td>
+                      <td><input type="number" class="sched-pct" value="1" min="0" max="100" step="0.01" disabled></td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <!-- Schedule selected summary -->
+              <div class="sched-summary" id="schedSummary">
+                <div class="sched-summary-title">✓ Selected Injuries</div>
+                <div class="sched-summary-items" id="schedSummaryItems"></div>
+                <div class="sched-summary-total" id="schedSummaryTotal">Total: 0%</div>
+              </div>
+
               <div class="schedule-note">
-                <strong>Notes:</strong> Scars from injuries or burns resulting in disfigurement: 0–50%. Total permanent loss of use of a member treated as loss of such member. Loss of sexual organ or other internal organ: 0–75%. Ankylosis of any joint: 25–100% of loss of that joint. Loss of two or more parts of the hand: not more than loss of whole hand. Injuries not included in this schedule shall be assessed in relation to the percentages specified.
+                <strong>Notes:</strong> Scars from injuries or burns which result in disfigurement shall be treated as resulting in from 0 to 50% permanent incapacity according to their size and location. Total permanent loss of the use of a member shall be treated as loss of such member. The total loss of a sexual organ or other internal organ shall be treated as resulting in from 0 to 75% of the incapacity depending on the location and effects of such loss. The percentage of incapacity for ankyloses of any joint shall be reckoned as from 25 to 100% of the incapacity for loss of the part of that joint, according to whether the joint is ankylosed in a favorable or unfavorable position. Where there is a loss of two or more parts of the hand, the percentage of incapacity shall not be more than for the loss of the whole hand. Injuries which result in permanent incapacity but which are not included in this schedule shall be assessed in relation to the percentages of incapacity specified in this schedule, whenever possible.
               </div>
             </details>
 
             <hr class="divider">
 
             <!-- ── Section 5: Light duties ──────────── -->
-            <div class="section-title">5. Is the Worker Capable of Undertaking Light Duties?</div>
+            <div class="section-title">5. If temporary, is worker capable of undertaking light duties? (delete as necessary)</div>
             <div class="yn-group">
               <label><input type="radio" name="capable_light_duties" value="Yes"> Yes</label>
               <label><input type="radio" name="capable_light_duties" value="No"> No</label>
@@ -466,7 +538,7 @@
             <hr class="divider">
 
             <!-- ── Section 6: Final examination ────── -->
-            <div class="section-title">6. Will a Final Examination Be Necessary Before Claimant Resumes Duty?</div>
+            <div class="section-title">6. Will a final examination be necessary before claimant resumes duty? (delete as necessary)</div>
             <div class="yn-group">
               <label><input type="radio" name="final_examination_necessary" value="Yes"> Yes</label>
               <label><input type="radio" name="final_examination_necessary" value="No"> No</label>
@@ -476,7 +548,7 @@
             <hr class="divider">
 
             <!-- ── Section 7: Resume work ──────────── -->
-            <div class="section-title">7. In Your Opinion, Will the Claimant Be Able to Resume the Work on Which He Was Employed at the Time of the Accident?</div>
+            <div class="section-title">7. In your opinion, will the claimant be able to resume work on which he was employed at the time of the accident? (delete as necessary)</div>
             <div class="yn-group">
               <label><input type="radio" name="able_to_resume_work" value="Yes"> Yes</label>
               <label><input type="radio" name="able_to_resume_work" value="No"> No</label>
@@ -507,12 +579,17 @@
               </div>
             </div>
 
+            <!-- ── Footnote: 100% minimum ─────────── -->
+            <p style="font-size:12px;color:#856404;background:#fff3cd;padding:10px 14px;border-radius:8px;margin:16px 0;font-weight:600">
+              May not be less than 100%. See interpretation section in the Act.
+            </p>
+
             <hr class="divider">
 
             <!-- ── Worker / Representative acknowledgment ── -->
             <div class="section-title">To Worker / Representative / Dependent</div>
             <div class="form-group">
-              <label>Full Name of Worker, Representative, or Dependent</label>
+              <label>Full Name</label>
               <input type="text" name="worker_representative_name" id="workerRepresentativeName"
                      placeholder="Full name of the worker, their representative, or dependent">
             </div>
@@ -550,11 +627,68 @@
         document.getElementById('tempDurationGroup').style.display = checked ? 'block' : 'none';
     }
 
-    // ── Select percentage from schedule ──────────────
-    function selectPct(pct) {
-        document.getElementById('incapacityPercentage').value = pct;
-        document.querySelectorAll('.pct-row').forEach(r => r.classList.remove('selected'));
-        event.target.closest('.pct-row')?.classList.add('selected');
+    // ── Schedule checkbox toggle + summary ───────────
+    function toggleSchedRow(cb) {
+        const tr = cb.closest('.sched-row');
+        const checked = cb.checked;
+        tr.classList.toggle('checked', checked);
+
+        // Enable/disable the percentage input
+        const pctInput = tr.querySelector('.sched-pct');
+        pctInput.disabled = !checked;
+        if (checked) {
+            pctInput.focus();
+            pctInput.select();
+        }
+
+        updateSchedSummary();
+
+        // Auto-fill the main incapacity percentage with the total of selected items
+        updateMainIncapacityPct();
+    }
+
+    function getSchedData() {
+        const items = [];
+        document.querySelectorAll('.sched-row.checked').forEach(tr => {
+            const pctInput = tr.querySelector('.sched-pct');
+            items.push({
+                code: tr.dataset.code,
+                percentage: parseFloat(pctInput.value) || 0
+            });
+        });
+        return items;
+    }
+
+    function updateSchedSummary() {
+        const items = getSchedData();
+        const summary = document.getElementById('schedSummary');
+        const container = document.getElementById('schedSummaryItems');
+        const totalEl = document.getElementById('schedSummaryTotal');
+
+        if (items.length === 0) {
+            summary.classList.remove('visible');
+            return;
+        }
+
+        summary.classList.add('visible');
+        container.innerHTML = items.map(item =>
+            `<span class="sched-summary-chip">${item.code.replace(/_/g, ' ')}: ${item.percentage}%</span>`
+        ).join('');
+
+        const total = items.reduce((sum, item) => sum + item.percentage, 0);
+        totalEl.textContent = 'Total: ' + total + '%';
+    }
+
+    function updateMainIncapacityPct() {
+        const items = getSchedData();
+        const total = items.reduce((sum, item) => sum + item.percentage, 0);
+        const mainPct = document.getElementById('incapacityPercentage');
+        if (total > 0) {
+            mainPct.value = total;
+        } else if (mainPct.value === '0' || mainPct.value === '0') {
+            // Clear only if it was previously set by this function
+            mainPct.value = '';
+        }
     }
 
     // ── Search claim by ID / Passport number ────────
@@ -677,6 +811,7 @@
                 temporary_probable_duration:     g('temporaryProbableDuration'),
                 incapacity_percentage:           document.getElementById('incapacityPercentage')?.value
                                                   ? parseFloat(document.getElementById('incapacityPercentage').value) : null,
+                schedule_incapacities:           JSON.stringify(getSchedData()),
                 capable_light_duties:            radio('capable_light_duties'),
                 final_examination_necessary:     radio('final_examination_necessary'),
                 able_to_resume_work:             radio('able_to_resume_work'),
@@ -721,6 +856,14 @@
         if (ok) {
             document.getElementById('medicalExamForm').reset();
             document.querySelectorAll('.incapacity-item').forEach(i => i.classList.remove('checked'));
+            document.querySelectorAll('.sched-row.checked').forEach(tr => {
+                tr.classList.remove('checked');
+                const cb = tr.querySelector('.sched-cb');
+                if (cb) cb.checked = false;
+                const inp = tr.querySelector('.sched-pct');
+                if (inp) inp.disabled = true;
+            });
+            document.getElementById('schedSummary').classList.remove('visible');
             toggleTempDuration();
             showToast('Form has been reset.', 'info');
         }
