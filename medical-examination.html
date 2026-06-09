@@ -230,6 +230,7 @@
         .schedule-table .sched-pct:focus { outline: none; border-color: #333; }
         .schedule-table .sched-pct:disabled { background: #f5f5f5; border-color: #eee; }
         .schedule-table .sched-pct.readonly-pct { background: #fafafa; border-color: #e0e0e0; cursor: default; }
+        .schedule-table td.desc.sub-item { padding-left: 28px; }
 
         .schedule-note {
             font-size: 12px; color: #555;
@@ -463,43 +464,43 @@
                     <tr>
                       <th class="cb-col">✓</th>
                       <th>Injury</th>
-                      <th class="pct-col">%</th>
+                      <th class="pct-col">% of incapacity</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr class="sched-row" data-code="two_limbs" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of two limbs</td>
+                      <td class="desc">Loss of two limbs )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr class="sched-row" data-code="both_hands" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of both hands or all fingers and thumbs</td>
+                      <td class="desc">Loss of both hands or all fingers and thumbs )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr class="sched-row" data-code="both_feet" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Loss of both feet</td>
+                      <td class="desc">Loss of both feet )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr class="sched-row" data-code="total_sight_loss" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Total loss of sight</td>
+                      <td class="desc">Total loss of sight )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr class="sched-row" data-code="total_paralysis" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Total paralysis</td>
+                      <td class="desc">Total paralysis )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr class="sched-row" data-code="perm_total_disablement" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Any other injury causing permanent total disablement</td>
+                      <td class="desc">Any other injury causing permanent total disablement )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr class="sched-row" data-code="bedridden" data-pct="100">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc">Injuries resulting in being permanently bedridden</td>
+                      <td class="desc">Injuries resulting in being permanently bedridden )</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 100</span></td>
                     </tr>
                     <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
@@ -615,7 +616,7 @@
                     </tr>
                     <tr class="sched-row" data-code="metacarpal_third" data-pct="2">
                       <td><input type="checkbox" class="sched-cb" onchange="toggleSchedRow(this)"></td>
-                      <td class="desc" style="padding-left:24px">— third, fourth or fifth (additional)</td>
+                      <td class="desc sub-item">(additional) -third, fourth or fifth (additional)</td>
                       <td><input type="number" class="sched-pct" placeholder="0" min="0" max="100" step="0.01" disabled><span class="sched-max-label">Max 2</span></td>
                     </tr>
                     <tr><td colspan="3" style="padding:4px;border:none"></td></tr>
