@@ -156,23 +156,40 @@
         }
         .yn-group input[type="radio"] { width: 18px; height: 18px; cursor: pointer; accent-color: #333; }
 
-        /* ── Incapacity type checkboxes ────────── */
-        .incapacity-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
+        /* ── Incapacity type table ──────────────── */
+        .incapacity-table-wrap {
+            border: 1px solid #e0e0e0; border-radius: 8px;
+            overflow: hidden;
         }
-        .incapacity-item {
-            background: #f9f9f9; border: 1px solid #e0e0e0;
-            border-radius: 8px; padding: 12px 14px;
-            display: flex; align-items: center; gap: 10px; cursor: pointer;
-            transition: all 0.2s;
+        .incapacity-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .incapacity-table th {
+            background: #f5f5f5; padding: 8px 12px; text-align: left;
+            font-size: 11px; font-weight: 700; color: #444;
+            border-bottom: 2px solid #e0e0e0;
         }
-        .incapacity-item:hover { border-color: #999; }
-        .incapacity-item.checked { background: #fff3cd; border-color: #856404; }
-        .incapacity-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #333; }
-        .incapacity-item label { cursor: pointer; font-size: 13px; font-weight: 600; color: #333; margin: 0; }
-        .incapacity-item .icn { font-size: 20px; }
+        .incapacity-table th.cb-col { width: 36px; text-align: center; }
+        .incapacity-table th.pct-col { width: 80px; text-align: center; }
+        .incapacity-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+        .incapacity-table tr:last-child td { border-bottom: none; }
+        .incapacity-table .incapacity-row { cursor: pointer; transition: background 0.15s; }
+        .incapacity-table .incapacity-row:hover { background: #f8f9fb; }
+        .incapacity-table .incapacity-row.checked { background: #fff8e6; }
+        .incapacity-table .incapacity-row.checked .type-label { font-weight: 700; color: #333; }
+        .incapacity-table .incapacity-row input[type="checkbox"] {
+            width: 17px; height: 17px; cursor: pointer; accent-color: #333;
+            display: block; margin: 0 auto;
+        }
+        .incapacity-table .type-label {
+            font-weight: 500; color: #555; font-size: 13px;
+        }
+        .incapacity-table .incap-pct-input {
+            width: 70px; padding: 6px 8px; text-align: center;
+            border: 2px solid #e0e0e0; border-radius: 6px;
+            font-size: 13px; font-weight: 700; font-family: inherit;
+            transition: border-color 0.2s; display: block; margin: 0 auto;
+        }
+        .incapacity-table .incap-pct-input:focus { outline: none; border-color: #333; }
+        .incapacity-table .incap-pct-input:disabled { background: #f5f5f5; border-color: #eee; }
 
         /* ── Injuries schedule table ───────────── */
         .schedule-table-wrap {
@@ -393,43 +410,46 @@
 
             <!-- ── Section 4: Percentage of incapacity ── -->
             <div class="section-title incapacity">4. Percentage of incapacity (see overleaf for % disabilities)</div>
-            <p class="hint" style="margin-bottom:16px">Select all that apply and specify the percentage</p>
 
-            <div class="incapacity-grid" id="incapacityGrid">
-              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'deathInput')">
-                <input type="checkbox" id="chkDeath" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
-                <span class="icn">⚰️</span>
-                <label>(a) Death</label>
-              </div>
-              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'permTotalInput')">
-                <input type="checkbox" id="chkPermTotal" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
-                <span class="icn">♿</span>
-                <label>(b) Permanent total*</label>
-              </div>
-              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'permPartialInput')">
-                <input type="checkbox" id="chkPermPartial" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked)">
-                <span class="icn">🩹</span>
-                <label>(c) Permanent Partial</label>
-              </div>
-              <div class="incapacity-item" onclick="toggleIncapacityType(this, 'tempInput')">
-                <input type="checkbox" id="chkTemporary" onchange="this.closest('.incapacity-item').classList.toggle('checked', this.checked); toggleTempDuration()">
-                <span class="icn">🔄</span>
-                <label>(d) Temporary (and probable durations)</label>
-              </div>
-            </div>
-
-            <div class="form-row form-row-3" style="margin-top:16px">
-              <div class="form-group">
-                <label>Incapacity Percentage (%)<span class="req">*</span></label>
-                <input type="number" name="incapacity_percentage" id="incapacityPercentage"
-                       min="0" max="100" step="0.01" placeholder="e.g. 50" required>
-                <span class="err-msg">Required (0-100)</span>
-              </div>
-              <div class="form-group" id="tempDurationGroup" style="display:none">
-                <label>Temporary — Probable Duration</label>
-                <input type="text" name="temporary_probable_duration" id="temporaryProbableDuration"
-                       placeholder="e.g. 6 weeks, 3 months">
-              </div>
+            <div class="incapacity-table-wrap">
+              <table class="incapacity-table">
+                <thead>
+                  <tr>
+                    <th class="cb-col">&nbsp;</th>
+                    <th>Type</th>
+                    <th class="pct-col">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="incapacity-row" onclick="toggleIncapacityType(event, this)">
+                    <td><input type="checkbox" id="chkDeath" onchange="this.closest('.incapacity-row').classList.toggle('checked', this.checked)"></td>
+                    <td class="type-label">(a) Death</td>
+                    <td><input type="number" class="incap-pct-input" placeholder="—" min="0" max="100" step="0.01" disabled></td>
+                  </tr>
+                  <tr class="incapacity-row" onclick="toggleIncapacityType(event, this)">
+                    <td><input type="checkbox" id="chkPermTotal" onchange="this.closest('.incapacity-row').classList.toggle('checked', this.checked)"></td>
+                    <td class="type-label">(b) Permanent total*</td>
+                    <td><input type="number" class="incap-pct-input" placeholder="—" min="0" max="100" step="0.01" disabled></td>
+                  </tr>
+                  <tr class="incapacity-row" onclick="toggleIncapacityType(event, this)">
+                    <td><input type="checkbox" id="chkPermPartial" onchange="this.closest('.incapacity-row').classList.toggle('checked', this.checked)"></td>
+                    <td class="type-label">(c) Permanent partial</td>
+                    <td><input type="number" class="incap-pct-input" placeholder="—" min="0" max="100" step="0.01" disabled></td>
+                  </tr>
+                  <tr class="incapacity-row" onclick="toggleIncapacityType(event, this)">
+                    <td><input type="checkbox" id="chkTemporary" onchange="this.closest('.incapacity-row').classList.toggle('checked', this.checked); toggleTempDuration()"></td>
+                    <td class="type-label">(d) Temporary (and probable durations)</td>
+                    <td><input type="number" class="incap-pct-input" placeholder="—" min="0" max="100" step="0.01" disabled></td>
+                  </tr>
+                  <tr id="tempDurationRow" style="display:none">
+                    <td colspan="3" style="padding:8px 10px 12px 46px">
+                      <span style="font-size:12px;color:#888;font-style:italic">Probable duration:</span>
+                      <input type="text" id="temporaryProbableDuration" placeholder="e.g. 6 weeks, 3 months"
+                             style="margin-left:8px;padding:6px 10px;border:2px solid #e0e0e0;border-radius:6px;font-size:12px;font-family:inherit;width:220px">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
             <!-- Schedule of Percentage Incapacities -->
@@ -803,16 +823,30 @@
     <script>
     const SB = window.supabaseClient;
 
-    // ── Toggle incapacity type ──────────────────────
-    function toggleIncapacityType(item, inputId) {
-        const cb = item.querySelector('input[type="checkbox"]');
+    // ── Toggle incapacity type row ─────────────────
+    function toggleIncapacityType(e, row) {
+        // If click was directly on the checkbox/input, let onchange handle it
+        if (e?.target?.tagName === 'INPUT') return;
+        const cb = row.querySelector('input[type="checkbox"]');
         cb.checked = !cb.checked;
-        item.classList.toggle('checked', cb.checked);
+        row.classList.toggle('checked', cb.checked);
+        // Enable/disable the percentage input in this row
+        const pctInput = row.querySelector('.incap-pct-input');
+        if (pctInput) {
+            pctInput.disabled = !cb.checked;
+            if (cb.checked) {
+                pctInput.focus();
+                pctInput.select();
+            } else {
+                pctInput.value = '';
+            }
+        }
     }
 
     function toggleTempDuration() {
         const checked = document.getElementById('chkTemporary').checked;
-        document.getElementById('tempDurationGroup').style.display = checked ? 'block' : 'none';
+        const row = document.getElementById('tempDurationRow');
+        if (row) row.style.display = checked ? 'table-row' : 'none';
     }
 
     // ── Schedule checkbox toggle ─────────────────────
@@ -959,6 +993,21 @@
             if (!f.value.trim()) { f.classList.add('error'); ok = false; }
             else f.classList.remove('error');
         });
+        // Validate that at least one incapacity type is checked with a percentage
+        const checkedRows = document.querySelectorAll('.incapacity-row.checked');
+        let hasPct = false;
+        checkedRows.forEach(row => {
+            const pct = parseFloat(row.querySelector('.incap-pct-input')?.value);
+            if (pct > 0) hasPct = true;
+        });
+        if (checkedRows.length > 0 && !hasPct) {
+            // Highlight the first incapacity row
+            const firstRow = document.querySelector('.incapacity-row.checked .incap-pct-input');
+            if (firstRow) { firstRow.classList.add('error'); firstRow.focus(); }
+            ok = false;
+        } else {
+            document.querySelectorAll('.incap-pct-input.error').forEach(el => el.classList.remove('error'));
+        }
         return ok;
     }
 
@@ -1002,13 +1051,24 @@
                 claim_file_number:              g('claimFileNumber'),
                 nature_of_injury_or_disease:     g('natureOfInjuryDisease'),
                 medical_treatment_particulars:   g('medicalTreatmentParticulars'),
+                // Per-type incapacity selections with percentages
                 death_incapacity:               document.getElementById('chkDeath').checked || null,
                 permanent_total_incapacity:      document.getElementById('chkPermTotal').checked || null,
                 permanent_partial_incapacity:    document.getElementById('chkPermPartial').checked || null,
                 temporary_incapacity:            document.getElementById('chkTemporary').checked || null,
                 temporary_probable_duration:     g('temporaryProbableDuration'),
-                incapacity_percentage:           document.getElementById('incapacityPercentage')?.value
-                                                  ? parseFloat(document.getElementById('incapacityPercentage').value) : null,
+                incapacity_percentage:           (function() {
+                    // Compute as max of entered per-type percentages
+                    const vals = [
+                        parseFloat(document.querySelector('#chkDeath')?.closest('tr')?.querySelector('.incap-pct-input')?.value) || 0,
+                        parseFloat(document.querySelector('#chkPermTotal')?.closest('tr')?.querySelector('.incap-pct-input')?.value) || 0,
+                        parseFloat(document.querySelector('#chkPermPartial')?.closest('tr')?.querySelector('.incap-pct-input')?.value) || 0,
+                        parseFloat(document.querySelector('#chkTemporary')?.closest('tr')?.querySelector('.incap-pct-input')?.value) || 0
+                    ];
+                    const max = Math.max(...vals);
+                    return max > 0 ? max : null;
+                })(),
+
                 schedule_incapacities:           JSON.stringify(getSchedData()),
                 note_incapacity_awards:          JSON.stringify(getNoteAwardData()),
                 capable_light_duties:            radio('capable_light_duties'),
@@ -1054,7 +1114,15 @@
         });
         if (ok) {
             document.getElementById('medicalExamForm').reset();
-            document.querySelectorAll('.incapacity-item').forEach(i => i.classList.remove('checked'));
+            // Clear incapacity table rows
+            document.querySelectorAll('.incapacity-row').forEach(row => {
+                row.classList.remove('checked');
+                const cb = row.querySelector('input[type="checkbox"]');
+                if (cb) cb.checked = false;
+                const inp = row.querySelector('.incap-pct-input');
+                if (inp) { inp.value = ''; inp.disabled = true; }
+            });
+            document.getElementById('tempDurationRow').style.display = 'none';
             document.querySelectorAll('.sched-row.checked').forEach(tr => {
                 tr.classList.remove('checked');
                 const cb = tr.querySelector('.sched-cb');
