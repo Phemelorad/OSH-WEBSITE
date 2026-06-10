@@ -6,125 +6,79 @@
     <title>Permanent Impairment Evaluation - DOSH</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>⚕</text></svg>">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-            min-height: 100vh; color: #333; padding-bottom: 60px;
-        }
-        .navbar {
-            background: #fff; border-bottom: 1px solid #e0e0e0;
-            padding: 12px 24px; display: flex; justify-content: space-between;
-            align-items: center; position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-        .navbar .logo { font-weight: 700; font-size: 16px; color: #1a237e; }
-        .navbar .user-info { display: flex; align-items: center; gap: 16px; font-size: 14px; }
-        .navbar .user-info .name { font-weight: 600; }
-        .navbar .user-info .role-badge {
-            background: #e3f2fd; color: #1565c0; padding: 3px 10px;
-            border-radius: 12px; font-size: 11px; font-weight: 600;
-        }
-        .navbar .user-info .logout-btn {
-            background: none; border: 1px solid #e0e0e0; padding: 6px 14px;
-            border-radius: 6px; cursor: pointer; font-size: 13px; color: #555;
-            transition: all 0.2s;
-        }
-        .navbar .user-info .logout-btn:hover { background: #f5f5f5; border-color: #ccc; }
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-        .form-card {
-            background: #fff; border-radius: 12px; padding: 40px 45px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
-        }
-        .form-header { text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #e8eaf6; }
-        .form-header .logo-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; }
-        .form-header .logo-row svg { width: 48px; height: 48px; }
-        .form-header .form-number-badge {
-            display: inline-block; background: #1a237e; color: #fff;
-            padding: 4px 16px; border-radius: 4px; font-size: 12px; font-weight: 700;
-            letter-spacing: 1px; margin-bottom: 8px;
-        }
-        .form-header h1 { font-size: 20px; color: #1a237e; margin-bottom: 4px; }
-        .form-header .subtitle { font-size: 13px; color: #666; }
-        .form-header .legal-ref { font-size: 11px; color: #999; margin-top: 6px; font-style: italic; }
-        .section-title {
-            font-size: 15px; font-weight: 700; color: #1a237e;
-            padding: 10px 16px; background: #e8eaf6; border-radius: 6px;
-            margin-bottom: 20px; border-left: 4px solid #3f51b5;
-        }
-        .section-title.medical { border-left-color: #00796b; background: #e0f2f1; color: #00695c; }
-        .section-title.incapacity { border-left-color: #e65100; background: #fff3e0; color: #e65100; }
-        .section-title.disability { border-left-color: #6a1b9a; background: #f3e5f5; color: #6a1b9a; }
-        .section-title.closing { border-left-color: #2e7d32; background: #e8f5e9; color: #2e7d32; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-        .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
-        .col-span-2 { grid-column: span 2; }
-        @media (max-width: 768px) {
-            .form-row, .form-row-3 { grid-template-columns: 1fr; }
-            .col-span-2 { grid-column: span 1; }
-            .form-card { padding: 20px; }
-        }
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group label {
-            font-size: 12px; font-weight: 600; color: #555;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .form-group label .required { color: #d32f2f; margin-left: 2px; }
-        .form-group .hint { font-size: 11px; color: #999; margin-top: 2px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 12px; border: 1.5px solid #ddd;
-            border-radius: 6px; font-size: 14px; font-family: inherit;
-            transition: border-color 0.2s, box-shadow 0.2s; background: #fff;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63,81,181,0.12);
-        }
-        .form-group input.error, .form-group select.error, .form-group textarea.error {
-            border-color: #d32f2f; box-shadow: 0 0 0 3px rgba(211,47,47,0.12);
-        }
-        .form-group textarea { resize: vertical; min-height: 60px; }
-        .yn-group { display: flex; gap: 8px; margin-top: 4px; }
-        .yn-group label {
-            display: flex; align-items: center; gap: 4px;
-            padding: 6px 14px; border: 1.5px solid #ddd; border-radius: 6px;
-            cursor: pointer; font-size: 13px; font-weight: 500; text-transform: none;
-            letter-spacing: 0; transition: all 0.2s;
-        }
-        .yn-group label:hover { border-color: #bbb; }
-        .yn-group input[type="radio"] { display: none; }
-        .yn-group input[type="radio"]:checked + span { font-weight: 700; }
-        .yn-group label:has(input[value="Yes"]:checked) { background: #e8f5e9; border-color: #43a047; color: #2e7d32; }
-        .yn-group label:has(input[value="No"]:checked) { background: #fbe9e7; border-color: #e53935; color: #c62828; }
-        .clinical-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-        .clinical-table th, .clinical-table td {
-            border: 1px solid #e0e0e0; padding: 10px 12px; text-align: left; font-size: 13px; vertical-align: top;
-        }
-        .clinical-table th { background: #f5f5f5; font-weight: 600; color: #444; font-size: 12px; }
-        .clinical-table td textarea { width: 100%; border: none; padding: 4px; resize: vertical; font-size: 13px; min-height: 36px; }
-        .clinical-table td textarea:focus { outline: none; }
-        .incap-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-        .incap-table th, .incap-table td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; font-size: 13px; }
-        .incap-table th { background: #fff3e0; font-weight: 600; color: #e65100; }
-        .incap-table td input[type="text"] { width: 100%; border: none; padding: 4px; font-size: 13px; }
-        .incap-table td input[type="text"]:focus { outline: none; }
-        .incap-table td input[type="number"] { width: 80px; border: 1.5px solid #ddd; border-radius: 4px; padding: 6px 8px; font-size: 13px; text-align: center; }
-        .incap-table td input[type="number"]:focus { outline: none; border-color: #e65100; box-shadow: 0 0 0 3px rgba(230,81,0,0.12); }
-        .incap-table .add-row-btn, .incap-table .remove-row-btn {
-            background: none; border: 1px dashed #bbb; color: #666;
-            padding: 6px 16px; border-radius: 6px; cursor: pointer;
-            font-size: 12px; transition: all 0.2s;
-        }
-        .incap-table .add-row-btn:hover { border-color: #e65100; color: #e65100; background: #fff3e0; }
-        .incap-table .remove-row-btn { border: none; color: #d32f2f; padding: 2px 6px; font-size: 16px; }
-        .incap-table .remove-row-btn:hover { background: #ffebee; }
-        .incap-total { font-weight: 700; font-size: 15px; color: #e65100; text-align: right; padding: 8px 12px; }
-        .form-actions {
-            display: flex; gap: 12px; justify-content: flex-end;
-            padding-top: 24px; margin-top: 24px; border-top: 1px solid #e0e0e0;
-        }
-        .form-actions button {
-            padding: 12px 28px; border: none; border-radius: 8px;
-            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%);min-height:100vh;color:#333}
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);position:sticky;top:0;z-index:100}
+.navbar .logo{font-size:18px;font-weight:700;color:#1a237e}
+.navbar .user-info{display:flex;align-items:center;gap:12px}
+.navbar .user-info .name{font-size:14px;color:#555}
+.navbar .user-info .role-badge{font-size:11px;background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:12px;font-weight:600}
+.navbar .user-info .logout-btn{padding:6px 14px;background:#fff;color:#c62828;border:1px solid #ef9a9a;border-radius:6px;cursor:pointer;font-size:12px;transition:all 0.2s}
+.navbar .user-info .logout-btn:hover{background:#c62828;color:#fff}
+.container{max-width:850px;margin:30px auto;padding:0 16px}
+.form-card{background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden}
+.form-card .form-header{padding:30px 40px 20px;text-align:center;border-bottom:1px solid #eee}
+.form-card .form-header .logo-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.form-card .form-header .form-number-badge{background:#1a237e;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:4px}
+.form-card .form-header .act-title{font-size:13px;color:#666;font-weight:500;margin-bottom:4px}
+.form-card .form-header h2{font-size:20px;color:#222;margin-bottom:4px}
+.form-card .form-header .subtitle{font-size:12px;color:#888;font-style:italic}
+.form-card .form-body{padding:20px 40px 30px}
+.section-title{font-size:15px;font-weight:700;padding:10px 16px;margin:24px 0 16px;border-left:4px solid #333;background:#f5f5f5;border-radius:0 4px 4px 0;color:#333}
+.section-title.medical{border-left:4px solid #0c5460;background:#f0fafc;color:#0c5460}
+.section-title.incapacity{border-left:4px solid #856404;background:#fffbeb;color:#856404}
+.section-title.disability{border-left:4px solid #7b2d8e;background:#faf0ff;color:#7b2d8e}
+.section-title.closing{border-left:4px solid #2e7d32;background:#f0faf0;color:#2e7d32}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.full-width{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column}
+.form-group label{font-size:13px;font-weight:600;color:#444;margin-bottom:4px}
+.form-group label .req{color:#dc3545;margin-left:2px}
+.form-group .hint{font-size:11px;color:#999;margin-bottom:4px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:2px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;transition:border-color 0.2s;background:#fff;outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#1a237e;box-shadow:0 0 0 3px rgba(26,35,126,0.1)}
+.form-group input.error,.form-group select.error,.form-group textarea.error{border-color:#dc3545}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-group .error-message{color:#dc3545;font-size:11px;margin-top:2px;display:none}
+.form-group input.error+.error-message,.form-group select.error+.error-message{display:block}
+.yn-group{display:flex;gap:16px;margin-top:4px}
+.yn-group label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer;color:#555;padding:0}
+.yn-group input[type=radio]{accent-color:#333;width:16px;height:16px;cursor:pointer}
+.incap-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.incap-table th{padding:8px 12px;background:#f5f5f5;font-size:11px;font-weight:700;text-align:left;border-bottom:2px solid #e0e0e0;color:#555}
+.incap-table td{padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px}
+.incap-table tr:hover td{background:#f8f9fb}
+.incap-table .remove-row-btn{padding:4px 10px;background:#fff;color:#c62828;border:1px solid #ef9a9a;border-radius:4px;cursor:pointer;font-size:11px;transition:all 0.2s}
+.incap-table .remove-row-btn:hover{background:#c62828;color:#fff}
+.incap-table .add-row-btn{padding:6px 14px;background:#fff;color:#2e7d32;border:1px solid #a5d6a7;border-radius:4px;cursor:pointer;font-size:12px;transition:all 0.2s}
+.incap-table .add-row-btn:hover{background:#2e7d32;color:#fff}
+.incap-total{text-align:right;font-size:14px;font-weight:700;padding:8px 12px;background:#fafafa;border-top:2px solid #e0e0e0;color:#333}
+.form-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #eee}
+.form-actions button{padding:10px 28px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.form-actions .btn-submit{background:#1a237e;color:#fff}
+.form-actions .btn-submit:hover{background:#283593}
+.form-actions .btn-submit:disabled{background:#9fa8da;cursor:not-allowed}
+.form-actions .btn-reset{background:#fff;color:#555;border:1px solid #ddd}
+.form-actions .btn-reset:hover{background:#f5f5f5}
+.toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:8px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:slideIn 0.3s ease;max-width:360px}
+.toast.info{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9}
+.toast.success{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.toast.error{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:768px){.form-row,.form-row-3{grid-template-columns:1fr}.form-card .form-header,.form-card .form-body{padding-left:16px;padding-right:16px}.form-card .form-header .logo-row{flex-direction:column;gap:8px}}
+
+
+/* Missing utility rules */
+.yn-group input[type=radio]{display:none}
+.yn-group label.selected{background:#1a237e;color:#fff;padding:4px 14px;border-radius:6px}
+.clinical-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.clinical-table th{padding:8px 12px;background:#f5f5f5;font-size:12px;font-weight:700;text-align:left;border-bottom:2px solid #e0e0e0;color:#555}
+.clinical-table td{padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px}
+.col-span-2{grid-column:span 2}
+.legal-ref{font-size:11px;color:#888;margin-top:2px}
+.required{color:#dc3545;margin-left:2px;font-weight:700}
     </style>
 </head>
 <body>
