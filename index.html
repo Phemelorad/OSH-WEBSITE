@@ -874,7 +874,7 @@
             submitBtn.textContent = 'Sign In';
 
             if (!result.success) {
-                showLoginBanner(result.error || "Login failed. Please try again.");
+                window.showLoginBanner(result.error || "Login failed. Please try again.");
                 return;
             }
 
