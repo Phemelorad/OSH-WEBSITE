@@ -180,7 +180,58 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'accident';</script>
+    <script>window.OSH_ACTIVE_PAGE = 'accident';
+        // ── Company autofill ────────────────────────────────
+        // When user types a company name, look up the companies table and auto-fill
+        async function searchCompany(name) {
+            if (!name || name.length < 3) return null;
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('companies')
+                    .select('*')
+                    .ilike('company_name', name + '%')
+                    .limit(1);
+                if (error) throw error;
+                return data && data.length > 0 ? data[0] : null;
+            } catch (e) {
+                console.warn('Company lookup failed:', e);
+                return null;
+            }
+        }
+
+        function attachCompanyAutofill() {
+            const el = document.getElementById('occupierName');
+            if (!el) return;
+
+            let timer = null;
+            el.addEventListener('input', function () {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(async () => {
+                    const val = el.value.trim();
+                    if (val.length < 3) return;
+                    const company = await searchCompany(val);
+                    if (company) {
+                        const addr = [
+                            company.physical_address,
+                            company.plot_number ? 'Plot ' + company.plot_number : '',
+                            company.street_name,
+                            company.location
+                        ].filter(Boolean).join(', ');
+                        const pa = document.getElementById('premisesAddress');
+                        const ni = document.getElementById('natureOfIndustry');
+                        if (addr && pa && !pa.value) pa.value = addr;
+                        if (company.industry && ni && !ni.value) ni.value = company.industry;
+                        if ((addr && pa && !pa.value) || (company.industry && ni && !ni.value)) {
+                            if (typeof showToast === 'function') {
+                                showToast('Company info auto-filled', 'info');
+                            }
+                        }
+                    }
+                }, 600);
+            });
+        }
+
+    </script>
     <script src="header.js"></script>
     <script src="nav.js"></script>
 
@@ -654,7 +705,6 @@
                 usual_occupation:   'usualOccupation',
                 experience_level:   'experienceLevel',
                 age_years:          'injuredAge',
-                employer_name:      'occupierName',
                 worker_registry_id: 'accidentWorkerRegistryId',
             }) || window._resolvedWorkerId || null;
 
@@ -761,8 +811,6 @@
                     usual_occupation:   'usualOccupation',
                     experience_level:   'experienceLevel',
                     age_years:          'injuredAge',
-                    employer_name:      'occupierName',
-                    worker_registry_id: 'accidentWorkerRegistryId',
                 },
                 saveNewWorker: true
             });
@@ -809,12 +857,12 @@
                 usual_occupation:   'usualOccupation',
                 experience_level:   'experienceLevel',
                 age_years:          'injuredAge',
-                employer_name:      'occupierName',
                 worker_registry_id: 'accidentWorkerRegistryId',
             },
+            worker_registry_id: 'accidentWorkerRegistryId',
             saveNewWorker: true
-        });
+                });
+        // ── Company autofill call ─────────────────────
+        attachCompanyAutofill();
     });
     </script>
-</body>
-</html>
