@@ -346,6 +346,59 @@
                 grid-template-columns: 1fr;
             }
         }
+    
+
+        /* Login notification banner */
+        .login-banner {
+            display: none;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            animation: bannerSlideDown 0.3s ease;
+        }
+        .login-banner.show {
+            display: block;
+        }
+        .login-banner .banner-text {
+            margin-bottom: 10px;
+        }
+        .login-banner .banner-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .login-banner .banner-actions a {
+            color: #dc2626;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        .login-banner .banner-actions a:hover {
+            color: #7f1d1d;
+            text-decoration: none;
+        }
+        .login-banner .banner-close {
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            color: #991b1b;
+            opacity: 0.7;
+        }
+        .login-banner .banner-close:hover {
+            opacity: 1;
+        }
+        @keyframes bannerSlideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -389,7 +442,17 @@
                 <span class="error-message">Please select your role</span>
             </div>
 
-            <!-- Login Company-specific fields -->
+
+            <div id="loginBanner" class="login-banner" role="alert">
+                <span class="banner-close" id="bannerCloseBtn">&times;</span>
+                <div class="banner-text" id="loginBannerText"></div>
+                <div class="banner-actions">
+                    <a href="#" id="bannerResendConfirm">Resend confirmation</a>
+                    <a href="#" id="bannerForgotPassword">Forgot password?</a>
+                </div>
+            </div>
+
+                        <!-- Login Company-specific fields -->
             <div id="loginCompanyFields" class="role-specific-fields hidden">
                 <h3>Employer Account</h3>
                 <div class="form-group">
@@ -811,7 +874,7 @@
             submitBtn.textContent = 'Sign In';
 
             if (!result.success) {
-                showAlert(result.error || "Login failed. Please try again.", "Login Error");
+                showLoginBanner(result.error || "Login failed. Please try again.");
                 return;
             }
 
@@ -861,6 +924,45 @@
         document.getElementById('forgotPassword').addEventListener('click', function(e) {
             e.preventDefault();
             window.location.href = 'reset-password.html';
+
+        // Login banner functions
+        function showLoginBanner(message) {
+            document.getElementById('loginBannerText').textContent = message;
+            document.getElementById('loginBanner').classList.add('show');
+        }
+        function hideLoginBanner() {
+            document.getElementById('loginBanner').classList.remove('show');
+        }
+
+        // Wire banner action links to existing handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const bannerResend = document.getElementById('bannerResendConfirm');
+            const bannerForgot = document.getElementById('bannerForgotPassword');
+            const resendConfirm = document.getElementById('resendConfirm');
+            const forgotPassword = document.getElementById('forgotPassword');
+            if (bannerResend && resendConfirm) {
+                bannerResend.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    resendConfirm.click();
+                });
+            }
+            if (bannerForgot && forgotPassword) {
+                bannerForgot.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    forgotPassword.click();
+                });
+            }
+        });
+
+        // Close button
+        document.getElementById("bannerCloseBtn").addEventListener("click", hideLoginBanner);
+
+        // Hide banner when user types in any login field
+        document.querySelectorAll("#loginCompanyName, #loginEmail, #loginPassword").forEach(function(el) {
+            el.addEventListener("input", hideLoginBanner);
+        });
+
+
         });
 
         // ── Resend confirmation email ───────────────────

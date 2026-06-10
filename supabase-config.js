@@ -257,7 +257,6 @@
             }
 
             return { success: true, data: data };
-    };
         } catch (error) {
             let msg = handleError(error) || "Login failed";
             const lc = msg.toLowerCase();
@@ -270,6 +269,7 @@
             }
             return { success: false, error: msg };
         }
+    };
 
     // Sign out function
     window.signOut = async function() {

@@ -376,10 +376,10 @@
       {
         id: 'medical-practitioner',
         label: 'Medical Exams',
-          { id: 'permanent-impairment', icon: '', label: 'Permanent Impairment Eval', href: 'permanent-impairment.html' },
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
           { id: 'medical-examination', icon: '', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
+          { id: 'permanent-impairment', icon: '', label: 'Permanent Impairment Eval', href: 'permanent-impairment.html' },
         ]
       },
       {
