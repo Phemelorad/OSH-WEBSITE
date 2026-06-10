@@ -926,11 +926,11 @@
             window.location.href = 'reset-password.html';
 
         // Login banner functions
-        function showLoginBanner(message) {
+        window.showLoginBanner = function(message) {
             document.getElementById('loginBannerText').textContent = message;
             document.getElementById('loginBanner').classList.add('show');
         }
-        function hideLoginBanner() {
+        window.hideLoginBanner = function() {
             document.getElementById('loginBanner').classList.remove('show');
         }
 
