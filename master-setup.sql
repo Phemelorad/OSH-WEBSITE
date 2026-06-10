@@ -529,6 +529,51 @@ CREATE TABLE IF NOT EXISTS medical_examination_reports (
 
 COMMENT ON TABLE medical_examination_reports IS 'BL Form 43/03 — Report of Results of Medical Examination (Worker''s Compensation Act, Section 10)';
 
+-- ── 3h2. Permanent impairment reports ─────────────────────
+CREATE TABLE IF NOT EXISTS permanent_impairment_reports (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    claim_id UUID REFERENCES injury_claims(id) ON DELETE SET NULL,
+    worker_registry_id UUID REFERENCES workers_registry(id) ON DELETE SET NULL,
+    worker_name TEXT NOT NULL, wcc_ref_no TEXT, date_of_birth DATE,
+    hospital_name_ref TEXT, sex TEXT CHECK (sex IN ('Male','Female')),
+    report_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    medical_history JSONB DEFAULT '{}'::jsonb,
+    physical_examination TEXT, radiological_exam TEXT, laboratory_test TEXT,
+    special_therapeutic_procedures TEXT, specialists_evaluation TEXT,
+    pre_existing_conditions TEXT, impairment_a TEXT, impairment_b TEXT,
+    impairment_c TEXT, impairment_d TEXT, impairment_e TEXT,
+    condition_a_text TEXT,
+    condition_b_permanent TEXT CHECK (condition_b_permanent IN ('Yes','No')),
+    condition_c_not_stabilized TEXT CHECK (condition_c_not_stabilized IN ('Yes','No')),
+    unfit_pre_injury_occupation TEXT CHECK (unfit_pre_injury_occupation IN ('Yes','No')),
+    unfit_reasons TEXT, fit_alternative_duty TEXT CHECK (fit_alternative_duty IN ('Yes','No')),
+    further_harm_possible TEXT CHECK (further_harm_possible IN ('Yes','No')),
+    further_harm_explanation TEXT,
+    restrictions_needed TEXT CHECK (restrictions_needed IN ('Yes','No')),
+    restrictions_explanation TEXT,
+    incapacity_body_parts JSONB DEFAULT '[]'::jsonb,
+    total_incapacity_pct NUMERIC(5,2), under_care_from DATE, under_care_to DATE,
+    not_provided_care BOOLEAN DEFAULT FALSE, seen_patient_times INTEGER,
+    practitioner_name TEXT NOT NULL, practitioner_signature TEXT, practitioner_date DATE,
+    practitioner_address TEXT, practitioner_tel TEXT,
+    practitioner_registered_bhpc TEXT CHECK (practitioner_registered_bhpc IN ('Yes','No')),
+    practitioner_registered_as TEXT,
+    submitted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    status TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('draft','submitted','under_review','approved','rejected')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE permanent_impairment_reports IS 'Report of Medical Evaluation of Permanent Impairment — completed by medical practitioners';
+
+ALTER TABLE permanent_impairment_reports ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "practitioners_can_insert" ON permanent_impairment_reports FOR INSERT TO authenticated WITH CHECK (auth.uid() = submitted_by);
+CREATE POLICY "practitioners_can_view" ON permanent_impairment_reports FOR SELECT TO authenticated USING (auth.uid() = submitted_by OR EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('admin','super_admin','officer')));
+CREATE POLICY "admins_can_update" ON permanent_impairment_reports FOR UPDATE TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('admin','super_admin')));
+
+GRANT SELECT, INSERT, UPDATE ON permanent_impairment_reports TO authenticated;
+
 -- ── 3i. Practitioner clients (clientele tracking) ──────────
 CREATE TABLE IF NOT EXISTS practitioner_clients (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permanent Impairment Evaluation - DOSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>⚕</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            min-height: 100vh; color: #333; padding-bottom: 60px;
+        }
+        .navbar {
+            background: #fff; border-bottom: 1px solid #e0e0e0;
+            padding: 12px 24px; display: flex; justify-content: space-between;
+            align-items: center; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .navbar .logo { font-weight: 700; font-size: 16px; color: #1a237e; }
+        .navbar .user-info { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+        .navbar .user-info .name { font-weight: 600; }
+        .navbar .user-info .role-badge {
+            background: #e3f2fd; color: #1565c0; padding: 3px 10px;
+            border-radius: 12px; font-size: 11px; font-weight: 600;
+        }
+        .navbar .user-info .logout-btn {
+            background: none; border: 1px solid #e0e0e0; padding: 6px 14px;
+            border-radius: 6px; cursor: pointer; font-size: 13px; color: #555;
+            transition: all 0.2s;
+        }
+        .navbar .user-info .logout-btn:hover { background: #f5f5f5; border-color: #ccc; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .form-card {
+            background: #fff; border-radius: 12px; padding: 40px 45px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+        }
+        .form-header { text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #e8eaf6; }
+        .form-header .logo-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; }
+        .form-header .logo-row svg { width: 48px; height: 48px; }
+        .form-header .form-number-badge {
+            display: inline-block; background: #1a237e; color: #fff;
+            padding: 4px 16px; border-radius: 4px; font-size: 12px; font-weight: 700;
+            letter-spacing: 1px; margin-bottom: 8px;
+        }
+        .form-header h1 { font-size: 20px; color: #1a237e; margin-bottom: 4px; }
+        .form-header .subtitle { font-size: 13px; color: #666; }
+        .form-header .legal-ref { font-size: 11px; color: #999; margin-top: 6px; font-style: italic; }
+        .section-title {
+            font-size: 15px; font-weight: 700; color: #1a237e;
+            padding: 10px 16px; background: #e8eaf6; border-radius: 6px;
+            margin-bottom: 20px; border-left: 4px solid #3f51b5;
+        }
+        .section-title.medical { border-left-color: #00796b; background: #e0f2f1; color: #00695c; }
+        .section-title.incapacity { border-left-color: #e65100; background: #fff3e0; color: #e65100; }
+        .section-title.disability { border-left-color: #6a1b9a; background: #f3e5f5; color: #6a1b9a; }
+        .section-title.closing { border-left-color: #2e7d32; background: #e8f5e9; color: #2e7d32; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .col-span-2 { grid-column: span 2; }
+        @media (max-width: 768px) {
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .col-span-2 { grid-column: span 1; }
+            .form-card { padding: 20px; }
+        }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label {
+            font-size: 12px; font-weight: 600; color: #555;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .form-group label .required { color: #d32f2f; margin-left: 2px; }
+        .form-group .hint { font-size: 11px; color: #999; margin-top: 2px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #ddd;
+            border-radius: 6px; font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s; background: #fff;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63,81,181,0.12);
+        }
+        .form-group input.error, .form-group select.error, .form-group textarea.error {
+            border-color: #d32f2f; box-shadow: 0 0 0 3px rgba(211,47,47,0.12);
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .yn-group { display: flex; gap: 8px; margin-top: 4px; }
+        .yn-group label {
+            display: flex; align-items: center; gap: 4px;
+            padding: 6px 14px; border: 1.5px solid #ddd; border-radius: 6px;
+            cursor: pointer; font-size: 13px; font-weight: 500; text-transform: none;
+            letter-spacing: 0; transition: all 0.2s;
+        }
+        .yn-group label:hover { border-color: #bbb; }
+        .yn-group input[type="radio"] { display: none; }
+        .yn-group input[type="radio"]:checked + span { font-weight: 700; }
+        .yn-group label:has(input[value="Yes"]:checked) { background: #e8f5e9; border-color: #43a047; color: #2e7d32; }
+        .yn-group label:has(input[value="No"]:checked) { background: #fbe9e7; border-color: #e53935; color: #c62828; }
+        .clinical-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .clinical-table th, .clinical-table td {
+            border: 1px solid #e0e0e0; padding: 10px 12px; text-align: left; font-size: 13px; vertical-align: top;
+        }
+        .clinical-table th { background: #f5f5f5; font-weight: 600; color: #444; font-size: 12px; }
+        .clinical-table td textarea { width: 100%; border: none; padding: 4px; resize: vertical; font-size: 13px; min-height: 36px; }
+        .clinical-table td textarea:focus { outline: none; }
+        .incap-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .incap-table th, .incap-table td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; font-size: 13px; }
+        .incap-table th { background: #fff3e0; font-weight: 600; color: #e65100; }
+        .incap-table td input[type="text"] { width: 100%; border: none; padding: 4px; font-size: 13px; }
+        .incap-table td input[type="text"]:focus { outline: none; }
+        .incap-table td input[type="number"] { width: 80px; border: 1.5px solid #ddd; border-radius: 4px; padding: 6px 8px; font-size: 13px; text-align: center; }
+        .incap-table td input[type="number"]:focus { outline: none; border-color: #e65100; box-shadow: 0 0 0 3px rgba(230,81,0,0.12); }
+        .incap-table .add-row-btn, .incap-table .remove-row-btn {
+            background: none; border: 1px dashed #bbb; color: #666;
+            padding: 6px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 12px; transition: all 0.2s;
+        }
+        .incap-table .add-row-btn:hover { border-color: #e65100; color: #e65100; background: #fff3e0; }
+        .incap-table .remove-row-btn { border: none; color: #d32f2f; padding: 2px 6px; font-size: 16px; }
+        .incap-table .remove-row-btn:hover { background: #ffebee; }
+        .incap-total { font-weight: 700; font-size: 15px; color: #e65100; text-align: right; padding: 8px 12px; }
+        .form-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+            padding-top: 24px; margin-top: 24px; border-top: 1px solid #e0e0e0;
+        }
+        .form-actions button {
+            padding: 12px 28px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    <div class="navbar" id="navbar">
+        <div class="logo">⚕ DOSH System</div>
+        <div class="user-info">
+            <span class="name" id="userName">Loading...</span>
+            <span class="role-badge" id="userRoleBadge">Medical Practitioner</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="container">
+        <form id="impairmentForm" class="form-card">
+            <div class="form-header">
+                <div class="logo-row">
+                    <svg viewBox="0 0 48 48" fill="#1a237e"><path d="M24 4C13 4 4 13 4 24s9 20 20 20 20-9 20-20S35 4 24 4zm0 36c-8.8 0-16-7.2-16-16S15.2 8 24 8s16 7.2 16 16-7.2 16-16 16zm-2-8h4v-8h-4v8zm0-12h4v-4h-4v4z"/></svg>
+                    <div>
+                        <div class="form-number-badge">PI-001</div>
+                        <h1>Report of Medical Evaluation of Permanent Impairment</h1>
+                        <p class="subtitle">Workers Compensation Act No. 23 of 1998</p>
+                        <p class="legal-ref">To be completed by a registered medical practitioner</p>
+                    </div>
+                </div>
+            </div>
+            <div class="claim-search" id="claimSearch">
+                <div class="form-group">
+                    <label>Search by Omang / Passport / Claim No.</label>
+                    <input type="text" id="searchQuery" placeholder="Type Omang, Passport or Claim file number...">
+                </div>
+                <button type="button" id="searchBtn" onclick="searchClaim()">🔍 Search</button>
+            </div>
+            <div class="section-title">A. Demographic Details</div>
+            <div class="form-row">
+                <div class="form-group col-span-2">
+                    <label>Worker Name <span class="required">*</span></label>
+                    <input type="text" id="workerName" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>WCC Ref. No.</label>
+                    <input type="text" id="wccRefNo">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dateOfBirth">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Name & Ref. of Hospital (if applicable)</label>
+                    <input type="text" id="hospitalNameRef">
+                </div>
+                <div class="form-group">
+                    <label>Sex</label>
+                    <select id="sex">
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Report Date <span class="required">*</span></label>
+                    <input type="date" id="reportDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Claim ID (auto-populated)</label>
+                    <input type="text" id="linkedClaimId" readonly>
+                </div>
+            </div>
+            <input type="hidden" id="workerRegistryId">
+            <div class="section-title medical">B. Medical History of Injury / Disease</div>
+            <table class="clinical-table">
+                <thead>
+                    <tr><th style="width:22%"></th><th style="width:26%">From Patient</th><th style="width:26%">From Hospital Record</th><th style="width:26%">From Doctors Record</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Reviewed</strong></td>
+                        <td><div class="yn-group"><label><input type="radio" name="hist_patient_reviewed" value="Yes"><span>Yes</span></label><label><input type="radio" name="hist_patient_reviewed" value="No"><span>No</span></label></div></td>
+                        <td><div class="yn-group"><label><input type="radio" name="hist_hospital_reviewed" value="Yes"><span>Yes</span></label><label><input type="radio" name="hist_hospital_reviewed" value="No"><span>No</span></label></div></td>
+                        <td><div class="yn-group"><label><input type="radio" name="hist_doctor_reviewed" value="Yes"><span>Yes</span></label><label><input type="radio" name="hist_doctor_reviewed" value="No"><span>No</span></label></div></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Enclosed</strong></td>
+                        <td><div class="yn-group"><label><input type="radio" name="hist_patient_enclosed" value="Yes"><span>Yes</span></label><label><input type="radio" name="hist_patient_enclosed" value="No"><span>No</span></label></div></td>
+                        <td><div class="yn-group"><label><input type="radio" name="hist_hospital_enclosed" value="Yes"><span>Yes</span></label><label><input type="radio" name="hist_hospital_enclosed" value="No"><span>No</span></label></div></td>
+                        <td><div class="yn-group"><label><input type="radio" name="hist_doctor_enclosed" value="Yes"><span>Yes</span></label><label><input type="radio" name="hist_doctor_enclosed" value="No"><span>No</span></label></div></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="form-row">
+                <div class="form-group col-span-2">
+                    <label>From Other Source (describe)</label>
+                    <textarea id="otherSourceDesc" rows="2" placeholder="Describe any other source of medical history..."></textarea>
+                </div>
+            </div>
+            <div class="section-title medical">C. Clinical Evaluation</div>
+            <table class="clinical-table">
+                <thead><tr><th style="width:30%">Examination</th><th>Findings</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Physical Examination</strong></td><td><textarea id="physicalExamination" rows="2"></textarea></td></tr>
+                    <tr><td><strong>Radiological Exam.</strong></td><td><textarea id="radiologicalExam" rows="2"></textarea></td></tr>
+                    <tr><td><strong>Laboratory Test</strong></td><td><textarea id="laboratoryTest" rows="2"></textarea></td></tr>
+                    <tr><td><strong>Special Therapeutic Procedures</strong></td><td><textarea id="specialProcedures" rows="2"></textarea></td></tr>
+                    <tr><td><strong>Specialists Evaluation</strong></td><td><textarea id="specialistsEvaluation" rows="2"></textarea></td></tr>
+                    <tr><td><strong>Pre-existing Disease/Conditions</strong></td><td><textarea id="preExistingConditions" rows="2"></textarea></td></tr>
+                </tbody>
+            </table>
+            <div class="form-row-3" style="margin-top:12px">
+                <div class="form-group"><label>Impairment (a)</label><textarea id="impairmentA" rows="2"></textarea></div>
+                <div class="form-group"><label>Impairment (b)</label><textarea id="impairmentB" rows="2"></textarea></div>
+                <div class="form-group"><label>Impairment (c)</label><textarea id="impairmentC" rows="2"></textarea></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Impairment (d)</label><textarea id="impairmentD" rows="2"></textarea></div>
+                <div class="form-group"><label>Impairment (e)</label><textarea id="impairmentE" rows="2"></textarea></div>
+            </div>
+            <div style="margin-top:16px">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px">Conditions</label>
+                <table class="clinical-table">
+                    <thead><tr><th style="width:5%">#</th><th>Condition</th><th style="width:15%">Response</th></tr></thead>
+                    <tbody>
+                        <tr><td>a</td><td>With intervention surgical or medical treatment. Medical maintenance care is only warranted.</td><td><textarea id="conditionAText" rows="2"></textarea></td></tr>
+                        <tr><td>b</td><td>Impairment is permanent and not likely to change substantially within the next two years.</td><td><div class="yn-group"><label><input type="radio" name="conditionBPermanent" value="Yes"><span>Yes</span></label><label><input type="radio" name="conditionBPermanent" value="No"><span>No</span></label></div></td></tr>
+                        <tr><td>c</td><td>Impairment has not stabilized and is likely to improve with surgical intervention, but worker is not willing to opt for surgical intervention.</td><td><div class="yn-group"><label><input type="radio" name="conditionCNotStabilized" value="Yes"><span>Yes</span></label><label><input type="radio" name="conditionCNotStabilized" value="No"><span>No</span></label></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="section-title disability">D. Disability — Impact of Impairment on Occupation</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>a. Unfit for pre-injury occupation</label>
+                    <div class="yn-group"><label><input type="radio" name="unfitPreInjury" value="Yes"><span>Yes</span></label><label><input type="radio" name="unfitPreInjury" value="No"><span>No</span></label></div>
+                </div>
+                <div class="form-group"><label>Reasons</label><textarea id="unfitReasons" rows="2"></textarea></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>b. Fit for alternative duty</label>
+                    <div class="yn-group"><label><input type="radio" name="fitAlternativeDuty" value="Yes"><span>Yes</span></label><label><input type="radio" name="fitAlternativeDuty" value="No"><span>No</span></label></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-span-2">
+                    <label>c. Is there a medical reason to believe that worker will suffer further harm towards his impairment by engaging in his/her occupational activities?</label>
+                    <div class="yn-group" style="margin-bottom:8px"><label><input type="radio" name="furtherHarmPossible" value="Yes"><span>Yes</span></label><label><input type="radio" name="furtherHarmPossible" value="No"><span>No</span></label></div>
+                    <label>Explain Briefly</label>
+                    <textarea id="furtherHarmExplanation" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-span-2">
+                    <label>d. Are restrictions, accommodations or assistive devices necessary to help patient carry out occupational activities?</label>
+                    <div class="yn-group" style="margin-bottom:8px"><label><input type="radio" name="restrictionsNeeded" value="Yes"><span>Yes</span></label><label><input type="radio" name="restrictionsNeeded" value="No"><span>No</span></label></div>
+                    <label>Explain Briefly</label>
+                    <textarea id="restrictionsExplanation" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="section-title incapacity">E. Incapacity by Body Part</div>
+            <p style="font-size:13px;color:#666;margin-bottom:12px">Add body parts and their assessed incapacity percentage. 100% or more = total incapacity.</p>
+            <table class="incap-table" id="incapTable">
+                <thead><tr><th style="width:60%">Body Part</th><th style="width:25%">Percentage (%)</th><th style="width:15%"></th></tr></thead>
+                <tbody id="incapTableBody">
+                    <tr>
+                        <td><input type="text" class="bp-input" placeholder="e.g. Left arm, Cervical spine..."></td>
+                        <td><input type="number" class="bp-pct" min="0" max="100" step="0.5" placeholder="0"></td>
+                        <td style="text-align:center"><button type="button" class="remove-row-btn" onclick="rmRow(this)">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+                <button type="button" class="add-row-btn" onclick="addRow()">+ Add Body Part</button>
+                <div class="incap-total">Total: <span id="totalPct">0</span>%</div>
+            </div>
+            <div class="section-title">F. Practitioner Relationship</div>
+            <div class="form-row">
+                <div class="form-group"><label>a. Under my care from</label><input type="date" id="underCareFrom"></div>
+                <div class="form-group"><label>To</label><input type="date" id="underCareTo"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>b. I have not provided care — seen patient only for evaluation</label>
+                    <div class="yn-group"><label><input type="radio" name="notProvidedCare" value="Yes"><span>Yes</span></label><label><input type="radio" name="notProvidedCare" value="No"><span>No</span></label></div>
+                </div>
+                <div class="form-group"><label>Number of times seen</label><input type="number" id="seenPatientTimes" min="0" step="1" placeholder="0"></div>
+            </div>
+            <div class="section-title closing">G. Completed by</div>
+            <div class="form-row">
+                <div class="form-group col-span-2"><label>Name <span class="required">*</span></label><input type="text" id="practitionerName" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Physical Address</label><input type="text" id="practitionerAddress"></div>
+                <div class="form-group"><label>Tel</label><input type="text" id="practitionerTel"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Registered with Botswana Health Professional Council</label>
+                    <div class="yn-group"><label><input type="radio" name="registeredBhpc" value="Yes"><span>Yes</span></label><label><input type="radio" name="registeredBhpc" value="No"><span>No</span></label></div>
+                </div>
+                <div class="form-group"><label>Registered as</label><input type="text" id="registeredAs" placeholder="Specialization..."></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Signature</label><input type="text" id="practitionerSignature" placeholder="Full name as signature"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="practitionerDate"></div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-reset" onclick="resetForm()">Reset Form</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Submit Report</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        const SB = window.supabaseClient;
+        let searchedClaim = null, searchedWorkerId = null;
+
+        function showToast(m,t){const c=document.getElementById('toastContainer');const n=document.createElement('div');n.className='toast '+(t||'info');n.textContent=m;c.appendChild(n);setTimeout(()=>{n.style.opacity='0';n.style.transition='opacity 0.3s';setTimeout(()=>n.remove(),300)},3500)}
+
+        // Claim search
+        window.searchClaim = async function(){
+            const q = document.getElementById('searchQuery').value.trim();
+            if(!q||q.length<3){showToast('Enter at least 3 characters','error');return}
+            const btn = document.getElementById('searchBtn');
+            btn.disabled=true; btn.innerHTML='<span class="loading-spinner"></span> Searching...';
+            try{
+                const {data:claims} = await SB.from('injury_claims').select('*,workers_registry!inner(*)').or('claimant_id_number.ilike.'+q+',file_number.ilike.%'+q+'%').limit(5);
+                const {data:workers} = await SB.from('workers_registry').select('*').or('id_number.ilike.'+q+',full_name.ilike.%'+q+'%').limit(5);
+                if(claims&&claims.length>0){
+                    const m=claims[0]; searchedClaim=m; searchedWorkerId=m.worker_registry_id||null;
+                    document.getElementById('workerName').value=m.name_of_claimant||'';
+                    document.getElementById('wccRefNo').value=m.file_number||'';
+                    document.getElementById('linkedClaimId').value=m.id||'';
+                    if(m.gender) document.getElementById('sex').value=m.gender==='M'?'Male':m.gender==='F'?'Female':'';
+                    showToast('Claim found: '+(m.file_number||'N/A'),'success');
+                } else if(workers&&workers.length>0){
+                    const w=workers[0]; searchedClaim=null; searchedWorkerId=w.id;
+                    document.getElementById('workerName').value=w.full_name||'';
+                    if(w.sex) document.getElementById('sex').value=w.sex;
+                    if(w.date_of_birth) document.getElementById('dateOfBirth').value=w.date_of_birth;
+                    document.getElementById('workerRegistryId').value=w.id||'';
+                    showToast('Worker found: '+(w.full_name||'N/A'),'success');
+                } else { showToast('No matching claim or worker found','error'); }
+            } catch(e){ console.error(e); showToast('Search failed','error'); }
+            finally{ btn.disabled=false; btn.textContent='🔍 Search'; }
+        };
+
+        // Incapacity rows
+        window.addRow = function(){
+            const tb=document.getElementById('incapTableBody');
+            const tr=document.createElement('tr');
+            tr.innerHTML='<td><input type="text" class="bp-input" placeholder="e.g. Left arm"></td><td><input type="number" class="bp-pct" min="0" max="100" step="0.5" placeholder="0"></td><td style="text-align:center"><button type="button" class="remove-row-btn" onclick="rmRow(this)">✕</button></td>';
+            tb.appendChild(tr);
+            tr.querySelector('.bp-pct').addEventListener('input',updateTotal);
+        };
+        window.rmRow = function(btn){ btn.closest('tr').remove(); updateTotal(); };
+        window.updateTotal = function(){
+            let t=0;
+            document.querySelectorAll('.bp-pct').forEach(i=>{const v=parseFloat(i.value);if(!isNaN(v))t+=v});
+            document.getElementById('totalPct').textContent=t.toFixed(1);
+        };
+        document.querySelectorAll('.bp-pct').forEach(el=>el.addEventListener('input',updateTotal));
+
+        function validate(){
+            let ok=true;
+            document.querySelectorAll('#impairmentForm [required]').forEach(el=>{
+                el.classList.remove('error');
+                if(!el.value||!el.value.trim()){el.classList.add('error');ok=false}
+            });
+            return ok;
+        }
+
+        window.resetForm = function(){
+            const doIt=()=>{
+                document.getElementById('impairmentForm').reset();
+                searchedClaim=null; searchedWorkerId=null;
+                document.getElementById('workerRegistryId').value='';
+                document.getElementById('linkedClaimId').value='';
+                document.getElementById('totalPct').textContent='0';
+                document.getElementById('incapTableBody').innerHTML='<tr><td><input type="text" class="bp-input" placeholder="e.g. Left arm"></td><td><input type="number" class="bp-pct" min="0" max="100" step="0.5" placeholder="0"></td><td style="text-align:center"><button type="button" class="remove-row-btn" onclick="rmRow(this)">✕</button></td></tr>';
+                document.querySelectorAll('.bp-pct').forEach(el=>el.addEventListener('input',updateTotal));
+                showToast('Form has been reset.','info');
+            };
+            if(typeof showConfirm==='function') showConfirm('Clear all data?',doIt);
+            else if(confirm('Clear all form data?')) doIt();
+        };
+
+        document.getElementById('impairmentForm').addEventListener('submit',async function(e){
+            e.preventDefault();
+            if(!validate()){showToast('Please fill all required fields','error');return}
+            const btn=document.getElementById('submitBtn');
+            btn.disabled=true; btn.textContent='Submitting...';
+            try{
+                const u=await window.getCurrentUser();
+                if(!u||!u.user){window.location.href='index.html';return}
+
+                const mh={
+                    patient:{reviewed:q('hist_patient_reviewed'),enclosed:q('hist_patient_enclosed')},
+                    hospital:{reviewed:q('hist_hospital_reviewed'),enclosed:q('hist_hospital_enclosed')},
+                    doctor:{reviewed:q('hist_doctor_reviewed'),enclosed:q('hist_doctor_enclosed')},
+                    other:{description:g('otherSourceDesc')}
+                };
+                const bp=[];
+                document.querySelectorAll('#incapTableBody tr').forEach(tr=>{
+                    const b=tr.querySelector('.bp-input')?.value?.trim();
+                    const p=parseFloat(tr.querySelector('.bp-pct')?.value);
+                    if(b&&!isNaN(p)) bp.push({body_part:b,percentage:p});
+                });
+                let tp=0; bp.forEach(b=>tp+=b.percentage);
+
+                const payload={
+                    claim_id:searchedClaim?.id||null, worker_registry_id:searchedWorkerId||g('workerRegistryId')||null,
+                    worker_name:g('workerName'), wcc_ref_no:g('wccRefNo'), date_of_birth:g('dateOfBirth'),
+                    hospital_name_ref:g('hospitalNameRef'), sex:g('sex'), report_date:g('reportDate'),
+                    medical_history:mh,
+                    physical_examination:g('physicalExamination'), radiological_exam:g('radiologicalExam'),
+                    laboratory_test:g('laboratoryTest'), special_therapeutic_procedures:g('specialProcedures'),
+                    specialists_evaluation:g('specialistsEvaluation'), pre_existing_conditions:g('preExistingConditions'),
+                    impairment_a:g('impairmentA'), impairment_b:g('impairmentB'), impairment_c:g('impairmentC'),
+                    impairment_d:g('impairmentD'), impairment_e:g('impairmentE'),
+                    condition_a_text:g('conditionAText'), condition_b_permanent:q('conditionBPermanent'),
+                    condition_c_not_stabilized:q('conditionCNotStabilized'),
+                    unfit_pre_injury_occupation:q('unfitPreInjury'), unfit_reasons:g('unfitReasons'),
+                    fit_alternative_duty:q('fitAlternativeDuty'),
+                    further_harm_possible:q('furtherHarmPossible'), further_harm_explanation:g('furtherHarmExplanation'),
+                    restrictions_needed:q('restrictionsNeeded'), restrictions_explanation:g('restrictionsExplanation'),
+                    incapaci
+                    incapacity_body_parts:bp, total_incapacity_pct:tp,
+                    under_care_from:g('underCareFrom'), under_care_to:g('underCareTo'),
+                    not_provided_care:q('notProvidedCare')==='Yes', seen_patient_times:((v)=>Number.isNaN(v)?null:v)(parseInt(g('seenPatientTimes'))),
+                    practitioner_name:g('practitionerName'), practitioner_signature:g('practitionerSignature'),
+                    practitioner_date:g('practitionerDate'), practitioner_address:g('practitionerAddress'),
+                    practitioner_tel:g('practitionerTel'), practitioner_registered_bhpc:q('registeredBhpc'),
+                    practitioner_registered_as:g('registeredAs'),
+                    submitted_by:u.user.id, status:'submitted'
+                };
+
+                const {error}=await SB.from('permanent_impairment_reports').insert([payload]);
+                if(error) throw error;
+                showToast('Permanent impairment report submitted successfully','success');
+                resetForm();
+            } catch(err){ console.error(err); showToast('Error: '+(err.message||'Unknown'),'error'); }
+            finally{ btn.disabled=false; btn.textContent='Submit Report'; }
+        });
+
+        function g(id){const el=document.getElementById(id);if(!el)return null;const v=el.value;return(v&&v.trim())?v.trim():null}
+        function q(n){const el=document.querySelector('input[name="'+n+'"]:checked');return el?el.value:null}
+
+        window.addEventListener('load',async function(){
+            if(!window.isAuthenticated()){window.location.href='index.html';return}
+            if(typeof initializeRoleSystem==='function') await initializeRoleSystem();
+            if(typeof checkPageAccess==='function') checkPageAccess();
+            const role = window.currentUserRole ? window.currentUserRole() : null;
+            if (role && role !== 'medical_practitioner' && role !== 'admin' && role !== 'super_admin') {
+                window.location.href = 'index.html';
+                if (typeof showAlert === 'function') showAlert('Access denied. Only medical practitioners can access this form.');
+                return;
+            }
+            const rd=document.getElementById('reportDate'); if(rd) rd.valueAsDate=new Date();
+            const pd=document.getElementById('practitionerDate'); if(pd) pd.valueAsDate=new Date();
+            try{
+                const u=await window.getCurrentUser();
+                if(u&&u.user){
+                    const p=await window.getUserProfile(u.user.id);
+                    if(p&&p.data){
+                        const fn=(p.data.first_name||'')+' '+(p.data.surname||'');
+                        const ne=document.getElementById('userName'); if(ne) ne.textContent=fn.trim()||'Medical Practitioner';
+                        const pn=document.getElementById('practitionerName');
+                        if(!pn.value) pn.value=fn.trim();
+                        if(p.data.designation) document.getElementById('registeredAs').value=p.data.designation;
+                    }
+                }
+            } catch(e){ console.warn('Profile load error:',e); }
+        });
+    </script>
+</body>
+</html>
