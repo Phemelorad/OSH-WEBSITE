@@ -257,10 +257,19 @@
             }
 
             return { success: true, data: data };
-        } catch (error) {
-            return { success: false, error: handleError(error) };
-        }
     };
+        } catch (error) {
+            let msg = handleError(error) || "Login failed";
+            const lc = msg.toLowerCase();
+            if (lc.includes("invalid login credentials")) {
+                msg = "Invalid email or password. Check your credentials.\n\nIf you haven't verified your email yet, use the \"Resend confirmation?\" link below or check your inbox/spam folder.";
+            } else if (lc.includes("email not confirmed")) {
+                msg = "Email not yet verified. Please check your inbox (including spam) for the confirmation email, or use the \"Resend confirmation?\" link below.";
+            } else if (lc.includes("rate limit") || lc.includes("too many")) {
+                msg = "Too many login attempts. Please wait a few minutes before trying again.";
+            }
+            return { success: false, error: msg };
+        }
 
     // Sign out function
     window.signOut = async function() {

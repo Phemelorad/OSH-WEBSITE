@@ -810,6 +810,11 @@
             submitBtn.disabled = false;
             submitBtn.textContent = 'Sign In';
 
+            if (!result.success) {
+                showAlert(result.error || "Login failed. Please try again.", "Login Error");
+                return;
+            }
+
             if (result.success) {
                 const userProfile = result.data?.user
                     ? await getUserProfile(result.data.user.id)
