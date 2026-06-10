@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report of Medical Evaluation of Permanent Impairment</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11pt;
+    background: #fff;
+    color: #000;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 15mm 20mm 15mm 20mm;
+    background: #fff;
+    position: relative;
+  }
+
+  .page-number {
+    text-align: right;
+    font-size: 10pt;
+    margin-bottom: 3mm;
+  }
+
+  .page-title {
+    text-align: center;
+    font-size: 13pt;
+    font-weight: bold;
+    margin-bottom: 1.5mm;
+  }
+
+  .page-subtitle {
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+    margin-bottom: 5mm;
+  }
+
+  /* ── Section headers ── */
+  .section-header {
+    font-weight: bold;
+    font-size: 11pt;
+    margin-bottom: 2mm;
+    margin-top: 3mm;
+  }
+
+  /* ── Generic dotted line ── */
+  .dotline {
+    border-bottom: 1px dotted #000;
+    display: block;
+    min-height: 5.5mm;
+    margin-bottom: 1.5mm;
+    width: 100%;
+  }
+
+  /* ── Two-column row for demographics ── */
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2mm 6mm;
+    margin-bottom: 1mm;
+  }
+  .demo-cell {
+    display: flex;
+    align-items: flex-end;
+    gap: 2mm;
+    font-size: 11pt;
+  }
+  .demo-cell label {
+    white-space: nowrap;
+    font-size: 11pt;
+  }
+  .demo-cell .dline {
+    border-bottom: 1px dotted #000;
+    flex: 1;
+    min-height: 5mm;
+    display: block;
+  }
+
+  /* ── Section B table ── */
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+    margin-top: 1.5mm;
+  }
+  .history-table th, .history-table td {
+    border: 1px solid #000;
+    padding: 1.5mm 2mm;
+    vertical-align: top;
+    text-align: left;
+    font-size: 10.5pt;
+  }
+  .history-table th {
+    font-weight: bold;
+    background: #fff;
+    text-align: center;
+    font-size: 10.5pt;
+  }
+  .history-table td.source-cell {
+    width: 30%;
+  }
+  .history-table td.yn-cell {
+    width: 17%;
+    text-align: center;
+  }
+  .history-table .yn-sub {
+    font-size: 9.5pt;
+    text-align: center;
+    margin-top: 1mm;
+  }
+
+  /* ── Section C rows ── */
+  .clinical-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+    margin-top: 1.5mm;
+  }
+  .clinical-table td {
+    border: 1px solid #000;
+    padding: 1.5mm 2mm;
+    vertical-align: top;
+    font-size: 10.5pt;
+  }
+  .clinical-table td.label-col {
+    width: 38%;
+    font-weight: normal;
+  }
+  .clinical-table td.content-col {
+    width: 62%;
+  }
+  .clinical-table tr.impairments-row td {
+    vertical-align: top;
+  }
+  .imp-list {
+    list-style: none;
+    padding: 0;
+  }
+  .imp-list li {
+    display: flex;
+    gap: 2mm;
+    margin-bottom: 1mm;
+    align-items: flex-end;
+  }
+  .imp-list li span.lbl {
+    white-space: nowrap;
+    font-size: 10.5pt;
+  }
+  .imp-list li span.dline {
+    border-bottom: 1px dotted #000;
+    flex: 1;
+    display: block;
+    min-height: 4.5mm;
+  }
+
+  /* ── Page break ── */
+  .page-break { page-break-before: always; }
+
+  /* ── Section C condition checkboxes ── */
+  .condition-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+    margin-top: 1.5mm;
+  }
+  .condition-table td {
+    border: 1px solid #000;
+    padding: 2mm 3mm;
+    vertical-align: middle;
+    font-size: 10.5pt;
+  }
+  .condition-table td.label-col { width: 75%; }
+  .condition-table td.yn-col {
+    width: 25%;
+    text-align: center;
+  }
+  .yn-pair {
+    display: flex;
+    justify-content: center;
+    gap: 6mm;
+    font-size: 11pt;
+  }
+
+  /* ── Section D ── */
+  .disability-block { margin-top: 2mm; }
+  .d-row {
+    margin-bottom: 3mm;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .d-row .q-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 2mm;
+    margin-bottom: 1mm;
+  }
+  .d-row .yn-inline {
+    white-space: nowrap;
+  }
+  .d-row .reasons {
+    margin-left: 5mm;
+    font-size: 11pt;
+  }
+  .d-row .reasons .dotline {
+    margin-bottom: 1mm;
+  }
+
+  /* ── Section E ── */
+  .incap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11pt;
+    margin-top: 1.5mm;
+  }
+  .incap-table th, .incap-table td {
+    border: 1px solid #000;
+    padding: 2mm 3mm;
+    font-size: 11pt;
+  }
+  .incap-table th { font-weight: bold; }
+  .incap-table td.body-part { width: 75%; }
+  .incap-table td.pct-col { width: 25%; text-align: center; }
+  .incap-table tr.total-row td { font-weight: bold; }
+
+  /* ── Section F ── */
+  .f-block { margin-top: 2mm; font-size: 11pt; line-height: 1.7; }
+  .f-row { margin-bottom: 2mm; }
+  .f-row .dotline { margin-bottom: 1mm; }
+
+  /* ── Section G ── */
+  .g-block { margin-top: 3mm; font-size: 11pt; line-height: 1.8; }
+  .g-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 3mm;
+    margin-bottom: 2mm;
+    font-size: 11pt;
+  }
+  .g-row label { white-space: nowrap; }
+  .g-row .dline {
+    border-bottom: 1px dotted #000;
+    flex: 1;
+    min-height: 5mm;
+    display: block;
+  }
+  .g-row .dline-fixed {
+    border-bottom: 1px dotted #000;
+    display: inline-block;
+    min-height: 5mm;
+  }
+  .stamp-box {
+    border: 1px solid #000;
+    width: 40mm;
+    height: 28mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10pt;
+    color: #666;
+    margin-top: 3mm;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ PAGE 1 ═══════════════════ -->
+<div class="page">
+
+  <div class="page-number">Page 1 of 3</div>
+  <div class="page-title">Report of Medical Evaluation of Permanent Impairment</div>
+  <div class="page-subtitle">In A Worker Injured on Duty</div>
+
+  <!-- A. Demographic Details -->
+  <div class="section-header">A. Demographic Details</div>
+  <div class="demo-grid">
+    <div class="demo-cell"><label>Name</label><span class="dline"></span></div>
+    <div class="demo-cell"><label>WCC. REF. NO</label><span class="dline"></span></div>
+    <div class="demo-cell"><label>Date of Birth</label><span class="dline"></span></div>
+    <div class="demo-cell"><label>Name &amp; Ref. of Hosp. (if applicable)</label><span class="dline"></span></div>
+    <div class="demo-cell"><label>Sex:</label><span class="dline"></span></div>
+    <div class="demo-cell"><label>Report date</label><span class="dline"></span></div>
+  </div>
+
+  <!-- B. Medical History -->
+  <div class="section-header" style="margin-top:4mm;">B. Medical History of Injury/Disease <em style="font-weight:normal;font-size:10pt;">(please use extra sheet if required)</em></div>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th style="width:30%;">From Patient</th>
+        <th style="width:23.3%;">From Hospital Record</th>
+        <th style="width:23.3%;">From Doctors Record</th>
+        <th style="width:23.4%;">From Other source (describe)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="height:22mm;"></td>
+        <td>
+          <div>Reviewed</div>
+          <div class="yn-sub">Yes/No</div>
+          <div style="margin-top:3mm;">Enclosed</div>
+          <div class="yn-sub">Yes/No</div>
+        </td>
+        <td>
+          <div>Reviewed</div>
+          <div class="yn-sub">Yes/No</div>
+          <div style="margin-top:3mm;">Enclosed</div>
+          <div class="yn-sub">Yes/No</div>
+        </td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- C. Clinical Evaluation -->
+  <div class="section-header" style="margin-top:4mm;">C. Clinical Evaluation <em style="font-weight:normal;font-size:10pt;">(please use extra sheet if required and attach photocopy of reports)</em></div>
+  <table class="clinical-table">
+    <tbody>
+      <tr>
+        <td class="label-col">Physical Examination</td>
+        <td class="content-col" style="min-height:10mm;"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Radiological Exam.</td>
+        <td class="content-col" style="min-height:10mm;"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Laboratory Test</td>
+        <td class="content-col" style="min-height:10mm;"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Special Therapeutic Procedures</td>
+        <td class="content-col" style="min-height:10mm;"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Specialists Evaluation<br><em style="font-size:10pt;">(Give Name &amp; Place)</em></td>
+        <td class="content-col" style="min-height:10mm;"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Pre-existing Disease/Conditions</td>
+        <td class="content-col" style="min-height:10mm;"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Impairments</td>
+        <td class="content-col">
+          <ul class="imp-list">
+            <li><span class="lbl">a.</span><span class="dline"></span></li>
+            <li><span class="lbl">b.</span><span class="dline"></span></li>
+            <li><span class="lbl">c.</span><span class="dline"></span></li>
+            <li><span class="lbl">d.</span><span class="dline"></span></li>
+            <li><span class="lbl">e.</span><span class="dline"></span></li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</div><!-- /page 1 -->
+
+
+<!-- ═══════════════════ PAGE 2 ═══════════════════ -->
+<div class="page page-break">
+
+  <div class="page-number">Page 2 of 3</div>
+
+  <!-- Condition table (continuation of C) -->
+  <table class="condition-table">
+    <tbody>
+      <tr>
+        <td class="label-col">
+          <strong>Condition</strong><br>
+          a. With intervention surgical or medical treatment.<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Medical maintenance care is only warranted.
+        </td>
+        <td class="yn-col"></td>
+      </tr>
+      <tr>
+        <td class="label-col">b. Impairment is permanent and not likely to change substantially within the next two years.</td>
+        <td class="yn-col">
+          <div class="yn-pair"><span>Yes</span><span>No</span></div>
+        </td>
+      </tr>
+      <tr>
+        <td class="label-col">c. Impairment has not stabilized and is likely to improve with surgical intervention, but worker is not willing to opt for surgical intervention.</td>
+        <td class="yn-col">
+          <div class="yn-pair"><span>Yes</span><span>No</span></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- D. Disability -->
+  <div class="section-header" style="margin-top:4mm;">D. Disability – Describe briefly impact of impairment on occupation</div>
+  <div class="disability-block">
+
+    <div class="d-row">
+      <div class="q-line">
+        <span>a. Unfit for pre-injury occupation</span>
+        <span class="yn-inline">&nbsp;&nbsp;Yes.&nbsp;&nbsp;No.</span>
+      </div>
+      <div class="reasons">
+        Give reasons:<br>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+      </div>
+    </div>
+
+    <div class="d-row">
+      <div class="q-line">
+        <span>b. Fit for alternative duty</span>
+        <span class="yn-inline">&nbsp;&nbsp;Yes.&nbsp;&nbsp;No.</span>
+      </div>
+    </div>
+
+    <div class="d-row">
+      <div class="q-line" style="flex-wrap:wrap;">
+        <span>c. Is there a medical reason to believe that workers will suffer further harm towards his impairment by engaging in his/her occupational activities?</span>
+        <span class="yn-inline">&nbsp;&nbsp;Yes.&nbsp;&nbsp;No.</span>
+      </div>
+      <div class="reasons">
+        Explain Briefly.
+        <span class="dotline" style="margin-top:1mm;"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+      </div>
+    </div>
+
+    <div class="d-row">
+      <div class="q-line" style="flex-wrap:wrap;">
+        <span>d. Is there a medical reason to believe restrictions, accommodations or assistive devices are necessary to help patients to carry out occupational activities?</span>
+      </div>
+      <div class="reasons">
+        Explain Briefly.
+        <span class="dotline" style="margin-top:1mm;"></span>
+        <span class="dotline"></span>
+        <span class="dotline"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- E. Incapacity by body part -->
+  <div class="section-header" style="margin-top:3mm;">E. Incapacity by body part</div>
+  <table class="incap-table">
+    <thead>
+      <tr>
+        <th class="body-part">&nbsp;</th>
+        <th class="pct-col">Percentage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="body-part" style="height:7mm;"></td><td class="pct-col"></td></tr>
+      <tr><td class="body-part" style="height:7mm;"></td><td class="pct-col"></td></tr>
+      <tr><td class="body-part" style="height:7mm;"></td><td class="pct-col"></td></tr>
+      <tr><td class="body-part" style="height:7mm;"></td><td class="pct-col"></td></tr>
+      <tr class="total-row">
+        <td class="body-part">Total (100% or more is total)</td>
+        <td class="pct-col"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- F. -->
+  <div class="section-header" style="margin-top:4mm;">F.</div>
+  <div class="f-block">
+    <div class="f-row">
+      a. This patient has been under my care from,
+      <span style="display:inline-block; border-bottom:1px dotted #000; min-width:30mm; margin: 0 2mm;">&nbsp;</span>
+      to
+      <span style="display:inline-block; border-bottom:1px dotted #000; min-width:30mm; margin: 0 2mm;">&nbsp;</span>
+      <span class="dotline" style="margin-top:2mm;"></span>
+      <span class="dotline"></span>
+    </div>
+    <div class="f-row">
+      b. I have not provided care to this patient. I have seen this patient
+      <span style="display:inline-block; border-bottom:1px dotted #000; min-width:12mm; margin: 0 2mm;">&nbsp;</span>
+      Time(s) for the purpose of evaluating medical impairment.
+    </div>
+  </div>
+
+</div><!-- /page 2 -->
+
+
+<!-- ═══════════════════ PAGE 3 ═══════════════════ -->
+<div class="page page-break">
+
+  <div class="page-number">Page 3 of 3</div>
+
+  <!-- G. Completed by -->
+  <div class="section-header">G. Completed by:</div>
+  <div class="g-block">
+
+    <div class="g-row">
+      <label>Name:</label>
+      <span class="dline"></span>
+    </div>
+
+    <div class="g-row">
+      <label>Signature:</label>
+      <span class="dline" style="max-width:55mm;"></span>
+      <label style="margin-left:4mm;">Date:</label>
+      <span class="dline"></span>
+    </div>
+
+    <div class="g-row" style="align-items:flex-start; flex-direction:column; gap:1mm;">
+      <div style="display:flex; gap:3mm; width:100%; align-items:flex-end;">
+        <label>Physical Address:</label>
+        <span class="dline" style="max-width:60mm;"></span>
+        <label style="margin-left:4mm;">Tel:</label>
+        <span class="dline"></span>
+      </div>
+      <div style="display:flex; width:100%;">
+        <span style="min-width:38mm;"></span>
+        <span class="dline" style="max-width:60mm;"></span>
+      </div>
+    </div>
+
+    <div class="g-row" style="margin-top:2mm;">
+      <span>Registered with the Botswana Health Professional Council</span>
+      <span style="margin-left:4mm;">Yes.&nbsp;&nbsp;No.</span>
+    </div>
+
+    <div class="g-row">
+      <label>Registered as:</label>
+      <span class="dline" style="max-width:70mm;"></span>
+    </div>
+    <div class="g-row">
+      <span style="min-width:28mm;"></span>
+      <span class="dline" style="max-width:70mm;"></span>
+    </div>
+
+    <div style="margin-top:4mm; font-size:11pt;">Official Stamp</div>
+    <div class="stamp-box">
+      &nbsp;
+    </div>
+
+  </div>
+
+</div><!-- /page 3 -->
+
+</body>
+</html>
