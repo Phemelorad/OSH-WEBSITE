@@ -399,6 +399,39 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+    
+        /* Company validation status */
+        .company-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            transition: all 0.3s ease;
+        }
+        .company-status .status-icon {
+            width: 20px; height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            font-size: 11px;
+            transition: all 0.3s ease;
+        }
+        .company-status .status-icon.spinner {
+            border: 2px solid #dbeafe;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            width: 14px; height: 14px;
+            animation: cs 0.6s linear infinite;
+        }
+        @keyframes cs { to { transform: rotate(360deg); } }
+        .company-status .status-icon.check { background: #22c55e; color: white; }
+        .company-status .status-icon.cross { background: #ef4444; color: white; }
+        .company-status .status-text { color: #6b7280; font-weight: 500; }
+        .company-status .status-text.found { color: #16a34a; }
+        .company-status .status-text.not-found { color: #dc2626; }
+        .company-status .status-text.checking { color: #2563eb; }
     </style>
 </head>
 <body>
@@ -458,6 +491,20 @@
                     <label for="loginWorkerId">Omang / Passport Number</label>
                     <input type="text" id="loginWorkerId" name="loginWorkerId" placeholder="Enter your Omang or Passport number">
                     <span class="error-message">Please enter your Omang or Passport number</span>
+                </div>
+            </div>
+
+            <div id="loginCompanyFields" class="role-specific-fields hidden">
+                <h3>Employer Account</h3>
+                <div class="form-group">
+                    <label for="loginCompanyName">Employer Name<span class="req">*</span></label>
+                    <input type="text" id="loginCompanyName" name="loginCompanyName"
+                           placeholder="Enter your registered company name" autocomplete="off">
+                    <span class="error-message">Employer name is required</span>
+                    <div class="company-status" id="companyStatus">
+                        <div class="status-icon" id="companyStatusIcon"></div>
+                        <span class="status-text" id="companyStatusText"></span>
+                    </div>
                 </div>
             </div>
 
@@ -832,6 +879,57 @@
         });
 
         // ── Login form submit ──────────────────────────
+        
+        // Company name validation (real-time)
+        let companyCheckTimeout;
+        const companyNameInput = document.getElementById("loginCompanyName");
+        const companyStatusIcon = document.getElementById("companyStatusIcon");
+        const companyStatusText = document.getElementById("companyStatusText");
+
+        if (companyNameInput) {
+            companyNameInput.addEventListener("input", function() {
+                clearTimeout(companyCheckTimeout);
+                const name = this.value.trim();
+                if (!name) {
+                    companyStatusIcon.className = "status-icon";
+                    companyStatusText.className = "status-text";
+                    companyStatusText.textContent = "";
+                    return;
+                }
+                companyStatusIcon.className = "status-icon spinner";
+                companyStatusText.className = "status-text checking";
+                companyStatusText.textContent = "Checking company...";
+                companyCheckTimeout = setTimeout(async () => {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from("companies")
+                            .select("company_name, id")
+                            .ilike("company_name", name)
+                            .maybeSingle();
+                        if (error) {
+                            companyStatusIcon.className = "status-icon cross";
+                            companyStatusText.className = "status-text not-found";
+                            companyStatusText.textContent = "Could not verify company";
+                            return;
+                        }
+                        if (data) {
+                            companyStatusIcon.className = "status-icon check";
+                            companyStatusText.className = "status-text found";
+                            companyStatusText.textContent = "Company verified!";
+                        } else {
+                            companyStatusIcon.className = "status-icon cross";
+                            companyStatusText.className = "status-text not-found";
+                            companyStatusText.textContent = "Company not registered in system";
+                        }
+                    } catch (err) {
+                        companyStatusIcon.className = "status-icon cross";
+                        companyStatusText.className = "status-text not-found";
+                        companyStatusText.textContent = "Verification failed";
+                    }
+                }, 300);
+            });
+        }
+
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
