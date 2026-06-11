@@ -905,11 +905,12 @@
     
 
     // ── Delete user account ──────────────────────────────────────────
+        // ── Delete user account ──────────────────────────────────────────
     async function deleteUserAccount(userId, userName) {
         if (!userId) return;
 
         const confirmed = await showConfirm(
-            `This will permanently delete <strong>${esc(userName)}</strong> and all their data. This action <strong>cannot be undone</strong>.`,
+            `This will permanently delete <strong>${esc(userName)}</strong> and all their data from the entire system. This action <strong>cannot be undone</strong>.`,
             {
                 title: 'Delete User Account',
                 icon: '⚠️',
@@ -920,19 +921,20 @@
         if (!confirmed) return;
 
         try {
-            const { error } = await supabaseClient
-                .from('user_profiles')
-                .delete()
-                .eq('user_id', userId);
+            // Call the SECURITY DEFINER database function that deletes from auth.users
+            // (cascading to user_profiles and all related tables)
+            const { data, error } = await supabaseClient.rpc('delete_user_account', {
+                p_user_id: userId
+            });
 
             if (error) throw error;
 
-            // Also attempt to clean up related worker registry entry
-            try {
-                await supabaseClient.from('workers_registry').delete().eq('id_number', userId);
-            } catch (e) { /* optional cleanup */ }
+            if (data && data.success) {
+                showToast(`Account <strong>${esc(userName)}</strong> deleted permanently`, 'success');
+            } else {
+                throw new Error(data?.message || 'Delete failed');
+            }
 
-            showToast(`Account <strong>${esc(userName)}</strong> deleted successfully`, 'success');
             loadUsers();
         } catch (error) {
             await showAlert(error.message, { type: 'error', title: 'Delete Failed' });
