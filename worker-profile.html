@@ -211,7 +211,89 @@
         .detail-row .val { color: #222; text-align: right; font-weight: 500; }
         .incident-card.type-claim { border-left: 4px solid #28a745; }
         .icon-claim { background: #d4edda; }
-    </style>
+            /* Medical form cards in profile */
+        .med-form-card { cursor: pointer; }
+        .med-form-card .incident-desc {
+            font-size: 13px;
+            color: var(--text-muted, #94a3b8);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+        /* Medical form modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+        .med-form-modal-content {
+            background: var(--card-bg, #1e293b);
+            border-radius: 16px;
+            max-width: 700px; width: 100%;
+            max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border: 1px solid var(--border, #334155);
+            animation: modalFadeIn 0.2s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .med-form-modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border, #334155);
+        }
+        .med-form-modal-header h3 { margin: 0; font-size: 18px; }
+        .med-form-modal-close {
+            background: none; border: none;
+            font-size: 28px; cursor: pointer;
+            color: var(--text-muted, #94a3b8);
+            padding: 0 4px; line-height: 1;
+            transition: color 0.2s;
+        }
+        .med-form-modal-close:hover { color: var(--text, #e2e8f0); }
+        .med-form-modal-body { padding: 20px 24px 24px; }
+        .med-form-section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border, #334155);
+        }
+        .med-form-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .med-form-section h4 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent, #60a5fa);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .med-form-field {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .med-form-field:last-child { border-bottom: none; }
+        .med-form-field label {
+            flex: 0 0 160px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted, #94a3b8);
+        }
+        .med-form-field span {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text, #e2e8f0);
+            line-height: 1.5;
+        }
+        .incident-card.med-form-card[data-form-type="examination"] {
+            border-left-color: #60a5fa;
+        }
+        .incident-card.med-form-card[data-form-type="impairment"] {
+            border-left-color: #a78bfa;
+        }
+</style>
 </head>
 <body>
     <div class="navbar">
@@ -283,6 +365,25 @@
                     <h3>📑 Compensation Claims</h3>
                 </div>
                 <div class="incident-list" id="claimsList"></div>
+            </div>
+
+            <!-- Past Medical Forms (read-only) -->
+            <div class="timeline-card" id="medicalFormsCard" style="display:none">
+                <div class="timeline-header">
+                    <h3>🏥 Past Medical Forms</h3>
+                </div>
+                <div class="incident-list" id="medicalFormsList"></div>
+            </div>
+
+            <!-- Medical Form Detail Modal -->
+            <div id="medFormModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeMedFormModal()">
+                <div class="med-form-modal-content">
+                    <div class="med-form-modal-header">
+                        <h3 id="medFormModalTitle">Form Details</h3>
+                        <button class="med-form-modal-close" onclick="closeMedFormModal()">&times;</button>
+                    </div>
+                    <div class="med-form-modal-body" id="medFormModalBody"></div>
+                </div>
             </div>
 
             <!-- Timeline -->
@@ -484,12 +585,45 @@
 
             allClaims = await fetchClaimsForWorker(q, idNumber, registryRow?.id);
 
-            if (!allIncidents.length && !registryRow && !allClaims.length) {
-                showState('noResultsState');
-                return;
-            }
+        // Fetch medical examination & impairment reports
+        let medicalExams = [], permImpairments = [];
+        if (idNumber) {
+            const [meRes, piRes] = await Promise.all([
+                SB.from('medical_examination_reports')
+                    .select('*')
+                    .eq('worker_id_number', idNumber)
+                    .order('report_date', { ascending: false }),
+                SB.from('permanent_impairment_reports')
+                    .select('*')
+                    .eq('wcc_ref_no', idNumber)
+                    .order('report_date', { ascending: false })
+            ]);
+            if (!meRes.error) medicalExams = meRes.data || [];
+            if (!piRes.error) permImpairments = piRes.data || [];
 
-            buildProfile(q, allIncidents, registryRow, allClaims);
+            // Fallback: match permanent impairment by worker name
+            if (registryRow?.full_name && (!permImpairments || !permImpairments.length)) {
+                const piRes2 = await SB.from('permanent_impairment_reports')
+                    .select('*')
+                    .ilike('worker_name', '%' + registryRow.full_name + '%')
+                    .order('report_date', { ascending: false });
+                if (!piRes2.error && piRes2.data?.length) permImpairments = piRes2.data;
+            }
+        }
+
+            if (!allIncidents.length && !registryRow && !allClaims.length && !medicalExams.length && !permImpairments.length) {
+            showState('noResultsState');
+            return;
+        }
+
+        // Edge case: worker has medical forms but no incidents/registry
+        if (!allIncidents.length && !registryRow && !allClaims.length) {
+            showState('profileView');
+            renderMedicalForms(medicalExams, permImpairments);
+            return;
+        }
+
+            buildProfile(q, allIncidents, registryRow, allClaims, medicalExams, permImpairments);
             showState('profileView');
 
         } catch (err) {
@@ -667,7 +801,7 @@
     }
 
     // ── Build profile view ───────────────────────────────────
-    function buildProfile(searchTerm, incidents, registry, claims) {
+    function buildProfile(searchTerm, incidents, registry, claims, medicalExams, permImpairments) {
         const identity = window.buildWorkerProfileIdentity(registry, incidents, claims);
         const workerName = identity.full_name || searchTerm;
         const workerId = identity.id_number || '';
@@ -776,9 +910,158 @@
         }
 
         list.innerHTML = filtered.map(incident => incidentCard(incident)).join('');
+    // Render medical forms
+    renderMedicalForms(medicalExams || [], permImpairments || []);
     }
 
-    function incidentCard(i) {
+    
+// ── Medical forms rendering ──────────────────────────────────────
+
+function renderMedicalForms(medicalExams, permImpairments) {
+  const card = document.getElementById('medicalFormsCard');
+  const list = document.getElementById('medicalFormsList');
+  if (!card || !list) return;
+  const allForms = [];
+  (medicalExams || []).forEach(function(m) {
+    allForms.push({ ...m, _formType: 'examination', _date: m.report_date || m.created_at });
+  });
+  (permImpairments || []).forEach(function(p) {
+    allForms.push({ ...p, _formType: 'impairment', _date: p.report_date || p.created_at });
+  });
+  if (!allForms.length) { card.style.display = 'none'; return; }
+  allForms.sort(function(a,b) { return new Date(b._date||0) - new Date(a._date||0); });
+  window._allMedicalForms = allForms;
+  list.innerHTML = allForms.map(function(form) {
+    if (form._formType === 'examination') {
+      const d = (form.nature_of_injury_or_disease || '').substring(0, 120);
+      return `<div class="incident-card med-form-card" data-form-type="examination" onclick="viewMedForm('examination', '${form.id}')">
+        <div class="incident-icon">🔬</div>
+        <div class="incident-content">
+          <div class="incident-title">Medical Examination Report</div>
+          <div class="incident-meta">
+            <span class="meta-chip">📅 ${form.report_date || 'N/A'}</span>
+            <span class="meta-chip">👨‍⚕️ ${form.practitioner_name || 'N/A'}</span>
+            ${form.incapacity_percentage ? `<span class="meta-chip">💯 ${form.incapacity_percentage}% incapacity</span>` : ''}
+            <span class="meta-chip" style="background:var(--accent);color:var(--bg)">${form.status || 'submitted'}</span>
+          </div>
+          ${d ? `<div class="incident-desc">${d}</div>` : ''}
+        </div>
+      </div>`;
+    }
+    return `<div class="incident-card med-form-card" data-form-type="impairment" onclick="viewMedForm('impairment', '${form.id}')">
+      <div class="incident-icon">⚕️</div>
+      <div class="incident-content">
+        <div class="incident-title">Permanent Impairment Report</div>
+        <div class="incident-meta">
+          <span class="meta-chip">📅 ${form.report_date || 'N/A'}</span>
+          ${form.hospital_name_ref ? `<span class="meta-chip">🏥 ${form.hospital_name_ref}</span>` : ''}
+          <span class="meta-chip" style="background:var(--accent);color:var(--bg)">${form.status || 'submitted'}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  card.style.display = '';
+  // Add filter pills
+  const header = card.querySelector('.timeline-header');
+  if (header && !card.querySelector('.filter-pills')) {
+    header.insertAdjacentHTML('beforeend',
+      `<div class="filter-pills">
+        <button class="pill active" data-filter="all" onclick="filterMedicalForms(this)">All</button>
+        <button class="pill" data-filter="examination" onclick="filterMedicalForms(this)">🔬 Exams</button>
+        <button class="pill" data-filter="impairment" onclick="filterMedicalForms(this)">⚕️ Impairments</button>
+      </div>`);
+  }
+}
+
+function filterMedicalForms(btn) {
+  var pills = btn.parentElement.querySelectorAll(".pill");
+  pills.forEach(function(p) { p.classList.remove("active"); });
+  btn.classList.add("active");
+  var filter = btn.getAttribute("data-filter");
+  document.querySelectorAll("#medicalFormsList .med-form-card").forEach(function(card) {
+    card.style.display = (filter === "all" || card.getAttribute("data-form-type") === filter) ? "" : "none";
+  });
+}
+
+
+function viewMedForm(formType, formId) {
+  const allForms = window._allMedicalForms || [];
+  let form = null;
+  for (let i = 0; i < allForms.length; i++) {
+    if (allForms[i]._formType === formType && allForms[i].id === formId) { form = allForms[i]; break; }
+  }
+  if (!form) return;
+  const modal = document.getElementById('medFormModal');
+  const title = document.getElementById('medFormModalTitle');
+  const body = document.getElementById('medFormModalBody');
+  if (!modal || !title || !body) return;
+  function fld(label, val) { return (val || val === 0 || val === false) ? '<div class="med-form-field"><label>' + label + '</label><span>' + val + '</span></div>' : ''; }
+  const yn = v => v ? 'Yes' : 'No';
+  if (formType === 'examination') {
+    title.textContent = '🔬 Medical Examination Report';
+    body.innerHTML =
+      '<div class="med-form-section">' +
+      fld('Report Date', form.report_date || 'N/A') +
+      fld('Practitioner', form.practitioner_name ? form.practitioner_name + (form.practitioner_designation ? ' (' + form.practitioner_designation + ')' : '') : 'N/A') +
+      fld('Worker', form.worker_name ? form.worker_name + ' (' + (form.worker_id_number || 'N/A') + ')' : 'N/A') +
+      fld('Claim File No.', form.claim_file_number) +
+      fld('Worker Rep.', form.worker_representative_name) +
+      '</div><div class="med-form-section">' +
+      fld('Nature of Injury/Disease', form.nature_of_injury_or_disease) +
+      fld('Medical Treatment Particulars', form.medical_treatment_particulars) +
+      '</div><div class="med-form-section"><h4>Incapacity</h4>' +
+      fld('Death', yn(form.death_incapacity)) +
+      fld('Permanent Total', yn(form.permanent_total_incapacity)) +
+      fld('Permanent Partial', yn(form.permanent_partial_incapacity)) +
+      fld('Temporary', yn(form.temporary_incapacity)) +
+      fld('Temp. Duration', form.temporary_probable_duration) +
+      fld('Incapacity %', form.incapacity_percentage ? form.incapacity_percentage + '%' : '') +
+      '</div><div class="med-form-section">' +
+      fld('Capable Light Duties', form.capable_light_duties) +
+      fld('Final Exam Necessary', form.final_examination_necessary) +
+      fld('Able to Resume Work', form.able_to_resume_work) +
+      '</div><div class="med-form-section">' +
+      fld('Status', form.status || 'submitted') +
+      fld('Submitted On', form.created_at ? new Date(form.created_at).toLocaleDateString() : 'N/A') +
+      '</div>';
+  } else {
+    title.textContent = '⚕️ Permanent Impairment Report';
+    body.innerHTML =
+      '<div class="med-form-section">' +
+      fld('Report Date', form.report_date || 'N/A') +
+      fld('Worker Name', form.worker_name) +
+      fld('WCC Ref No.', form.wcc_ref_no) +
+      fld('Date of Birth', form.date_of_birth) +
+      fld('Sex', form.sex) +
+      fld('Hospital/Ref', form.hospital_name_ref) +
+      '</div><div class="med-form-section">' +
+      fld('Physical Examination', form.physical_examination) +
+      fld('Radiological Exam', form.radiological_exam) +
+      fld('Lab Test', form.laboratory_test) +
+      fld('Special Procedures', form.special_therapeutic_procedures) +
+      fld('Specialist Evaluation', form.specialists_evaluation) +
+      fld('Pre-existing Conditions', form.pre_existing_conditions) +
+      '</div><div class="med-form-section">' +
+      fld('Unfit for Pre-injury Occupation', form.unfit_pre_injury_occupation) +
+      fld('Unfit Reasons', form.unfit_reasons) +
+      fld('Fit Alternative Duty', form.fit_alternative_duty) +
+      fld('Further Harm Possible', form.further_harm_possible) +
+      fld('Further Harm Explanation', form.further_harm_explanation) +
+      (form.restrictions_needed === 'Yes' ? fld('Restrictions Needed', form.restrictions_explanation || 'Yes') : '') +
+      '</div><div class="med-form-section">' +
+      fld('Status', form.status || 'submitted') +
+      fld('Submitted On', form.created_at ? new Date(form.created_at).toLocaleDateString() : 'N/A') +
+      '</div>';
+  }
+  modal.style.display = 'flex';
+}
+
+function closeMedFormModal() {
+  const modal = document.getElementById('medFormModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function incidentCard(i) {
         const isAccident = i._type === 'accident';
         const isDisease  = i._type === 'disease';
         const date       = i.accident_date || i.incident_date;

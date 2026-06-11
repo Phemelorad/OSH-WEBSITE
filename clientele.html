@@ -168,7 +168,9 @@
         .client-card .cc-name { font-size: 15px; font-weight: 700; color: #333; }
         .client-card .cc-id { font-size: 12px; color: #888; margin-top: 2px; }
         .client-card .cc-meta { font-size: 12px; color: #888; margin-top: 8px; }
-        .client-card .cc-actions { margin-top: 10px; display: flex; gap: 6px; }
+        .client-card .cc-view { background: #0c5460; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; font-family: inherit; }
+        .cc-view:hover { background: #09404a; transform: translateY(-1px); }
+        .cc-actions { margin-top: 10px; display: flex; gap: 6px; }
         .client-card .cc-remove {
             padding: 4px 10px; border: 1px solid #e0e0e0; border-radius: 4px;
             background: white; color: #999; font-size: 11px; cursor: pointer;
@@ -538,6 +540,7 @@
                     </div>
                     <div class="cc-reports-count">📋 Past reports available</div>
                     <div class="cc-actions">
+                        ${client.worker_id_number ? `<button class="cc-view" onclick="window.location.href='worker-profile.html?id=${client.worker_id_number}'">👁 View</button>` : `<button class="cc-view" style="opacity:0.4;cursor:not-allowed" disabled>👁 View</button>`}
                         <button class="cc-remove" onclick="removeClient('${client.id}', '${client.worker_name.replace(/'/g, "\\'")}')">✕ Remove</button>
                     </div>
                 </div>`;
