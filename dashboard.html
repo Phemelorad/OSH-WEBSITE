@@ -186,6 +186,57 @@
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
         }
+    
+        /* ── Claims Table ────────────────────────────────── */
+        .section-title {
+            font-size: 18px; font-weight: 700; color: #222;
+            margin: 40px 0 20px;
+            padding-left: 14px;
+            border-left: 4px solid #0c5460;
+        }
+        .claims-table-wrap {
+            background: white; border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+        .claims-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .claims-table th {
+            background: #f9fafb; color: #666;
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; padding: 14px 18px;
+            text-align: left; border-bottom: 2px solid #eee;
+        }
+        .claims-table td {
+            padding: 14px 18px;
+            font-size: 14px; color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .claims-table tr:hover td {
+            background: #fafafa;
+        }
+        .claims-table .status-badge {
+            display: inline-block; padding: 4px 12px;
+            border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .status-badge.draft { background: #fef3cd; color: #856404; }
+        .status-badge.pending { background: #cce5ff; color: #004085; }
+        .status-badge.submitted { background: #cce5ff; color: #004085; }
+        .status-badge.under_review { background: #fff3cd; color: #856404; }
+        .status-badge.approved { background: #d4edda; color: #155724; }
+        .status-badge.rejected { background: #f8d7da; color: #721c24; }
+        .status-badge.closed { background: #e2e3e5; color: #383d41; }
+        .claims-table .view-link {
+            color: #0c5460; font-weight: 600; text-decoration: none;
+        }
+        .claims-table .view-link:hover { text-decoration: underline; }
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: #999; font-size: 14px;
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
     </style>
 </head>
 <body>
@@ -200,7 +251,115 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'dashboard';</script>
+    <script>window.OSH_ACTIVE_PAGE = 'dashboard';
+    // ── Worker stats loader ──────────────────────────────
+    async function loadWorkerStats(profile, userResult) {
+        try {
+            let workerId = null;
+            let claimsQuery = null;
+
+            // Try to find worker in registry by email
+            if (userResult?.user?.email) {
+                const { data: registry } = await SB
+                    .from('workers_registry')
+                    .select('id')
+                    .eq('email', userResult.user.email)
+                    .maybeSingle();
+                if (registry) {
+                    workerId = registry.id;
+                    claimsQuery = SB
+                        .from('injury_claims')
+                        .select('*', { count: 'exact', head: false })
+                        .eq('worker_registry_id', workerId)
+                        .order('created_at', { ascending: false });
+                }
+            }
+
+            // Fallback: try by claimant_id_number from profile
+            if (!workerId && profile?.id_number) {
+                claimsQuery = SB
+                    .from('injury_claims')
+                    .select('*', { count: 'exact', head: false })
+                    .eq('claimant_id_number', profile.id_number)
+                    .order('created_at', { ascending: false });
+            }
+
+            if (!claimsQuery && userResult?.user?.email) {
+                claimsQuery = SB
+                    .from('injury_claims')
+                    .select('*', { count: 'exact', head: false })
+                    .eq('claimant_email', userResult.user.email)
+                    .order('created_at', { ascending: false });
+            }
+
+            if (claimsQuery) {
+                const { data: claims, error } = await claimsQuery;
+                if (!error && claims) {
+                    const total = claims.length;
+                    const pending  = claims.filter(c => {
+                        const s = (c.status || '').toLowerCase();
+                        return s === 'pending' || s === 'submitted' || s === 'under_review';
+                    }).length;
+                    const approved = claims.filter(c => (c.status || '').toLowerCase() === 'approved').length;
+                    const closed   = claims.filter(c => {
+                        const s = (c.status || '').toLowerCase();
+                        return s === 'closed' || s === 'rejected';
+                    }).length;
+
+                    document.getElementById('stat-wTotal').textContent = total;
+                    document.getElementById('stat-wPending').textContent = pending;
+                    document.getElementById('stat-wApproved').textContent = approved;
+                    document.getElementById('stat-wClosed').textContent = closed;
+
+                    updateRing('wPending',  pending,  total);
+                    updateRing('wApproved', approved, total);
+                    updateRing('wClosed',   closed,   total);
+
+                    renderRecentClaims(claims.slice(0, 5));
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load worker stats:', e);
+            ['wTotal','wPending','wApproved','wClosed'].forEach(function(id) {
+                var el = document.getElementById('stat-' + id);
+                if (el) el.textContent = '!';
+            });
+        }
+    }
+
+    function renderRecentClaims(claims) {
+        var wrap = document.getElementById('recentClaimsWrap');
+        if (!claims || claims.length === 0) {
+            wrap.innerHTML = '<div class="empty-state">' +
+              '<div class="empty-icon">📋</div>' +
+              '<div>No claims yet. Submit your first injury claim to get started.</div>' +
+              '</div>';
+            return;
+        }
+
+        var rows = '';
+        for (var i = 0; i < claims.length; i++) {
+            var c = claims[i];
+            var s = (c.status || 'draft').toLowerCase().replace(/\s+/g, '_');
+            var ds = c.status ? c.status.charAt(0).toUpperCase() + c.status.slice(1) : 'Draft';
+            var cl = c.claim_number || c.file_number || '#' + (i + 1);
+            var df = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+            rows += '<tr>' +
+              '<td>' + cl + '</td>' +
+              '<td>' + (c.injury_type || c.nature_of_injury || 'General') + '</td>' +
+              '<td>' + df + '</td>' +
+              '<td><span class="status-badge ' + s + '">' + ds + '</span></td>' +
+              '<td><a href="worker-claims.html" class="view-link">View →</a></td>' +
+              '</tr>';
+        }
+
+        wrap.innerHTML = '<table class="claims-table">' +
+          '<thead><tr>' +
+          '<th>Claim</th><th>Type</th><th>Date Filed</th><th>Status</th><th></th>' +
+          '</tr></thead><tbody>' + rows + '</tbody></table>';
+    }
+
+    </script>
     <script src="header.js"></script>
     <script src="nav.js"></script>
 
@@ -318,23 +477,43 @@
     });
 
     // ── Generic dashboard ─────────────────────────────────
-    function renderGenericDashboard(container, profile, userResult) {
+        function renderGenericDashboard(container, profile, userResult) {
         container.innerHTML = `
           <div class="dash-header">
             <div>
-              <h1>Welcome, ${profile?.first_name || userResult.user.email.split('@')[0]}</h1>
-              <div class="dash-sub">You are logged in to the DOSH system.</div>
+              <h1>👋 Welcome, ${profile?.first_name || userResult.user.email.split('@')[0]}</h1>
+              <div class="dash-sub">Your personal dashboard — manage claims and view your information.</div>
             </div>
             <span class="dash-role-badge">${getRoleDisplayName(profile?.role || 'viewer')}</span>
           </div>
+
+          <div class="stats-grid" id="workerStatsGrid">
+            ${buildStatCard('wTotal',  'Total',   'dark',   'All your injury claims')}
+            ${buildStatCard('wPending','Pending', 'orange', 'Awaiting review')}
+            ${buildStatCard('wApproved','Approved','green', 'Approved claims')}
+            ${buildStatCard('wClosed',  'Closed',  'blue',   'Resolved claims')}
+          </div>
+
           <div class="actions-row">
             <a href="form.html" class="action-btn primary">📋 Submit Injury Claim</a>
+            <a href="worker-claims.html" class="action-btn">👁 View My Claims</a>
+            <a href="worker-profile.html" class="action-btn">👤 My Profile</a>
+          </div>
+
+          <div class="section-title">📄 Recent Claims</div>
+          <div id="recentClaimsWrap" class="claims-table-wrap">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div>No claims yet. Submit your first injury claim to get started.</div>
+            </div>
           </div>
         `;
-    }
 
-    // ── Medical Practitioner Dashboard ────────────────────
-    function renderMedPractDashboard(container, userId) {
+        // Trigger ring entrance animation
+        animateRings();
+        loadWorkerStats(profile, userResult);
+    }
+function renderMedPractDashboard(container, userId) {
         container.innerHTML = `
           <div class="dash-header">
             <div>
