@@ -452,15 +452,6 @@
                 </div>
             </div>
 
-                        <!-- Login Company-specific fields -->
-            <div id="loginCompanyFields" class="role-specific-fields hidden">
-                <h3>Employer Account</h3>
-                <div class="form-group">
-                    <label for="loginCompanyName">Employer Name</label>
-                    <input type="text" id="loginCompanyName" name="loginCompanyName" placeholder="Enter your registered company name">
-                    <span class="error-message">Please enter your employer name</span>
-                </div>
-
             <div id="loginWorkerFields" class="role-specific-fields hidden">
                 <h3>Employee Account</h3>
                 <div class="form-group">
@@ -468,7 +459,6 @@
                     <input type="text" id="loginWorkerId" name="loginWorkerId" placeholder="Enter your Omang or Passport number">
                     <span class="error-message">Please enter your Omang or Passport number</span>
                 </div>
-            </div>
             </div>
 
             <div class="form-group">
@@ -745,10 +735,8 @@
 
                 // Toggle fields based on which form we're in
                 if (parentForm.id === 'loginForm') {
-                    document.getElementById('loginCompanyFields').classList.add('hidden');
-                    if (selectedRole === 'company') {
-                        document.getElementById('loginCompanyFields').classList.remove('hidden');
-                    } else if (selectedRole === 'worker') {
+                    document.getElementById('loginWorkerFields').classList.add('hidden');
+                    if (selectedRole === 'worker') {
                         document.getElementById('loginWorkerFields').classList.remove('hidden');
                     }
                 } else {
@@ -863,13 +851,6 @@
             document.querySelectorAll('.role-option').forEach(o => o.style.borderColor = '');
             const loginRoleValue = selectedRole.value;
 
-            // Validate company name if company role
-            const loginCompanyName = document.getElementById('loginCompanyName').value.trim();
-            if (loginRoleValue === 'company' && !loginCompanyName) {
-                document.getElementById('loginCompanyName').classList.add('error');
-                await showAlert('Please enter your employer name.', { type: 'warning', title: 'Employer Name Required' });
-                return;
-            }
             // Validate worker ID number if worker role
             const loginWorkerId = document.getElementById('loginWorkerId').value.trim();
             if (loginRoleValue === 'worker' && !loginWorkerId) {
@@ -989,7 +970,7 @@
         document.getElementById("bannerCloseBtn").addEventListener("click", hideLoginBanner);
 
         // Hide banner when user types in any login field
-        document.querySelectorAll("#loginCompanyName, #loginWorkerId, #loginEmail, #loginPassword").forEach(function(el) {
+        document.querySelectorAll("#loginWorkerId, #loginEmail, #loginPassword").forEach(function(el) {
             el.addEventListener("input", hideLoginBanner);
         });
 
