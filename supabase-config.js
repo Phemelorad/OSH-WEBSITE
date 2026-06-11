@@ -120,7 +120,7 @@
                     const { data: existing } = await supabaseClient
                         .from('companies')
                         .select('id')
-                        .eq('company_name', companyName)
+                        .ilike('company_name', companyName)
                         .maybeSingle();
 
                     if (existing) {
@@ -193,7 +193,7 @@
                     const { data: company } = await supabaseClient
                         .from('companies')
                         .select('id')
-                        .eq('company_name', companyName)
+                        .ilike('company_name', companyName)
                         .maybeSingle();
 
                     if (company) {

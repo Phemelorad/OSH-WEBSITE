@@ -427,7 +427,7 @@
 
             try {
                 let query = supabaseClient
-                    .from('injury_claims')
+                    .from('injury_claims_view')
                     .select('*')
                     .order('created_at', { ascending: false });
 
@@ -534,7 +534,7 @@
                 <tr>
                     <td>${fileCell}</td>
                     <td>${claim.name_of_claimant}</td>
-                    <td>${claim.name_of_employer}</td>
+                    <td>${claim.matched_employer || claim.name_of_employer}</td>
                     <td>${claim.industry}</td>
                     <td>${formatDate(claim.date_of_injury)}</td>
                     <td>${claim.location}</td>

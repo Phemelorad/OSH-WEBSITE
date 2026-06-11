@@ -339,7 +339,7 @@
 
     async function loadCompanyData() {
         try {
-            const { data: companyProfile } = await SB.from('companies').select('*').eq('company_name', companyName).maybeSingle();
+            const { data: companyProfile } = await SB.from('companies').select('*').ilike('company_name', companyName).maybeSingle();
             if (companyProfile) {
                 document.getElementById('companyName').textContent = companyProfile.company_name || companyName;
                 document.getElementById('companyIndustry').textContent = companyProfile.industry || 'Not specified';
@@ -354,11 +354,11 @@
             }
 
             const [accRes, insRes, idrRes, clmRes, viewRes] = await Promise.all([
-                SB.from('accident_reports').select('*').eq('occupier_name', companyName).order('accident_date', { ascending: false }).limit(5),
-                SB.from('workplace_inspections').select('*').eq('factory_name', companyName).order('inspection_date', { ascending: false }).limit(5),
-                SB.from('injury_disease_reports').select('*').eq('employer_name', companyName).order('incident_date', { ascending: false }).limit(5),
-                SB.from('injury_claims').select('*').eq('name_of_employer', companyName).order('created_at', { ascending: false }).limit(5),
-                SB.from('company_register_view').select('*').eq('company_name', companyName).maybeSingle()
+                SB.from('accident_reports').select('*').ilike('occupier_name', companyName).order('accident_date', { ascending: false }).limit(5),
+                SB.from('workplace_inspections').select('*').ilike('factory_name', companyName).order('inspection_date', { ascending: false }).limit(5),
+                SB.from('injury_disease_reports').select('*').ilike('employer_name', companyName).order('incident_date', { ascending: false }).limit(5),
+                SB.from('injury_claims').select('*').ilike('name_of_employer', companyName).order('created_at', { ascending: false }).limit(5),
+                SB.from('company_register_view').select('*').ilike('company_name', companyName).maybeSingle()
             ]);
 
             const accidents   = accRes.data || [];
@@ -538,7 +538,7 @@
         btn.textContent = 'Saving…';
 
         try {
-            const { data: companyProfile } = await SB.from('companies').select('id').eq('company_name', companyName).maybeSingle();
+            const { data: companyProfile } = await SB.from('companies').select('id').ilike('company_name', companyName).maybeSingle();
             if (!companyProfile) {
                 await showAlert('Company record not found.', { type: 'error', title: 'Save Failed' });
                 btn.disabled = false;

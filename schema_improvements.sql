@@ -97,16 +97,6 @@ ALTER TABLE public.user_profiles
   DROP CONSTRAINT IF EXISTS fk_user_profiles_company;
 
 -- =============================================================================
--- PART 3: Fix contraventions column — bare ARRAY is invalid, change to TEXT[]
--- =============================================================================
-ALTER TABLE public.workplace_inspections
-  ALTER COLUMN contraventions TYPE TEXT[]
-  USING CASE
-    WHEN contraventions IS NULL THEN NULL
-    ELSE contraventions::TEXT[]
-  END;
-
--- =============================================================================
 -- PART 4: updated_at trigger function + apply to all tables with updated_at
 -- =============================================================================
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
@@ -190,9 +180,6 @@ ALTER TABLE public.companies
   ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
 
-  ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false,
-  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
-
 ALTER TABLE public.workers_registry
   ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
@@ -201,7 +188,8 @@ ALTER TABLE public.workers_registry
 -- PART 7: Database views for common queries (company register, dashboard stats)
 -- =============================================================================
 
-CREATE OR REPLACE VIEW public.company_register_view AS
+DROP VIEW IF EXISTS public.company_register_view;
+CREATE VIEW public.company_register_view AS
 SELECT
   c.*,
   COUNT(DISTINCT wi.id) AS inspection_count,
@@ -217,7 +205,8 @@ LEFT JOIN public.injury_claims ic ON ic.name_of_employer = c.company_name
 GROUP BY c.id;
 
 -- Dashboard stats view: count users by role
-CREATE OR REPLACE VIEW public.user_roles_view AS
+DROP VIEW IF EXISTS public.user_roles_view;
+CREATE VIEW public.user_roles_view AS
 SELECT
   role,
   COUNT(*) AS user_count
@@ -226,7 +215,8 @@ WHERE is_deleted IS DISTINCT FROM true
 GROUP BY role;
 
 -- Dashboard stats view: inspections by month
-CREATE OR REPLACE VIEW public.inspections_by_month AS
+DROP VIEW IF EXISTS public.inspections_by_month;
+CREATE VIEW public.inspections_by_month AS
 SELECT
   DATE_TRUNC('month', inspection_date) AS month,
   COUNT(*) AS inspection_count,
@@ -270,3 +260,53 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.delete_user_account TO authenticated;
+
+-- =============================================================================
+-- PART 10: Update views to show registered company name from companies table
+-- Instead of raw text fields, show the matched registered company name
+-- =============================================================================
+
+-- accident_report_view: replace occupier_name with matched company name
+DROP VIEW IF EXISTS accident_report_view;
+CREATE VIEW accident_report_view AS
+SELECT
+    ar.id, ar.report_type,
+    COALESCE(c.company_name, ar.occupier_name) AS occupier_name,
+    ar.premises_address,
+    ar.nature_of_industry, ar.industry_sector, ar.injured_name,
+    ar.injured_age, ar.injured_sex, ar.accident_date, ar.accident_place,
+    ar.injury_fatal, ar.investigation_status, ar.causation_number,
+    ar.reporter_name, ar.report_date, ar.status, ar.created_at,
+    up.first_name || ' ' || up.surname AS submitted_by_name
+FROM accident_reports ar
+LEFT JOIN user_profiles up ON ar.submitted_by = up.user_id
+LEFT JOIN public.companies c ON LOWER(c.company_name) = LOWER(ar.occupier_name)
+ORDER BY ar.accident_date DESC NULLS LAST;
+
+-- injury_disease_report_view: replace employer_name with matched company name
+DROP VIEW IF EXISTS injury_disease_report_view;
+CREATE VIEW injury_disease_report_view AS
+SELECT
+    idr.id, idr.worker_name, idr.occupation, idr.incident_date,
+    idr.incident_type, idr.place_of_accident, idr.resulted_death,
+    idr.permanent_incapacity, idr.temporary_incapacity,
+    COALESCE(c.company_name, idr.employer_name) AS employer_name,
+    idr.report_date, idr.status, idr.created_at,
+    up.first_name || ' ' || up.surname AS submitted_by_name
+FROM injury_disease_reports idr
+LEFT JOIN user_profiles up ON idr.submitted_by = up.user_id
+LEFT JOIN public.companies c ON LOWER(c.company_name) = LOWER(idr.employer_name)
+ORDER BY idr.incident_date DESC NULLS LAST;
+
+-- injury_claims_view: include matched company name (for entries.html)
+DROP VIEW IF EXISTS injury_claims_view;
+CREATE VIEW injury_claims_view AS
+SELECT
+    ic.*,
+    COALESCE(c.company_name, ic.name_of_employer) AS matched_employer
+FROM injury_claims ic
+LEFT JOIN public.companies c ON LOWER(c.company_name) = LOWER(ic.name_of_employer);
+
+GRANT SELECT ON accident_report_view TO authenticated;
+GRANT SELECT ON injury_disease_report_view TO authenticated;
+GRANT SELECT ON injury_claims_view TO authenticated;
