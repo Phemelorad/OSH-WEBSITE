@@ -239,7 +239,7 @@
           <div class="header-user">
             <div class="header-user-name" id="userName">Loading...</div>
             <div class="header-user-designation" id="userDesignation"></div>
-            <div class="header-user-role">
+            <div class="header-user-role" id="userRoleContainer" style="display:none">
               <span class="role-badge" id="userRoleBadge" onclick="toggleRoleSwitcher(event)">
                 <div class="role-switcher" id="roleSwitcher"></div>
               </span>

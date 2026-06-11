@@ -118,6 +118,7 @@ async function initializeRoleSystem() {
         if (cached && cached.user_id && cached.role) {
             currentUserId = cached.user_id;
             currentUserRole = getEffectiveRole(cached.role);
+        showRoleSwitcherForSuperAdmin();
 
             updateHeaderDisplay(cached);
             updateUIForRole();
