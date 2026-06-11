@@ -273,7 +273,7 @@
                 const { data: registry } = await SB
                     .from('workers_registry')
                     .select('id')
-                    .eq('email', userResult.user.email)
+                    .ilike('email', userResult.user.email)
                     .maybeSingle();
                 if (registry) {
                     workerId = registry.id;

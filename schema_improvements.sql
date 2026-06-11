@@ -310,3 +310,11 @@ LEFT JOIN public.companies c ON LOWER(c.company_name) = LOWER(ic.name_of_employe
 GRANT SELECT ON accident_report_view TO authenticated;
 GRANT SELECT ON injury_disease_report_view TO authenticated;
 GRANT SELECT ON injury_claims_view TO authenticated;
+-- =============================================================================
+-- PART 11: Add email column to workers_registry for auto-account creation
+-- =============================================================================
+
+ALTER TABLE public.workers_registry
+  ADD COLUMN IF NOT EXISTS email TEXT;
+
+COMMENT ON COLUMN public.workers_registry.email IS 'Worker email - used to create auth account on first form submission';

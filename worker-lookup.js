@@ -190,7 +190,7 @@
     const { data: existing } = await sb
       .from('workers_registry')
       .select('*')
-      .eq('id_number', id)
+      .ilike('id_number', id)
       .maybeSingle();
 
     const merged = mergeRegistryRow(existing, patch);
@@ -318,7 +318,7 @@
       const { data, error } = await getSB()
         .from('workers_registry')
         .select('*')
-        .eq('id_number', idVal)
+        .ilike('id_number', idVal)
         .maybeSingle();
 
       btn.disabled = false;
@@ -423,4 +423,32 @@
       window._resolvedWorkerId = null;
     }
   };
+
+  window.createWorkerAccount = async function (email, idNumber, fullName) {
+    if (!email || !idNumber) return { success: false, error: 'Email and ID required' };
+    try {
+      const { data: { session } } = await getSB().auth.getSession();
+      if (!session) return { success: false, error: 'No active session' };
+      const password = Math.random().toString(36).slice(2, 10) + 'A1!' + Math.random().toString(36).slice(2, 6);
+      const names = (fullName || '').split(' ');
+      const firstName = names[0] || '';
+      const surname = names.slice(1).join(' ') || firstName;
+      const { data, error } = await getSB().auth.signUp({
+        email: email, password: password,
+        options: { data: { role: 'worker', first_name: firstName, surname: surname, id_number: idNumber } }
+      });
+      if (error) throw error;
+      const { data: { session: ns } } = await getSB().auth.getSession();
+      if ((!ns || ns.user.id !== session.user.id) && session) {
+        await getSB().auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+      }
+      if (data?.user && typeof window.ensureUserProfile === 'function') {
+        await window.ensureUserProfile(data.user);
+      }
+      return { success: true, userId: data?.user?.id };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
 })();

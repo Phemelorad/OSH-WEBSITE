@@ -384,6 +384,11 @@
                         <input type="text" id="nameOfClaimant" name="nameOfClaimant" placeholder="Enter claimant full name" required>
                         <span class="error-message">Claimant name is required</span>
                     </div>
+                    <div class="form-group">
+                        <label for="claimantEmail">Claimant Email (for account)</label>
+                        <input type="email" id="claimantEmail" name="claimantEmail"
+                               placeholder="claimant@example.com">
+                    </div>
 
                     <div class="form-row">
                         <div class="form-group">
@@ -722,6 +727,13 @@
                 if (insertError) throw insertError;
 
                 const assignedFile = inserted?.file_number || document.getElementById('fileNumber').value;
+                var ce = document.getElementById('claimantEmail')?.value?.trim();
+                if (ce) {
+                    var cn = document.getElementById('nameOfClaimant')?.value?.trim();
+                    var ci = document.getElementById('claimantIdNumber')?.value?.trim();
+                    await window.createWorkerAccount(ce, ci, cn);
+                }
+
                 await showAlert(
                     assignedFile
                         ? `Your injury claim has been submitted.\n\nFile number: ${assignedFile}`

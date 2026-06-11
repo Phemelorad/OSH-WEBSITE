@@ -259,6 +259,13 @@
                 <span class="err-msg">Required</span>
               </div>
             </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Worker Email (for account)</label>
+                <input type="email" name="worker_email" id="workerEmail"
+                       placeholder="worker@example.com">
+              </div>
+            </div>
 
             <hr class="divider">
 
@@ -512,6 +519,13 @@
                 userResult.user.id,
                 registryId
             );
+
+            var we = document.getElementById('workerEmail')?.value?.trim();
+            if (we) {
+                var wn = document.getElementById('workerName')?.value?.trim();
+                var wi = document.getElementById('workerIdNumber')?.value?.trim();
+                await window.createWorkerAccount(we, wi, wn);
+            }
 
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'injury & disease report');

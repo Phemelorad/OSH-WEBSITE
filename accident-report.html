@@ -264,6 +264,11 @@
                        placeholder="Full legal name of the occupier or company" required>
                 <span class="err-msg">Required</span>
               </div>
+              <div class="form-group">
+                <label>Worker Email (for account)</label>
+                <input type="email" name="injured_email" id="injuredEmail"
+                       placeholder="worker@example.com">
+              </div>
             </div>
 
             <!-- 2. Address of premises -->
@@ -773,10 +778,12 @@
                 registryId
             );
 
+            const we = document.getElementById('injuredEmail')?.value?.trim(); if (we) { const wn = document.getElementById('injuredName')?.value?.trim(); const wi = document.getElementById('injuredId')?.value?.trim(); await window.createWorkerAccount(we, wi, wn); }
+
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'accident report');
             } else {
-                await showAlert('Accident report submitted successfully.', {
+                await showAlert('Accident report submitted successfully.' + (we ? ' Worker account created.' : ''), {
                     type: 'success', title: 'Report Submitted', btnText: 'OK'
                 });
             }

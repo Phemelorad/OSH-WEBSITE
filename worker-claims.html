@@ -325,7 +325,7 @@
             const { data: registry } = await SB
                 .from('workers_registry')
                 .select('id')
-                .eq('id_number', normId)
+                .ilike('id_number', normId)
                 .maybeSingle();
 
             if (registry) {

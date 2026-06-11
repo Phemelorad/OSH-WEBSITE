@@ -333,7 +333,7 @@
             const { data: registry, error: regErr } = await SB
                 .from('workers_registry')
                 .select('*')
-                .eq('id_number', normalizedId)
+                .ilike('id_number', normalizedId)
                 .maybeSingle();
 
             if (regErr) throw regErr;
