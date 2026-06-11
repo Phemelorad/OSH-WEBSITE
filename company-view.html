@@ -370,7 +370,7 @@
             const totalIncidents = viewData ? (viewData.total_incidents || 0) : (accidents.length + injuries.length);
             const totalFatalities = viewData ? (viewData.total_fatalities || 0) : 0;
             const totalInspections = viewData ? (viewData.inspection_count || 0) : inspections.length;
-            const avgCompliance = viewData?.avg_compliance_level ?? null;
+            const avgCompliance = inspections.length ? inspections[0].compliance_level : null;
             const totalClaims = viewData ? (viewData.claim_count || 0) : claims.length;
             const totalEmployees = viewData?.total_employees || 0;
 

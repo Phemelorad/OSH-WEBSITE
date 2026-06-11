@@ -1,9 +1,9 @@
 -- =============================================================================
 -- Database function: delete_user_account
--- Call this from the frontend via: supabaseClient.rpc('delete_user_account', { user_id })
+-- Call from frontend: supabaseClient.rpc('delete_user_account', { p_user_id: userId })
 --
--- SECURITY DEFINER means it runs with the privileges of the function creator
--- (bypasses RLS), so we can delete from auth.users using the anon key.
+-- SECURITY DEFINER: runs with creator's privileges (bypasses RLS)
+-- Fixes 409 error: deletes from role_change_log first (has RESTRICT FKs)
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION public.delete_user_account(p_user_id UUID)
@@ -27,6 +27,11 @@ BEGIN
   SELECT (first_name || ' ' || surname) INTO v_profile_name 
   FROM public.user_profiles WHERE user_id = p_user_id;
 
+  -- 🔴 Must delete from role_change_log FIRST because its FK to auth.users
+  --    has NO ON DELETE CASCADE (defaults to RESTRICT, which blocks the delete)
+  DELETE FROM public.role_change_log WHERE user_id = p_user_id;
+  DELETE FROM public.role_change_log WHERE changed_by = p_user_id;
+
   -- Delete from auth.users — this cascades ON DELETE CASCADE to:
   --   user_profiles, workers_registry, accident_reports, injury_disease_reports,
   --   medical_examination_reports, permanent_impairment_reports, etc.
@@ -42,8 +47,3 @@ $$;
 
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.delete_user_account TO authenticated;
-
--- =============================================================================
--- Instructions: Run this SQL in your Supabase SQL Editor (Dashboard > SQL Editor)
--- Then the frontend delete button will work via supabaseClient.rpc().
--- =============================================================================

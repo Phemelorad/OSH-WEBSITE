@@ -449,18 +449,20 @@
                     .filter(Boolean).sort().pop() || null;
             });
 
-            // Compute avg compliance separately
+            // Use latest inspection compliance level (not average)
             const inspByCompany = new Map();
             inspections.forEach(i => {
                 if (!i.factory_name) return;
                 const key = i.factory_name.trim();
                 if (!inspByCompany.has(key)) inspByCompany.set(key, []);
-                inspByCompany.get(key).push(i.compliance_level);
+                inspByCompany.get(key).push({ level: i.compliance_level, date: i.inspection_date });
             });
-            inspByCompany.forEach((levels, name) => {
+            inspByCompany.forEach((items, name) => {
                 const c = companyMap.get(name);
-                if (c && levels.length) {
-                    c.avg_compliance_level = Math.round(levels.reduce((a,b) => a + b, 0) / levels.length);
+                if (c && items.length) {
+                    // Sort by inspection_date descending and use the latest
+                    items.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+                    c.avg_compliance_level = items[0].level;
                 }
             });
 
