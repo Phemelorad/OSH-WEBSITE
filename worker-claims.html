@@ -233,7 +233,7 @@
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
     <script src="common.js"></script>
-    <script>
+    <script><script>
     const SB = window.supabaseClient;
 
     // ── Helpers use globals from common.js (esc, fmtDate, normalizeIdentityId) ──
@@ -287,7 +287,20 @@
     }
 
     // ── Search claims ─────────────────────────────
-    async function searchClaims() {
+    
+        // Auto-fill Omang/Passport from login session
+        (function() {
+            var storedId = sessionStorage.getItem('worker_id_number');
+            if (storedId) {
+                var input = document.getElementById('idInput');
+                if (input) {
+                    input.value = storedId;
+                    setTimeout(function() { searchClaims(); }, 400);
+                }
+            }
+        })();
+
+        async function searchClaims() {
         const rawId = document.getElementById('idInput').value.trim();
         if (!rawId) return;
 

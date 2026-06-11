@@ -258,6 +258,16 @@
             let workerId = null;
             let claimsQuery = null;
 
+            // Check sessionStorage for ID number set during login
+            const storedId = sessionStorage.getItem('worker_id_number');
+            if (storedId) {
+                claimsQuery = SB
+                    .from('injury_claims')
+                    .select('*', { count: 'exact', head: false })
+                    .eq('claimant_id_number', storedId)
+                    .order('created_at', { ascending: false });
+            }
+
             // Try to find worker in registry by email
             if (userResult?.user?.email) {
                 const { data: registry } = await SB
