@@ -118,7 +118,11 @@ async function initializeRoleSystem() {
         if (cached && cached.user_id && cached.role) {
             currentUserId = cached.user_id;
             currentUserRole = getEffectiveRole(cached.role);
-        showRoleSwitcherForSuperAdmin();
+    if (currentUserRole === 'super_admin') {
+      var el = document.getElementById('userRoleContainer');
+      if (el) el.style.display = '';
+    }
+        
 
             updateHeaderDisplay(cached);
             updateUIForRole();
@@ -138,6 +142,10 @@ async function initializeRoleSystem() {
         const profileResult = await getUserProfile(currentUserId);
         if (profileResult.success && profileResult.data) {
             currentUserRole = getEffectiveRole(profileResult.data.role || 'viewer');
+    if (currentUserRole === 'super_admin') {
+      var el = document.getElementById('userRoleContainer');
+      if (el) el.style.display = '';
+    }
 
 
             // Enrich with company name for company users
