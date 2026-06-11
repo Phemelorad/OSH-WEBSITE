@@ -264,7 +264,7 @@
             </div>
         </div>
 
-        <div class="stats-grid" id="statsGrid">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:15px"><div></div><button onclick="loadCompanyData()" style="padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🔄 Refresh Dashboard</button></div><div class="stats-grid" id="statsGrid">
             <div class="stat-card red"><h3>Total Incidents</h3><div class="stat-value" id="statIncidents">&mdash;</div><div class="stat-sub">Accidents + Injuries</div></div>
             <div class="stat-card amber"><h3>Fatalities</h3><div class="stat-value" id="statFatalities">&mdash;</div><div class="stat-sub">All reports</div></div>
             <div class="stat-card blue"><h3>Inspections</h3><div class="stat-value" id="statInspections">&mdash;</div><div class="stat-sub">Total conducted</div></div>
@@ -403,6 +403,16 @@
             renderInjuries(injuries);
             renderClaims(claims);
 
+            
+            // Show last-updated timestamp
+            let tsEl = document.getElementById('lastUpdated');
+            if (!tsEl) {
+                tsEl = document.createElement('div');
+                tsEl.id = 'lastUpdated';
+                tsEl.style.cssText = 'text-align:right;font-size:12px;color:#999;margin-top:5px';
+                document.getElementById('statsGrid').parentNode.insertBefore(tsEl, document.getElementById('statsGrid').nextSibling);
+            }
+            tsEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
         } catch (err) {
@@ -589,6 +599,86 @@
             await showAlert(err.message, { type: 'error', title: 'Save Failed' });
         }
     }
-    </script>
+    
+    // ============================================================
+    // REAL-TIME UPDATES: Supabase Realtime subscriptions + fallback
+    // ============================================================
+    let refreshInterval;
+    let realtimeChannels = [];
+    let pendingUpdate = false;
+
+    let pageLoadedAt = Date.now();
+    function debouncedLoad(payload) {
+        if (pendingUpdate) return;
+        pendingUpdate = true;
+        // Batch rapid changes into one refresh
+        const shouldToast = (Date.now() - pageLoadedAt) > 10000;
+        setTimeout(() => {
+            pendingUpdate = false;
+            loadCompanyData();
+            if (shouldToast) {
+                showToast('🔄 Dashboard updated', 'info', 2000);
+            }
+        }, 500);
+    }
+
+    function setupRealtime() {
+        // Clean up existing channels
+        realtimeChannels.forEach(ch => SB.removeChannel(ch));
+        realtimeChannels = [];
+
+        // Tables to watch for changes that affect this company dashboard
+        const tables = [
+            'accident_reports',
+            'workplace_inspections',
+            'injury_disease_reports',
+            'injury_claims'
+        ];
+
+        tables.forEach(table => {
+            const channel = SB.channel('company-dash-' + table)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: table
+                    },
+                    (payload) => { debouncedLoad(payload); }
+                )
+                .subscribe((status) => {
+                    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        console.warn('Realtime unavailable for ' + table + ' - fallback polling active');
+                    }
+                });
+            realtimeChannels.push(channel);
+        });
+    }
+
+    // Fallback polling (30s) in case Realtime misses an event
+    function startFallbackPoll() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => { loadCompanyData(); }, 30000);
+    }
+
+    // Refresh on tab visibility change
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) { loadCompanyData(); }
+    });
+
+    // Kick off realtime + fallback after initial load
+    setTimeout(() => {
+        setupRealtime();
+        startFallbackPoll();
+    }, 3000);
+
+    // Update last-refreshed timestamp
+    const origRender = renderAccidents;
+    renderAccidents = function(list) {
+        const ts = document.getElementById('lastUpdated');
+        if (ts) ts.textContent = new Date().toLocaleTimeString();
+        origRender(list);
+    };
+</script>
 </body>
 </html>
