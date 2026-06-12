@@ -9,6 +9,7 @@
     'id_type', 'full_name', 'date_of_birth', 'sex', 'nationality', 'address',
     'age_years', 'occupation', 'usual_occupation', 'experience_level',
     'employer_name', 'employer_address', 'employer_telephone', 'employer_fax',
+    'email',
   ];
 
   // ── Inject shared styles once ────────────────────────────
@@ -273,7 +274,7 @@
                 onclick="wlSetType('Passport')">📘 Passport</button>
       </div>
       <div class="wl-input-row">
-        <input type="text" id="wl-id-input" placeholder="Enter Omang number…"
+        <input type="text" id="wl-id-input" placeholder="Enter Omang number…" maxlength="8" pattern="[0-9]{8}" inputmode="numeric"
                oninput="wlOnInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();wlLookup()}"
                autocomplete="off">
         <button type="button" class="wl-lookup-btn" id="wl-btn" onclick="wlLookup()">🔍 Look Up</button>
@@ -294,7 +295,13 @@
       currentIdType = type;
       document.getElementById('wl-btn-omang').classList.toggle('active', type === 'Omang');
       document.getElementById('wl-btn-passport').classList.toggle('active', type === 'Passport');
-      document.getElementById('wl-id-input').placeholder =
+      const inp = document.getElementById('wl-id-input');
+      if (type === 'Omang') {
+        inp.maxLength = 8; inp.pattern = '[0-9]{8}'; inp.inputMode = 'numeric';
+      } else {
+        inp.removeAttribute('maxlength'); inp.removeAttribute('pattern'); inp.inputMode = 'text';
+      }
+      inp.placeholder =
         type === 'Omang' ? 'Enter Omang number…' : 'Enter Passport number…';
       wlClear();
     };
@@ -451,4 +458,24 @@
     }
   };
 
+
+  window.checkDuplicate = async function (table, column, value, label) {
+    if (!value) return { exists: false };
+    const { data, error } = await getSB()
+      .from(table)
+      .select("id")
+      .ilike(column, value)
+      .limit(1);
+    if (error) return { exists: false, error };
+    if (data && data.length > 0) {
+      const ok = await window.showConfirm(
+        "A " + (label || "record") + " already exists.
+
+Submit anyway? This may create a duplicate.",
+        { title: "⚠ Possible Duplicate", icon: "⚠️", confirmText: "Submit Anyway", cancelText: "Cancel", danger: true }
+      );
+      return { exists: true, confirmed: ok };
+    }
+    return { exists: false };
+  };
 })();

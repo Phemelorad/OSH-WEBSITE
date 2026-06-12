@@ -204,6 +204,7 @@
             <div class="search-row">
                 <input type="text" id="idInput"
                        placeholder="Enter your Omang or passport number"
+                       maxlength="8" pattern="[0-9]{8}" inputmode="numeric"
                        onkeydown="if(event.key==='Enter') searchClaims()" autocomplete="off">
                 <button class="search-btn" id="searchBtn" onclick="searchClaims()">Search</button>
             </div>

@@ -255,6 +255,7 @@
                 <label>Omang / Passport Number<span class="req">*</span></label>
                 <input type="text" name="worker_id_number" id="workerIdNumber"
                        placeholder="National ID or passport number" required
+                       maxlength="8" pattern="[0-9]{8}" inputmode="numeric"
                        style="text-transform:uppercase">
                 <span class="err-msg">Required</span>
               </div>
@@ -319,7 +320,7 @@
                     <input type="radio" name="resulted_death" value="Yes" onchange="toggleNOK()"> Yes
                   </label>
                   <label>
-                    <input type="radio" name="resulted_death" value="No"  onchange="toggleNOK()" checked> No
+                    <input type="radio" name="resulted_death" value="No"  onchange="toggleNOK()"> No
                   </label>
                 </div>
               </div>
@@ -328,7 +329,7 @@
                 <span class="yn-label">Permanent Incapacity</span>
                 <div class="yn-options">
                   <label><input type="radio" name="permanent_incapacity" value="Yes"> Yes</label>
-                  <label><input type="radio" name="permanent_incapacity" value="No" checked> No</label>
+                  <label><input type="radio" name="permanent_incapacity" value="No"  No</label>
                 </div>
               </div>
 
@@ -336,7 +337,7 @@
                 <span class="yn-label">Temporary Incapacity</span>
                 <div class="yn-options">
                   <label><input type="radio" name="temporary_incapacity" value="Yes"> Yes</label>
-                  <label><input type="radio" name="temporary_incapacity" value="No" checked> No</label>
+                  <label><input type="radio" name="temporary_incapacity" value="No"  No</label>
                 </div>
               </div>
 
@@ -469,6 +470,16 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
+            // ── Duplicate check (before registry upsert) ──
+            const dupId = (g('workerIdNumber') || '').toUpperCase();
+            if (dupId) {
+              const dupeCheck = await window.checkDuplicate('injury_disease_reports', 'worker_id_number', dupId, 'injury report with this ID number');
+              if (dupeCheck.exists && !dupeCheck.confirmed) {
+                btn.disabled = false; btn.textContent = 'Submit Report';
+                return;
+              }
+            }
+
             const registryId = await upsertWorkerRegistry({
                 id_number:            'workerIdNumber',
                 full_name:            'workerName',
@@ -477,6 +488,7 @@
                 employer_name:        'employerName',
                 employer_telephone:   'employerTelephone',
                 employer_fax:         'employerFax',
+                email:                'workerEmail',
                 worker_registry_id:   'idrWorkerRegistryId',
             }) || window._resolvedWorkerId || null;
 
@@ -608,6 +620,31 @@
             },
             saveNewWorker: true
         });
+
+        // ── Company autofill ──
+        function attachCompanyAutofill() {
+            var el = document.getElementById("employerName");
+            if (!el) return;
+            var timer = null;
+            el.addEventListener("input", function () {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(async function () {
+                    var val = el.value.trim();
+                    if (val.length < 3) return;
+                    var company = await window.searchCompany(val);
+                    if (company) {
+                        var tel = document.getElementById("employerTelephone");
+                        if (company.telephone && tel && !tel.value) {
+                            tel.value = company.telephone;
+                            if (typeof showToast === "function") {
+                                showToast("Company phone auto-filled", "info");
+                            }
+                        }
+                    }
+                }, 600);
+            });
+        }
+        attachCompanyAutofill();
     });
     </script>
 </body>

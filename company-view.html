@@ -265,8 +265,8 @@
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:15px"><div></div><button onclick="loadCompanyData()" style="padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🔄 Refresh Dashboard</button></div><div class="stats-grid" id="statsGrid">
-            <div class="stat-card red"><h3>Total Incidents</h3><div class="stat-value" id="statIncidents">&mdash;</div><div class="stat-sub">Accidents + Injuries</div></div>
-            <div class="stat-card amber"><h3>Fatalities</h3><div class="stat-value" id="statFatalities">&mdash;</div><div class="stat-sub">All reports</div></div>
+            <div class="stat-card red"><h3>Total Accidents</h3><div class="stat-value" id="statAccidents">&mdash;</div><div class="stat-sub">Accident reports</div></div>
+            <div class="stat-card amber"><h3>Total Injuries</h3><div class="stat-value" id="statInjuries">&mdash;</div><div class="stat-sub">Injury &amp; disease reports</div></div>
             <div class="stat-card blue"><h3>Inspections</h3><div class="stat-value" id="statInspections">&mdash;</div><div class="stat-sub">Total conducted</div></div>
             <div class="stat-card green"><h3>Compliance</h3><div class="stat-value" id="statCompliance">&mdash;</div><div class="stat-sub">Average score</div></div>
             <div class="stat-card purple"><h3>Claims</h3><div class="stat-value" id="statClaims">&mdash;</div><div class="stat-sub">Compensation claims</div></div>
@@ -367,15 +367,18 @@
             const claims      = clmRes.data || [];
             const viewData    = viewRes.data || null;
 
-            const totalIncidents = viewData ? (viewData.total_incidents || 0) : (accidents.length + injuries.length);
-            const totalFatalities = viewData ? (viewData.total_fatalities || 0) : 0;
+            // Count queries for accurate totals
+            const { count: totalAccidents, error: accErr } = await SB
+              .from('accident_reports').select('*', { count: 'exact', head: true }).ilike('occupier_name', companyName);
+            const { count: totalInjuries, error: injErr } = await SB
+              .from('injury_disease_reports').select('*', { count: 'exact', head: true }).ilike('employer_name', companyName);
             const totalInspections = viewData ? (viewData.inspection_count || 0) : inspections.length;
             const avgCompliance = inspections.length ? inspections[0].compliance_level : null;
             const totalClaims = viewData ? (viewData.claim_count || 0) : claims.length;
             const totalEmployees = viewData?.total_employees || 0;
 
-            document.getElementById('statIncidents').textContent = totalIncidents;
-            document.getElementById('statFatalities').textContent = totalFatalities;
+            document.getElementById('statAccidents').textContent = totalAccidents ?? 0;
+            document.getElementById('statInjuries').textContent = totalInjuries ?? 0;
             document.getElementById('statInspections').textContent = totalInspections;
             document.getElementById('statCompliance').textContent = avgCompliance != null ? avgCompliance + '%' : 'N/A';
             document.getElementById('statClaims').textContent = totalClaims;

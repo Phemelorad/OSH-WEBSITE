@@ -320,6 +320,7 @@
                 <div class="search-wrap">
                     <input type="text" id="searchInput"
                            placeholder="Name, Omang, or passport number…"
+                          
                            oninput="onSearchInput()" autocomplete="off">
                     <div class="suggestions" id="suggestions"></div>
                 </div>
@@ -695,7 +696,7 @@
                     ${renderDetailRows([
                         [idLabel, identity.id_number],
                         ['Full name', identity.full_name],
-                        ['Sex', window.formatSexDisplay(identity.sex)],
+                        ['Gender', window.formatSexDisplay(identity.sex)],
                         ['Nationality', identity.nationality],
                         ['Age', identity.age_years != null ? `${identity.age_years} years` : null],
                         ['Date of birth', identity.date_of_birth ? fmtDate(identity.date_of_birth) : null],
@@ -765,7 +766,7 @@
             ['File number', c.file_number],
             ['Claimant', c.name_of_claimant],
             ['ID / Passport', c.claimant_id_number],
-            ['Sex', window.formatSexDisplay(c.gender === 'M' ? 'Male' : c.gender === 'F' ? 'Female' : c.gender)],
+            ['Gender', window.formatSexDisplay(c.gender === 'M' ? 'Male' : c.gender === 'F' ? 'Female' : c.gender)],
             ['Nationality', c.nationality],
             ['Location', c.location],
             ['Employer', c.name_of_employer],
@@ -891,14 +892,14 @@
     }
 
     // ── Timeline render ──────────────────────────────────────
-    function filterTimeline(pill) {
+    function filterTimeline(pill, medicalExams, permImpairments) {
         document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
         currentFilter = pill.dataset.filter;
-        renderTimeline(currentFilter);
+        renderTimeline(currentFilter, medicalExams, permImpairments);
     }
 
-    function renderTimeline(filter) {
+    function renderTimeline(filter, medicalExams, permImpairments) {
         const list = document.getElementById('incidentList');
         const filtered = filter === 'all'
             ? allIncidents
@@ -1032,7 +1033,7 @@ function viewMedForm(formType, formId) {
       fld('Worker Name', form.worker_name) +
       fld('WCC Ref No.', form.wcc_ref_no) +
       fld('Date of Birth', form.date_of_birth) +
-      fld('Sex', form.sex) +
+      fld('Gender', form.sex) +
       fld('Hospital/Ref', form.hospital_name_ref) +
       '</div><div class="med-form-section">' +
       fld('Physical Examination', form.physical_examination) +
@@ -1128,7 +1129,7 @@ function incidentCard(i) {
             ['Industry',          i.nature_of_industry + (i.industry_sector ? ` (${i.industry_sector})` : '')],
             ['Injured Person',    i.injured_name],
             ['Age',               i.injured_age],
-            ['Sex',               window.formatSexDisplay(i.injured_sex)],
+            ['Gender',               window.formatSexDisplay(i.injured_sex)],
             ['ID / Passport',     i.injured_id_number],
             ['Occupation (at time)', i.occupation_at_accident],
             ['Normal Occupation', i.usual_occupation],

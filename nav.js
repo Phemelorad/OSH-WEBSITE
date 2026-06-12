@@ -15,6 +15,7 @@
 //   injury-disease          → injury-disease-report.html
 //   injury-disease-entries  → injury-disease-entries.html
 //   worker-profile          → worker-profile.html
+//   case-tracking           → case-tracking.html
 //   worker-claims           → worker-claims.html
 //   medical-examination     → medical-examination.html
 //   clientele               → clientele.html

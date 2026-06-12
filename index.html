@@ -485,25 +485,6 @@
                 </div>
             </div>
 
-            <div id="loginWorkerFields" class="role-specific-fields hidden">
-                <h3>Employee Account</h3>
-                <div class="form-group">
-                    <label for="loginWorkerId">Omang / Passport Number</label>
-                    <input type="text" id="loginWorkerId" name="loginWorkerId" placeholder="Enter your Omang or Passport number">
-                    <span class="error-message">Please enter your Omang or Passport number</span>
-                </div>
-            </div>
-
-            <div id="loginCompanyFields" class="role-specific-fields hidden">
-                <h3>Employer Account</h3>
-                <div class="form-group">
-                    <label for="loginCompanyName">Employer Name<span class="req">*</span></label>
-                    <input type="text" id="loginCompanyName" name="loginCompanyName"
-                           placeholder="Enter your registered company name" autocomplete="off">
-                    <span class="error-message">Employer name is required</span>
-                </div>
-            </div>
-
             <div class="form-group">
                 <label for="loginEmail">Email Address</label>
                 <input type="email" id="loginEmail" name="email" placeholder="your.email@example.com" required>
@@ -657,7 +638,7 @@
                 <h3>Workplace Details</h3>
                 <div class="form-group">
                 <label for="workerIdNumber">Omang / Passport Number <span class="req">*</span></label>
-                    <input type="text" id="workerIdNumber" name="workerIdNumber" placeholder="Enter your Omang or Passport number">
+                    <input type="text" id="workerIdNumber" name="workerIdNumber" placeholder="Enter your Omang or Passport number" maxlength="8" pattern="[0-9]{8}" inputmode="numeric">
                     <span class="error-message">Please enter your Omang or Passport number</span>
                 </div>
             <div class="form-group">
@@ -779,12 +760,11 @@
                 // Toggle fields based on which form we're in
                 if (parentForm.id === 'loginForm') {
                     document.getElementById('loginWorkerFields').classList.add('hidden');
-                    document.getElementById('loginCompanyFields').classList.add('hidden');
-                    if (selectedRole === 'worker') {
+                                        if (selectedRole === 'worker') {
                         document.getElementById('loginWorkerFields').classList.remove('hidden');
                     }
                     if (selectedRole === 'company') {
-                        document.getElementById('loginCompanyFields').classList.remove('hidden');
+                        // Company login - no additional fields needed
                     }
                 } else {
                     document.getElementById('companyFields').classList.add('hidden');
@@ -868,7 +848,7 @@
         }
 
         // ── Blur validation ────────────────────────────
-        ['loginEmail','loginPassword','loginCompanyName','firstName','surname','registerEmail',
+        ['loginEmail','loginPassword','firstName','surname','registerEmail',
          'registerPassword','confirmPassword','location',
          'companyName','ownerName','ownerEmail','companyPhone','cipaNumber','plotNumber','streetName','physicalAddress',
          'workplaceCompany','employeeId','practiceName','medRegNumber'].forEach(id => {
@@ -901,17 +881,9 @@
 
             // Validate worker ID number if worker role
             const loginWorkerId = document.getElementById('loginWorkerId').value.trim();
-            const loginCompanyName = (document.getElementById('loginCompanyName')?.value || '').trim();
             if (loginRoleValue === 'worker' && !loginWorkerId) {
                 document.getElementById('loginWorkerId').classList.add('error');
                 await showAlert('Please enter your Omang or Passport number.', { type: 'warning', title: 'ID Required' });
-                return;
-            }
-
-            // Validate company name if employer role
-            if (loginRoleValue === 'company' && !loginCompanyName) {
-                document.getElementById('loginCompanyName').classList.add('error');
-                await showAlert('Please enter your employer name.', { type: 'warning', title: 'Employer Name Required' });
                 return;
             }
 
@@ -922,12 +894,7 @@
                 sessionStorage.removeItem('worker_id_number');
             }
 
-            if (loginRoleValue === 'company') {
-                sessionStorage.setItem('login_company_name', loginCompanyName);
-            } else {
-                sessionStorage.removeItem('login_company_name');
-            }
-
+            // Company role - session handled by profile
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked;
@@ -959,24 +926,7 @@
                     const profile = userProfile.data;
 
                     // For company users, verify the company name matches
-                    if (profile.role === 'company' && typeof loginCompanyName === 'string' && loginCompanyName) {
-                        if (profile.company_id) {
-                            const { data: company } = await supabaseClient
-                                .from('companies')
-                                .select('company_name')
-                                .eq('id', profile.company_id)
-                                .maybeSingle();
-
-                            if (company && String(company.company_name).toLowerCase() !== String(loginCompanyName).toLowerCase()) {
-                                await showAlert(`Employer name mismatch. This account is registered under "${company.company_name}".`, {
-                                    type: 'error', title: 'Employer Name Mismatch'
-                                });
-                                return;
-                            }
-                        }
-                    }
-
-                    sessionStorage.setItem('user', JSON.stringify(profile));
+                                        sessionStorage.setItem('user', JSON.stringify(profile));
                     const redirectUrl = profile.role === 'company'
                         ? 'company-view.html'
                         : profile.role === 'medical_practitioner'

@@ -432,7 +432,7 @@
     const rows = [
       ['File Number',   claim.file_number],
       ['Claimant',      claim.name_of_claimant],
-      ['Sex',        claim.gender === 'M' ? 'Male' : 'Female'],
+      ['Gender',        claim.gender === 'M' ? 'Male' : 'Female'],
       ['Employer',      claim.name_of_employer],
       ['Industry',      claim.industry],
       ['Location',      claim.location],

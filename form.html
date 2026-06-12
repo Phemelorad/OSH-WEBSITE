@@ -374,7 +374,7 @@
                     <div class="form-group">
                         <label for="claimantIdNumber">Omang / Passport Number<span class="required">*</span></label>
                         <input type="text" id="claimantIdNumber" name="claimantIdNumber"
-                               placeholder="Enter Omang or passport number" required
+                               placeholder="Enter Omang or passport number" maxlength="8" pattern="[0-9]{8}" inputmode="numeric" required
                                style="text-transform:uppercase">
                         <span class="error-message">ID number is required</span>
                     </div>
@@ -392,13 +392,13 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="gender">Sex<span class="required">*</span></label>
+                            <label for="gender">Gender<span class="required">*</span></label>
                             <select id="gender" name="gender" data-sex-format="mf" required>
-                                <option value="">— Select sex —</option>
+                                <option value="">— Select gender —</option>
                                 <option value="M">Male</option>
                                 <option value="F">Female</option>
                             </select>
-                            <span class="error-message">Please select sex</span>
+                            <span class="error-message">Please select gender</span>
                         </div>
 
                         <div class="form-group">
@@ -511,10 +511,49 @@
                     nationality:        'nationality',
                     address:            'location',
                     employer_name:      'nameOfEmployer',
+                    email:              'claimantEmail',
                     worker_registry_id: 'workerRegistryId',
                 },
                 saveNewWorker: true,
                 onFound: refreshClaimFileNumberPreview,
+            });
+            // ── Company autofill ──
+            function attachCompanyAutofill() {
+                var el = document.getElementById("nameOfEmployer");
+                if (!el) return;
+                var timer = null;
+                el.addEventListener("input", function () {
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(async function () {
+                        var val = el.value.trim();
+                        if (val.length < 3) return;
+                        var company = await window.searchCompany(val);
+                        if (company) {
+                            var industry = document.getElementById("industry");
+                            var location = document.getElementById("location");
+                            if (company.industry && industry && !industry.value) {
+                                var opts = industry.querySelectorAll("option");
+                                for (var i = 0; i < opts.length; i++) {
+                                    if (opts[i].value.toUpperCase() === company.industry.toUpperCase()) {
+                                        industry.value = opts[i].value;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (company.location && location && !location.value) {
+                                location.value = company.location;
+                            }
+                            if ((company.industry && industry && !industry.value) ||
+                                (company.location && location && !location.value)) {
+                                if (typeof showToast === "function") {
+                                    showToast("Company info auto-filled", "info");
+                                }
+                            }
+                        }
+                    }, 600);
+                });
+            }
+            attachCompanyAutofill();
             });
 
             const claimantIdEl = document.getElementById('claimantIdNumber');
@@ -652,6 +691,28 @@
                     return;
                 }
 
+                // ── Duplicate check (before registry upsert) ──
+                const dupId = claimantId ? claimantId.toUpperCase() : '';
+                if (dupId) {
+                  const dupeCheck = await window.checkDuplicate('injury_claims', 'claimant_id_number', dupId, 'claim for this ID number');
+                  if (dupeCheck.exists && !dupeCheck.confirmed) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                    return;
+                  }
+                }
+
+                // ── File number duplicate check ──
+                const previewedFile = document.getElementById('fileNumber')?.value?.trim();
+                if (previewedFile) {
+                  const fileDup = await window.checkDuplicate('injury_claims', 'file_number', previewedFile, 'claim with this file number');
+                  if (fileDup.exists && !fileDup.confirmed) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                    return;
+                  }
+                }
+
                 const registryId = await upsertWorkerRegistry({
                     id_number:          'claimantIdNumber',
                     full_name:          'nameOfClaimant',
@@ -659,6 +720,7 @@
                     nationality:        'nationality',
                     address:            'location',
                     employer_name:      'nameOfEmployer',
+                    email:              'claimantEmail',
                     worker_registry_id: 'workerRegistryId',
                 }) || window._resolvedWorkerId || null;
 

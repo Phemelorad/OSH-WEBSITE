@@ -353,7 +353,7 @@
             </div>
             <div class="form-row form-row-3">
               <div class="form-group">
-                <label>Sex<span class="req">*</span></label>
+                <label>Gender<span class="req">*</span></label>
                 <select name="injured_sex" id="injuredSex" required>
                   <option value="">— Select —</option>
                   <option value="Male">Male</option>
@@ -365,6 +365,7 @@
                 <label>Omang / Passport Number<span class="req">*</span></label>
                 <input type="text" name="injured_id_number" id="injuredId"
                        placeholder="Omang or passport number" required
+                       maxlength="8" pattern="[0-9]{8}" inputmode="numeric"
                        style="text-transform:uppercase">
                 <span class="err-msg">Required</span>
               </div>
@@ -702,6 +703,16 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
+            // ── Duplicate check (before registry upsert) ──
+            const dupId = (g('injuredId') || '').toUpperCase();
+            if (dupId) {
+              const dupeCheck = await window.checkDuplicate('accident_reports', 'injured_id_number', dupId, 'accident report with this ID number');
+              if (dupeCheck.exists && !dupeCheck.confirmed) {
+                btn.disabled = false; btn.textContent = 'Submit Accident Report';
+                return;
+              }
+            }
+
             const registryId = await upsertWorkerRegistry({
                 id_number:          'injuredId',
                 full_name:          'injuredName',
@@ -710,6 +721,7 @@
                 usual_occupation:   'usualOccupation',
                 experience_level:   'experienceLevel',
                 age_years:          'injuredAge',
+                email:              'injuredEmail',
                 worker_registry_id: 'accidentWorkerRegistryId',
             }) || window._resolvedWorkerId || null;
 
@@ -871,5 +883,18 @@
                 });
         // ── Company autofill call ─────────────────────
         attachCompanyAutofill();
+
+        // ── Disable official-use fields for company users ──
+        if (typeof isCompanyUser === 'function' && isCompanyUser()) {
+            var officialFields = document.querySelectorAll('.official-box input, .official-box select, .official-box textarea');
+            officialFields.forEach(function(f) { f.disabled = true; f.title = 'OSH Officer will complete this'; });
+            // Add a notice
+            var notice = document.createElement('p');
+            notice.className = 'hint';
+            notice.style.cssText = 'margin-top:8px;font-style:italic;color:#856404;';
+            notice.textContent = 'These fields will be completed by an OSH Officer.';
+            var officialBox = document.querySelector('.official-box');
+            if (officialBox) officialBox.appendChild(notice);
+        }
     });
     </script>

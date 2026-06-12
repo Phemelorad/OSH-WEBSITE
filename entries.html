@@ -608,7 +608,7 @@
         }
 
         function exportToCSV() {
-            const headers = ['File Number', 'Claimant', 'Sex', 'Employer', 'Industry', 'Date of Injury', 'Date Reported', 'Date Received', 'Cause', 'Nature', 'Incapacity %', 'Location', 'Nationality', 'Status', 'Submitted'];
+            const headers = ['File Number', 'Claimant', 'Gender', 'Employer', 'Industry', 'Date of Injury', 'Date Reported', 'Date Received', 'Cause', 'Nature', 'Incapacity %', 'Location', 'Nationality', 'Status', 'Submitted'];
             
             const rows = allClaims.map(claim => [
                 claim.file_number,

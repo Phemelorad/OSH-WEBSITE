@@ -416,5 +416,21 @@
     window.cacheUserProfile = cacheUserProfile;
     window.getCachedUserProfile = getCachedUserProfile;
     window.clearCachedUserProfile = clearCachedUserProfile;
+    // ── Company search ───────────────────────────────────────────
+    window.searchCompany = async function(name) {
+        if (!name || name.length < 3) return null;
+        try {
+            const { data, error } = await supabaseClient
+                .from("companies")
+                .select("*")
+                .ilike("company_name", name + "%")
+                .limit(1);
+            if (error) throw error;
+            return data && data.length > 0 ? data[0] : null;
+        } catch (e) {
+            console.warn("Company lookup failed:", e);
+            return null;
+        }
+    };
 
 })();

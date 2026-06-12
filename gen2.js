@@ -1,0 +1,1 @@
+﻿const fs = require("fs"); const html = "<!DOCTYPE html>\n<html lang=en>\n<head>\n<meta charset=UTF-8>\n<title>Case Tracking</title>\n</head>\n<body>\n<h1>Case Tracking</h1>\n<p>Test page</p>\n</body>\n</html>"; fs.writeFileSync("C:\Users\26772\osh website\case-tracking.html", html, "utf8"); console.log("OK");
