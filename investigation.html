@@ -174,7 +174,7 @@
             // Fetch accident reports
             const [accRes, injRes] = await Promise.all([
                 SB.from('accident_reports').select('id, occupier_name, injured_name, accident_date, injury_fatal, investigation_status, reporter_name, report_type, nature_of_industry').order('accident_date', { ascending: false }),
-                SB.from('injury_disease_reports').select('id, employer_name, worker_name, incident_date, resulted_death, investigation_status, reporter_name, incident_type, nature_of_injury').order('incident_date', { ascending: false })
+                SB.from('injury_disease_reports').select('id, employer_name, worker_name, incident_date, resulted_death, incident_type, nature_of_injuries, signatory_name').order('incident_date', { ascending: false })
             ]);
 
             // Combine into unified records
@@ -186,7 +186,7 @@
                 date: r.accident_date,
                 fatal: r.injury_fatal === 'Fatal' ? 'Yes' : 'No',
                 status: r.investigation_status || 'Pending',
-                reporter: r.reporter_name || '—',
+                reporter: r.signatory_name || '—',
                 nature: r.nature_of_industry || '—',
                 sourceTable: 'accident_reports',
                 sourceId: r.id
@@ -199,9 +199,9 @@
                 person: r.worker_name || '—',
                 date: r.incident_date,
                 fatal: r.resulted_death === 'Yes' ? 'Yes' : 'No',
-                status: r.investigation_status || 'Pending',
+                status: 'Pending',
                 reporter: r.reporter_name || '—',
-                nature: r.nature_of_injury || '—',
+                nature: r.nature_of_injuries || '—',
                 sourceTable: 'injury_disease_reports',
                 sourceId: r.id
             }));
