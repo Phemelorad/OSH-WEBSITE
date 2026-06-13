@@ -126,14 +126,13 @@
                 <div class="table-container">
                     <table>
                         <thead><tr>
+                            <th>Accident #</th>
                             <th>Occupier / Employer</th>
-                            <th>Injured Person</th>
-                            <th>Age / Gender</th>
                             <th>Industry</th>
                             <th>Report Type</th>
                             <th>Accident Date</th>
                             <th>Place</th>
-                            <th>Fatal?</th>
+                            <th>Fatal</th>
                             <th>Investigation</th>
                             <th>Reporter</th>
                             <th>Report Date</th>
@@ -166,7 +165,23 @@
     async function loadData() {
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('tableWrap').style.display = 'none';
-        const { data, error } = await SB.from('accident_reports').select('*').order('accident_date', { ascending: false });
+        // Fetch accident reports and linked injury data for fatal counts
+            const [accRes, injRes] = await Promise.all([
+                SB.from('accident_reports').select('*').order('accident_date', { ascending: false }),
+                SB.from('injury_disease_reports').select('accident_id, resulted_death')
+            ]);
+            const data = accRes.data;
+            const error = accRes.error;
+
+            // Count fatalities per accident from linked injury reports
+            const fatalCounts = {};
+            if (injRes.data) {
+                injRes.data.forEach(inj => {
+                    if (inj.accident_id && inj.resulted_death === 'Yes') {
+                        fatalCounts[inj.accident_id] = (fatalCounts[inj.accident_id] || 0) + 1;
+                    }
+                });
+            }
         if (error) {
             document.getElementById('loadingState').innerHTML = `<p style="color:#e74c3c;padding:40px;text-align:center">Error: ${error.message} <br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>`;
             return;
@@ -210,17 +225,15 @@
         const canEdit = canEditClaims ? canEditClaims : () => true;
         tbody.innerHTML = rows.map(r => {
             const typeSlug  = (r.report_type || '').replace('_','-');
-            const fatalSlug = (r.injury_fatal || '').toLowerCase().replace('-','').replace(' ','');
             const invSlug   = (r.investigation_status || 'submitted').toLowerCase().replace(' ','_');
             return `<tr>
+                <td><span style="font-size:12px;color:#0c5460;font-weight:600">${r.accident_case_number || '—'}</span></td>
                 <td><strong>${r.occupier_name || '—'}</strong><br><small style="color:#aaa">${r.nature_of_industry || ''}</small></td>
-                <td>${r.injured_name || '—'}</td>
-                <td>${r.injured_age ? r.injured_age + ' / ' + (r.injured_sex || '') : '—'}</td>
                 <td>${r.industry_sector || '—'}</td>
                 <td><span class="badge badge-${typeSlug}">${(r.report_type || '').replace('_',' ').toUpperCase()}</span></td>
                 <td style="white-space:nowrap">${fmtDate(r.accident_date)}</td>
                 <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.accident_place||''}">${r.accident_place || r.premises_address || '—'}</td>
-                <td><span class="badge badge-${r.injury_fatal === 'Fatal' ? 'fatal' : 'non-fatal'}">${r.injury_fatal || '—'}</span></td>
+                <td>${r.fatal_count != null && r.fatal_count > 0 ? '<span class="badge badge-fatal">⚠ ' + r.fatal_count + ' Fatal</span>' : '<span class="badge badge-non-fatal">—</span>'}</td>
                 <td><span class="badge badge-${invSlug}">${r.investigation_status || 'Pending'}</span></td>
                 <td>${r.reporter_name || '—'}</td>
                 <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
