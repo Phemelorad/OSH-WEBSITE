@@ -414,59 +414,74 @@
   // ── 6. showClaimDetails(claim) ────────────────────────────
   window.showClaimDetails = function (claim) {
     const statusColors = {
-      pending      : '#856404',
-      under_review : '#0c5460',
-      approved     : '#155724',
-      rejected     : '#721c24',
-      closed       : '#383d41',
+      pending      : '#856404', under_review : '#0c5460',
+      approved     : '#155724', rejected     : '#721c24', closed : '#383d41',
     };
     const statusBg = {
-      pending      : '#fff3cd',
-      under_review : '#d1ecf1',
-      approved     : '#d4edda',
-      rejected     : '#f8d7da',
-      closed       : '#e2e3e5',
+      pending      : '#fff3cd', under_review : '#d1ecf1',
+      approved     : '#d4edda', rejected     : '#f8d7da', closed : '#e2e3e5',
     };
 
-    const statusStyle = `background:${statusBg[claim.status] || '#eee'};color:${statusColors[claim.status] || '#333'};padding:3px 10px;border-radius:12px;font-weight:600;font-size:12px;`;
-    const rows = [
-      ['File Number',   claim.file_number],
-      ['Claimant',      claim.name_of_claimant],
-      ['Gender',        claim.gender === 'M' ? 'Male' : 'Female'],
-      ['Employer',      claim.name_of_employer],
-      ['Industry',      claim.industry],
-      ['Location',      claim.location],
-      ['Nationality',   claim.nationality],
-      ['Date of Injury',claim.date_of_injury],
-      ['Cause',         claim.cause],
-      ['Nature',        claim.nature],
-      ['Incapacity',    `<strong>${claim.incapacity_percentage}%</strong>`],
-      ['Status',        `<span style="${statusStyle}">${claim.status.replace('_',' ').toUpperCase()}</span>`],
-    ].map(([label, value]) => `
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:16px;">
-        <span style="color:#888;font-size:13px;white-space:nowrap;">${label}</span>
-        <span style="color:#333;font-size:13px;text-align:right;">${value ?? '—'}</span>
-      </div>`).join('');
+    function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
+
+    const sbg = statusBg[claim.status] || '#eee';
+    const sc = statusColors[claim.status] || '#333';
+    const statusBadge = claim.status ? '<span style="background:' + sbg + ';color:' + sc + ';padding:3px 10px;border-radius:12px;font-weight:600;font-size:12px">' + claim.status.replace('_',' ').toUpperCase() + '</span>' : '';
+
+    const claimantSection = '<div class="rec-section">' +
+      '<div class="rec-section-header worker">\u{1F464} Claimant Details</div>' +
+      '<div class="rec-section-body">' +
+      f('Claimant', claim.name_of_claimant) +
+      f('Gender', claim.gender === 'M' ? 'Male' : 'Female') +
+      f('Location', claim.location) +
+      f('Nationality', claim.nationality) +
+      '</div></div>';
+
+    const injurySection = '<div class="rec-section">' +
+      '<div class="rec-section-header incident">\u{1F6A8} Injury Details</div>' +
+      '<div class="rec-section-body">' +
+      f('File Number', claim.file_number) +
+      f('Date of Injury', claim.date_of_injury) +
+      f('Cause', claim.cause) +
+      f('Nature', claim.nature) +
+      f('Incapacity', claim.incapacity_percentage != null ? claim.incapacity_percentage + '%' : '') +
+      '</div></div>';
+
+    const employerSection = '<div class="rec-section">' +
+      '<div class="rec-section-header employer">\u{1F3E2} Employer</div>' +
+      '<div class="rec-section-body">' +
+      f('Employer', claim.name_of_employer) +
+      f('Industry', claim.industry) +
+      '</div></div>';
+
+    const statusSection = claim.status ? '<div class="rec-section">' +
+      '<div class="rec-section-header report">\u{2139}\uFE0F Status</div>' +
+      '<div class="rec-section-body">' +
+      f('Status', statusBadge) +
+      '</div></div>' : '';
+
+    const modalHtml = '<div class="rec-modal">' +
+      '<div class="rec-modal-header">' +
+      '<div>' +
+      '<h2>\u{1F4C4} Claim Details</h2>' +
+      '<div class="subtitle">' + (claim.file_number || 'Compensation Claim') + '</div>' +
+      '</div>' +
+      '<button class="rec-modal-close" id="recCloseBtn">\u2715</button>' +
+      '</div>' +
+      '<div class="rec-modal-body">' +
+      claimantSection +
+      injurySection +
+      employerSection +
+      statusSection +
+      '</div>' +
+      '</div>';
 
     return new Promise(resolve => {
-      const overlay = buildOverlay();
-      const modal   = buildModal('info');
-      modal.style.maxWidth = '480px';
-
-      modal.innerHTML = `
-        <div class="osh-modal-icon">📄</div>
-        <div class="osh-modal-title">Claim Details</div>
-        <div style="max-height:360px;overflow-y:auto;margin-bottom:20px;">${rows}</div>
-        <div class="osh-modal-actions">
-          <button class="osh-btn osh-btn-primary" id="osh-ok">Close</button>
-        </div>`;
-
-      overlay._dismiss = () => { hide(overlay); resolve(); };
-      overlay.appendChild(modal);
-      show(overlay);
-      modal.querySelector('#osh-ok').addEventListener('click', overlay._dismiss);
+      const overlay = document.createElement('div');
+      overlay.className = 'rec-modal-overlay';
+      overlay.innerHTML = modalHtml;
+      overlay.querySelector('#recCloseBtn').addEventListener('click', () => { overlay.remove(); resolve(); });
+      overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(); } });
+      document.body.appendChild(overlay);
     });
-  };
-
-
-})();
+  }

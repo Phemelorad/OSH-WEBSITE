@@ -293,7 +293,86 @@
         .incident-card.med-form-card[data-form-type="impairment"] {
             border-left-color: #a78bfa;
         }
-</style>
+
+        /* ── Sectioned record view modal ────────── */
+        .rec-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px; backdrop-filter: blur(4px);
+        }
+        .rec-modal {
+            background: white; border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            width: 100%; max-width: 620px;
+            max-height: 90vh; overflow-y: auto;
+            animation: recSlideIn 0.25s ease;
+        }
+        @keyframes recSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .rec-modal-header {
+            padding: 24px 28px 16px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            position: sticky; top: 0; background: white; z-index: 10;
+            border-radius: 16px 16px 0 0;
+        }
+        .rec-modal-header h2 { font-size: 18px; color: #222; margin: 0 0 2px; }
+        .rec-modal-header .subtitle { font-size: 12px; color: #888; }
+        .rec-modal-close {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: none; background: #f5f5f5; cursor: pointer;
+            font-size: 18px; display: flex; align-items: center;
+            justify-content: center; transition: all 0.2s; color: #555; flex-shrink: 0;
+        }
+        .rec-modal-close:hover { background: #e0e0e0; }
+        .rec-modal-body { padding: 20px 28px 28px; }
+        .rec-section {
+            margin-bottom: 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .rec-section:last-child { margin-bottom: 0; }
+        .rec-section-header {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rec-section-header.employer { background: #e8f4fd; color: #0c5460; border-bottom-color: #bee5eb; }
+        .rec-section-header.worker   { background: #fff3cd; color: #856404; border-bottom-color: #ffeeba; }
+        .rec-section-header.incident { background: #f8d7da; color: #721c24; border-bottom-color: #f5c6cb; }
+        .rec-section-header.investigation { background: #e2e3e5; color: #383d41; border-bottom-color: #d6d8db; }
+        .rec-section-body { padding: 8px 16px; }
+        .rec-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: 1px solid #f8f8f8;
+            gap: 16px;
+        }
+        .rec-field:last-child { border-bottom: none; }
+        .rec-field .lbl {
+            font-size: 12px;
+            color: #888;
+            min-width: 130px;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+        .rec-field .val {
+            font-size: 13px;
+            color: #333;
+            text-align: right;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+    </style>
 </head>
 <body>
     <div class="navbar">
@@ -1117,102 +1196,169 @@ function incidentCard(i) {
         </div>`;
     }
 
-    // ── Incident detail modal ─────────────────────────────────
-    async function viewIncidentDetail(id, type) {
+    // ── Incident detail modal ─────────────────────────────────    async function viewIncidentDetail(id, type) {
         const i = allIncidents.find(x => x.id === id);
         if (!i) return;
         const isAccident = type === 'accident';
 
-        const fields = isAccident ? [
-            ['Form',              'OHS Form 60 — Notification of Accident'],
-            ['Case Number',       i.accident_case_number || '—'],
-            ['Occupier / Employer', i.occupier_name],
-            ['Premises Address',  i.premises_address],
-            ['Industry',          i.nature_of_industry + (i.industry_sector ? ` (${i.industry_sector})` : '')],
-            ['Injured Person',    i.injured_name],
-            ['Age',               i.injured_age],
-            ['Gender',               window.formatSexDisplay(i.injured_sex)],
-            ['ID / Passport',     i.injured_id_number],
-            ['Occupation (at time)', i.occupation_at_accident],
-            ['Normal Occupation', i.usual_occupation],
-            ['Experience Level',  i.experience_level],
-            ['Date of Accident',  fmtDate(i.accident_date)],
-            ['Time',              i.accident_time],
-            ['Place',             i.accident_place],
-            ['Description',       i.accident_description],
-            ['Machinery Involved',i.machinery_involved],
-            ['Fatal?',            i.injury_fatal],
-            ['Disabled 3+ days',  i.disabled_three_days],
-            ['Hourly Pay (BWP)',   i.hourly_pay],
-            ['Medical Practitioner', i.medical_practitioner],
-            ['Dangerous Occ. Date', i.dangerous_date ? fmtDate(i.dangerous_date) : null],
-            ['Dangerous Occ. Description', i.dangerous_description],
-            ['Damage / Financial Loss', i.dangerous_damage],
-            ['Employees Injured', i.employees_injured],
-            ['Reporter',          i.reporter_name + (i.reporter_designation ? ` (${i.reporter_designation})` : '')],
-            ['Report Date',       fmtDate(i.report_date)],
-            ['Causation No.',     i.causation_number],
-            ['Investigation',     i.investigation_status],
-            ['Official Action',   i.official_action],
-        ] : [
-            ['Form',              'BL Form 43/10 — Injury and Disease Report'],
-            ['Worker',            i.worker_name],
-            ['Address',           i.worker_address],
-            ['Occupation',        i.occupation],
-            ['ID / Passport',     i.worker_id_number],
-            ['Incident Date',     fmtDate(i.incident_date)],
-            ['Place',             i.place_of_accident],
-            ['Type',              i.incident_type],
-            ['Nature of Injuries / Disease', i.nature_of_injuries],
-            ['Resulted in Death', i.resulted_death],
-            ['Permanent Incapacity', i.permanent_incapacity],
-            ['Temporary Incapacity', i.temporary_incapacity],
-            ['Next of Kin Informed', i.nok_informed],
-            ['Employer',          i.employer_name],
-            ['Employer Tel',      i.employer_telephone],
-            ['Signatory',         i.signatory_name + (i.signatory_designation ? ` (${i.signatory_designation})` : '')],
-            ['Report Date',       fmtDate(i.report_date)],
-        ];
+        function f(label, val) { return val != null && val !== '' && val !== '\u2014' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
 
-        const rowsHTML = fields.filter(([,v]) => v != null && v !== '' && v !== '—').map(([label, value]) =>
-            `<div style="display:flex;justify-content:space-between;padding:7px 0;
-                         border-bottom:1px solid #f5f5f5;gap:16px;">
-                <span style="color:#888;font-size:13px;min-width:160px;flex-shrink:0">${label}</span>
-                <span style="color:#333;font-size:13px;text-align:right;line-height:1.4">${value}</span>
-            </div>`
-        ).join('');
+        let modalHtml;
+        const icon = isAccident ? '\u{1F6A8}' : type === 'disease' ? '\u{1F9A0}' : '\u{1F3E5}';
 
-        const icon = isAccident ? '🚨' : type === 'disease' ? '🦠' : '🏥';
+        if (isAccident) {
+            // ── Employer Details ─────────────────────────
+            const employerSection = '<div class="rec-section">' +
+                '<div class="rec-section-header employer">\u{1F3E2} Employer Details</div>' +
+                '<div class="rec-section-body">' +
+                f('Occupier / Employer', i.occupier_name) +
+                f('Premises Address', i.premises_address) +
+                f('Industry', i.nature_of_industry + (i.industry_sector ? ' (' + i.industry_sector + ')' : '')) +
+                f('Case Number', i.accident_case_number) +
+                '</div></div>';
+
+            // ── Injured Worker Details ────────────────────
+            const workerSection = i.injured_name ? '<div class="rec-section">' +
+                '<div class="rec-section-header worker">\u{1F464} Injured Worker Details</div>' +
+                '<div class="rec-section-body">' +
+                f('Full Name', i.injured_name) +
+                f('Age', i.injured_age) +
+                f('Gender', window.formatSexDisplay ? window.formatSexDisplay(i.injured_sex) : i.injured_sex) +
+                f('ID / Passport', i.injured_id_number) +
+                f('Occupation at Accident', i.occupation_at_accident) +
+                f('Normal Occupation', i.usual_occupation) +
+                f('Experience Level', i.experience_level) +
+                '</div></div>' : '';
+
+            // ── Accident Details ─────────────────────────
+            const accidentSection = '<div class="rec-section">' +
+                '<div class="rec-section-header incident">\u{1F6A8} Accident Details</div>' +
+                '<div class="rec-section-body">' +
+                f('Date', fmtDate(i.accident_date)) +
+                f('Time', i.accident_time) +
+                f('Place', i.accident_place) +
+                f('Description', i.accident_description) +
+                f('Machinery Involved', i.machinery_involved) +
+                f('Fatal?', i.injury_fatal) +
+                f('Disabled 3+ Days', i.disabled_three_days) +
+                f('Hourly Pay (BWP)', i.hourly_pay) +
+                f('Medical Practitioner', i.medical_practitioner) +
+                '</div></div>';
+
+            // ── Dangerous Occurrence ──────────────────────
+            const dangerSection = (i.dangerous_date || i.dangerous_description || i.dangerous_damage) ?
+                '<div class="rec-section">' +
+                '<div class="rec-section-header incident">\u26A0\uFE0F Dangerous Occurrence</div>' +
+                '<div class="rec-section-body">' +
+                f('Date', i.dangerous_date ? fmtDate(i.dangerous_date) : null) +
+                f('Description', i.dangerous_description) +
+                f('Damage / Financial Loss', i.dangerous_damage) +
+                f('Employees Injured', i.employees_injured) +
+                '</div></div>' : '';
+
+            // ── Investigation & Reporting ────────────────
+            const investSection = '<div class="rec-section">' +
+                '<div class="rec-section-header investigation">\u{1F50D} Investigation & Reporting</div>' +
+                '<div class="rec-section-body">' +
+                f('Reporter', i.reporter_name + (i.reporter_designation ? ' (' + i.reporter_designation + ')' : '')) +
+                f('Report Date', fmtDate(i.report_date)) +
+                f('Causation No.', i.causation_number) +
+                f('Investigation Status', i.investigation_status) +
+                f('Official Action', i.official_action) +
+                '</div></div>';
+
+            modalHtml = '<div class="rec-modal">' +
+                '<div class="rec-modal-header">' +
+                '<div>' +
+                '<h2>\u{1F6A8} Accident Report</h2>' +
+                '<div class="subtitle">OHS Form 60' +
+                (i.accident_date ? ' \u2014 ' + fmtDate(i.accident_date) : '') +
+                '</div>' +
+                '</div>' +
+                '<button class="rec-modal-close" id="recCloseBtn">\u2715</button>' +
+                '</div>' +
+                '<div class="rec-modal-body">' +
+                employerSection +
+                workerSection +
+                accidentSection +
+                dangerSection +
+                investSection +
+                '</div>' +
+                '</div>';
+
+        } else {
+            // ── Injury / Disease Report ──────────────────
+            const isDisease = type === 'disease';
+
+            // ── Worker Details ───────────────────────────
+            const workerSection = '<div class="rec-section">' +
+                '<div class="rec-section-header worker">\u{1F464} Worker Details</div>' +
+                '<div class="rec-section-body">' +
+                f('Worker Name', i.worker_name) +
+                f('Address', i.worker_address) +
+                f('Occupation', i.occupation) +
+                f('ID / Passport', i.worker_id_number) +
+                '</div></div>';
+
+            // ── Incident Details ─────────────────────────
+            const incidentSection = '<div class="rec-section">' +
+                '<div class="rec-section-header incident">\u{1F6A8} Incident Details</div>' +
+                '<div class="rec-section-body">' +
+                f('Date', fmtDate(i.incident_date)) +
+                f('Place', i.place_of_accident) +
+                f('Type', i.incident_type) +
+                f('Nature of Injuries / Disease', i.nature_of_injuries) +
+                '</div></div>';
+
+            // ── Outcome ──────────────────────────────────
+            const outcomeSection = (i.resulted_death || i.permanent_incapacity || i.temporary_incapacity || i.nok_informed) ?
+                '<div class="rec-section">' +
+                '<div class="rec-section-header incident">\u{2695}\uFE0F Outcome</div>' +
+                '<div class="rec-section-body">' +
+                f('Resulted in Death', i.resulted_death) +
+                f('Permanent Incapacity', i.permanent_incapacity) +
+                f('Temporary Incapacity', i.temporary_incapacity) +
+                f('Next of Kin Informed', i.nok_informed) +
+                '</div></div>' : '';
+
+            // ── Employer Details ─────────────────────────
+            const employerSection = '<div class="rec-section">' +
+                '<div class="rec-section-header employer">\u{1F3E2} Employer Details</div>' +
+                '<div class="rec-section-body">' +
+                f('Employer', i.employer_name) +
+                f('Telephone', i.employer_telephone) +
+                f('Signatory', i.signatory_name + (i.signatory_designation ? ' (' + i.signatory_designation + ')' : '')) +
+                f('Report Date', fmtDate(i.report_date)) +
+                '</div></div>';
+
+            modalHtml = '<div class="rec-modal">' +
+                '<div class="rec-modal-header">' +
+                '<div>' +
+                '<h2>' + (isDisease ? '\u{1F9A0} Disease Report' : '\u{1F3E5} Injury Report') + '</h2>' +
+                '<div class="subtitle">BL Form 43/10' +
+                (i.incident_date ? ' \u2014 ' + fmtDate(i.incident_date) : '') +
+                '</div>' +
+                '</div>' +
+                '<button class="rec-modal-close" id="recCloseBtn">\u2715</button>' +
+                '</div>' +
+                '<div class="rec-modal-body">' +
+                workerSection +
+                incidentSection +
+                outcomeSection +
+                employerSection +
+                '</div>' +
+                '</div>';
+        }
 
         return new Promise(resolve => {
             const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
-            overlay.innerHTML = `
-                <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);
-                            width:100%;max-width:540px;max-height:85vh;overflow-y:auto;
-                            padding:28px 26px;font-family:'Segoe UI',sans-serif;">
-                    <div style="font-size:32px;text-align:center;margin-bottom:8px">${icon}</div>
-                    <h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:4px">
-                        ${isAccident ? 'Accident Report' : `${type === 'disease' ? 'Disease' : 'Injury'} Report`}
-                    </h2>
-                    <p style="text-align:center;font-size:12px;color:#aaa;margin-bottom:18px">
-                        ${fmtDate(i.accident_date || i.incident_date)}
-                    </p>
-                    ${rowsHTML}
-                    <div style="margin-top:20px;text-align:center">
-                        <button id="closeDetail" style="padding:10px 28px;background:#333;color:#fff;border:none;
-                            border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
-                            Close
-                        </button>
-                    </div>
-                </div>`;
-            overlay.querySelector('#closeDetail').addEventListener('click', () => { overlay.remove(); resolve(); });
+            overlay.className = 'rec-modal-overlay';
+            overlay.innerHTML = modalHtml;
+            overlay.querySelector('#recCloseBtn').addEventListener('click', () => { overlay.remove(); resolve(); });
             overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(); } });
             document.body.appendChild(overlay);
         });
-    }
-
-    // ── Helpers ───────────────────────────────────────────────
+    }// ── Helpers ───────────────────────────────────────────────
     // ── Init ──────────────────────────────────────────────────
     window.addEventListener('load', async function () {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
