@@ -261,7 +261,7 @@
                 '<td>' + (r.fatal === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '<span style="color:#999">No</span>') + '</td>' +
                 '<td><span class="badge badge-' + statusSlug + '">' + r.status + '</span></td>' +
                 '<td>' + r.reporter + '</td>' +
-                '<td><button class="action-btn" onclick="viewCase('' + r.sourceTable + '','' + r.sourceId + '')">View</button></td>' +
+`<td><button class="action-btn" onclick="viewCase('${r.sourceTable}','${r.sourceId}')">View</button></td>` +
                 '</tr>';
         }).join('');
     }
