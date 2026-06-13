@@ -1083,6 +1083,7 @@ function incidentCard(i) {
             ? 'tag-amber' : 'tag-grey';
 
         const chips = [
+            isAccident && i.accident_case_number ? '<span style="background:#d1ecf1;color:#0c5460;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:600">📋 ' + i.accident_case_number + '</span>' : '',
             isAccident ? `📂 OHS Form 60` : `📂 BL Form 43/10`,
             isAccident ? (i.industry_sector || '—') : (i.incident_type || '—'),
             isAccident ? (i.occupier_name || '—') : (i.employer_name || '—'),
@@ -1124,6 +1125,7 @@ function incidentCard(i) {
 
         const fields = isAccident ? [
             ['Form',              'OHS Form 60 — Notification of Accident'],
+            ['Case Number',       i.accident_case_number || '—'],
             ['Occupier / Employer', i.occupier_name],
             ['Premises Address',  i.premises_address],
             ['Industry',          i.nature_of_industry + (i.industry_sector ? ` (${i.industry_sector})` : '')],

@@ -64,7 +64,212 @@
         .tab-btn { flex:1; padding:10px 16px; border:none; background:transparent; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; color:#666; transition:all 0.2s; font-family:inherit; }
         .tab-btn.active { background:white; color:#333; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
         .tab-btn:hover:not(.active) { color:#333; }
+                .accident-row { cursor:pointer; }
+        .accident-row td:first-child { position:relative; padding-left:28px; }
+        .expand-icon { position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:10px; color:#999; transition:transform 0.2s; }
+        .expand-icon.expanded { transform:translateY(-50%) rotate(90deg); }
+        .injury-subrow { background:#fafafa; }
+        .injury-subrow td { padding:8px 12px 8px 48px !important; font-size:12px; border-bottom:1px solid #f0f0f0; }
+        .injury-subrow:hover { background:#f0f0f0; }
+        .injury-subrow .badge { font-size:10px; padding:2px 8px; }
+        .injury-count-badge { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:10px; background:#f0f0f0; color:#666; font-weight:600; }
+        .accident-row .injury-count-badge { background:#f8d7da; color:#721c24; }
+
+                .accident-row { cursor:pointer; }
+        .accident-row td:first-child { position:relative; padding-left:28px; }
+        .expand-icon { position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:10px; color:#999; transition:transform 0.2s; }
+        .expand-icon.expanded { transform:translateY(-50%) rotate(90deg); }
+        .injury-subrow { background:#fafafa; }
+        .injury-subrow td { padding:8px 12px 8px 48px !important; font-size:12px; border-bottom:1px solid #f0f0f0; }
+        .injury-subrow:hover { background:#f0f0f0; }
+        .injury-subrow .badge { font-size:10px; padding:2px 8px; }
+        .injury-count-badge { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:10px; background:#f0f0f0; color:#666; font-weight:600; }
+        .accident-row .injury-count-badge { background:#f8d7da; color:#721c24; }
+
+
         @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } .tab-bar { flex-direction:column; } }
+            /* ── Workers list modal ──────────────────── */
+        .workers-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px; backdrop-filter: blur(4px);
+        }
+        .workers-modal {
+            background: white; border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            width: 100%; max-width: 700px;
+            max-height: 90vh; overflow-y: auto;
+            animation: modalSlideIn 0.25s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .workers-modal-header {
+            padding: 22px 28px 16px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; background: white; z-index: 10;
+            border-radius: 16px 16px 0 0;
+        }
+        .workers-modal-header h2 { font-size: 18px; color: #222; margin: 0; }
+        .workers-modal-close {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: none; background: #f5f5f5; cursor: pointer;
+            font-size: 20px; display: flex; align-items: center;
+            justify-content: center; transition: all 0.2s;
+            color: #555;
+        }
+        .workers-modal-close:hover { background: #e0e0e0; }
+        .workers-modal-body { padding: 20px 28px 28px; }
+        .worker-card {
+            border: 1px solid #e8e8e8; border-radius: 12px;
+            padding: 16px 18px; margin-bottom: 12px;
+            transition: box-shadow 0.2s;
+        }
+        .worker-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .worker-card.fatal { border-left: 4px solid #dc3545; background: #fff8f8; }
+        .worker-card.injury { border-left: 4px solid #17a2b8; }
+        .worker-card.disease { border-left: 4px solid #6f42c1; }
+        .worker-card-top {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 12px; margin-bottom: 8px;
+        }
+        .worker-name-row {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .worker-name-row .name { font-size: 15px; font-weight: 700; color: #222; }
+        .worker-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+        }
+        .worker-badge.fatal { background: #f8d7da; color: #721c24; }
+        .worker-badge.permanent { background: #fff3cd; color: #856404; }
+        .worker-badge.temporary { background: #d1ecf1; color: #0c5460; }
+        .worker-badge.injury { background: #cce5ff; color: #004085; }
+        .worker-badge.disease { background: #e2d9f3; color: #4a1d96; }
+        .worker-badge.claim { background: #d4edda; color: #155724; }
+        .worker-card-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 6px 20px; margin-top: 10px; padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .worker-detail-item { font-size: 12px; color: #666; display: flex; gap: 6px; }
+        .worker-detail-item .lbl { color: #999; white-space: nowrap; }
+        .worker-detail-item .val { color: #333; font-weight: 500; }
+        .workers-summary-bar {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            padding: 14px 18px; background: #f8f8f8;
+            border-radius: 10px; margin-bottom: 16px;
+        }
+        .workers-summary-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
+        .workers-summary-item strong { font-size: 18px; }
+        .workers-summary-item.fatal-summary { color: #721c24; }
+        .workers-empty {
+            text-align: center; padding: 40px; color: #999;
+            font-size: 14px;
+        }
+        .workers-loading {
+            text-align: center; padding: 40px; color: #888;
+        }
+        .workers-loading .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 36px; height: 36px;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
+        }
+
+            /* ── Workers list modal ──────────────────── */
+        .workers-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px; backdrop-filter: blur(4px);
+        }
+        .workers-modal {
+            background: white; border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            width: 100%; max-width: 700px;
+            max-height: 90vh; overflow-y: auto;
+            animation: modalSlideIn 0.25s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .workers-modal-header {
+            padding: 22px 28px 16px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; background: white; z-index: 10;
+            border-radius: 16px 16px 0 0;
+        }
+        .workers-modal-header h2 { font-size: 18px; color: #222; margin: 0; }
+        .workers-modal-close {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: none; background: #f5f5f5; cursor: pointer;
+            font-size: 20px; display: flex; align-items: center;
+            justify-content: center; transition: all 0.2s;
+            color: #555;
+        }
+        .workers-modal-close:hover { background: #e0e0e0; }
+        .workers-modal-body { padding: 20px 28px 28px; }
+        .worker-card {
+            border: 1px solid #e8e8e8; border-radius: 12px;
+            padding: 16px 18px; margin-bottom: 12px;
+            transition: box-shadow 0.2s;
+        }
+        .worker-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .worker-card.fatal { border-left: 4px solid #dc3545; background: #fff8f8; }
+        .worker-card.injury { border-left: 4px solid #17a2b8; }
+        .worker-card.disease { border-left: 4px solid #6f42c1; }
+        .worker-card-top {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 12px; margin-bottom: 8px;
+        }
+        .worker-name-row {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .worker-name-row .name { font-size: 15px; font-weight: 700; color: #222; }
+        .worker-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+        }
+        .worker-badge.fatal { background: #f8d7da; color: #721c24; }
+        .worker-badge.permanent { background: #fff3cd; color: #856404; }
+        .worker-badge.temporary { background: #d1ecf1; color: #0c5460; }
+        .worker-badge.injury { background: #cce5ff; color: #004085; }
+        .worker-badge.disease { background: #e2d9f3; color: #4a1d96; }
+        .worker-badge.claim { background: #d4edda; color: #155724; }
+        .worker-card-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 6px 20px; margin-top: 10px; padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .worker-detail-item { font-size: 12px; color: #666; display: flex; gap: 6px; }
+        .worker-detail-item .lbl { color: #999; white-space: nowrap; }
+        .worker-detail-item .val { color: #333; font-weight: 500; }
+        .workers-summary-bar {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            padding: 14px 18px; background: #f8f8f8;
+            border-radius: 10px; margin-bottom: 16px;
+        }
+        .workers-summary-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
+        .workers-summary-item strong { font-size: 18px; }
+        .workers-summary-item.fatal-summary { color: #721c24; }
+        .workers-empty {
+            text-align: center; padding: 40px; color: #999;
+            font-size: 14px;
+        }
+        .workers-loading {
+            text-align: center; padding: 40px; color: #888;
+        }
+        .workers-loading .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #333;
+            border-radius: 50%; width: 36px; height: 36px;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
+        }
+
     </style>
 </head>
 <body>
@@ -82,7 +287,7 @@
     <div class="container">
         <div class="info-banner">
             <span style="font-size:24px">🔍</span>
-            <div>All <strong>accidents</strong> and <strong>injuries/diseases</strong> reported to DOSH are investigated by an OSH Worker. Investigation forms will be added in a future update.</div>
+            <div>Each <strong>accident</strong> is listed with its affected workers below. An accident can have multiple injured workers — click <strong>👥 Workers</strong> to see the full list.</div>
         </div>
 
         <div class="stats-grid">
@@ -96,7 +301,7 @@
 
         <div class="section-card">
             <div class="section-header">
-                <h2>📋 Investigation Cases</h2>
+                <h2>📋 Accident Cases</h2>
                 <div class="filters">
                     <div class="filter-group">
                         <label>Type</label>
@@ -119,7 +324,7 @@
                     </div>
                     <div class="filter-group">
                         <label>Search</label>
-                        <input type="text" id="filterSearch" placeholder="Name / Employer…" oninput="applyFilters()" style="width:160px">
+                        <input type="text" id="filterSearch" placeholder="Employer / Worker…" oninput="applyFilters()" style="width:160px">
                     </div>
                     <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
                     <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
@@ -157,8 +362,10 @@
     <script src="modal.js"></script>
     <script src="common.js"></script>
     <script>
+    
     const SB = window.supabaseClient;
-    let allRecords = [];
+    let allAccidents = [];
+    let allInjuries = [];
 
     window.addEventListener('load', async () => {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
@@ -171,49 +378,72 @@
         document.getElementById('tableWrap').style.display = 'none';
 
         try {
-            // Fetch accident reports
+            // Fetch accident reports and their linked injury/disease reports
             const [accRes, injRes] = await Promise.all([
-                SB.from('accident_reports').select('id, occupier_name, injured_name, accident_date, injury_fatal, investigation_status, reporter_name, report_type, nature_of_industry').order('accident_date', { ascending: false }),
-                SB.from('injury_disease_reports').select('id, employer_name, worker_name, incident_date, resulted_death, incident_type, nature_of_injuries, signatory_name').order('incident_date', { ascending: false })
+                SB.from('accident_reports').select('id, occupier_name, industry_sector, accident_date, accident_place, accident_description, injury_fatal, investigation_status, reporter_name, report_type').order('accident_date', { ascending: false }),
+                SB.from('injury_disease_reports').select('id, accident_id, worker_name, incident_type, nature_of_injuries, resulted_death, permanent_incapacity, temporary_incapacity, occupation, incident_date').order('incident_date', { ascending: false })
             ]);
 
-            // Combine into unified records
-            const accidents = (accRes.data || []).map(r => ({
-                type: 'accident',
-                typeLabel: r.report_type === 'dangerous_occurrence' ? 'Dangerous Occurrence' : 'Accident',
-                employer: r.occupier_name || '—',
-                person: r.injured_name || '—',
-                date: r.accident_date,
-                fatal: r.injury_fatal === 'Fatal' ? 'Yes' : 'No',
-                status: r.investigation_status || 'Pending',
-                reporter: r.signatory_name || '—',
-                nature: r.nature_of_industry || '—',
-                sourceTable: 'accident_reports',
-                sourceId: r.id
-            }));
+            // Group injuries by accident_id
+            const injuriesByAccident = {};
+            (injRes.data || []).forEach(inj => {
+                const aid = inj.accident_id || 'orphaned';
+                if (!injuriesByAccident[aid]) injuriesByAccident[aid] = [];
+                injuriesByAccident[aid].push(inj);
+            });
 
-            const injuries = (injRes.data || []).map(r => ({
-                type: r.incident_type === 'Disease' ? 'disease' : 'injury',
-                typeLabel: r.incident_type === 'Disease' ? 'Disease' : 'Injury',
-                employer: r.employer_name || '—',
-                person: r.worker_name || '—',
-                date: r.incident_date,
-                fatal: r.resulted_death === 'Yes' ? 'Yes' : 'No',
-                status: 'Pending',
-                reporter: r.reporter_name || '—',
-                nature: r.nature_of_injuries || '—',
-                sourceTable: 'injury_disease_reports',
-                sourceId: r.id
-            }));
+            // Build accident records with embedded injuries
+            allAccidents = (accRes.data || []).map(acc => {
+                const linked = injuriesByAccident[acc.id] || [];
+                const fatal = linked.some(i => i.resulted_death === 'Yes') || acc.injury_fatal === 'Fatal';
+                const workers = linked.length > 0 ? linked.map(i => i.worker_name).filter(Boolean) : (acc.injured_name ? [acc.injured_name] : []);
+                return {
+                    id: acc.id,
+                    employer: acc.occupier_name || '—',
+                    industry: acc.industry_sector || '—',
+                    date: acc.accident_date,
+                    place: acc.accident_place,
+                    description: acc.accident_description,
+                    fatal: fatal,
+                    status: acc.investigation_status || 'Pending',
+                    reporter: acc.reporter_name || '—',
+                    type: acc.report_type || 'accident',
+                    injuries: linked,
+                    workers: workers,
+                    workerCount: linked.length,
+                    injured_name: acc.injured_name
+                };
+            });
 
-            allRecords = [...accidents, ...injuries].sort((a, b) => {
+            // Also include orphaned injuries (not yet linked to an accident)
+            const orphaned = injuriesByAccident['orphaned'] || [];
+            orphaned.forEach(inj => {
+                allAccidents.push({
+                    id: 'orphan-' + inj.id,
+                    employer: '—',
+                    industry: '—',
+                    date: inj.incident_date,
+                    place: '—',
+                    description: '',
+                    fatal: inj.resulted_death === 'Yes',
+                    status: 'Pending',
+                    reporter: '—',
+                    type: 'injury',
+                    injuries: [inj],
+                    workers: [inj.worker_name].filter(Boolean),
+                    workerCount: 1
+                });
+            });
+
+            // Sort by date descending
+            allAccidents.sort((a, b) => {
                 const da = a.date ? new Date(a.date) : new Date(0);
                 const db = b.date ? new Date(b.date) : new Date(0);
                 return db - da;
             });
 
-            buildStats(allRecords);
-            renderTable(allRecords);
+            buildStats(allAccidents);
+            renderTable(allAccidents);
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('tableWrap').style.display = 'block';
         } catch (err) {
@@ -221,115 +451,350 @@
         }
     }
 
-    function buildStats(rows) {
-        document.getElementById('statTotal').textContent = rows.length;
-        document.getElementById('statAccidents').textContent = rows.filter(r => r.type === 'accident').length;
-        document.getElementById('statInjuries').textContent = rows.filter(r => r.type === 'injury' || r.type === 'disease').length;
-        document.getElementById('statPending').textContent = rows.filter(r => r.status === 'Pending').length;
-        document.getElementById('statInProgress').textContent = rows.filter(r => r.status === 'In Progress').length;
-        document.getElementById('statCompleted').textContent = rows.filter(r => r.status === 'Completed' || r.status === 'Closed').length;
+    function buildStats(accidents) {
+        const total = accidents.length;
+        const fatal = accidents.filter(a => a.fatal).length;
+        const workers = accidents.reduce((s, a) => s + a.workerCount, 0);
+        const pending = accidents.filter(a => a.status === 'Pending').length;
+        const inProgress = accidents.filter(a => a.status === 'In Progress').length;
+        const completed = accidents.filter(a => a.status === 'Completed' || a.status === 'Closed').length;
+
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statFatal').textContent = fatal;
+        document.getElementById('statWorkers').textContent = workers;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statInProgress').textContent = inProgress;
+        document.getElementById('statCompleted').textContent = completed;
     }
 
     function applyFilters() {
-        const type   = document.getElementById('filterType').value;
+        const industry = document.getElementById('filterIndustry').value;
         const status = document.getElementById('filterStatus').value;
         const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-        renderTable(allRecords.filter(r =>
-            (!type   || r.type === type) &&
-            (!status || r.status === status) &&
-            (!search || (r.person||'').toLowerCase().includes(search) || (r.employer||'').toLowerCase().includes(search))
+
+        renderTable(allAccidents.filter(a =>
+            (!industry || a.industry === industry) &&
+            (!status || a.status === status) &&
+            (!search || a.employer.toLowerCase().includes(search) || a.workers.some(w => w.toLowerCase().includes(search)))
         ));
     }
 
     function renderTable(rows) {
         const tbody = document.getElementById('tableBody');
         const empty = document.getElementById('emptyState');
-        document.getElementById('rowCount').textContent = rows.length ? 'Showing ' + rows.length + ' case' + (rows.length !== 1 ? 's' : '') : '';
+        document.getElementById('rowCount').textContent = rows.length ? 'Showing ' + rows.length + ' accident' + (rows.length !== 1 ? 's' : '') : '';
         if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
         empty.style.display = 'none';
 
+        // Use expanded states from the last render
+        const expandedIds = new Set();
+        document.querySelectorAll('.accident-row.expanded').forEach(tr => {
+            const id = tr.dataset.accidentId;
+            if (id) expandedIds.add(id);
+        });
 
-        tbody.innerHTML = rows.map(r => {
-            const typeBadge = r.type === 'accident' ? 'badge-accident' : r.type === 'disease' ? 'badge-disease' : 'badge-injury';
-            const statusSlug = (r.status || 'pending').toLowerCase().replace(/s+/g, '-');
-            return '<tr>' +
-                '<td><span class="badge ' + typeBadge + '">' + r.typeLabel + '</span></td>' +
-                '<td><strong>' + r.employer + '</strong></td>' +
-                '<td>' + r.person + '</td>' +
-                '<td style="white-space:nowrap">' + (r.date ? fmtDate(r.date) : '—') + '</td>' +
-                '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r.nature + '</td>' +
-                '<td>' + (r.fatal === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '<span style="color:#999">No</span>') + '</td>' +
-                '<td><span class="badge badge-' + statusSlug + '">' + r.status + '</span></td>' +
-                '<td>' + r.reporter + '</td>' +
-`<td><button class="action-btn" onclick="viewCase('${r.sourceTable}','${r.sourceId}')">View</button></td>` +
+        tbody.innerHTML = rows.map((a, idx) => {
+            const isExpanded = expandedIds.has(a.id) || false;
+            const typeLabel = a.type === 'dangerous_occurrence' ? 'Dangerous Occurrence' : 'Accident';
+            const fatalBadge = a.fatal ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '';
+            const statusSlug = (a.status || 'pending').toLowerCase().replace(/\s+/g, '-');
+            const desc = a.description ? a.description.substring(0, 80) + (a.description.length > 80 ? '...' : '') : '';
+            const workersList = a.workers.length > 0 ? a.workers.join(', ') : a.injured_name || '—';
+            const hasInjuries = a.injuries && a.injuries.length > 0;
+
+            const mainRow = '<tr class="accident-row' + (isExpanded ? ' expanded' : '') + '" data-accident-id="' + a.id + '" onclick="toggleAccident(this)">' +
+                '<td><span class="expand-icon' + (isExpanded ? ' expanded' : '') + '">▶</span><strong>' + esc(typeLabel) + '</strong>' +
+                (desc ? '<br><span style="font-size:11px;color:#888">' + esc(desc) + '</span>' : '') +
+                (a.place ? '<br><span style="font-size:11px;color:#aaa">📍 ' + esc(a.place) + '</span>' : '') +
+                '</td>' +
+                '<td><strong>' + esc(a.employer) + '</strong><br><span style="font-size:11px;color:#888">' + esc(a.industry) + '</span></td>' +
+                '<td style="white-space:nowrap">' + (a.date ? fmtDate(a.date) : '—') + '</td>' +
+                '<td>' + esc(workersList) + ' ' + fatalBadge +
+                (a.workerCount > 1 ? ' <span class="injury-count-badge">' + a.workerCount + ' workers</span>' : '') +
+                '</td>' +
+                '<td><span class="badge badge-' + statusSlug + '">' + a.status + '</span></td>' +
+                '<td style="white-space:nowrap">' +
+                '<button class="action-btn" onclick="event.stopPropagation();viewAccident(\'' + a.id + '\')">📋 View</button> ' +
+                (hasInjuries ? '<button class="action-btn" onclick="event.stopPropagation();viewWorkers(\'' + a.id + '\')" style="background:#d1ecf1;color:#0c5460;border-color:#bee5eb">👥 Workers</button>' : '') +
+                '</td>' +
                 '</tr>';
+
+            // Sub-rows for each injured worker
+            let subRows = '';
+            if (hasInjuries && isExpanded) {
+                subRows = a.injuries.map(inj => {
+                    const typeCls = inj.incident_type === 'Disease' ? 'badge-disease' : 'badge-injury';
+                    const typeLbl = inj.incident_type === 'Disease' ? 'Disease' : 'Injury';
+                    const fatal = inj.resulted_death === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '';
+                    const perm = inj.permanent_incapacity === 'Yes' ? '♿' : '';
+                    const temp = inj.temporary_incapacity === 'Yes' ? '🩹' : '';
+                    const nature = inj.nature_of_injuries ? inj.nature_of_injuries.substring(0, 60) + (inj.nature_of_injuries.length > 60 ? '...' : '') : '';
+                    return '<tr class="injury-subrow">' +
+                        '<td colspan="6">' +
+                        '<span class="badge ' + typeCls + '">' + typeLbl + '</span> ' +
+                        '<strong>' + esc(inj.worker_name || 'Unknown') + '</strong>' +
+                        (nature ? ' — ' + esc(nature) : '') +
+                        (inj.occupation ? ' <span style="color:#888">(' + esc(inj.occupation) + ')</span>' : '') +
+                        ' ' + fatal + ' ' + perm + ' ' + temp +
+                        ' <span style="color:#aaa;font-size:11px">' + (inj.incident_date ? fmtDate(inj.incident_date) : '') + '</span>' +
+                        '</td></tr>';
+                }).join('');
+            }
+
+            return mainRow + subRows;
         }).join('');
     }
 
-    async function viewCase(table, id) {
-        // Fetch full record details
-        const { data, error } = await SB.from(table).select('*').eq('id', id).single();
-        if (error || !data) {
-            showToast('Could not load case details', 'error');
+    window.toggleAccident = function(row) {
+        const isExpanded = row.classList.toggle('expanded');
+        const icon = row.querySelector('.expand-icon');
+        if (icon) icon.classList.toggle('expanded');
+        // Re-render to show/hide sub-rows
+        const search = document.getElementById('filterSearch').value;
+        const status = document.getElementById('filterStatus').value;
+        const industry = document.getElementById('filterIndustry').value;
+        renderTable(allAccidents.filter(a =>
+            (!industry || a.industry === industry) &&
+            (!status || a.status === status) &&
+            (!search || a.employer.toLowerCase().includes(search) || a.workers.some(w => w.toLowerCase().includes(search)))
+        ));
+    };
+
+    // ── View Accident Details Modal ──────────────────────────────
+    async function viewAccident(accidentId) {
+        if (accidentId && accidentId.startsWith('orphan-')) {
+            const realId = accidentId.replace('orphan-', '');
+            const { data: injData, error: injErr } = await SB.from('injury_disease_reports').select('*').eq('id', realId).single();
+            if (injErr || !injData) { showToast('Could not load injury details', 'error'); return; }
+            showInjuryDetails(injData);
             return;
         }
 
-        const isAccident = table === 'accident_reports';
-        const fields = isAccident ? [
+        const { data, error } = await SB.from('accident_reports').select('*').eq('id', accidentId).single();
+        if (error || !data) { showToast('Could not load accident details', 'error'); return; }
+
+        // Also get linked injuries
+        const { data: injuries } = await SB.from('injury_disease_reports').select('*').eq('accident_id', accidentId);
+
+        const fields = [
             ['Report Type', (data.report_type||'').replace('_',' ').toUpperCase()],
-            ['Occupier / Employer', data.occupier_name],
+            ['Employer / Occupier', data.occupier_name],
             ['Industry', data.industry_sector || data.nature_of_industry],
-            ['Injured Person', data.injured_name],
             ['Date of Accident', fmtDate(data.accident_date)],
-            ['Place of Accident', data.accident_place],
+            ['Place', data.accident_place],
             ['Fatal?', data.injury_fatal],
             ['Description', data.accident_description],
             ['Investigation Status', data.investigation_status || 'Pending'],
-            ['Reporter', data.reporter_name],
+            ['Reported By', data.reporter_name],
             ['Report Date', fmtDate(data.report_date)],
-        ] : [
-            ['Report Type', (data.incident_type || 'Injury')],
-            ['Employer', data.employer_name],
-            ['Worker Name', data.worker_name],
-            ['Occupation', data.occupation],
-            ['Date of Incident', fmtDate(data.incident_date)],
-            ['Nature of Injury', data.nature_of_injury],
-            ['Resulted in Death?', data.resulted_death],
-            ['Description', data.description_of_incident || data.nature_of_injury],
-            ['Investigation Status', data.investigation_status || 'Pending'],
-            ['Reporter', data.reporter_name],
-            ['Report Date', fmtDate(data.created_at || data.report_date)],
         ];
 
-        const rowsHTML = fields.filter(([,v]) => v != null && v !== '').map(([label, value]) => {
-            return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8f8f8;gap:16px">' +
-                '<span style="color:#888;font-size:13px;min-width:140px;flex-shrink:0">' + label + '</span>' +
-                '<span style="color:#333;font-size:13px;text-align:right;line-height:1.4">' + value + '</span></div>';
-        }).join('');
+        let rowsHTML = '<div style="margin-bottom:12px">' + fields.filter(([,v]) => v != null && v !== '').map(([label, value]) => {
+            return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f8f8f8;gap:16px">' +
+                '<span style="color:#888;font-size:12px;min-width:130px;flex-shrink:0">' + label + '</span>' +
+                '<span style="color:#333;font-size:12px;text-align:right">' + value + '</span></div>';
+        }).join('') + '</div>';
+
+        // Show linked injured workers
+        if (injuries && injuries.length > 0) {
+            rowsHTML += '<div style="border-top:2px solid #f0f0f0;padding-top:12px;margin-top:8px">' +
+                '<div style="font-size:12px;font-weight:700;color:#333;margin-bottom:8px">👥 Injured Workers (' + injuries.length + ')</div>';
+            injuries.forEach(inj => {
+                const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '🏥';
+                rowsHTML += '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;align-items:center">' +
+                    '<span>' + typeIcon + '</span>' +
+                    '<div style="flex:1">' +
+                    '<strong style="font-size:13px">' + esc(inj.worker_name || 'Unknown') + '</strong>' +
+                    (inj.incident_type ? ' <span class="badge ' + (inj.incident_type === 'Disease' ? 'badge-disease' : 'badge-injury') + '" style="font-size:10px">' + inj.incident_type + '</span>' : '') +
+                    (inj.nature_of_injuries ? '<br><span style="font-size:11px;color:#888">' + esc(inj.nature_of_injuries) + '</span>' : '') +
+                    '</div>' +
+                    (inj.resulted_death === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24;font-size:10px">Fatal</span>' : '') +
+                    '</div>';
+            });
+            rowsHTML += '</div>';
+        }
 
         const ov = document.createElement('div');
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-        ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:\'Segoe UI\',sans-serif">' +
+        ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
             '<div style="font-size:32px;text-align:center;margin-bottom:8px">🔍</div>' +
-            '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Investigation Case</h2>' +
+            '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Accident Investigation</h2>' +
             rowsHTML +
-            '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Close</button></div>' +
+            '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div>' +
             '</div>';
         ov.querySelector('#closeBtn').addEventListener('click', () => { ov.remove(); });
         ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
         document.body.appendChild(ov);
     }
 
+    // ── View Injured Workers Modal ──────────────────────────────
+    async function viewWorkers(accidentId) {
+        if (accidentId && accidentId.startsWith('orphan-')) {
+            const realId = accidentId.replace('orphan-', '');
+            const { data: injData, error: injErr } = await SB.from('injury_disease_reports').select('*').eq('id', realId).single();
+            if (injErr || !injData) { showToast('Could not load injury details', 'error'); return; }
+            showInjuryDetails(injData);
+            return;
+        }
+
+        // Show loading state
+        const overlay = document.createElement('div');
+        overlay.className = 'workers-modal-overlay';
+        overlay.innerHTML = '<div class="workers-modal"><div class="workers-modal-body"><div class="workers-loading"><div class="spinner"></div><p>Loading workers...</p></div></div></div>';
+        document.body.appendChild(overlay);
+
+        try {
+            const [accRes, injRes] = await Promise.all([
+                SB.from('accident_reports').select('accident_case_number, occupier_name, industry_sector, accident_date, accident_place, injury_fatal').eq('id', accidentId).single(),
+                SB.from('injury_disease_reports').select('*, accident_id').eq('accident_id', accidentId)
+            ]);
+
+            if (accRes.error) throw accRes.error;
+            const acc = accRes.data;
+            const injuries = injRes.data || [];
+
+            // Fetch claims for these injuries
+            let claimsByInjury = {};
+            if (injuries.length > 0) {
+                const injuryIds = injuries.map(i => i.id);
+                const { data: claims } = await SB.from('injury_claims').select('id, file_number, status, injury_report_id, incapacity_percentage').in('injury_report_id', injuryIds);
+                if (claims) {
+                    claims.forEach(cl => {
+                        if (cl.injury_report_id) claimsByInjury[cl.injury_report_id] = cl;
+                    });
+                }
+            }
+
+            const fatal = injuries.some(i => i.resulted_death === 'Yes') || acc.injury_fatal === 'Fatal';
+            const totalWorkers = injuries.length || (acc.injured_name ? 1 : 0);
+            const fatalCount = injuries.filter(i => i.resulted_death === 'Yes').length;
+
+            let workersHTML = '';
+            if (injuries.length === 0) {
+                workersHTML = '<div class="workers-empty">👤 No injury/disease reports linked to this accident yet.</div>';
+            } else {
+                workersHTML = injuries.map(inj => {
+                    const isFatal = inj.resulted_death === 'Yes';
+                    const isPermanent = inj.permanent_incapacity === 'Yes';
+                    const isTemporary = inj.temporary_incapacity === 'Yes' && !isPermanent;
+                    const cardClass = isFatal ? 'fatal' : (inj.incident_type === 'Disease' ? 'disease' : 'injury');
+                    const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '🏥';
+                    const typeLbl = inj.incident_type === 'Disease' ? 'Disease' : (inj.incident_type === 'Both' ? 'Injury & Disease' : 'Injury');
+                    const claim = claimsByInjury[inj.id];
+                    const badges = [
+                        isFatal ? '<span class="worker-badge fatal">⚰ Fatal</span>' : '',
+                        isPermanent ? '<span class="worker-badge permanent">♿ Permanent Incapacity</span>' : '',
+                        isTemporary ? '<span class="worker-badge temporary">🩹 Temporary</span>' : '',
+                        claim ? '<span class="worker-badge claim">📑 Claim Filed</span>' : '',
+                    ].filter(Boolean).join(' ');
+
+                    return '<div class="worker-card ' + cardClass + '">' +
+                        '<div class="worker-card-top">' +
+                        '<div class="worker-name-row">' +
+                        '<span style="font-size:20px">' + typeIcon + '</span>' +
+                        '<span class="name">' + esc(inj.worker_name || 'Unknown') + '</span>' +
+                        badges +
+                        '</div>' +
+                        '<span style="font-size:12px;color:#aaa;white-space:nowrap">' + (inj.incident_date ? fmtDate(inj.incident_date) : '') + '</span>' +
+                        '</div>' +
+                        '<div style="font-size:13px;color:#555;margin-bottom:4px">' +
+                        '<span class="worker-badge ' + (inj.incident_type === 'Disease' ? 'disease' : 'injury') + '">' + typeLbl + '</span>' +
+                        (inj.occupation ? ' <span style="color:#888">' + esc(inj.occupation) + '</span>' : '') +
+                        '</div>' +
+                        (inj.nature_of_injuries ? '<div style="font-size:13px;color:#444;line-height:1.5">' + esc(inj.nature_of_injuries) + '</div>' : '') +
+                        '<div class="worker-card-details">' +
+                        (claim ? '<div class="worker-detail-item"><span class="lbl">Claim:</span><span class="val">' + esc(claim.file_number || 'Draft') + ' (' + esc(claim.status) + ')' + (claim.incapacity_percentage ? ' - ' + claim.incapacity_percentage + '%' : '') + '</span></div>' : '') +
+                        (inj.nok_informed === 'Yes' ? '<div class="worker-detail-item"><span class="lbl">Next of Kin:</span><span class="val">Informed</span></div>' : '') +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            }
+
+            const caseNumber = acc.accident_case_number || '—';
+            const summaryBar = '<div class="workers-summary-bar">' +
+                '<div class="workers-summary-item">👥 <strong>' + totalWorkers + '</strong> Total Workers</div>' +
+                (fatalCount > 0 ? '<div class="workers-summary-item fatal-summary">⚰ <strong>' + fatalCount + '</strong> Fatal</div>' : '') +
+                '<div class="workers-summary-item">🏥 <strong>' + injuries.filter(i => i.incident_type === 'Injury' || i.incident_type === 'Both').length + '</strong> Injuries</div>' +
+                '<div class="workers-summary-item">🦠 <strong>' + injuries.filter(i => i.incident_type === 'Disease' || i.incident_type === 'Both').length + '</strong> Diseases</div>' +
+                '<div class="workers-summary-item">♿ <strong>' + injuries.filter(i => i.permanent_incapacity === 'Yes').length + '</strong> Permanent</div>' +
+                '<div class="workers-summary-item">📑 <strong>' + Object.keys(claimsByInjury).length + '</strong> Claims</div>' +
+                '</div>';
+
+            overlay.innerHTML = '<div class="workers-modal">' +
+                '<div class="workers-modal-header">' +
+                '<div>' +
+                '<h2>👥 Injured Workers</h2>' +
+                '<span style="font-size:12px;color:#888">' + esc(acc.occupier_name || '') +
+                (caseNumber !== '—' ? ' - 📋 ' + esc(caseNumber) : '') +
+                ' - ' + fmtDate(acc.accident_date) + '</span>' +
+                '</div>' +
+                '<button class="workers-modal-close" onclick="this.closest(\'.workers-modal-overlay\').remove()">✕</button>' +
+                '</div>' +
+                '<div class="workers-modal-body">' +
+                summaryBar +
+                workersHTML +
+                '</div>' +
+                '</div>';
+
+            overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+        } catch (err) {
+            overlay.innerHTML = '<div class="workers-modal"><div class="workers-modal-body"><div class="workers-empty">Error loading workers: ' + esc(err.message || 'Unknown error') + '</div></div></div>';
+        }
+    }
+
+    function showInjuryDetails(data) {
+        const fields = [
+            ['Report Type', data.incident_type || 'Injury'],
+            ['Worker Name', data.worker_name],
+            ['Occupation', data.occupation],
+            ['Date of Incident', fmtDate(data.incident_date)],
+            ['Nature of Injury', data.nature_of_injuries],
+            ['Resulted in Death?', data.resulted_death],
+            ['Permanent Incapacity', data.permanent_incapacity],
+            ['Temporary Incapacity', data.temporary_incapacity],
+            ['Employer', data.employer_name],
+            ['Report Date', fmtDate(data.created_at || data.report_date)],
+        ];
+
+        const rowsHTML = '<div style="margin-bottom:12px">' + fields.filter(([,v]) => v != null && v !== '').map(function(f) {
+            return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f8f8f8;gap:16px">' +
+                '<span style="color:#888;font-size:12px;min-width:130px;flex-shrink:0">' + f[0] + '</span>' +
+                '<span style="color:#333;font-size:12px;text-align:right">' + f[1] + '</span></div>';
+        }).join('') + '</div>';
+
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+        ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
+            '<div style="font-size:32px;text-align:center;margin-bottom:8px">🏥</div>' +
+            '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Injury/Disease Report</h2>' +
+            rowsHTML +
+            '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div>' +
+            '</div>';
+        ov.querySelector('#closeBtn').addEventListener('click', function() { ov.remove(); });
+        ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
+        document.body.appendChild(ov);
+    }
+
     function exportCSV() {
-        const headers = ['Type','Employer','Affected Person','Date','Nature','Fatal','Status','Reporter'];
-        const rows = allRecords.map(r => [r.typeLabel, r.employer, r.person, r.date, r.nature, r.fatal, r.status, r.reporter]);
+        const headers = ['Type','Employer','Industry','Date','Place','Injured Workers','Fatal','Status'];
+        const rows = allAccidents.map(a => [
+            a.type,
+            a.employer,
+            a.industry,
+            a.date,
+            a.place,
+            a.workers.join('; '),
+            a.fatal ? 'Yes' : 'No',
+            a.status
+        ]);
         const csv = [headers, ...rows].map(r => r.map(c => '"' + (c||'') + '"').join(',')).join('\n');
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
-        a.download = 'investigations_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.download = 'accidents_' + new Date().toISOString().split('T')[0] + '.csv';
         a.click();
         URL.revokeObjectURL(a.href);
     }
-    </script>
+
 </body>
 </html>

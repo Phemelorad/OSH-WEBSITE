@@ -356,7 +356,43 @@
 
             <hr class="divider">
 
-            <!-- ── Employer Details ─────────────────────── -->
+            <!-- ── 
+            <!-- ── Linked Accident (Optional) ──────────────── -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔗</div>
+                    <div class="card-title-group">
+                        <h3>Linked Accident (Optional)</h3>
+                        <p style="color:#888;font-size:13px;margin:0">If this injury/disease resulted from a previously reported accident, link it here</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="form-row" style="gap:12px">
+                        <div class="form-group" style="flex:2">
+                            <label>Search Accident</label>
+                            <div style="display:flex;gap:8px">
+                                <input type="text" id="accidentSearch" placeholder="Case number (OHS/ACC/...) or worker/employer name…"
+                                       style="flex:1;padding:12px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit"
+                                       autocomplete="off" oninput="searchAccidents(this.value)">
+                            </div>
+                            <div id="accidentSearchResults" style="display:none;margin-top:6px;border:2px solid #e0e0e0;border-radius:8px;max-height:200px;overflow-y:auto;background:white;position:relative;z-index:10"></div>
+                        </div>
+                    </div>
+                    <div id="selectedAccident" style="display:none;margin-top:12px;padding:14px 18px;background:#d1ecf1;border-radius:10px;border:1px solid #bee5eb">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <strong id="selectedAccidentNumber" style="font-size:15px;color:#0c5460"></strong>
+                                <span id="selectedAccidentEmployer" style="font-size:13px;color:#666;margin-left:12px"></span>
+                                <span id="selectedAccidentDate" style="font-size:12px;color:#888;margin-left:8px"></span>
+                            </div>
+                            <button type="button" onclick="clearSelectedAccident()" style="padding:4px 10px;background:transparent;border:1px solid #999;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit">✕ Clear</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedAccidentId" value="">
+                </div>
+            </div>
+
+Employer Details ─────────────────────── -->
             <div class="section-title employer">Employer Details</div>
 
             <div class="form-row form-row-2">
@@ -497,7 +533,8 @@
                 worker_address:           g('workerAddress'),
                 occupation:               g('occupation'),
                 worker_id_number:         (g('workerIdNumber') || '').toUpperCase(),
-                worker_registry_id:       registryId,
+                accident_id: document.getElementById('selectedAccidentId')?.value || null,
+            worker_registry_id:       registryId,
                 incident_date:            g('incidentDate'),
                 place_of_accident:        g('placeOfAccident'),
                 incident_type:            g('incidentType'),
@@ -646,6 +683,58 @@
         }
         attachCompanyAutofill();
     });
-    </script>
+    
+    // ── Accident Search & Link ────────────────────────
+    let accidentSearchTimer = null;
+    async function searchAccidents(query) {
+        clearTimeout(accidentSearchTimer);
+        const resultsDiv = document.getElementById('accidentSearchResults');
+        if (!resultsDiv) return;
+        if (!query || query.trim().length < 2) { resultsDiv.style.display = 'none'; return; }
+        accidentSearchTimer = setTimeout(async () => {
+            const q = query.trim();
+            try {
+                const { data, error } = await SB
+                    .from('accident_reports')
+                    .select('id, accident_case_number, occupier_name, accident_date, injured_name')
+                    .or('accident_case_number.ilike.%' + q + '%,occupier_name.ilike.%' + q + '%,injured_name.ilike.%' + q + '%')
+                    .order('accident_date', { ascending: false })
+                    .limit(10);
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    resultsDiv.innerHTML = '<div style="padding:12px;color:#888;font-size:13px;text-align:center">No matching accidents found</div>';
+                    resultsDiv.style.display = 'block'; return;
+                }
+                resultsDiv.innerHTML = data.map(a => {
+                    const cn = esc(a.accident_case_number || 'N/A');
+                    const emp = esc(a.occupier_name || '');
+                    const wn = a.injured_name ? esc(a.injured_name) : '';
+                    return '<div class="accident-search-item" onclick="selectAccident(\'' + a.id + '\',\'' + cn.replace(/'/g, "\\'") + '\',\'' + emp.replace(/'/g, "\\'") + '\',\'' + (a.accident_date || '') + '\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#f8f8f8\'" onmouseout="this.style.background=\'\'">' +
+                        '<div><strong style="font-size:13px;color:#0c5460">📋 ' + cn + '</strong><span style="font-size:12px;color:#555;margin-left:8px">' + emp + '</span><span style="font-size:11px;color:#888;margin-left:6px">' + wn + '</span></div>' +
+                        '<span style="font-size:11px;color:#aaa;white-space:nowrap">' + (a.accident_date || '') + '</span></div>';
+                }).join('');
+                resultsDiv.style.display = 'block';
+            } catch (err) { console.error('Accident search error:', err); }
+        }, 350);
+    }
+    function selectAccident(id, caseNumber, employer, date) {
+        document.getElementById('selectedAccidentId').value = id;
+        document.getElementById('selectedAccidentNumber').textContent = '📋 ' + caseNumber;
+        document.getElementById('selectedAccidentEmployer').textContent = employer;
+        document.getElementById('selectedAccidentDate').textContent = date || '';
+        document.getElementById('selectedAccident').style.display = 'block';
+        document.getElementById('accidentSearchResults').style.display = 'none';
+        document.getElementById('accidentSearch').value = caseNumber + ' — ' + employer;
+        const empField = document.getElementById('employerName');
+        if (empField && !empField.value) empField.value = employer;
+    }
+    function clearSelectedAccident() {
+        document.getElementById('selectedAccidentId').value = '';
+        document.getElementById('selectedAccident').style.display = 'none';
+        document.getElementById('accidentSearch').value = '';
+        document.getElementById('accidentSearchResults').style.display = 'none';
+    }
+
+</script>
 </body>
 </html>
