@@ -56,6 +56,85 @@
         .action-btn:hover { background:#f0f0f0; }
         .row-count { margin-top:12px; font-size:13px; color:#888; text-align:right; }
         @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } }
+    
+        /* ── Sectioned record view modal ────────── */
+        .rec-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px; backdrop-filter: blur(4px);
+        }
+        .rec-modal {
+            background: white; border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            width: 100%; max-width: 620px;
+            max-height: 90vh; overflow-y: auto;
+            animation: recSlideIn 0.25s ease;
+        }
+        @keyframes recSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .rec-modal-header {
+            padding: 24px 28px 16px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            position: sticky; top: 0; background: white; z-index: 10;
+            border-radius: 16px 16px 0 0;
+        }
+        .rec-modal-header h2 { font-size: 18px; color: #222; margin: 0 0 2px; }
+        .rec-modal-header .subtitle { font-size: 12px; color: #888; }
+        .rec-modal-close {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: none; background: #f5f5f5; cursor: pointer;
+            font-size: 18px; display: flex; align-items: center;
+            justify-content: center; transition: all 0.2s; color: #555; flex-shrink: 0;
+        }
+        .rec-modal-close:hover { background: #e0e0e0; }
+        .rec-modal-body { padding: 20px 28px 28px; }
+        .rec-section {
+            margin-bottom: 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .rec-section:last-child { margin-bottom: 0; }
+        .rec-section-header {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rec-section-header.employer { background: #e8f4fd; color: #0c5460; border-bottom-color: #bee5eb; }
+        .rec-section-header.worker   { background: #fff3cd; color: #856404; border-bottom-color: #ffeeba; }
+        .rec-section-header.accident { background: #f8d7da; color: #721c24; border-bottom-color: #f5c6cb; }
+        .rec-section-header.investigation { background: #e2e3e5; color: #383d41; border-bottom-color: #d6d8db; }
+        .rec-section-body { padding: 8px 16px; }
+        .rec-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: 1px solid #f8f8f8;
+            gap: 16px;
+        }
+        .rec-field:last-child { border-bottom: none; }
+        .rec-field .lbl {
+            font-size: 12px;
+            color: #888;
+            min-width: 130px;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+        .rec-field .val {
+            font-size: 13px;
+            color: #333;
+            text-align: right;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
     </style>
 </head>
 <body>
@@ -248,64 +327,101 @@
     async function viewRecord(id) {
         const r = allRecords.find(x => x.id === id);
         if (!r) return;
-        const fields = [
-            ['Report Type', (r.report_type||'').replace('_',' ').toUpperCase()],
-            ['Occupier / Employer', r.occupier_name],
-            ['Premises Address', r.premises_address],
-            ['Nature of Industry', r.nature_of_industry],
-            ['Industry Sector', r.industry_sector],
-            ['─── Injured Person ───', ''],
-            ['Full Name', r.injured_name],
-            ['Age', r.injured_age],
-            ['Sex', r.injured_sex],
-            ['ID / Passport', r.injured_id_number],
-            ['Occupation at Accident', r.occupation_at_accident],
-            ['Usual Occupation', r.usual_occupation],
-            ['Experience Level', r.experience_level],
-            ['─── Accident ───', ''],
-            ['Date', fmtDate(r.accident_date)],
-            ['Time', r.accident_time],
-            ['Place', r.accident_place],
-            ['Description', r.accident_description],
-            ['Machinery Involved', r.machinery_involved],
-            ['─── Injury ───', ''],
-            ['Fatal?', r.injury_fatal],
-            ['Disabled 3+ Days', r.disabled_three_days],
-            ['Hourly Pay (BWP)', r.hourly_pay],
-            ['Medical Practitioner', r.medical_practitioner],
-            ['─── Dangerous Occurrence ───', ''],
-            ['Date', r.dangerous_date ? fmtDate(r.dangerous_date) : null],
-            ['Description', r.dangerous_description],
-            ['Damage / Loss', r.dangerous_damage],
-            ['Employees Injured', r.employees_injured],
-            ['─── Submission ───', ''],
-            ['Reporter', r.reporter_name + (r.reporter_designation ? ` (${r.reporter_designation})` : '')],
-            ['Report Date', fmtDate(r.report_date)],
-            ['Causation No.', r.causation_number],
-            ['Investigation Status', r.investigation_status],
-            ['Official Action', r.official_action],
-        ];
-        const rowsHTML = fields.filter(([,v]) => v != null && v !== '').map(([label, value]) => {
-            if (label.startsWith('─')) return `<div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;padding:10px 0 4px;border-top:1px solid #f0f0f0;margin-top:4px">${label.replace(/─/g,'').trim()}</div>`;
-            return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8f8f8;gap:16px">
-                <span style="color:#888;font-size:13px;min-width:160px;flex-shrink:0">${label}</span>
-                <span style="color:#333;font-size:13px;text-align:right;line-height:1.4">${value}</span></div>`;
-        }).join('');
+
+        function f(label, val) { return val ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
+
+        // ── Employer Details ─────────────────────────────
+        const employerSection = '<div class="rec-section">' +
+            '<div class="rec-section-header employer">\u{1F3E2} Employer Details</div>' +
+            '<div class="rec-section-body">' +
+            f('Occupier / Employer', r.occupier_name) +
+            f('Premises Address', r.premises_address) +
+            f('Nature of Industry', r.nature_of_industry) +
+            f('Industry Sector', r.industry_sector) +
+            f('Reporter', r.reporter_name + (r.reporter_designation ? ' (' + r.reporter_designation + ')' : '')) +
+            f('Report Date', fmtDate(r.report_date)) +
+            '</div></div>';
+
+        // ── Injured Worker Details ───────────────────────
+        const workerSection = (r.injured_name) ? '<div class="rec-section">' +
+            '<div class="rec-section-header worker">\u{1F464} Injured Worker Details</div>' +
+            '<div class="rec-section-body">' +
+            f('Full Name', r.injured_name) +
+            f('Age', r.injured_age) +
+            f('Sex', r.injured_sex) +
+            f('ID / Passport', r.injured_id_number) +
+            f('Occupation at Accident', r.occupation_at_accident) +
+            f('Usual Occupation', r.usual_occupation) +
+            f('Experience Level', r.experience_level) +
+            '</div></div>' : '';
+
+        // ── Accident / Injury Details ────────────────────
+        const accidentBody = f('Date', fmtDate(r.accident_date)) +
+            f('Time', r.accident_time) +
+            f('Place', r.accident_place) +
+            f('Description', r.accident_description) +
+            f('Machinery Involved', r.machinery_involved) +
+            f('Fatal?', r.injury_fatal) +
+            f('Disabled 3+ Days', r.disabled_three_days) +
+            f('Hourly Pay (BWP)', r.hourly_pay) +
+            f('Medical Practitioner', r.medical_practitioner);
+
+        const accidentSection = '<div class="rec-section">' +
+            '<div class="rec-section-header accident">\u{1F6A8} Accident / Injury Details</div>' +
+            '<div class="rec-section-body">' +
+            accidentBody +
+            '</div></div>';
+
+        // ── Dangerous Occurrence (separate section) ─────
+        const dangerSection = (r.dangerous_date || r.dangerous_description || r.dangerous_damage)
+            ? '<div class="rec-section">' +
+              '<div class="rec-section-header accident">\u26A0\uFE0F Dangerous Occurrence</div>' +
+              '<div class="rec-section-body">' +
+              f('Date', r.dangerous_date ? fmtDate(r.dangerous_date) : null) +
+              f('Description', r.dangerous_description) +
+              f('Damage / Loss', r.dangerous_damage) +
+              f('Employees Injured', r.employees_injured) +
+              '</div></div>'
+            : '';
+
+        // ── Investigation / Official Use ──────────────────
+        const investSection = (r.causation_number || r.investigation_status) ? '<div class="rec-section">' +
+            '<div class="rec-section-header investigation">\u{1F50D} Investigation & Official Use</div>' +
+            '<div class="rec-section-body">' +
+            f('Causation No.', r.causation_number) +
+            f('Investigation Status', r.investigation_status) +
+            f('Official Action', r.official_action) +
+            '</div></div>' : '';
+
+        const modalHtml = '<div class="rec-modal">' +
+            '<div class="rec-modal-header">' +
+            '<div>' +
+            '<h2>\u{1F6A8} Accident Report</h2>' +
+            '<div class="subtitle">' +
+            ((r.report_type||'').replace('_',' ').toUpperCase()) +
+            (r.accident_case_number ? ' \u2014 \u{1F4CB} ' + r.accident_case_number : '') +
+            '</div>' +
+            '</div>' +
+            '<button class="rec-modal-close" id="recCloseBtn">\u2715</button>' +
+            '</div>' +
+            '<div class="rec-modal-body">' +
+            employerSection +
+            workerSection +
+            accidentSection +
+            dangerSection +
+            investSection +
+            '</div>' +
+            '</div>';
+
         return new Promise(resolve => {
             const ov = document.createElement('div');
-            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-            ov.innerHTML = `<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:'Segoe UI',sans-serif">
-                <div style="font-size:32px;text-align:center;margin-bottom:8px">🚨</div>
-                <h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Accident Report — OHS Form 60</h2>
-                ${rowsHTML}
-                <div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Close</button></div>
-            </div>`;
-            ov.querySelector('#closeBtn').addEventListener('click', () => { ov.remove(); resolve(); });
+            ov.className = 'rec-modal-overlay';
+            ov.innerHTML = modalHtml;
+            ov.querySelector('#recCloseBtn').addEventListener('click', () => { ov.remove(); resolve(); });
             ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); resolve(); } });
             document.body.appendChild(ov);
         });
     }
-
     async function editInvestigation(id, current, ownerId) {
         if (typeof canEditClaims === 'function' && !canEditClaims(ownerId)) {
             showPermissionDenied('edit this report'); return;
