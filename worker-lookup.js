@@ -469,9 +469,9 @@
     if (error) return { exists: false, error };
     if (data && data.length > 0) {
       const ok = await window.showConfirm(
-        "A " + (label || "record") + " already exists.
+        `A ${label || "record"} already exists.
 
-Submit anyway? This may create a duplicate.",
+Submit anyway? This may create a duplicate.`,
         { title: "⚠ Possible Duplicate", icon: "⚠️", confirmText: "Submit Anyway", cancelText: "Cancel", danger: true }
       );
       return { exists: true, confirmed: ok };
