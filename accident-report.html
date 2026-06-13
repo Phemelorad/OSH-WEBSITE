@@ -795,8 +795,8 @@
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'accident report');
             } else {
-                await showAlert('Accident report submitted successfully!\n\n📋 Case Number: ' + (data?.accident_case_number || 'Pending'), { type: 'success', title: 'Success' }), {
-                    type: 'success', title: 'Report Submitted', btnText: 'OK'
+                await showAlert('Accident report submitted successfully!\n\n📋 Case Number: ' + (data?.accident_case_number || 'Pending'), { 
+                    type: 'success', title: 'Report Submitted', btnText: 'OK' 
                 });
             }
 
