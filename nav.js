@@ -359,17 +359,15 @@
         ]
       },
       {
-        id: '      },
-      {
         id: 'investigation',
-        label: '\uD83D\uDD0D Investigations',
+        label: '🔍 Investigations',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'investigation-view', icon: '\uD83D\uDD0D', label: 'View Investigations', href: 'investigation.html' },
+          { id: 'investigation-view', icon: '🔍', label: 'View Investigations', href: 'investigation.html' },
         ]
       },
       {
-        id: 'claims',claims',
+        id: 'claims',
         label: '\uD83D\uDCCB Claims',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
