@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OHS Form 36 – Factories Inspection Form</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Arial", sans-serif; font-size: 10.5pt; background: #fff; color: #000; }
+
+  .page {
+    width: 210mm; min-height: 297mm;
+    margin: 0 auto; padding: 14mm 18mm 14mm 18mm;
+    background: #fff;
+  }
+
+  /* ── Header ── */
+  .header-center { text-align: center; margin-bottom: 5mm; }
+  .crest-placeholder {
+    display: inline-block; width: 22mm; height: 22mm;
+    border: 1px solid #000; line-height: 22mm; font-size: 7.5pt;
+    color: #666; text-align: center; margin-bottom: 2mm;
+  }
+  .republic { font-weight: bold; font-size: 13pt; letter-spacing: 0.05em; margin-bottom: 3mm; }
+  .form-number-block { text-align: right; margin-bottom: 1mm; }
+  .form-number-block .fn { font-weight: bold; font-size: 11.5pt; }
+  .form-number-block .rev { font-size: 9.5pt; color: #444; }
+
+  .dept-block { font-size: 10.5pt; line-height: 1.6; margin-bottom: 3mm; }
+  .dept-block .ministry { font-style: italic; }
+
+  .main-title {
+    font-size: 17pt; font-weight: bold; text-align: center;
+    margin-bottom: 5mm; letter-spacing: 0.01em;
+  }
+
+  /* ── Field lines ── */
+  .dline {
+    border-bottom: 1px solid #000; display: block;
+    min-height: 5.5mm; width: 100%; margin-bottom: 1.5mm;
+  }
+  .dline-inline {
+    border-bottom: 1px solid #000; display: inline-block;
+    min-height: 4.5mm;
+  }
+
+  /* ── Top info fields ── */
+  .info-row {
+    display: flex; gap: 4mm; align-items: flex-end;
+    margin-bottom: 2mm; font-size: 10.5pt;
+  }
+  .info-row > span { white-space: nowrap; }
+  .info-row .stretch { flex: 1; border-bottom: 1px solid #000; min-height: 4.5mm; }
+
+  .persons-row {
+    display: flex; align-items: flex-end; gap: 6mm;
+    margin-bottom: 2mm; font-size: 10.5pt;
+  }
+  .persons-row > span { white-space: nowrap; }
+  .persons-row .pline { border-bottom: 1px solid #000; min-width: 28mm; min-height: 4.5mm; display: inline-block; }
+
+  /* ── Inspection items ── */
+  .item {
+    margin-bottom: 3mm; font-size: 10.5pt; line-height: 1.5;
+  }
+  .item .item-label {
+    font-weight: normal; margin-bottom: 1mm;
+  }
+  .item .item-label .num { font-weight: bold; }
+
+  /* items with 2 lines */
+  .item .dline { margin-top: 0.5mm; }
+
+  /* ── Footer rule ── */
+  .footer {
+    border-top: 1px solid #000; margin-top: 5mm;
+    padding-top: 2mm; text-align: center;
+    font-size: 9pt; font-variant: small-caps;
+    letter-spacing: 0.05em; color: #333;
+  }
+
+  .page-break { page-break-before: always; }
+
+  /* ── Signature / date area ── */
+  .sig-section { margin-top: 2mm; }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PAGE 1 ═══════════ -->
+<div class="page">
+
+  <!-- Form number top right + crest -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4mm;">
+    <div style="flex:1;"></div>
+    <div style="text-align:center; flex:2;">
+      <div><span class="crest-placeholder">[ Coat of Arms ]</span></div>
+      <div class="republic">REPUBLIC OF BOTSWANA</div>
+    </div>
+    <div style="flex:1; text-align:right;">
+      <div style="font-weight:bold; font-size:11.5pt;">OHS Form 36</div>
+      <div style="font-size:9.5pt;">(Revised 2017)</div>
+    </div>
+  </div>
+
+  <div class="dept-block" style="text-align:center;">
+    <div>Department of Occupational Health and Safety</div>
+    <div class="ministry">Ministry of Employment, Labour Productivity and Skills Development</div>
+    <div>The Factories Act, 1973</div>
+  </div>
+
+  <div class="main-title">FACTORIES INSPECTION FORM</div>
+
+  <!-- Top info fields -->
+  <div class="info-row">
+    <span>Name of Factory</span><span class="stretch"></span>
+  </div>
+  <span class="dline"></span>
+
+  <div class="info-row">
+    <span>Registration No.</span><span class="stretch" style="max-width:55mm;"></span>
+    <span style="margin-left:4mm;">Region</span><span class="stretch"></span>
+  </div>
+
+  <div class="info-row">
+    <span>Nature of Work carried out</span><span class="stretch"></span>
+  </div>
+
+  <div class="persons-row" style="margin-bottom:1.5mm;">
+    <span>Number of Persons Employed:</span>
+    <span>Male:</span><span class="pline"></span>
+    <span>Female:</span><span class="pline"></span>
+    <span>Total:</span><span class="pline"></span>
+  </div>
+  <span class="dline"></span>
+
+  <div class="info-row">
+    <span>Stand/Plot Number</span><span class="stretch"></span>
+  </div>
+
+  <div class="info-row">
+    <span>Postal Address</span><span class="stretch"></span>
+  </div>
+  <span class="dline"></span>
+
+  <div class="info-row">
+    <span>Date of Inspection:</span><span class="stretch"></span>
+  </div>
+
+  <div class="info-row">
+    <span>Name of Person/Position of Person seen during Inspection:</span><span class="stretch"></span>
+  </div>
+  <span class="dline"></span>
+
+  <div class="info-row" style="margin-bottom:4mm;">
+    <span><em>INSPECTOR:</em></span><span class="stretch"></span>
+  </div>
+
+  <!-- Inspection items 1–6 -->
+  <div class="item">
+    <div class="item-label"><span class="num">1.00:</span> Cleanliness/Housekeeping:</div>
+    <span class="dline-inline" style="min-width:100%; display:block; border-bottom:1px solid #000; min-height:5mm; margin-bottom:1.5mm;"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">2.00:</span> Ventilation:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">3.00:</span> Water Supply/Drinking Water:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">4.00:</span> Protective Clothing/Equipment:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">5.00:</span> Changerooms/Canteen:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">6.00:</span> First Aid Equipment/Room/First Aider:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
+</div>
+
+
+<!-- ═══════════ PAGE 2 ═══════════ -->
+<div class="page page-break">
+
+  <div class="item">
+    <div class="item-label"><span class="num">7.00:</span> Showers:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">8.00:</span> Toilets:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">9.00:</span> Fire Precautions/Equipment:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">10.00:</span> Lighting: Natural/Artificial:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">11.00:</span> Wash-Hand Basins:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">12.00:</span> Dangerous Substances/Dust/Fumes:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">13.00:</span> Accidents/Notification:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">14.00:</span> Industrial Diseases/Notification:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">15.00:</span> Stacking/Storage Arrangements:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">16.00:</span> Overcrowding/Congestion:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">17.00:</span> Spray Painting:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">18.00:</span> Notices/Posters, etc:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">19.00:</span> Medical Examinations:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">20.00:</span> Noise/Vibration:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">21.00:</span> Machinery/Pressure Vessels/Lifting Equipment:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">22.00:</span> Electrical Safety:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">23.00:</span> Construction Safety:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">24.00:</span> Further observations/Remarks</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
+</div>
+
+
+<!-- ═══════════ PAGE 3 ═══════════ -->
+<div class="page page-break">
+
+  <!-- Continuation lines for item 24 -->
+  <span class="dline"></span>
+  <span class="dline"></span>
+  <span class="dline"></span>
+
+  <div class="item" style="margin-top:3mm;">
+    <div class="item-label"><span class="num">25.00:</span> Referral to other Organisations, etc:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">26.00:</span> Signature of Inspector:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">27.00:</span> Reinspections:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item">
+    <div class="item-label"><span class="num">28.00:</span> Name/Signature of Inspector:</div>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+    <span class="dline"></span>
+  </div>
+
+  <div class="item" style="margin-top:3mm;">
+    <div class="item-label">Date:</div>
+    <span class="dline"></span>
+  </div>
+
+  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
+</div>
+
+</body>
+</html>

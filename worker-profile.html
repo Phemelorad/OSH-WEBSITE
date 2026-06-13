@@ -120,7 +120,7 @@
             gap: 16px; margin-bottom: 24px;
         }
         .stat-card {
-            background: white; border-radius: 10px; padding: 20px;
+            background: white; border-radius: 0; padding: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             border-left: 4px solid #333; text-align: center;
         }
@@ -128,10 +128,16 @@
         .stat-card.amber { border-left-color: #ffc107; }
         .stat-card.blue  { border-left-color: #17a2b8; }
         .stat-card.green { border-left-color: #28a745; }
+        /* -- Stat value colors */
+        .stat-card .val { color: var(--stat-color, #333); }
+        .stat-card.red .val { --stat-color: #dc3545; }
+        .stat-card.amber .val { --stat-color: #d97706; }
+        .stat-card.blue .val { --stat-color: #17a2b8; }
+        .stat-card.green .val { --stat-color: #28a745; }
         .stat-card h3 { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .stat-card .val { font-size: 26px; font-weight: 700; color: #333; }
-        .stat-card.red   .val { color: #721c24; }
-        .stat-card.amber .val { color: #856404; }
+        .stat-card .val { font-size: 26px; font-weight: 700; color: var(--stat-color, #333); }
+        
+        
 
         /* ── Timeline ────────────────────────── */
         .timeline-card {

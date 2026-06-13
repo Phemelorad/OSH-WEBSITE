@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OHS Form 1 – Application for Registration of a New Factory</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Arial", sans-serif; font-size: 11pt; background: #fff; color: #000; }
+
+  .page {
+    width: 210mm; min-height: 297mm;
+    margin: 0 auto; padding: 14mm 18mm 14mm 18mm;
+    background: #fff; position: relative;
+  }
+
+  /* ── Top bar ── */
+  .top-bar {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 6mm;
+  }
+  .official-box { font-size: 9.5pt; line-height: 1.9; }
+  .official-box strong { font-size: 10pt; }
+  .official-box .field-line {
+    border-bottom: 1px solid #000; display: inline-block;
+    min-width: 52mm; margin-left: 1mm;
+  }
+  .form-number { font-weight: bold; font-size: 11pt; text-align: right; }
+
+  /* ── Crest & header ── */
+  .header-center { text-align: center; margin-bottom: 5mm; }
+  .crest-placeholder {
+    display: inline-block; width: 22mm; height: 22mm;
+    border: 1px solid #000; line-height: 22mm; font-size: 7.5pt;
+    color: #666; text-align: center; margin-bottom: 2mm;
+  }
+  .republic { font-weight: bold; font-size: 13pt; letter-spacing: 0.05em; margin-bottom: 3mm; }
+  .dept-block { font-size: 10.5pt; line-height: 1.6; margin-bottom: 2mm; }
+  .dept-block .dept-name { font-weight: normal; }
+  .dept-block .ministry { font-style: italic; }
+  .dept-block .act-ref { font-weight: normal; }
+
+  .instruction-para {
+    font-style: italic; font-size: 10pt; line-height: 1.6;
+    text-align: justify; margin-bottom: 5mm;
+  }
+
+  /* ── Main title ── */
+  .main-title {
+    font-size: 18pt; font-weight: bold; text-align: center;
+    margin-bottom: 5mm; letter-spacing: 0.01em;
+  }
+
+  .intro-text { font-size: 10.5pt; line-height: 1.6; margin-bottom: 5mm; text-align: justify; }
+
+  /* ── Fields ── */
+  .field-block { margin-bottom: 4mm; font-size: 10.5pt; line-height: 1.6; }
+  .field-block .label { font-size: 10.5pt; }
+  .dline {
+    border-bottom: 1px solid #000; display: block;
+    min-height: 5.5mm; width: 100%; margin-top: 1mm; margin-bottom: 1mm;
+  }
+  .dline-inline {
+    border-bottom: 1px solid #000; display: inline-block;
+    min-width: 60mm; min-height: 4.5mm;
+  }
+  .sub-field { margin-left: 8mm; margin-bottom: 2mm; font-size: 10.5pt; }
+
+  /* ── Number + text row ── */
+  .numbered-row {
+    display: flex; gap: 3mm; margin-bottom: 3mm; font-size: 10.5pt;
+  }
+  .num { min-width: 6mm; font-weight: normal; }
+  .row-content { flex: 1; }
+
+  /* ── Boiler sub-items ── */
+  .boiler-item { display: flex; gap: 2mm; margin-bottom: 2mm; }
+  .boiler-lbl { min-width: 5mm; }
+
+  /* ── Inline two-col ── */
+  .two-col { display: flex; gap: 6mm; align-items: flex-end; }
+  .two-col > span { white-space: nowrap; font-size: 10.5pt; }
+  .two-col .dline-inline { flex: 1; min-width: 30mm; }
+
+  /* ── Signature block ── */
+  .sig-area {
+    margin-top: 6mm; display: flex;
+    justify-content: space-between; align-items: flex-end;
+    gap: 10mm;
+  }
+  .sig-left { font-size: 10.5pt; }
+  .sig-right { text-align: center; font-size: 10.5pt; }
+  .stamp-box {
+    border: 1px solid #000; width: 30mm; height: 22mm;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9pt; color: #888; margin-bottom: 1mm;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid #000; margin-top: 6mm;
+    padding-top: 2mm; text-align: center;
+    font-size: 9pt; font-variant: small-caps; letter-spacing: 0.05em; color: #333;
+  }
+  .page-num { text-align: right; font-size: 9pt; margin-top: 2mm; }
+
+  .note-text { font-size: 9.5pt; line-height: 1.5; margin-top: 5mm; }
+
+  .page-break { page-break-before: always; }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PAGE 1 ═══════════ -->
+<div class="page">
+
+  <!-- Top: Official use box + form number -->
+  <div class="top-bar">
+    <div class="official-box">
+      <strong>For Official use</strong><br>
+      Registration No.<span class="field-line" style="min-width:44mm;"></span><br>
+      File No.<span class="field-line" style="min-width:50mm;"></span><br>
+      Page of Main register<span class="field-line" style="min-width:34mm;"></span><br>
+      Register card No.<span class="field-line" style="min-width:40mm;"></span>
+    </div>
+    <div class="form-number">OHS Form 1</div>
+  </div>
+
+  <!-- Crest & header -->
+  <div class="header-center">
+    <div><span class="crest-placeholder">[ Coat of Arms ]</span></div>
+    <div class="republic">REPUBLIC OF BOTSWANA</div>
+    <div class="dept-block">
+      <div class="dept-name">Department of Occupational Health and Safety</div>
+      <div class="ministry">Ministry of Labour and Home Affairs</div>
+      <div class="act-ref">The Factories Act, 1973, Section 9</div>
+    </div>
+  </div>
+
+  <!-- Instruction paragraph -->
+  <p class="instruction-para">
+    Section 9 of the Factories Act, 1973, requires that, before any person occupies or uses as a factory any
+    premises which were not occupied or used by him at the commencement of the Act he shall apply for the
+    registration of such premises by sending to the Director of Occupational Health and Safety a written notice
+    containing the particulars set out in the First Schedule of the Act. This form may be used for the purpose.
+    When completed it should be sent to the Director of Occupational Health and Safety, Private Bag 00241,
+    Gaborone.
+  </p>
+
+  <!-- Main title -->
+  <div class="main-title">APPLICATION FOR REGISTRATION OF A NEW FACTORY</div>
+
+  <p class="intro-text">
+    I HEREBY APPLY for registration of the premises of whose particulars are given below, which premises I intend to
+    occupy and use as a factory.
+  </p>
+
+  <!-- 1. Name -->
+  <div class="numbered-row">
+    <span class="num">1.</span>
+    <div class="row-content">
+      Name of intending occupier (in the case of a firm which is not a registered company the names of each partner
+      should be entered)
+      <span class="dline"></span>
+      <span class="dline"></span>
+    </div>
+  </div>
+
+  <!-- 2. Contact details -->
+  <div class="numbered-row">
+    <span class="num">2.</span>
+    <div class="row-content">
+      Contact details
+      <div class="sub-field">
+        (a) Postal address of factory<span class="dline-inline" style="min-width:100mm;"></span>
+        <span class="dline" style="margin-top:1mm;"></span>
+      </div>
+      <div class="sub-field">
+        (b) Situation of factory (Give street, plot No. Town and District)<span class="dline-inline" style="min-width:60mm;"></span>
+        <span class="dline" style="margin-top:1mm;"></span>
+      </div>
+      <div class="sub-field">
+        <div class="two-col">
+          <span>(c) Tel no</span><span class="dline-inline" style="min-width:55mm;"></span>
+          <span>, E-mail</span><span class="dline-inline" style="min-width:55mm;"></span>
+        </div>
+      </div>
+      <div class="sub-field">
+        (d) Address of registered office, (i.e. company secretaries)<span class="dline-inline" style="min-width:55mm;"></span>
+        <span class="dline" style="margin-top:1mm;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Nature of work -->
+  <div class="numbered-row">
+    <span class="num">3.</span>
+    <div class="row-content">
+      Nature of the work to be carried out<span class="dline-inline" style="min-width:90mm;"></span>
+      <span class="dline"></span>
+      <span class="dline"></span>
+    </div>
+  </div>
+
+  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
+  <div class="page-num">Page 1 of 2</div>
+</div>
+
+
+<!-- ═══════════ PAGE 2 ═══════════ -->
+<div class="page page-break">
+
+  <div style="text-align:right; font-size:9pt; margin-bottom:4mm;">Page 2 of 2</div>
+
+  <!-- 4. Mechanical power -->
+  <div class="numbered-row">
+    <span class="num">4.</span>
+    <div class="row-content">
+      Is mechanical power to be used? If so state its nature (e.g. electric, steam, gas, oil or petrol)<span class="dline-inline" style="min-width:30mm;"></span>
+      <span class="dline"></span>
+    </div>
+  </div>
+
+  <!-- 5. Steam boilers -->
+  <div class="numbered-row">
+    <span class="num">5.</span>
+    <div class="row-content">
+      If steam boilers is to be used? If so give the following particulars in respect of each boiler –
+      <div class="sub-field" style="margin-top:1mm;">
+        <div class="boiler-item"><span class="boiler-lbl">a)</span><span>Type, description and distinctive number<span class="dline-inline" style="min-width:75mm;"></span></span></div>
+        <span class="dline" style="margin-left:5mm; width:calc(100% - 5mm);"></span>
+        <div class="boiler-item" style="margin-top:1mm;"><span class="boiler-lbl">b)</span><span>Country and year of manufacture<span class="dline-inline" style="min-width:82mm;"></span></span></div>
+        <span class="dline" style="margin-left:5mm; width:calc(100% - 5mm);"></span>
+        <div class="boiler-item" style="margin-top:1mm;"><span class="boiler-lbl">c)</span><span>Date of last thorough examination and name of the person by whom the examination was made</span></div>
+        <span class="dline" style="margin-left:5mm; width:calc(100% - 5mm);"></span>
+        <div class="boiler-item" style="margin-top:1mm;"><span class="boiler-lbl">d)</span><span>Maximum permissible working pressure in kilograms per square centimetre<span class="dline-inline" style="min-width:30mm;"></span></span></div>
+        <span class="dline" style="margin-left:5mm; width:calc(100% - 5mm);"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Name completing application -->
+  <div class="numbered-row">
+    <span class="num">6.</span>
+    <div class="row-content">
+      Name and designation of person completing application<span class="dline-inline" style="min-width:75mm;"></span>
+      <span class="dline"></span>
+    </div>
+  </div>
+
+  <!-- 7. Number of persons -->
+  <div class="numbered-row">
+    <span class="num">7.</span>
+    <div class="row-content">
+      <div class="sub-field" style="margin-left:0;">
+        a) Number of persons (male and female) to be employed in the factory –<br>
+        <div style="margin-left:6mm; margin-top:2mm; font-size:10.5pt; line-height:2;">
+          Males<span class="dline-inline" style="min-width:60mm;"></span><br>
+          Females<span class="dline-inline" style="min-width:57mm;"></span><br>
+          Total<span class="dline-inline" style="min-width:61mm;"></span>
+        </div>
+      </div>
+      <div class="sub-field" style="margin-left:0; margin-top:2mm;">
+        b) Are persons to be employed in shifts? If so state the maximum number to be employed at any one time
+        <span class="dline-inline" style="min-width:40mm;"></span>
+        <span class="dline"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Previous use -->
+  <div class="numbered-row">
+    <span class="num">8.</span>
+    <div class="row-content">
+      Have the premises previously been used as a factory? If so give name of previous occupier<span class="dline-inline" style="min-width:20mm;"></span>
+      <span class="dline"></span>
+      <span class="dline"></span>
+    </div>
+  </div>
+
+  <!-- Signature block -->
+  <div class="sig-area" style="margin-top:8mm;">
+    <div class="sig-left">
+      <div style="margin-bottom:2mm;">
+        <span class="dline-inline" style="min-width:50mm;"></span>
+      </div>
+      <div style="font-size:10.5pt;">Signature of occupier</div>
+      <div style="margin-top:3mm; font-size:10.5pt;">
+        Date:<span class="dline-inline" style="min-width:55mm;"></span>
+      </div>
+    </div>
+    <div class="sig-right">
+      <div class="stamp-box">Stamp</div>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <p class="note-text">
+    <strong>Note.</strong> Where the Director of Occupational Health and Safety refuses to issue a certificate of registration, he
+    shall, if so required by the applicant, state in writing the grounds of such refusal. Appeal against the Director's
+    decision is provided for under section 12 of the Act.
+  </p>
+
+  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
+</div>
+
+</body>
+</html>
