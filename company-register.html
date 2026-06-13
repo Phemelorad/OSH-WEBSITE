@@ -187,8 +187,7 @@
         <!-- ── Stats grid ──────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card"><h3>Registered Companies</h3><div class="stat-value" id="statCompanies">—</div></div>
-            <div class="stat-card red"><h3>Total Incidents</h3><div class="stat-value" id="statIncidents">—</div></div>
-            <div class="stat-card amber"><h3>Fatalities</h3><div class="stat-value" id="statFatalities">—</div></div>
+            </div>
             <div class="stat-card blue"><h3>Inspections</h3><div class="stat-value" id="statInspections">—</div></div>
             <div class="stat-card purple"><h3>Claims</h3><div class="stat-value" id="statClaims">—</div></div>
             <div class="stat-card green"><h3>Avg Compliance</h3><div class="stat-value" id="statCompliance">—</div></div>
@@ -243,8 +242,7 @@
                             <tr>
                                 <th>Company Name</th>
                                 <th>Industry</th>
-                                <th>Incidents</th>
-                                <th>Fatalities</th>
+                                
                                 <th>Inspections</th>
                                 <th>Compliance</th>
                                 <th>Claims</th>
@@ -489,16 +487,14 @@
     // ── Stats ────────────────────────────────────────────────
     function buildStats(rows) {
         const companies   = rows.length;
-        const incidents   = rows.reduce((s, r) => s + ((r.total_incidents ?? r.accident_count + r.injury_disease_count) || 0), 0);
-        const fatalities  = rows.reduce((s, r) => s + ((r.total_fatalities ?? r.fatal_accidents + r.idr_fatalities) || 0), 0);
+        
         const inspections = rows.reduce((s, r) => s + (r.inspection_count || 0), 0);
         const claims      = rows.reduce((s, r) => s + (r.claim_count || 0), 0);
         const comps       = rows.filter(r => r.avg_compliance_level != null).map(r => r.avg_compliance_level);
         const avgComp     = comps.length ? Math.round(comps.reduce((a,b) => a+b, 0) / comps.length) : 0;
 
         document.getElementById('statCompanies').textContent   = companies;
-        document.getElementById('statIncidents').textContent   = incidents;
-        document.getElementById('statFatalities').textContent  = fatalities;
+        
         document.getElementById('statInspections').textContent = inspections;
         document.getElementById('statClaims').textContent      = claims;
         document.getElementById('statCompliance').textContent  = comps.length ? avgComp + '%' : 'N/A';
@@ -543,13 +539,12 @@
             const compColor   = compLevel >= 75 ? '#155724' : compLevel >= 50 ? '#856404' : '#721c24';
             const lastAct     = c.last_activity_date || c.last_accident_date || c.last_inspection_date || c.last_idr_date || null;
 
-            const incBadge = !incidents  ? 'badge-zero' : fatalities ? 'badge-low' : incidents <= 3 ? 'badge-medium' : 'badge-high';
+            
 
             return `<tr class="clickable-row" onclick="openDrilldown('${esc(c.company_name)}')">
                 <td><strong>${esc(c.company_name)}</strong></td>
                 <td>${c.industry ? `<span class="industry-chip">${esc(c.industry)}</span>` : '<span style="color:#bbb">—</span>'}</td>
-                <td><span class="badge ${incBadge}">${incidents}${fatalities ? ` (${fatalities} fatal)` : ''}</span></td>
-                <td style="text-align:center;font-weight:${fatalities ? 700 : 400};color:${fatalities ? '#721c24' : '#999'}">${fatalities || '0'}</td>
+                
                 <td style="text-align:center;font-weight:${c.inspection_count ? 600 : 400}">${c.inspection_count || '—'}</td>
                 <td>
                     ${compLevel != null
@@ -587,12 +582,9 @@
         // Build stats row
         const statsEl = document.getElementById('ddStats');
         if (company) {
-            const incidents = company.total_incidents || company.accident_count + company.injury_disease_count || 0;
+            
             statsEl.innerHTML = `
-                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
-                    <div style="font-size:20px;font-weight:700;color:#333">${incidents}</div>
-                    <div style="font-size:10px;color:#888;text-transform:uppercase">Incidents</div>
-                </div>
+                
                 <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
                     <div style="font-size:20px;font-weight:700;color:#333">${company.inspection_count || 0}</div>
                     <div style="font-size:10px;color:#888;text-transform:uppercase">Inspections</div>
@@ -764,7 +756,7 @@
 
     // ── Export CSV ────────────────────────────────────────────
     function exportCSV() {
-        const headers = ['Company Name','Industry','Incidents','Fatalities','Accidents','Dangerous Occurrences',
+        const headers = ['Company Name','Industry','Accidents','Dangerous Occurrences',
                          'Inspections','Avg Compliance %','Follow-ups Required','Total Employees',
                          'Injury/Disease Reports','Disease Count','Compensation Claims','Draft Claims',
                          'Approved Claims','Last Activity Date'];
