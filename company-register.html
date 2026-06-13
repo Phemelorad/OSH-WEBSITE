@@ -190,6 +190,8 @@
             </div>
             <div class="stat-card blue"><h3>Inspections</h3><div class="stat-value" id="statInspections">—</div></div>
             <div class="stat-card purple"><h3>Claims</h3><div class="stat-value" id="statClaims">—</div></div>
+            <div class="stat-card red"><h3>Total Accidents</h3><div class="stat-value" id="statAccidents">—</div></div>
+            <div class="stat-card amber"><h3>Total Injuries</h3><div class="stat-value" id="statInjuries">—</div></div>
             <div class="stat-card green"><h3>Avg Compliance</h3><div class="stat-value" id="statCompliance">—</div></div>
         </div>
 
@@ -339,7 +341,13 @@
         }
 
         allCompanies = data;
-        buildStats(data);
+        const [accRes, injRes] = await Promise.all([
+            SB.from('accident_reports').select('*', { count: 'exact', head: true }),
+            SB.from('injury_disease_reports').select('*', { count: 'exact', head: true })
+        ]);
+        const accCount = accRes.count ?? 0;
+        const injCount = injRes.count ?? 0;
+        buildStats(data, accCount, injCount);
         renderTable(data);
 
         document.getElementById('loadingState').style.display = 'none';
@@ -468,7 +476,9 @@
                 a.company_name.localeCompare(b.company_name)
             );
 
-            buildStats(allCompanies);
+            const totalAcc = allCompanies.reduce((s, r) => s + (r.accident_count || r.accidents || 0), 0);
+            const totalInj = allCompanies.reduce((s, r) => s + (r.injury_disease_count || r.injuries || 0), 0);
+            buildStats(allCompanies, totalAcc, totalInj);
             renderTable(allCompanies);
 
             document.getElementById('loadingState').style.display = 'none';
@@ -485,7 +495,7 @@
     }
 
     // ── Stats ────────────────────────────────────────────────
-    function buildStats(rows) {
+    function buildStats(rows, accidentCount, injuryCount) {
         const companies   = rows.length;
         
         const inspections = rows.reduce((s, r) => s + (r.inspection_count || 0), 0);
@@ -498,6 +508,13 @@
         document.getElementById('statInspections').textContent = inspections;
         document.getElementById('statClaims').textContent      = claims;
         document.getElementById('statCompliance').textContent  = comps.length ? avgComp + '%' : 'N/A';
+
+        if (accidentCount !== undefined) {
+            document.getElementById('statAccidents').textContent = accidentCount;
+        }
+        if (injuryCount !== undefined) {
+            document.getElementById('statInjuries').textContent = injuryCount;
+        }
     }
 
     // ── Filters ──────────────────────────────────────────────
@@ -588,6 +605,14 @@
                 <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
                     <div style="font-size:20px;font-weight:700;color:#333">${company.inspection_count || 0}</div>
                     <div style="font-size:10px;color:#888;text-transform:uppercase">Inspections</div>
+                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;color:#721c24">${company.accident_count || company.accidents || 0}</div>
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px">Accidents</div>
+                </div>
+                <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
+                    <div style="font-size:20px;font-weight:700;color:#856404">${company.injury_disease_count || company.injuries || 0}</div>
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px">Injuries</div>
+                </div>
                 </div>
                 <div style="text-align:center;padding:8px;background:white;border-radius:8px;">
                     <div style="font-size:20px;font-weight:700;color:#333">${company.claim_count || 0}</div>

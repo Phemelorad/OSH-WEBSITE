@@ -274,7 +274,7 @@
                 onclick="wlSetType('Passport')">📘 Passport</button>
       </div>
       <div class="wl-input-row">
-        <input type="text" id="wl-id-input" placeholder="Enter Omang number…" maxlength="8" pattern="[0-9]{8}" inputmode="numeric"
+        <input type="text" id="wl-id-input" placeholder="Enter Omang number…" maxlength="9" pattern="[0-9]{8}" inputmode="numeric"
                oninput="wlOnInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();wlLookup()}"
                autocomplete="off">
         <button type="button" class="wl-lookup-btn" id="wl-btn" onclick="wlLookup()">🔍 Look Up</button>
@@ -297,7 +297,7 @@
       document.getElementById('wl-btn-passport').classList.toggle('active', type === 'Passport');
       const inp = document.getElementById('wl-id-input');
       if (type === 'Omang') {
-        inp.maxLength = 8; inp.pattern = '[0-9]{8}'; inp.inputMode = 'numeric';
+        inp.maxLength = 9; inp.pattern = '[0-9]{8}'; inp.inputMode = 'numeric';
       } else {
         inp.removeAttribute('maxlength'); inp.removeAttribute('pattern'); inp.inputMode = 'text';
       }

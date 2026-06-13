@@ -359,7 +359,17 @@
         ]
       },
       {
-        id: 'claims',
+        id: '      },
+      {
+        id: 'investigation',
+        label: '\uD83D\uDD0D Investigations',
+        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        children: [
+          { id: 'investigation-view', icon: '\uD83D\uDD0D', label: 'View Investigations', href: 'investigation.html' },
+        ]
+      },
+      {
+        id: 'claims',claims',
         label: '\uD83D\uDCCB Claims',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [

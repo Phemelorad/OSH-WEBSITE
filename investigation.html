@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigations - DOSH</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%); min-height:100vh; }
+        .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
+        .navbar h1 { color:#333; font-size:24px; }
+        .user-info { display:flex; align-items:center; gap:20px; }
+        .logout-btn { padding:10px 20px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
+        .logout-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width:1600px; margin:40px auto; padding:0 20px; }
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px; margin-bottom:30px; }
+        .stat-card { background:white; border-radius:12px; padding:25px; box-shadow:0 4px 20px rgba(0,0,0,0.1); border-left:4px solid #333; }
+        .stat-card.blue  { border-left-color:#17a2b8; }
+        .stat-card.amber { border-left-color:#ffc107; }
+        .stat-card.green { border-left-color:#28a745; }
+        .stat-card.red   { border-left-color:#dc3545; }
+        .stat-card.purple { border-left-color:#6f42c1; }
+        .stat-card h3 { color:#666; font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+        .stat-card .stat-value { color:#333; font-size:28px; font-weight:700; }
+        .stat-card.blue   .stat-value { color:#0c5460; }
+        .stat-card.amber  .stat-value { color:#856404; }
+        .stat-card.green  .stat-value { color:#155724; }
+        .stat-card.red    .stat-value { color:#721c24; }
+        .stat-card.purple .stat-value { color:#4a1d96; }
+        .section-card { background:white; border-radius:12px; padding:30px; box-shadow:0 4px 20px rgba(0,0,0,0.1); margin-bottom:30px; }
+        .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #f0f0f0; flex-wrap:wrap; gap:12px; }
+        .section-header h2 { color:#333; font-size:20px; }
+        .filters { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+        .filter-group { display:flex; flex-direction:column; gap:4px; }
+        .filter-group label { font-size:11px; color:#666; font-weight:600; text-transform:uppercase; }
+        .filter-group select, .filter-group input { padding:8px 12px; border:2px solid #e0e0e0; border-radius:6px; font-size:13px; font-family:inherit; }
+        .refresh-btn, .export-btn { padding:8px 16px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; font-size:13px; font-family:inherit; }
+        .refresh-btn:hover, .export-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+        .table-container { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        thead { background:#f8f8f8; }
+        th { text-align:left; padding:12px; color:#333; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e0e0e0; white-space:nowrap; }
+        td { padding:11px 12px; color:#555; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+        tr:hover { background:#fafafa; }
+        .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+        .badge-pending     { background:#fff3cd; color:#856404; }
+        .badge-in-progress { background:#d1ecf1; color:#0c5460; }
+        .badge-completed   { background:#d4edda; color:#155724; }
+        .badge-closed      { background:#e2e3e5; color:#383d41; }
+        .badge-accident    { background:#f8d7da; color:#721c24; }
+        .badge-injury      { background:#cce5ff; color:#004085; }
+        .badge-disease     { background:#e2d9f3; color:#4a1d96; }
+        .loading { text-align:center; padding:60px; color:#666; }
+        .spinner { border:4px solid #f3f3f3; border-top:4px solid #333; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 20px; }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        .empty-state { text-align:center; padding:60px; color:#999; }
+        .action-btn { padding:5px 10px; margin:0 2px; background:white; color:#333; border:1px solid #ddd; border-radius:4px; cursor:pointer; font-size:11px; transition:all 0.2s; font-family:inherit; }
+        .action-btn:hover { background:#f0f0f0; }
+        .row-count { margin-top:12px; font-size:13px; color:#888; text-align:right; }
+        .info-banner { background:#e8f4fd; border:1px solid #bee5eb; border-radius:8px; padding:16px 20px; margin-bottom:20px; color:#0c5460; font-size:14px; display:flex; align-items:center; gap:12px; }
+        .info-banner strong { font-weight:700; }
+        .tab-bar { display:flex; gap:4px; margin-bottom:20px; background:#f0f0f0; border-radius:10px; padding:4px; }
+        .tab-btn { flex:1; padding:10px 16px; border:none; background:transparent; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; color:#666; transition:all 0.2s; font-family:inherit; }
+        .tab-btn.active { background:white; color:#333; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+        .tab-btn:hover:not(.active) { color:#333; }
+        @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } .tab-bar { flex-direction:column; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🔍 Investigations</h1>
+        <div class="user-info">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script>window.OSH_ACTIVE_PAGE = 'investigation';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+        <div class="info-banner">
+            <span style="font-size:24px">🔍</span>
+            <div>All <strong>accidents</strong> and <strong>injuries/diseases</strong> reported to DOSH are investigated by an OSH Worker. Investigation forms will be added in a future update.</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Total Cases</h3><div class="stat-value" id="statTotal">—</div></div>
+            <div class="stat-card red"><h3>Accidents</h3><div class="stat-value" id="statAccidents">—</div></div>
+            <div class="stat-card blue"><h3>Injuries</h3><div class="stat-value" id="statInjuries">—</div></div>
+            <div class="stat-card amber"><h3>Pending</h3><div class="stat-value" id="statPending">—</div></div>
+            <div class="stat-card purple"><h3>In Progress</h3><div class="stat-value" id="statInProgress">—</div></div>
+            <div class="stat-card green"><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📋 Investigation Cases</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Type</label>
+                        <select id="filterType" onchange="applyFilters()">
+                            <option value="">All Types</option>
+                            <option value="accident">Accident</option>
+                            <option value="injury">Injury</option>
+                            <option value="disease">Disease</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filterStatus" onchange="applyFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" id="filterSearch" placeholder="Name / Employer…" oninput="applyFilters()" style="width:160px">
+                    </div>
+                    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+                    <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+                </div>
+            </div>
+
+            <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading investigation cases…</p></div>
+
+            <div id="tableWrap" style="display:none">
+                <div class="table-container">
+                    <table>
+                        <thead><tr>
+                            <th>Type</th>
+                            <th>Employer / Occupier</th>
+                            <th>Affected Person</th>
+                            <th>Incident Date</th>
+                            <th>Nature</th>
+                            <th>Fatal?</th>
+                            <th>Investigation Status</th>
+                            <th>Reported By</th>
+                            <th>Actions</th>
+                        </tr></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display:none"><p>🔍 No investigation cases found</p></div>
+                <div class="row-count" id="rowCount"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script src="modal.js"></script>
+    <script src="common.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+    let allRecords = [];
+
+    window.addEventListener('load', async () => {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        await loadData();
+    });
+
+    async function loadData() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('tableWrap').style.display = 'none';
+
+        try {
+            // Fetch accident reports
+            const [accRes, injRes] = await Promise.all([
+                SB.from('accident_reports').select('id, occupier_name, injured_name, accident_date, injury_fatal, investigation_status, reporter_name, report_type, nature_of_industry').order('accident_date', { ascending: false }),
+                SB.from('injury_disease_reports').select('id, employer_name, worker_name, incident_date, resulted_death, investigation_status, reporter_name, incident_type, nature_of_injury').order('incident_date', { ascending: false })
+            ]);
+
+            // Combine into unified records
+            const accidents = (accRes.data || []).map(r => ({
+                type: 'accident',
+                typeLabel: r.report_type === 'dangerous_occurrence' ? 'Dangerous Occurrence' : 'Accident',
+                employer: r.occupier_name || '—',
+                person: r.injured_name || '—',
+                date: r.accident_date,
+                fatal: r.injury_fatal === 'Fatal' ? 'Yes' : 'No',
+                status: r.investigation_status || 'Pending',
+                reporter: r.reporter_name || '—',
+                nature: r.nature_of_industry || '—',
+                sourceTable: 'accident_reports',
+                sourceId: r.id
+            }));
+
+            const injuries = (injRes.data || []).map(r => ({
+                type: r.incident_type === 'Disease' ? 'disease' : 'injury',
+                typeLabel: r.incident_type === 'Disease' ? 'Disease' : 'Injury',
+                employer: r.employer_name || '—',
+                person: r.worker_name || '—',
+                date: r.incident_date,
+                fatal: r.resulted_death === 'Yes' ? 'Yes' : 'No',
+                status: r.investigation_status || 'Pending',
+                reporter: r.reporter_name || '—',
+                nature: r.nature_of_injury || '—',
+                sourceTable: 'injury_disease_reports',
+                sourceId: r.id
+            }));
+
+            allRecords = [...accidents, ...injuries].sort((a, b) => {
+                const da = a.date ? new Date(a.date) : new Date(0);
+                const db = b.date ? new Date(b.date) : new Date(0);
+                return db - da;
+            });
+
+            buildStats(allRecords);
+            renderTable(allRecords);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableWrap').style.display = 'block';
+        } catch (err) {
+            document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error loading data. <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
+        }
+    }
+
+    function buildStats(rows) {
+        document.getElementById('statTotal').textContent = rows.length;
+        document.getElementById('statAccidents').textContent = rows.filter(r => r.type === 'accident').length;
+        document.getElementById('statInjuries').textContent = rows.filter(r => r.type === 'injury' || r.type === 'disease').length;
+        document.getElementById('statPending').textContent = rows.filter(r => r.status === 'Pending').length;
+        document.getElementById('statInProgress').textContent = rows.filter(r => r.status === 'In Progress').length;
+        document.getElementById('statCompleted').textContent = rows.filter(r => r.status === 'Completed' || r.status === 'Closed').length;
+    }
+
+    function applyFilters() {
+        const type   = document.getElementById('filterType').value;
+        const status = document.getElementById('filterStatus').value;
+        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        renderTable(allRecords.filter(r =>
+            (!type   || r.type === type) &&
+            (!status || r.status === status) &&
+            (!search || (r.person||'').toLowerCase().includes(search) || (r.employer||'').toLowerCase().includes(search))
+        ));
+    }
+
+    function renderTable(rows) {
+        const tbody = document.getElementById('tableBody');
+        const empty = document.getElementById('emptyState');
+        document.getElementById('rowCount').textContent = rows.length ? 'Showing ' + rows.length + ' case' + (rows.length !== 1 ? 's' : '') : '';
+        if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+
+
+        tbody.innerHTML = rows.map(r => {
+            const typeBadge = r.type === 'accident' ? 'badge-accident' : r.type === 'disease' ? 'badge-disease' : 'badge-injury';
+            const statusSlug = (r.status || 'pending').toLowerCase().replace(/s+/g, '-');
+            return '<tr>' +
+                '<td><span class="badge ' + typeBadge + '">' + r.typeLabel + '</span></td>' +
+                '<td><strong>' + r.employer + '</strong></td>' +
+                '<td>' + r.person + '</td>' +
+                '<td style="white-space:nowrap">' + (r.date ? fmtDate(r.date) : '—') + '</td>' +
+                '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r.nature + '</td>' +
+                '<td>' + (r.fatal === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '<span style="color:#999">No</span>') + '</td>' +
+                '<td><span class="badge badge-' + statusSlug + '">' + r.status + '</span></td>' +
+                '<td>' + r.reporter + '</td>' +
+                '<td><button class="action-btn" onclick="viewCase('' + r.sourceTable + '','' + r.sourceId + '')">View</button></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    async function viewCase(table, id) {
+        // Fetch full record details
+        const { data, error } = await SB.from(table).select('*').eq('id', id).single();
+        if (error || !data) {
+            showToast('Could not load case details', 'error');
+            return;
+        }
+
+        const isAccident = table === 'accident_reports';
+        const fields = isAccident ? [
+            ['Report Type', (data.report_type||'').replace('_',' ').toUpperCase()],
+            ['Occupier / Employer', data.occupier_name],
+            ['Industry', data.industry_sector || data.nature_of_industry],
+            ['Injured Person', data.injured_name],
+            ['Date of Accident', fmtDate(data.accident_date)],
+            ['Place of Accident', data.accident_place],
+            ['Fatal?', data.injury_fatal],
+            ['Description', data.accident_description],
+            ['Investigation Status', data.investigation_status || 'Pending'],
+            ['Reporter', data.reporter_name],
+            ['Report Date', fmtDate(data.report_date)],
+        ] : [
+            ['Report Type', (data.incident_type || 'Injury')],
+            ['Employer', data.employer_name],
+            ['Worker Name', data.worker_name],
+            ['Occupation', data.occupation],
+            ['Date of Incident', fmtDate(data.incident_date)],
+            ['Nature of Injury', data.nature_of_injury],
+            ['Resulted in Death?', data.resulted_death],
+            ['Description', data.description_of_incident || data.nature_of_injury],
+            ['Investigation Status', data.investigation_status || 'Pending'],
+            ['Reporter', data.reporter_name],
+            ['Report Date', fmtDate(data.created_at || data.report_date)],
+        ];
+
+        const rowsHTML = fields.filter(([,v]) => v != null && v !== '').map(([label, value]) => {
+            return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8f8f8;gap:16px">' +
+                '<span style="color:#888;font-size:13px;min-width:140px;flex-shrink:0">' + label + '</span>' +
+                '<span style="color:#333;font-size:13px;text-align:right;line-height:1.4">' + value + '</span></div>';
+        }).join('');
+
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+        ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:'Segoe UI',sans-serif">' +
+            '<div style="font-size:32px;text-align:center;margin-bottom:8px">🔍</div>' +
+            '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Investigation Case</h2>' +
+            rowsHTML +
+            '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Close</button></div>' +
+            '</div>';
+        ov.querySelector('#closeBtn').addEventListener('click', () => { ov.remove(); });
+        ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+        document.body.appendChild(ov);
+    }
+
+    function exportCSV() {
+        const headers = ['Type','Employer','Affected Person','Date','Nature','Fatal','Status','Reporter'];
+        const rows = allRecords.map(r => [r.typeLabel, r.employer, r.person, r.date, r.nature, r.fatal, r.status, r.reporter]);
+        const csv = [headers, ...rows].map(r => r.map(c => '"' + (c||'') + '"').join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+        a.download = 'investigations_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+    </script>
+</body>
+</html>
