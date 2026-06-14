@@ -759,9 +759,9 @@
 
                 // Toggle fields based on which form we're in
                 if (parentForm.id === 'loginForm') {
-                    document.getElementById('loginWorkerFields').classList.add('hidden');
+                    var lwf=document.getElementById('loginWorkerFields');if(lwf)lwf.classList.add('hidden');
                                         if (selectedRole === 'worker') {
-                        document.getElementById('loginWorkerFields').classList.remove('hidden');
+                        if(lwf)lwf.classList.remove('hidden');
                     }
                     if (selectedRole === 'company') {
                         // Company login - no additional fields needed
@@ -880,7 +880,7 @@
             const loginRoleValue = selectedRole.value;
 
             // Validate worker ID number if worker role
-            const loginWorkerId = document.getElementById('loginWorkerId').value.trim();
+            var loginTmp = document.getElementById('loginWorkerId');const loginWorkerId = loginTmp ? loginTmp.value.trim() : '';
             if (loginRoleValue === 'worker' && !loginWorkerId) {
                 document.getElementById('loginWorkerId').classList.add('error');
                 await showAlert('Please enter your Omang or Passport number.', { type: 'warning', title: 'ID Required' });

@@ -603,6 +603,7 @@
             box.style.display = 'block';
         }, 280);
     }
+    window.onSearchInput = onSearchInput;
 
     function selectSuggestion(name, idNumber) {
         document.getElementById('searchInput').value = idNumber || name;
@@ -717,6 +718,7 @@
             await showAlert('Error loading data: ' + err.message, { type: 'error', title: 'Load Failed' });
         }
     }
+    window.searchWorker = searchWorker;
 
     async function fetchClaimsForWorker(searchQ, idNumber, registryId) {
         const seen = new Set();
@@ -1202,7 +1204,8 @@ function incidentCard(i) {
         </div>`;
     }
 
-    // ── Incident detail modal ─────────────────────────────────    async function viewIncidentDetail(id, type) {
+    // ── Incident detail modal ─────────────────────────────────
+    async function viewIncidentDetail(id, type) {
         const i = allIncidents.find(x => x.id === id);
         if (!i) return;
         const isAccident = type === 'accident';
