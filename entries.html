@@ -277,6 +277,57 @@
             background: #f0f0f0;
         }
 
+        /* Pagination */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .pagination-info {
+            font-size: 13px;
+            color: #888;
+        }
+        .pagination-buttons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .pagination-buttons button {
+            padding: 6px 14px;
+            background: #fff;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .pagination-buttons button:hover:not(:disabled) {
+            background: #f0f0f0;
+        }
+        .pagination-buttons button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-buttons button.active {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            margin-left: 8px;
+        }
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -380,6 +431,24 @@
                             <!-- Claims will be loaded here -->
                         </tbody>
                     </table>
+                </div>
+                <!-- Pagination -->
+                <div class="pagination-controls" id="paginationControls" style="display:none">
+                    <div class="pagination-info" id="paginationInfo"></div>
+                    <div class="pagination-buttons">
+                        <span style="font-size:12px;color:#888">Rows:</span>
+                        <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="250">250</option>
+                        </select>
+                        <button onclick="goToPage(1)" id="firstPageBtn" title="First">&#171;</button>
+                        <button onclick="goToPage(currentPage - 1)" id="prevPageBtn" title="Previous">&#8249;</button>
+                        <span id="pageNumbers"></span>
+                        <button onclick="goToPage(currentPage + 1)" id="nextPageBtn" title="Next">&#8250;</button>
+                        <button onclick="goToPage(totalPages)" id="lastPageBtn" title="Last">&#187;</button>
+                    </div>
                 </div>
                 <div id="emptyState" class="empty-state" style="display: none;">
                     <p>No claims found</p>
@@ -640,6 +709,94 @@
             a.click();
             window.URL.revokeObjectURL(url);
         }
+
+
+        // -- Pagination --
+        let currentPage = 1;
+        let pageSize = 50;
+        let totalPages = 1;
+        let paginatedClaims = [];
+
+        function applyPagination(claims) {
+            currentPage = 1;
+            paginatedClaims = claims;
+            totalPages = Math.ceil(claims.length / pageSize) || 1;
+            renderPage();
+        }
+
+        function renderPage() {
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, paginatedClaims.length);
+            const pageClaims = paginatedClaims.slice(start, end);
+            renderClaimsTable(pageClaims);
+            updatePaginationControls();
+            const controls = document.getElementById("paginationControls");
+            controls.style.display = paginatedClaims.length > 0 ? "flex" : "none";
+        }
+
+        function updatePaginationControls() {
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(start + pageSize - 1, paginatedClaims.length);
+            document.getElementById("paginationInfo").textContent =
+                paginatedClaims.length > 0
+                    ? "Showing " + start + "-" + end + " of " + paginatedClaims.length + " claims"
+                    : "No claims";
+            document.getElementById("firstPageBtn").disabled = currentPage <= 1;
+            document.getElementById("prevPageBtn").disabled = currentPage <= 1;
+            document.getElementById("nextPageBtn").disabled = currentPage >= totalPages;
+            document.getElementById("lastPageBtn").disabled = currentPage >= totalPages;
+            let html = "";
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === currentPage ? "active" : "";
+                html += "<button class="" + active + "" onclick="goToPage(" + i + ")">" + i + "</button>";
+            }
+            document.getElementById("pageNumbers").innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderPage();
+            document.querySelector(".table-container").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById("pageSizeSelect").value);
+            totalPages = Math.ceil(paginatedClaims.length / pageSize) || 1;
+            currentPage = 1;
+            renderPage();
+        }
+
+        // Patch loadClaims to use pagination
+        const origLoadClaims = loadClaims;
+        loadClaims = async function() {
+            document.getElementById("claimsLoading").style.display = "block";
+            document.getElementById("claimsContent").style.display = "none";
+            try {
+                let query = supabaseClient.from("injury_claims_view").select("*").order("created_at", { ascending: false });
+                const statusFilter = document.getElementById("filterStatus").value;
+                const industryFilter = document.getElementById("filterIndustry").value;
+                if (statusFilter) query = query.eq("status", statusFilter);
+                if (industryFilter) query = query.eq("industry", industryFilter);
+                const { data: claims, error } = await query;
+                if (error) throw error;
+                allClaims = claims;
+                updateStatistics(claims);
+                applyPagination(claims);
+                document.getElementById("claimsLoading").style.display = "none";
+                document.getElementById("claimsContent").style.display = "block";
+            } catch (error) {
+                console.error("Error loading claims:", error);
+                document.getElementById("claimsLoading").innerHTML =
+                    "<div style="text-align:center;padding:40px;"><p style="color:#e74c3c;margin-bottom:10px;">Error loading claims: " + error.message + "</p><button onclick="loadClaims()" style="margin-top:20px;padding:10px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;">Retry</button></div>";
+            }
+        };
 
     </script>
 </body>

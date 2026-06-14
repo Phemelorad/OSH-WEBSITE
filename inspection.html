@@ -64,6 +64,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px; margin-bottom: 16px;
+            overflow: visible;
         }
         .form-row-3 { grid-template-columns: repeat(3, 1fr); }
         .form-row-4 { grid-template-columns: repeat(4, 1fr); }
@@ -193,7 +194,44 @@
             .form-actions { flex-direction: column; }
             .btn { width: 100%; }
         }
-    </style>
+            /* Autocomplete dropdown */
+        .autocomplete-items {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .autocomplete-items div {
+            padding: 10px 13px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        .autocomplete-items div:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-items div:hover,
+        .autocomplete-items .autocomplete-active {
+            background: #f0f0f0;
+        }
+        .autocomplete-items .no-results {
+            color: #888;
+            cursor: default;
+        }
+        .autocomplete-items .no-results:hover {
+            background: transparent;
+        }
+</style>
 </head>
 <body>
     <div class="navbar">
@@ -241,9 +279,10 @@
               </div>
             </div>
             <div class="form-row form-row-3">
-              <div class="form-group col-span-2">
+              <div class="form-group col-span-2" style="position: relative;">
                 <label>Factory / Employer Name<span class="req">*</span></label>
-                <input type="text" name="factory_name" id="factoryName" placeholder="Enter full name" required>
+                <input type="text" name="factory_name" id="factoryName" placeholder="Search or enter company name..." required autocomplete="off">
+                <div id="factoryAutocompleteList" class="autocomplete-items"></div>
                 <span class="err-msg">Required</span>
               </div>
               <div class="form-group">
@@ -773,5 +812,117 @@
       buildGrid(OTHER_SECTIONS,  'otherGrid');
     });
     </script>
+    <!-- Company Autocomplete -->
+    <script>
+    // ── Factory / Employer Name Autocomplete ────────────────────────
+    (function() {
+      function debounce(fn, delay) {
+        let timer;
+        return function(...args) {
+          clearTimeout(timer);
+          timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+      }
+
+      const factoryInput = document.getElementById('factoryName');
+      const autocompleteList = document.getElementById('factoryAutocompleteList');
+
+      async function searchCompanies(query) {
+        if (!query || query.length < 2) {
+          autocompleteList.style.display = 'none';
+          return;
+        }
+        try {
+          const { data, error } = await window.supabaseClient
+            .from('companies')
+            .select('id, company_name, location')
+            .ilike('company_name', query + '%')
+            .order('company_name', { ascending: true })
+            .limit(10);
+
+          if (error) throw error;
+          showResults(data, query);
+        } catch (e) {
+          console.warn('Company search failed:', e);
+          autocompleteList.style.display = 'none';
+        }
+      }
+
+      function showResults(companies, query) {
+        autocompleteList.innerHTML = '';
+        if (!companies || companies.length === 0) {
+          autocompleteList.innerHTML = '<div class="no-results">No companies found — you can type a custom name</div>';
+          autocompleteList.style.display = 'block';
+          return;
+        }
+        companies.forEach(company => {
+          const div = document.createElement('div');
+          div.textContent = company.company_name;
+          if (company.location) {
+            const span = document.createElement('span');
+            span.style.cssText = 'float:right;color:#888;font-size:11px;';
+            span.textContent = company.location;
+            div.appendChild(span);
+          }
+          div.addEventListener('click', function() {
+            factoryInput.value = company.company_name;
+            autocompleteList.style.display = 'none';
+            factoryInput.classList.remove('error');
+          });
+          autocompleteList.appendChild(div);
+        });
+        autocompleteList.style.display = 'block';
+      }
+
+      factoryInput.addEventListener('input', debounce(function() {
+        searchCompanies(this.value.trim());
+      }, 300));
+
+      factoryInput.addEventListener('blur', function() {
+        setTimeout(() => {
+          autocompleteList.style.display = 'none';
+        }, 200);
+      });
+
+      factoryInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+          searchCompanies(this.value.trim());
+        }
+      });
+
+      // Keyboard navigation (arrow keys + Enter)
+      factoryInput.addEventListener('keydown', function(e) {
+        const items = autocompleteList.querySelectorAll('div:not(.no-results)');
+        if (!items.length || autocompleteList.style.display === 'none') return;
+
+        let activeIndex = -1;
+        items.forEach((item, i) => {
+          if (item.classList.contains('autocomplete-active')) {
+            activeIndex = i;
+            item.classList.remove('autocomplete-active');
+          }
+        });
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIndex = Math.min(activeIndex + 1, items.length - 1);
+          items[activeIndex].classList.add('autocomplete-active');
+          items[activeIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIndex = Math.max(activeIndex - 1, 0);
+          items[activeIndex].classList.add('autocomplete-active');
+          items[activeIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && activeIndex >= 0) {
+          e.preventDefault();
+          items[activeIndex].click();
+        } else if (e.key === 'Escape') {
+          autocompleteList.style.display = 'none';
+          factoryInput.blur();
+        }
+      });
+    })();
+    </script>
+
 </body>
 </html>

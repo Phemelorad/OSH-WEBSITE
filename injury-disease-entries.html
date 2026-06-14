@@ -144,7 +144,58 @@
             font-weight: 500;
         }
 
-    </style>
+            /* Pagination */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .pagination-info {
+            font-size: 13px;
+            color: #888;
+        }
+        .pagination-buttons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .pagination-buttons button {
+            padding: 6px 14px;
+            background: #fff;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .pagination-buttons button:hover:not(:disabled) {
+            background: #f0f0f0;
+        }
+        .pagination-buttons button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-buttons button.active {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            margin-left: 8px;
+        }
+</style>
 </head>
 <body>
     <div class="navbar">
@@ -233,6 +284,24 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display:none"><p>🏥 No reports found</p></div>
+                <!-- Pagination -->
+                <div class="pagination-controls" id="paginationControls" style="display:none">
+                    <div class="pagination-info" id="paginationInfo"></div>
+                    <div class="pagination-buttons">
+                        <span style="font-size:12px;color:#888">Rows:</span>
+                        <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="250">250</option>
+                        </select>
+                        <button onclick="goToPage(1)" id="firstPageBtn" title="First">&laquo;</button>
+                        <button onclick="goToPage(currentPage - 1)" id="prevPageBtn" title="Previous">&lsaquo;</button>
+                        <span id="pageNumbers"></span>
+                        <button onclick="goToPage(currentPage + 1)" id="nextPageBtn" title="Next">&rsaquo;</button>
+                        <button onclick="goToPage(totalPages)" id="lastPageBtn" title="Last">&raquo;</button>
+                    </div>
+                </div>
                 <div class="row-count" id="rowCount"></div>
             </div>
         </div>

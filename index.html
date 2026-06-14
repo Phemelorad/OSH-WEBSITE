@@ -882,7 +882,7 @@
             // Validate worker ID number if worker role
             var loginTmp = document.getElementById('loginWorkerId');const loginWorkerId = loginTmp ? loginTmp.value.trim() : '';
             if (loginRoleValue === 'worker' && !loginWorkerId) {
-                document.getElementById('loginWorkerId').classList.add('error');
+                if (loginTmp) loginTmp.classList.add('error');
                 await showAlert('Please enter your Omang or Passport number.', { type: 'warning', title: 'ID Required' });
                 return;
             }
