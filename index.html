@@ -476,6 +476,15 @@
             </div>
 
 
+            <!-- Worker-specific fields (login) -->
+            <div id="loginWorkerFields" class="role-specific-fields hidden">
+              <div class="form-group">
+                <label for="loginWorkerId">Omang / Passport Number <span class="required">*</span></label>
+                <input type="text" id="loginWorkerId" name="login_worker_id" placeholder="e.g. 123456789" maxlength="9" pattern="[0-9]{9}" inputmode="numeric">
+                <span class="error-message">Omang/Passport number is required</span>
+              </div>
+            </div>
+
             <div id="loginBanner" class="login-banner" role="alert">
                 <span class="banner-close" id="bannerCloseBtn">&times;</span>
                 <div class="banner-text" id="loginBannerText"></div>
