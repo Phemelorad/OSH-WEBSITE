@@ -172,24 +172,106 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); min-height:100vh
   <div class="card"><div class="st">📜 Claim History</div><div id="claimHistory"><div style="color:#5f6368">Loading...</div></div></div>
 </section>
 </div>
+
+<!-- PROFILE -->
+<section class="panel" id="pProfile">
+  <h1 style="font-size:22px;margin-bottom:4px">My Profile</h1>
+  <p style="font-size:13px;color:#5f6368;margin-bottom:16px">Manage your personal information, employment details, and contact preferences.</p>
+  <div class="card">
+    <div class="st">Personal Information</div>
+    <form id="pfForm" onsubmit="saveProfile();return false">
+      <div class="fr"><div class="fg"><label>First Name</label><input type="text" id="pfFname"></div><div class="fg"><label>Surname</label><input type="text" id="pfSname"></div></div>
+      <div class="fr"><div class="fg"><label>Email</label><input type="email" id="pfEmail" disabled style="background:#f5f5f5"></div><div class="fg"><label>Phone</label><input type="tel" id="pfPhone"></div></div>
+      <div class="fr"><div class="fg"><label>Date of Birth</label><input type="date" id="pfDob"></div><div class="fg"><label>ID Number</label><input type="text" id="pfIdNum"></div></div>
+      <div class="fr single"><div class="fg"><label>Address</label><textarea id="pfAddr" rows="2"></textarea></div></div>
+      <button type="submit" class="btn bp">Save Changes</button>
+      <span id="pfStatus" style="margin-left:12px;font-size:13px;color:var(--success)"></span>
+    </form>
+  </div>
+  <div class="card">
+    <div class="st">Employment Details</div>
+    <div class="fr"><div class="fg"><label>Occupation</label><input type="text" id="pfOcc"></div><div class="fg"><label>Department</label><input type="text" id="pfDept"></div></div>
+    <div class="fr"><div class="fg"><label>Employer</label><input type="text" id="pfEmployer"></div><div class="fg"><label>Date Hired</label><input type="date" id="pfHired"></div></div>
+  </div>
+</section>
+
+<!-- MEDICAL -->
+<section class="panel" id="pMedical">
+  <h1 style="font-size:22px;margin-bottom:4px">Medical Appointments</h1>
+  <p style="font-size:13px;color:#5f6368;margin-bottom:16px">Track your medical examinations, appointments, and impairment assessments.</p>
+  <div class="card"><div class="st">&#x1F4C5; Upcoming Appointments</div><div id="upAppts"><div class="es">Loading...</div></div></div>
+  <div class="card"><div class="st">&#x1F9EC; Past Examinations</div><div id="pastExams"><div class="es">Loading...</div></div></div>
+  <div class="card"><div class="st">&#x1F9D0; Permanent Impairment Reports</div><div id="impairRpts"><div class="es">Loading...</div></div></div>
+</section>
+
+<!-- DOCUMENTS -->
+<section class="panel" id="pDocs">
+  <h1 style="font-size:22px;margin-bottom:4px">Document Vault</h1>
+  <p style="font-size:13px;color:#5f6368;margin-bottom:16px">Upload, store, and manage documents related to your claims.</p>
+  <div class="card">
+    <div class="st">Upload Documents</div>
+    <div class="uz" onclick="document.getElementById('dFileInput').click()">
+      <div style="font-size:32px;margin-bottom:8px">&#x1F4C2;</div>
+      <div>Drag and drop files here or click to browse</div>
+      <input type="file" id="dFileInput" multiple style="display:none" onchange="addDocFiles(this.files)">
+    </div>
+    <div id="dFileList" style="margin-top:12px"></div>
+  </div>
+  <div class="card"><div class="st">&#x1F4C1; My Documents <span id="docCount" style="font-size:12px;color:#5f6368;font-weight:400"></span></div><div id="docList"><div class="es">Loading...</div></div></div>
+</section>
+
+<!-- COMPANY -->
+<section class="panel" id="pCompany">
+  <h1 style="font-size:22px;margin-bottom:4px">My Employer</h1>
+  <p style="font-size:13px;color:#5f6368;margin-bottom:16px">View your employer details and company information.</p>
+  <div class="card" id="companyCard"><div class="st">Company Information</div><div id="companyInfo"><div class="es">Loading...</div></div></div>
+</section>
+
+
+<!-- MESSAGES -->
+<section class="panel" id="pMessages">
+  <h1 style="font-size:22px;margin-bottom:4px">Messages & Case Notes</h1>
+  <p style="font-size:13px;color:#5f6368;margin-bottom:16px">Communicate with OSH officers and track case updates.</p>
+  <div class="card"><div class="st">&#x1F4AC; Conversation</div><div class="msgs" id="msgContainer"><div class="es">Loading...</div></div></div>
+  <div class="card">
+    <div class="st">Send a Message</div>
+    <form onsubmit="sendMsg();return false">
+      <div class="fg" style="margin-bottom:10px">
+        <select id="msgSubject" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px">
+          <option value="general">General Inquiry</option>
+          <option value="claim">Claim Question</option>
+          <option value="document">Document Request</option>
+          <option value="appointment">Appointment</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:10px"><textarea id="msgBody" rows="3" placeholder="Type your message here..." style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;width:100%"></textarea></div>
+      <button type="submit" class="btn bp">Send</button>
+    </form>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section class="panel" id="pResources">
+  <h1 style="font-size:22px;margin-bottom:4px">Safety Resources</h1>
+  <p style="font-size:13px;color:#5f6368;margin-bottom:16px">Educational materials, guides, and training on workplace safety and worker rights.</p>
+  <div class="rg">
+    <div class="rc" onclick="showResource('rights')"><div class="ico">&#x2696;&#xFE0F;</div><div class="n">Worker Rights</div><div class="d">Know your rights under the Workers Compensation Act</div></div>
+    <div class="rc" onclick="showResource('safety')"><div class="ico">&#x1F6E1;&#xFE0F;</div><div class="n">Workplace Safety</div><div class="d">Guide to workplace hazards and prevention</div></div>
+    <div class="rc" onclick="showResource('claims')"><div class="ico">&#x1F4CB;</div><div class="n">Claims Guide</div><div class="d">Step-by-step guide to filing a claim</div></div>
+    <div class="rc" onclick="showResource('medical')"><div class="ico">&#x1F3E5;</div><div class="n">Medical Exams</div><div class="d">What to expect during medical examinations</div></div>
+    <div class="rc" onclick="showResource('comp')"><div class="ico">&#x1F4B0;</div><div class="n">Compensation</div><div class="d">Understanding compensation and benefits</div></div>
+    <div class="rc" onclick="showResource('appeal')"><div class="ico">&#x1F504;</div><div class="n">Appeals Process</div><div class="d">How to appeal a claim decision</div></div>
+  </div>
+  <div id="resourceDetail" style="display:none;margin-top:20px">
+    <div class="card"><div class="st"><span id="resTitle"></span></div><div id="resBody" style="font-size:14px;line-height:1.6"></div><button class="btn bo" style="margin-top:12px" onclick="document.getElementById('resourceDetail').style.display='none'">Close</button></div>
+  </div>
+</section>
+
+</div><!-- end content -->
 <script src="supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="modal.js"></script>
 <script src="common.js"></script>
-<script>
-const SB=window.supabaseClient;
-let cu=null,cp=null,selType=null,cf=[],df=[];
-
-function switchTab(t){
-  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.t===t));
-  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id==="p"+t.charAt(0).toUpperCase()+t.slice(1)));
-}
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.t)));
-
-function showToast(m,t){
-  let el=document.getElementById("_toast");
-  if(!el){el=document.createElement("div");el.id="_toast";el.className="toast";document.body.appendChild(el);}
-  el.textContent=m;el.className="toast show toast-"+(t||"info");
-  clearTimeout(el._h);el._h=setTimeout(()=>el.classList.remove("show"),4000);
-}
-</div><script src="supabase.min.js"></script><script src="supabase-config.js"></script><script src="modal.js"></script><script src="common.js"></script><script>const SB=window.supabaseClient;let cu=null,cp=null,selType=null,cf=[],df=[];function switchTab(t){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.t===t));const m={dash:"pDash",claims:"pClaims",profile:"pProfile",medical:"pMedical",docs:"pDocs",company:"pCompany",messages:"pMessages",resources:"pResources"};document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===m[t]));}document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.t)));function showToast(m,t){let el=document.getElementById("_toast");if(!el){el=document.createElement("div");el.id="_toast";el.className="toast";document.body.appendChild(el);}el.textContent=m;el.className="toast show toast-"+(t||"info");clearTimeout(el._h);el._h=setTimeout(()=>el.classList.remove("show"),4000);}</script></body></html>
+<script src="worker-portal.js"></script>
+</body>
+</html>

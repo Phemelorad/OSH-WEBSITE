@@ -596,5 +596,15 @@ function renderMedPractDashboard(container, userId) {
         }
     }
     </script>
+<script>
+// Worker Portal Redirect
+(function() {
+  var role = sessionStorage.getItem("loginRole");
+  if (role === "worker" || role === "Worker") {
+    window.location.href = "worker-portal.html";
+  }
+})();
+</script>
+
 </body>
 </html>
