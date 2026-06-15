@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accident Reports - DOSH</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%); min-height:100vh; }
-        .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
+.navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
         .navbar h1 { color:#333; font-size:24px; }
         .user-info { display:flex; align-items:center; gap:20px; }
         .logout-btn { padding:10px 20px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
@@ -135,7 +134,16 @@
             font-weight: 500;
         }
 
-    </style>
+            /* Pagination */
+        .pagination-controls { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; gap: 12px; }
+        .pagination-info { font-size: 13px; color: #888; }
+        .pagination-buttons { display: flex; gap: 6px; align-items: center; }
+        .pagination-buttons button { padding: 6px 14px; background: #fff; color: #333; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s; }
+        .pagination-buttons button:hover:not(:disabled) { background: #f0f0f0; }
+        .pagination-buttons button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-buttons button.active { background: #333; color: #fff; border-color: #333; }
+        .page-size-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; margin-left: 8px; }
+</style>
 </head>
 <body>
     <div class="navbar">
@@ -221,12 +229,30 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display:none"><p>🚨 No accident reports found</p></div>
+                <!-- Pagination -->
+                <div class="pagination-controls" id="paginationControls" style="display:none">
+                    <div class="pagination-info" id="paginationInfo"></div>
+                    <div class="pagination-buttons">
+                        <span style="font-size:12px;color:#888">Rows:</span>
+                        <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="250">250</option>
+                        </select>
+                        <button onclick="goToPage(1)" id="firstPageBtn" title="First">&laquo;</button>
+                        <button onclick="goToPage(currentPage - 1)" id="prevPageBtn" title="Previous">&lsaquo;</button>
+                        <span id="pageNumbers"></span>
+                        <button onclick="goToPage(currentPage + 1)" id="nextPageBtn" title="Next">&rsaquo;</button>
+                        <button onclick="goToPage(totalPages)" id="lastPageBtn" title="Last">&raquo;</button>
+                    </div>
+                </div>
                 <div class="row-count" id="rowCount"></div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
@@ -455,6 +481,109 @@
         a.click();
         URL.revokeObjectURL(a.href);
     }
-    </script>
+    
+    // -- Pagination --
+    let currentPage = 1;
+    let pageSize = 50;
+    let totalPages = 1;
+    let paginatedRecords = [];
+
+    function applyPagination(records) {
+        currentPage = 1;
+        paginatedRecords = records;
+        totalPages = Math.ceil(records.length / pageSize) || 1;
+        renderPage();
+    }
+
+    function renderPage() {
+        const start = (currentPage - 1) * pageSize;
+        const end = Math.min(start + pageSize, paginatedRecords.length);
+        renderTable(paginatedRecords.slice(start, end));
+        updatePaginationControls();
+        const ctrl = document.getElementById("paginationControls");
+        if (ctrl) ctrl.style.display = paginatedRecords.length > 0 ? "flex" : "none";
+    }
+
+    function updatePaginationControls() {
+        const pi = document.getElementById("paginationInfo");
+        if (pi) {
+            pi.textContent = paginatedRecords.length > 0
+                ? "Showing " + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, paginatedRecords.length) + " of " + paginatedRecords.length + " records"
+                : "No records";
+        }
+        ["firstPageBtn","prevPageBtn","nextPageBtn","lastPageBtn"].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+        var fp = document.getElementById("firstPageBtn"); if(fp) fp.disabled = currentPage <= 1;
+        var pp = document.getElementById("prevPageBtn"); if(pp) pp.disabled = currentPage <= 1;
+        var np = document.getElementById("nextPageBtn"); if(np) np.disabled = currentPage >= totalPages;
+        var lp = document.getElementById("lastPageBtn"); if(lp) lp.disabled = currentPage >= totalPages;
+        var pn = document.getElementById("pageNumbers");
+        if (pn) {
+            var html = "";
+            var startP = Math.max(1, currentPage - 2);
+            var endP = Math.min(totalPages, startP + 4);
+            if (endP - startP < 4) startP = Math.max(1, endP - 4);
+            for (var i = startP; i <= endP; i++) {
+                html += "<button class="" + (i === currentPage ? "active" : "") + "" onclick="goToPage(" + i + ")">" + i + "</button>";
+            }
+            pn.innerHTML = html;
+        }
+    }
+
+    function goToPage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        renderPage();
+        var tc = document.querySelector(".table-container");
+        if (tc) tc.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function changePageSize() {
+        pageSize = parseInt(document.getElementById("pageSizeSelect").value) || 50;
+        totalPages = Math.ceil(paginatedRecords.length / pageSize) || 1;
+        currentPage = 1;
+        renderPage();
+    }
+
+    var origLoadData = loadData;
+    loadData = async function() {
+        document.getElementById("loadingState").style.display = "block";
+        document.getElementById("tableWrap").style.display = "none";
+        var accRes = await SB.from("accident_reports").select("*").order("accident_date", { ascending: false });
+        var injRes = await SB.from("injury_disease_reports").select("accident_id, resulted_death");
+        if (accRes.error) {
+            var ls = document.getElementById("loadingState");
+            if (ls) ls.innerHTML = "<p style='color:#e74c3c'>Error: " + accRes.error.message + "</p>";
+            return;
+        }
+        var fatalMap = {};
+        (injRes.data || []).forEach(function(inj) { if (inj.resulted_death === "Yes") fatalMap[inj.accident_id] = true; });
+        allRecords = (accRes.data || []).map(function(r) { return Object.assign({}, r, { _fatality: fatalMap[r.id] || false }); });
+        buildStats(allRecords);
+        applyPagination(allRecords);
+        document.getElementById("loadingState").style.display = "none";
+        document.getElementById("tableWrap").style.display = "block";
+    };
+
+    var origApplyFilters = applyFilters;
+    applyFilters = function() {
+        var type = document.getElementById("filterType")?.value;
+        var fatal = document.getElementById("filterDeath")?.value;
+        var inv = document.getElementById("filterInv")?.value;
+        var search = (document.getElementById("filterSearch")?.value || "").toLowerCase().trim();
+        var filtered = allRecords.filter(function(r) {
+            if (type && r.report_type !== type) return false;
+            if (fatal === "Fatal" && !r._fatality) return false;
+            if (fatal === "Non-Fatal" && r._fatality) return false;
+            if (inv && (r.investigation_status || "") !== inv) return false;
+            if (search && !((r.occupier_name || "").toLowerCase().includes(search) || (r.worker_name || "").toLowerCase().includes(search) || (r.location || "").toLowerCase().includes(search))) return false;
+            return true;
+        });
+        applyPagination(filtered);
+    };
+
+</script>
 </body>
 </html>

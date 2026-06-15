@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOSH System</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
         * {
@@ -721,7 +722,7 @@
 
 
     <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.min.js"></script>
     <!-- Supabase Configuration -->
     <script src="supabase-config.js"></script>
     <!-- Custom Modals -->
@@ -776,18 +777,18 @@
                         // Company login - no additional fields needed
                     }
                 } else {
-                    document.getElementById('companyFields').classList.add('hidden');
-                    document.getElementById('workerFields').classList.add('hidden');
-                    document.getElementById('oshOfficerFields').classList.add('hidden');
+                    var _el=document.getElementById('companyFields');if(_el)_el.classList.add('hidden');
+                    var _el=document.getElementById('workerFields');if(_el)_el.classList.add('hidden');
+                    var _el=document.getElementById('oshOfficerFields');if(_el)_el.classList.add('hidden');
 
                     if (selectedRole === 'company') {
-                        document.getElementById('companyFields').classList.remove('hidden');
+                        var _el=document.getElementById('companyFields');if(_el)_el.classList.remove('hidden');
                     } else if (selectedRole === 'worker') {
-                        document.getElementById('workerFields').classList.remove('hidden');
+                        var _el=document.getElementById('workerFields');if(_el)_el.classList.remove('hidden');
                     } else if (selectedRole === 'osh_officer') {
-                        document.getElementById('oshOfficerFields').classList.remove('hidden');
+                        var _el=document.getElementById('oshOfficerFields');if(_el)_el.classList.remove('hidden');
                     } else if (selectedRole === 'medical_practitioner') {
-                        document.getElementById('medicalPracFields').classList.remove('hidden');
+                        var _el=document.getElementById('medicalPracFields');if(_el)_el.classList.remove('hidden');
                     }
                 }
             });
@@ -953,18 +954,18 @@
         });
 
         // ── Forgot password ────────────────────────────
-        document.getElementById('forgotPassword').addEventListener('click', function(e) {
+        var _el=document.getElementById('forgotPassword');if(_el)_el.addEventListener('click',function(e) {
             e.preventDefault();
             window.location.href = 'reset-password.html';
         });
 
         // Login banner functions
         window.showLoginBanner = function(message) {
-            document.getElementById('loginBannerText').textContent = message;
-            document.getElementById('loginBanner').classList.add('show');
+            var _el=document.getElementById('loginBannerText');if(_el)_el.textContent=message;
+            var _el=document.getElementById('loginBanner');if(_el)_el.classList.add('show');
         }
         window.hideLoginBanner = function() {
-            document.getElementById('loginBanner').classList.remove('show');
+            var _el=document.getElementById('loginBanner');if(_el)_el.classList.remove('show');
         }
 
         // Wire banner action links to existing handlers
@@ -988,7 +989,7 @@
         });
 
         // Close button
-        document.getElementById("bannerCloseBtn").addEventListener("click", hideLoginBanner);
+        var _el=document.getElementById('bannerCloseBtn');if(_el)_el.addEventListener('click',hideLoginBanner);
 
         // Hide banner when user types in any login field
         document.querySelectorAll("#loginWorkerId, #loginEmail, #loginPassword").forEach(function(el) {
@@ -998,7 +999,7 @@
 
 
         // ── Resend confirmation email ───────────────────
-        document.getElementById('resendConfirm').addEventListener('click', async function(e) {
+        var _el=document.getElementById('resendConfirm');if(_el)_el.addEventListener('click',async function(e) {
             e.preventDefault();
             const email = await showPrompt(
                 'Enter the email address you registered with:',
@@ -1044,7 +1045,7 @@
                 if (f && !f.value.trim()) { f.classList.add('error'); isValid = false; }
             } else if (selectedRole.value === 'osh_officer') {
                 const selected = document.querySelectorAll('input[name="officerRoles"]:checked');
-                document.getElementById('rolesError').style.display = selected.length ? 'none' : 'block';
+                var _el=document.getElementById('rolesError');if(_el)_el.style.display=selected.length ? 'none' : 'block';
                 if (!selected.length) isValid = false;
             } else if (selectedRole.value === 'medical_practitioner') {
                 const f = document.getElementById('practiceName');

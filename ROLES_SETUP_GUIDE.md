@@ -101,7 +101,7 @@ All HTML pages have been updated with the role permissions system:
 - ✅ `admin.html` - Admin panel with role management
 - ✅ `entries.html` - Claims viewing with role-based edit permissions
 - ✅ `form.html` - Claim submission with role checking
-- ✅ `Untitled-1.html` - Dashboard with role-based navigation
+- ✅ `dashboard.html` - Dashboard with role-based navigation
 - ✅ `index.html` - Login page
 - ✅ `signup.html` - Registration (new users default to 'viewer')
 
@@ -210,7 +210,7 @@ ORDER BY changed_at DESC;
 - `signup.html` - Registration page
 
 ### Authenticated Pages (All Roles)
-- `Untitled-1.html` - Dashboard home
+- `dashboard.html` - Dashboard home
 - `entries.html` - View claims (edit restricted by role)
 
 ### Officer+ Required

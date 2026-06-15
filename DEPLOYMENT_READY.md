@@ -22,7 +22,7 @@ All components of the role-based access control system have been implemented and
   - admin.html (with role management UI)
   - entries.html (role-based edit permissions)
   - form.html (access control)
-  - Untitled-1.html (role-aware dashboard)
+  - dashboard.html (role-aware dashboard)
   - index.html (login)
   - signup.html (default to viewer)
 
@@ -122,7 +122,7 @@ Upload these files to your web server:
 - admin.html (updated)
 - entries.html (updated)
 - form.html (updated)
-- Untitled-1.html (updated)
+- dashboard.html (updated)
 
 ### Step 3: Test (3 minutes)
 1. Clear browser cache (Ctrl+Shift+Delete)

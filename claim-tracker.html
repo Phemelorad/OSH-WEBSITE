@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Claims - DOSH</title>
+    <title>Claim Tracker - DOSH</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>\">
     <style>
@@ -173,7 +173,8 @@
             .stage { min-width: 70px; }
             .detail-grid { grid-template-columns: 1fr; }
         }
-    /* u2500 Roadmap / Incident Chain */
+    
+        /* u2500 Roadmap / Incident Chain */
         .roadmap-section {
             background: white; border-radius: 14px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -272,7 +273,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>📋 My Claims</h1>
+        <h1>📋 Claim Tracker</h1>
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name" id="userName">Loading...</div>
@@ -282,7 +283,7 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'worker-claims';</script>
+    <script>window.OSH_ACTIVE_PAGE = 'claim-tracker';</script>
     <script src="header.js"></script>
     <script src="nav.js"></script>
 
@@ -290,7 +291,7 @@
         <!-- ── ID entry ────────────────────────── -->
         <div class="search-card" id="searchCard">
             <h2>🔍 Find Your Claims</h2>
-            <p>Enter your Omang (national ID) or passport number to look up your compensation claims</p>
+            <p>Enter your Omang or passport number to see the full journey from incident to claim resolution</p>
             <div class="search-row">
                 <input type="text" id="idInput"
                        placeholder="Enter your Omang or passport number"
@@ -326,8 +327,6 @@
     <script src="common.js"></script>
     <script><script>
     const SB = window.supabaseClient;
-
-
 
     // Roadmap: Incident Chain Milestones
     const MILESTONES = [
@@ -684,9 +683,7 @@
       }
     }
 
-
-
-    window.addEventListener('load', async function() {
+window.addEventListener('load', async function() {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         if (currentUserRole !== 'worker') { window.location.href = 'dashboard.html'; return; }

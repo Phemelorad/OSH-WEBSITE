@@ -40,7 +40,7 @@ The OSH system has been successfully updated with a comprehensive 4-tier role-ba
 - ✅ `admin.html` - Added role management UI + role column in user table
 - ✅ `entries.html` - Role-based edit permissions for claims
 - ✅ `form.html` - Page access control for officers+
-- ✅ `Untitled-1.html` - Role-based navigation and dashboard
+- ✅ `dashboard.html` - Role-based navigation and dashboard
 - ✅ `index.html` - Already complete (login page)
 - ✅ `signup.html` - Already complete (new users default to viewer)
 
@@ -141,7 +141,7 @@ osh website/
 ├── HTML Pages (All Updated)
 │   ├── index.html                    ← Login
 │   ├── signup.html                   ← Registration (default: viewer)
-│   ├── Untitled-1.html              ← Dashboard (all roles)
+│   ├── dashboard.html              ← Dashboard (all roles)
 │   ├── form.html                     ← Submit claim (officer+)
 │   ├── entries.html                  ← View claims (all, edit restricted)
 │   └── admin.html                    ← Admin panel (admin+)

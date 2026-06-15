@@ -541,14 +541,14 @@ function checkPageAccess() {
     // Admin page requires admin or super_admin role
     if (currentPage === 'admin.html' && !canAccessAdmin()) {
         alert('Access Denied\n\nYou do not have permission to access the admin panel.');
-        window.location.href = 'Untitled-1.html';
+        window.location.href = 'dashboard.html';
         return false;
     }
 
     // Form page requires officer or higher
     if (currentPage === 'form.html' && !canSubmitClaims()) {
         alert('Access Denied\n\nYou do not have permission to submit claims.');
-        window.location.href = 'Untitled-1.html';
+        window.location.href = 'dashboard.html';
         return false;
     }
 
@@ -583,67 +583,108 @@ if (typeof window !== 'undefined') {
 }
 
 
-
 // ── Header guard for company users ─────────────────────────
 // Page scripts often overwrite #userName with the person's full name after
 // updateHeaderDisplay() has already set it to the company name for company users.
-// This guard uses a lightweight setInterval polling approach (cleaned up after
-// the first correction) to ensure the company name stays visible.
+// This guard uses a MutationObserver to watch for changes and correct them
+// for company users — far more efficient than the previous setInterval polling.
 //
 // Root cause: page-specific scripts (e.g., admin.html, dashboard.html) run their
 // own window.load handlers that set userName.textContent directly. The proper
-// fix would be to have those scripts check the user role first, but this guard
-// provides backwards compatibility without changing every page.
-let _headerGuardInterval = null;
-let _headerGuardAttempts = 0;
+// fix is to have those scripts call setUserNameSafely() instead, but the
+// MutationObserver provides backwards compatibility without changing every page.
+let _headerGuardObserver = null;
+let _headerGuardFired = false;
 
-function protectCompanyUserName() {
-    if (currentUserRole !== 'company') {
-        cleanupHeaderGuard();
-        return;
+function cleanupHeaderGuard() {
+    if (_headerGuardObserver) {
+        _headerGuardObserver.disconnect();
+        _headerGuardObserver = null;
     }
+}
 
-    const cached = (typeof window.getCachedUserProfile === 'function')
-        ? window.getCachedUserProfile() : null;
-    const companyName = cached?.company_name;
-    if (!companyName) return;
-
+/**
+ * Safe way for page scripts to set the user name in the header.
+ * For company users, preserves the company name (not the person's name).
+ * For all other roles, sets the name as provided.
+ *
+ * Usage:  setUserNameSafely('John Doe');
+ * Instead of:  document.getElementById('userName').textContent = 'John Doe';
+ */
+window.setUserNameSafely = function(name) {
     const nameEl = document.getElementById('userName');
     if (!nameEl) return;
 
-    if (nameEl.textContent !== companyName) {
+    // For company users, always show company name, never the person's name
+    if (currentUserRole === 'company') {
+        const cached = (typeof window.getCachedUserProfile === 'function')
+            ? window.getCachedUserProfile() : null;
+        if (cached?.company_name) {
+            nameEl.textContent = cached.company_name;
+            return;
+        }
+    }
+
+    nameEl.textContent = name;
+};
+
+// Set up a MutationObserver on #userName to catch overwrites by page scripts.
+// More efficient than setInterval — only fires on actual DOM mutations.
+// Self-destructs after the first correction (page scripts run once on load).
+function setupHeaderGuard() {
+    const nameEl = document.getElementById('userName');
+    if (!nameEl) return;
+
+    // Only needed for company users
+    if (currentUserRole !== 'company') return;
+
+    // Disconnect any previous observer
+    cleanupHeaderGuard();
+
+    _headerGuardFired = false;
+
+    _headerGuardObserver = new MutationObserver(function() {
+        // Guard: only fire once to avoid loops
+        if (_headerGuardFired) return;
+
+        const cached = (typeof window.getCachedUserProfile === 'function')
+            ? window.getCachedUserProfile() : null;
+        const companyName = cached?.company_name;
+        if (!companyName || nameEl.textContent === companyName) return;
+
+        // Restore the company name
+        _headerGuardFired = true;
         nameEl.textContent = companyName;
-    }
 
-    const desigEl = document.getElementById('userDesignation');
-    if (desigEl && desigEl.style.display !== 'none') {
-        desigEl.textContent = '';
-        desigEl.style.display = 'none';
-    }
+        // Also hide the designation row for company users
+        const desigEl = document.getElementById('userDesignation');
+        if (desigEl) {
+            desigEl.textContent = '';
+            desigEl.style.display = 'none';
+        }
 
-    // After 5 successful checks (5 seconds total), clean up
-    _headerGuardAttempts++;
-    if (_headerGuardAttempts >= 5) {
+        // Self-destruct — we only needed one correction
         cleanupHeaderGuard();
-    }
+    });
+
+    // Watch for text content and child node changes
+    _headerGuardObserver.observe(nameEl, {
+        characterData: true,
+        childList: true,
+        subtree: true
+    });
 }
 
-function cleanupHeaderGuard() {
-    if (_headerGuardInterval) {
-        clearInterval(_headerGuardInterval);
-        _headerGuardInterval = null;
-    }
-}
-
-// Start polling 1 second after page load (allow page scripts to run first)
+// Start guard after page scripts have had a chance to run.
+// Window.load fires after all resources are loaded, which is when
+// page-specific scripts (dashboard, admin, etc.) set userName.textContent.
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            _headerGuardInterval = setInterval(protectCompanyUserName, 1000);
-        }, 500);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait for window.load to ensure page scripts have executed
+        window.addEventListener('load', function() {
+            setTimeout(setupHeaderGuard, 200);
+        });
     });
 } else {
-    setTimeout(() => {
-        _headerGuardInterval = setInterval(protectCompanyUserName, 1000);
-    }, 500);
+    setTimeout(setupHeaderGuard, 1500);
 }

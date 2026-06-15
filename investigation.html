@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investigations - DOSH</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%); min-height:100vh; }
-        .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
+.navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
         .navbar h1 { color:#333; font-size:24px; }
         .user-info { display:flex; align-items:center; gap:20px; }
         .logout-btn { padding:10px 20px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; }
@@ -85,7 +84,6 @@
         .injury-subrow .badge { font-size:10px; padding:2px 8px; }
         .injury-count-badge { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:10px; background:#f0f0f0; color:#666; font-weight:600; }
         .accident-row .injury-count-badge { background:#f8d7da; color:#721c24; }
-
 
         @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } .tab-bar { flex-direction:column; } }
             /* ── Workers list modal ──────────────────── */
@@ -269,8 +267,7 @@
             border-radius: 50%; width: 36px; height: 36px;
             animation: spin 1s linear infinite; margin: 0 auto 16px;
         }
-
-    </style>
+</style>
 </head>
 <body>
     <div class="navbar">
@@ -356,7 +353,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>

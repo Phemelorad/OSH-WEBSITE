@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Clientele - Medical Practitioner</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-            min-height: 100vh;
-        }
-        .navbar {
+.navbar {
             background: white; padding: 20px 40px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex; justify-content: space-between; align-items: center;
@@ -191,7 +186,7 @@
             .worker-banner .wb-actions { width: 100%; }
             .worker-banner .wb-actions .btn-sm { flex: 1; text-align: center; }
         }
-    </style>
+</style>
 </head>
 <body>
     <div class="navbar">
@@ -261,7 +256,7 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
@@ -285,8 +280,7 @@
         if (ur.success && ur.user) {
             const p = await getUserProfile(ur.user.id);
             if (p.success) {
-                document.getElementById('userName').textContent =
-                    p.data.first_name + ' ' + p.data.surname;
+                setUserNameSafely(p.data.first_name + ' ' + p.data.surname);
             }
         }
 

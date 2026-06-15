@@ -248,7 +248,7 @@ SELECT COUNT(*) FROM role_change_log;
 |------|:------:|:-------:|:-----:|:-----------:|
 | index.html (Login) | Public | Public | Public | Public |
 | signup.html | Public | Public | Public | Public |
-| Untitled-1.html (Home) | ✅ | ✅ | ✅ | ✅ |
+| dashboard.html (Home) | ✅ | ✅ | ✅ | ✅ |
 | entries.html (View) | ✅ | ✅ | ✅ | ✅ |
 | form.html (Submit) | ❌→Home | ✅ | ✅ | ✅ |
 | admin.html | ❌→Home | ❌→Home | ✅ | ✅ |

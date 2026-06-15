@@ -50,7 +50,7 @@ All pages have been updated to use the consistent header design from `admin.html
 
 ## 🎯 Pages Updated
 
-### ✅ Untitled-1.html (Dashboard)
+### ✅ dashboard.html (Dashboard)
 - Added standardized navbar with user details
 - Added site navigation
 - Consistent styling throughout
@@ -175,7 +175,7 @@ All headers are now responsive:
 ## 🔄 Navigation Consistency
 
 ### All Pages Have Same Navigation Links:
-- **⌂ Home** → Untitled-1.html
+- **⌂ Home** → dashboard.html
 - **📋 Submit Claim** → form.html
 - **📊 View Entries** → entries.html
 - **⚙ Admin** → admin.html
@@ -191,7 +191,7 @@ Each page shows its corresponding button as active (with border-bottom):
 
 ## 🎯 User Info Display
 
-### Dashboard (Untitled-1.html)
+### Dashboard (dashboard.html)
 ```
 Name: [user first name] [surname]
 Department: [department name]
@@ -253,7 +253,7 @@ All pages have been verified for:
 
 | File | Changes |
 |------|---------|
-| Untitled-1.html | Updated navbar and navigation styling |
+| dashboard.html | Updated navbar and navigation styling |
 | entries.html | Navbar already standardized, confirmed consistency |
 | form.html | Complete header redesign - added navbar, navigation, proper structure |
 | admin.html | Serves as reference (no changes) |

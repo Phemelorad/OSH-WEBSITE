@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Examination Report - BL Form 43/03</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>\">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -839,7 +840,7 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
@@ -1306,7 +1307,7 @@
         if (ur.success && ur.user) {
             const p = await getUserProfile(ur.user.id);
             if (p.success) {
-                document.getElementById('userName').textContent = p.data.first_name + ' ' + p.data.surname;
+                setUserNameSafely(p.data.first_name + ' ' + p.data.surname);
                 document.getElementById('userDept').textContent = 'Medical Practitioner';
                 document.getElementById('practitionerName').value = p.data.first_name + ' ' + p.data.surname;
                 // Set designation from profile if available, otherwise leave blank for practitioner to fill in

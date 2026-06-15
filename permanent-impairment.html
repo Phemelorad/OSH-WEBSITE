@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permanent Impairment Evaluation - DOSH</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>⚕</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -409,7 +410,7 @@
     </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
@@ -566,7 +567,7 @@
                     const p=await window.getUserProfile(u.user.id);
                     if(p&&p.data){
                         const fn=(p.data.first_name||'')+' '+(p.data.surname||'');
-                        const ne=document.getElementById('userName'); if(ne) ne.textContent=fn.trim()||'Medical Practitioner';
+                        setUserNameSafely(fn.trim()||'Medical Practitioner');
                         const pn=document.getElementById('practitionerName');
                         if(!pn.value) pn.value=fn.trim();
                         if(p.data.designation) document.getElementById('registeredAs').value=p.data.designation;
