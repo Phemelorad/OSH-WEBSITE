@@ -182,6 +182,16 @@
     <script>window.OSH_ACTIVE_PAGE = 'company-register';</script>
     <script src="header.js"></script>
     <script src="nav.js"></script>
+    <script>
+    // Redirect workers away from company register
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        if (currentUserRole === 'worker') {
+            window.location.href = 'worker-portal.html';
+        }
+    });
+    </script>
 
     <div class="container">
 

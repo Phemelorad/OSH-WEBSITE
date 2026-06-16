@@ -1,13 +1,364 @@
 <!DOCTYPE html>
-<html lang=en>
+<html lang="en">
 <head>
-<meta charset=UTF-8>
-<meta name=viewport content=width=device-width,initial-scale=1.0>
-<title>Case Tracking</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cases - DOSH</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>\U0001f4ca</text></svg>">
+    <style>
+        body { background: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 24px; min-height: 400px; }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 26px; color: #1a1a2e; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
+        .page-header p { color: #666; font-size: 14px; margin: 0; }
+        .id-search-card {
+            background: #fff; border-radius: 14px; padding: 28px 32px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 24px; text-align: center;
+        }
+        .id-search-card h2 { color: #333; font-size: 18px; margin: 0 0 6px; }
+        .id-search-card p { color: #888; font-size: 13px; margin: 0 0 18px; }
+        .id-search-row { display: flex; gap: 12px; max-width: 480px; margin: 0 auto; }
+        .id-search-row input {
+            flex: 1; padding: 14px 18px; border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 15px; font-family: inherit; transition: border-color 0.2s; text-transform: uppercase;
+        }
+        .id-search-row input:focus { outline: none; border-color: #333; }
+        .id-search-btn {
+            padding: 14px 28px; background: #333; color: white; border: none; border-radius: 10px;
+            cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .id-search-btn:hover { background: #111; transform: translateY(-1px); }
+        .id-search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+        .stat-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); text-align: center; border: 1px solid #eee; }
+        .stat-card .num { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .lbl { font-size: 12px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card.blue .num { color: #2563eb; }
+        .stat-card.green .num { color: #059669; }
+        .stat-card.amber .num { color: #d97706; }
+        .filters-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+        .filters-row select, .filters-row input { padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 13px; font-family: inherit; background: #fff; transition: border-color 0.2s; }
+        .filters-row select:focus, .filters-row input:focus { outline: none; border-color: #333; }
+        .filters-row input { flex: 1; min-width: 200px; }
+        .case-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #eee; margin-bottom: 12px; transition: all 0.2s; cursor: pointer; }
+        .case-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .case-card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .case-card .type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .type-badge.accident { background: #fee2e2; color: #dc2626; }
+        .type-badge.injury { background: #fef3c7; color: #d97706; }
+        .type-badge.claim { background: #dbeafe; color: #2563eb; }
+        .type-badge.medical { background: #e0e7ff; color: #3730a3; }
+        .type-badge.impairment { background: #f3e8ff; color: #7c3aed; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .status-badge.submitted, .status-badge.pending { background: #fef3c7; color: #92400e; }
+        .status-badge.under_review { background: #dbeafe; color: #1e40af; }
+        .status-badge.approved, .status-badge.paid { background: #d1fae5; color: #065f46; }
+        .status-badge.closed { background: #e5e7eb; color: #374151; }
+        .status-badge.denied { background: #fee2e2; color: #991b1b; }
+        .status-badge.draft { background: #f3f4f6; color: #6b7280; }
+        .status-badge.processed { background: #e0e7ff; color: #3730a3; }
+        .case-card .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0f0f0; }
+        .case-card .info-item .label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
+        .case-card .info-item .value { font-size: 14px; color: #333; font-weight: 500; margin-top: 2px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state p { font-size: 15px; margin: 4px 0; }
+        .loading-state { text-align: center; padding: 60px; color: #888; }
+        .spinner { width: 36px; height: 36px; border: 3px solid #eee; border-top-color: #333; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-banner { background: #fee2e2; color: #991b1b; padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; display: none; font-size: 14px; }
+        .tl-steps { display: flex; gap: 4px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; }
+        .tl-step { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f5f5f5; color: #999; }
+        .tl-step.done { background: #059669; color: #fff; }
+        .tl-step.active { background: #2563eb; color: #fff; }
+        @media (max-width: 640px) { .container { padding: 0 14px; } .stats-row { grid-template-columns: repeat(2, 1fr); } .case-card .info-grid { grid-template-columns: 1fr; } .id-search-row { flex-direction: column; } }
+    </style>
 </head>
 <body>
-<h1>Case Tracking</h1>
-<p>Search and track worker cases.</p>
+    <div id="navbar"></div>
+    <script>window.OSH_ACTIVE_PAGE = 'case-tracking';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+    <div class="container">
+        <div class="page-header">
+            <h1>\U0001f4ca My Cases</h1>
+            <p>Track all your reports, claims, and submissions in one place.</p>
+        </div>
+        <div class="error-banner" id="errorBanner"></div>
+
+        <!-- ID Number Search (primarily for workers to look up their own cases) -->
+        <div class="id-search-card" id="idSearchCard">
+            <h2>\U0001f50d Find Your Cases</h2>
+            <p>Enter your Omang / ID number or Passport number to see all cases linked to you.</p>
+            <div class="id-search-row">
+                <input type="text" id="idInput" placeholder="Enter your ID / Passport number..." maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter')searchById()">
+                <button class="id-search-btn" id="searchBtn" onclick="searchById()">Search</button>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:#aaa;" id="autoSearchHint">Or wait — checking your submitted cases...</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow" style="display:none;">
+            <div class="stat-card"><div class="num" id="statTotal">\u2014</div><div class="lbl">Total Cases</div></div>
+            <div class="stat-card amber"><div class="num" id="statPending">\u2014</div><div class="lbl">Pending</div></div>
+            <div class="stat-card blue"><div class="num" id="statReview">\u2014</div><div class="lbl">Under Review</div></div>
+            <div class="stat-card green"><div class="num" id="statResolved">\u2014</div><div class="lbl">Resolved</div></div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-row" id="filtersRow" style="display:none;">
+            <select id="typeFilter" onchange="applyFilters()">
+                <option value="all">All Types</option>
+                <option value="accident">Accidents</option>
+                <option value="injury">Injury/Disease</option>
+                <option value="claim">Claims</option>
+                <option value="medical">Medical Exams</option>
+                <option value="impairment">Impairment</option>
+            </select>
+            <select id="statusFilter" onchange="applyFilters()">
+                <option value="all">All Statuses</option>
+                <option value="submitted">Submitted</option>
+                <option value="pending">Pending</option>
+                <option value="under_review">Under Review</option>
+                <option value="approved">Approved</option>
+                <option value="paid">Paid</option>
+                <option value="closed">Closed</option>
+                <option value="denied">Denied</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Search by description, company..." oninput="applyFilters()">
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-state" id="loadingState" style="display:none;"><div class="spinner"></div><p id="loadingMsg">Loading your cases...</p></div>
+
+        <!-- Results -->
+        <div id="casesContainer"></div>
+    </div>
+    <script src="supabase.min.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="role-permissions.js"></script>
+    <script>
+    const SB = window.supabaseClient;
+    let allCases = [];
+    let currentUserId = null;
+    let searchedIdNumber = '';
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        const { data: { user } } = await SB.auth.getUser();
+        if (!user) { showError('Please log in first.'); return; }
+        currentUserId = user.id;
+        // Auto-try submitted cases for company/officer users
+        await loadSubmittedCases();
+    });
+
+    async function searchById() {
+        var rawId = document.getElementById('idInput').value.trim();
+        if (!rawId) { showError('Please enter your ID or Passport number.'); return; }
+        searchedIdNumber = rawId;
+        document.getElementById('searchBtn').disabled = true;
+        document.getElementById('searchBtn').textContent = 'Searching...';
+        await loadCasesById(rawId);
+        document.getElementById('searchBtn').disabled = false;
+        document.getElementById('searchBtn').textContent = 'Search';
+    }
+
+    async function loadSubmittedCases() {
+        showLoading('Checking your submitted cases...');
+        try {
+            const results = await Promise.allSettled([
+                fetchTable('accident_reports', 'accident', 'Accident Report'),
+                fetchTable('injury_disease_reports', 'injury', 'Injury/Disease Report'),
+                fetchTable('injury_claims', 'claim', 'Injury Claim'),
+                fetchTable('medical_examination_reports', 'medical', 'Medical Exam'),
+                fetchTable('permanent_impairment_reports', 'impairment', 'Impairment Assessment')
+            ]);
+            allCases = [];
+            results.forEach(function(r) { if (r.status === 'fulfilled' && r.value) allCases = allCases.concat(r.value); });
+
+            if (allCases.length > 0) {
+                hideLoading();
+                renderAll(allCases);
+                document.getElementById('autoSearchHint').textContent = 'Found ' + allCases.length + ' case(s) you submitted. Use the ID search above to find more.';
+            } else {
+                hideLoading();
+                document.getElementById('casesContainer').innerHTML = '<div class="empty-state"><div class="icon">\U0001f50d</div><p>No cases submitted by you.</p><p>Enter your ID / Passport number above to find cases linked to you.</p></div>';
+                document.getElementById('autoSearchHint').textContent = 'Enter your ID number above to search for your cases.';
+            }
+        } catch (err) { hideLoading(); showError('Error: ' + err.message); }
+    }
+
+    async function loadCasesById(idNumber) {
+        showLoading('Searching for cases linked to ID: ' + idNumber + '...');
+        document.getElementById('statsRow').style.display = 'none';
+        document.getElementById('filtersRow').style.display = 'none';
+        document.getElementById('casesContainer').innerHTML = '';
+
+        try {
+            var normId = (window.normalizeIdentityId || function(v){return v.trim().toUpperCase().replace(/\s+/g,'');})(idNumber);
+
+            // Find worker registry entry
+            var w = await SB.from('workers_registry').select('id').ilike('id_number', normId).maybeSingle();
+            var workerRegId = w.data ? w.data.id : null;
+
+            var promises = [];
+
+            // Query by worker_registry_id (if found)
+            if (workerRegId) {
+                promises.push(
+                    fetchTableByWorkerId('accident_reports', 'accident', 'Accident Report', workerRegId, 'worker_registry_id'),
+                    fetchTableByWorkerId('injury_disease_reports', 'injury', 'Injury/Disease Report', workerRegId, 'worker_registry_id'),
+                    fetchTableByWorkerId('injury_claims', 'claim', 'Injury Claim', workerRegId, 'worker_registry_id'),
+                    fetchTableByWorkerId('medical_examination_reports', 'medical', 'Medical Exam', workerRegId, 'worker_registry_id'),
+                    fetchTableByWorkerId('permanent_impairment_reports', 'impairment', 'Impairment Assessment', workerRegId, 'worker_registry_id')
+                );
+            }
+
+            // Also query injury_claims by claimant_id_number directly
+            promises.push(fetchClaimsByIdNumber(normId));
+
+            // Also query injury_disease_reports by worker_id_number
+            promises.push(fetchInjuryByIdNumber(normId));
+
+            // Also query accident_reports by injured_id_number
+            promises.push(fetchAccidentsByIdNumber(normId));
+
+            const results = await Promise.allSettled(promises);
+            allCases = [];
+            results.forEach(function(r) { if (r.status === 'fulfilled' && r.value) allCases = allCases.concat(r.value); });
+
+            // Deduplicate by id + type
+            var seen = {};
+            allCases = allCases.filter(function(c) {
+                var key = c.type + '_' + c.id;
+                if (seen[key]) return false;
+                seen[key] = true;
+                return true;
+            });
+
+            allCases.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+            hideLoading();
+
+            if (allCases.length === 0) {
+                document.getElementById('casesContainer').innerHTML = '<div class="empty-state"><div class="icon">\U0001f50d</div><p>No cases found for ID: ' + esc(idNumber) + '</p><p>Check the number and try again, or contact your employer/officer.</p></div>';
+                return;
+            }
+
+            renderAll(allCases);
+        } catch (err) { hideLoading(); showError('Search failed: ' + err.message); }
+    }
+
+    async function fetchTable(table, type, label) {
+        if (!currentUserId) return [];
+        const { data } = await SB.from(table).select('*').eq('submitted_by', currentUserId).order('created_at', { ascending: false });
+        if (!data) return [];
+        return data.map(function(r) { return makeCase(r, type, label); });
+    }
+
+    async function fetchTableByWorkerId(table, type, label, workerId, field) {
+        const { data } = await SB.from(table).select('*').eq(field, workerId).order('created_at', { ascending: false });
+        if (!data) return [];
+        return data.map(function(r) { return makeCase(r, type, label); });
+    }
+
+    async function fetchClaimsByIdNumber(normId) {
+        const { data } = await SB.from('injury_claims').select('*').ilike('claimant_id_number', normId);
+        if (!data) return [];
+        return data.map(function(r) { return makeCase(r, 'claim', 'Injury Claim'); });
+    }
+
+    async function fetchInjuryByIdNumber(normId) {
+        const { data } = await SB.from('injury_disease_reports').select('*').ilike('worker_id_number', normId);
+        if (!data) return [];
+        return data.map(function(r) { return makeCase(r, 'injury', 'Injury/Disease Report'); });
+    }
+
+    async function fetchAccidentsByIdNumber(normId) {
+        const { data } = await SB.from('accident_reports').select('*').ilike('injured_id_number', normId);
+        if (!data) return [];
+        return data.map(function(r) { return makeCase(r, 'accident', 'Accident Report'); });
+    }
+
+    function makeCase(r, type, label) {
+        return {
+            id: r.id, type: type, typeLabel: label,
+            title: r.incident_type || r.claim_type || r.examination_type || r.assessment_type || label,
+            status: r.status || 'submitted',
+            date: r.created_at || r.date_reported || r.claim_date || r.examination_date || r.assessment_date,
+            detail: r.description || r.location || r.findings || r.worker_name || '',
+            company: r.company_name || r.name_of_employer || '',
+            link: getLink(type, r.id)
+        };
+    }
+
+    function getLink(type, id) {
+        var map = { accident: 'accident-report.html', injury: 'injury-disease-report.html', claim: 'worker-claims.html', medical: 'medical-examination.html', impairment: 'permanent-impairment.html' };
+        return (map[type] || '') + '?id=' + id;
+    }
+
+    function renderAll(cases) {
+        document.getElementById('statsRow').style.display = 'grid';
+        document.getElementById('filtersRow').style.display = 'flex';
+        updateStats(cases);
+        renderCases(cases);
+    }
+
+    function getStatusLabel(s) { var m = { submitted:'Submitted', pending:'Pending', under_review:'Under Review', approved:'Approved', paid:'Paid', closed:'Closed', denied:'Denied', draft:'Draft', processed:'Processed' }; return m[s] || s; }
+    function formatDate(d) { if (!d) return '\u2014'; try { return new Date(d).toLocaleDateString('en-ZA', { year:'numeric', month:'short', day:'numeric' }); } catch(e) { return d; } }
+
+    function updateStats(cases) {
+        document.getElementById('statTotal').textContent = cases.length;
+        document.getElementById('statPending').textContent = cases.filter(function(c) { return c.status === 'submitted' || c.status === 'pending' || c.status === 'draft'; }).length;
+        document.getElementById('statReview').textContent = cases.filter(function(c) { return c.status === 'under_review' || c.status === 'processed'; }).length;
+        document.getElementById('statResolved').textContent = cases.filter(function(c) { return ['approved','paid','closed','denied'].indexOf(c.status) >= 0; }).length;
+    }
+
+    function renderCases(cases) {
+        var container = document.getElementById('casesContainer'); container.innerHTML = '';
+        cases.forEach(function(c) {
+            var card = document.createElement('div'); card.className = 'case-card';
+            card.onclick = function() { window.location.href = c.link; };
+            card.innerHTML = '<div class="top-row"><div><span class="type-badge ' + c.type + '">' + c.typeLabel + '</span> <span class="status-badge ' + c.status + '">' + getStatusLabel(c.status) + '</span></div><span style="font-size:13px;color:#999;">' + formatDate(c.date) + '</span></div><div style="margin-top:8px;font-weight:600;color:#1a1a2e;font-size:15px;">' + esc(c.title) + '</div><div class="info-grid">' + (c.detail ? '<div class="info-item"><div class="label">Details</div><div class="value">' + esc(trunc(c.detail, 60)) + '</div></div>' : '') + (c.company ? '<div class="info-item"><div class="label">Company</div><div class="value">' + esc(c.company) + '</div></div>' : '') + '<div class="info-item"><div class="label">Case ID</div><div class="value">#' + esc(String(c.id).slice(0,8)) + '</div></div></div><div class="tl-steps">' + getTimeline(c.type, c.status) + '</div>';
+            container.appendChild(card);
+        });
+    }
+
+    function getTimeline(type, status) {
+        var steps = type === 'claim' ? ['Submitted','Under Review','Approved','Paid'] : (type === 'medical' || type === 'impairment' ? ['Submitted','Under Review','Processed','Closed'] : ['Submitted','Under Review','Resolved']);
+        var ci = -1;
+        if (status === 'submitted' || status === 'draft' || status === 'pending') ci = 0;
+        else if (status === 'under_review' || status === 'processed') ci = 1;
+        else if (status === 'approved' || status === 'paid') ci = 2;
+        else if (status === 'closed') ci = steps.length - 1;
+        else if (status === 'denied') ci = -2;
+        var h = '';
+        steps.forEach(function(s, i) {
+            var cls = status === 'denied' ? (i === 0 ? 'active' : '') : (i < ci ? 'done' : (i === ci ? 'active' : ''));
+            h += '<span class="tl-step ' + cls + '">' + s + '</span>';
+            if (i < steps.length - 1) h += '<span style="color:#ddd;font-size:10px;line-height:28px;"> \u27a1 </span>';
+        });
+        if (status === 'denied') h += ' <span class="tl-step" style="background:#dc2626;color:#fff;">Denied</span>';
+        return h;
+    }
+
+    function applyFilters() {
+        var type = document.getElementById('typeFilter').value, status = document.getElementById('statusFilter').value, search = document.getElementById('searchInput').value.toLowerCase().trim();
+        var filtered = allCases.filter(function(c) {
+            if (type !== 'all' && c.type !== type) return false;
+            if (status !== 'all' && c.status !== status) return false;
+            if (search) { var haystack = (c.title + ' ' + c.detail + ' ' + c.company + ' ' + c.typeLabel).toLowerCase(); if (haystack.indexOf(search) === -1) return false; }
+            return true;
+        });
+        document.getElementById('casesContainer').innerHTML = filtered.length === 0 ? '<div class="empty-state"><div class="icon">\U0001f50d</div><p>No cases match your filters.</p></div>' : '';
+        if (filtered.length > 0) renderCases(filtered);
+    }
+
+    function showLoading(msg) { var s = document.getElementById('loadingState'); s.style.display = 'block'; document.getElementById('loadingMsg').textContent = msg || 'Loading...'; }
+    function hideLoading() { document.getElementById('loadingState').style.display = 'none'; }
+    function showError(msg) { var b = document.getElementById('errorBanner'); b.textContent = msg; b.style.display = 'block'; setTimeout(function(){ b.style.display = 'none'; }, 6000); }
+    function esc(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
+    function trunc(str, len) { if (!str || str.length <= len) return str || ''; return str.slice(0, len) + '...'; }
+    </script>
 </body>
 </html>

@@ -526,7 +526,7 @@
             var endP = Math.min(totalPages, startP + 4);
             if (endP - startP < 4) startP = Math.max(1, endP - 4);
             for (var i = startP; i <= endP; i++) {
-                html += "<button class="" + (i === currentPage ? "active" : "") + "" onclick="goToPage(" + i + ")">" + i + "</button>";
+                html += "<button class=\"" + (i === currentPage ? "active" : "") + "\" onclick=\"goToPage(" + i + ")\">" + i + "</button>";
             }
             pn.innerHTML = html;
         }

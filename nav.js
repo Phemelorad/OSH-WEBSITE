@@ -376,6 +376,13 @@
         ]
       },
       {
+        id: 'case-tracking',
+        label: '📊 My Cases',
+        href: 'case-tracking.html',
+        single: true,
+        hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
+      },
+      {
         id: 'worker-claims',
         label: '\uD83D\uDCCB My Claims',
         href: 'worker-claims.html',
@@ -410,7 +417,7 @@
         label: '\uD83C\uDFE2 Employers',
         href: 'company-register.html',
         single: true,
-        hideFor: ['company', 'medical_practitioner']
+        hideFor: ['company', 'worker', 'medical_practitioner']
       },
       {
         id: 'admin',

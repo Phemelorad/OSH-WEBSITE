@@ -929,7 +929,7 @@ CREATE POLICY "All users can view accident reports"
 CREATE POLICY "Officers and above can insert accident reports"
     ON accident_reports FOR INSERT TO authenticated
     WITH CHECK (
-        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer','admin','super_admin'))
+        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company','officer','admin','super_admin'))
         AND auth.uid() = submitted_by
     );
 
@@ -960,7 +960,7 @@ CREATE POLICY "All users can view claims"
 CREATE POLICY "Officers and above can insert claims"
     ON injury_claims FOR INSERT TO authenticated
     WITH CHECK (
-        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer', 'admin', 'super_admin'))
+        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company', 'officer', 'admin', 'super_admin'))
         AND auth.uid() = submitted_by
     );
 
@@ -996,7 +996,7 @@ CREATE POLICY "All users can view injury disease reports"
 CREATE POLICY "Officers and above can insert injury disease reports"
     ON injury_disease_reports FOR INSERT TO authenticated
     WITH CHECK (
-        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer','admin','super_admin'))
+        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company','officer','admin','super_admin'))
         AND auth.uid() = submitted_by
     );
 
@@ -1019,7 +1019,7 @@ CREATE POLICY "All users can view inspections"
 CREATE POLICY "Officers and above can insert inspections"
     ON workplace_inspections FOR INSERT TO authenticated
     WITH CHECK (
-        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer','admin','super_admin'))
+        EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company','officer','admin','super_admin'))
         AND auth.uid() = submitted_by
     );
 
@@ -1048,7 +1048,7 @@ CREATE POLICY "All authenticated users can view workers registry"
 
 CREATE POLICY "Officers and above can insert workers"
     ON workers_registry FOR INSERT TO authenticated
-    WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer','admin','super_admin')));
+    WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company','officer','admin','super_admin')));
 
 CREATE POLICY "Officers update own workers, admins update all"
     ON workers_registry FOR UPDATE TO authenticated
@@ -1066,7 +1066,7 @@ CREATE POLICY "Companies can view own bookings"
     ON inspection_bookings FOR SELECT TO authenticated
     USING (
         submitted_by = auth.uid()
-        OR EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer','admin','super_admin'))
+        OR EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company','officer','admin','super_admin'))
     );
 
 CREATE POLICY "Company users can insert bookings"
@@ -1075,7 +1075,7 @@ CREATE POLICY "Company users can insert bookings"
 
 CREATE POLICY "Officers can update bookings"
     ON inspection_bookings FOR UPDATE TO authenticated
-    USING (EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('officer','admin','super_admin')));
+    USING (EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid() AND role IN ('company','officer','admin','super_admin')));
 
 -- ── 7p. Medical examination reports ─────────────────────────
 DROP POLICY IF EXISTS "Authenticated users can view medical reports" ON medical_examination_reports;

@@ -681,7 +681,7 @@
             var endP = Math.min(totalPages, startP + 4);
             if (endP - startP < 4) startP = Math.max(1, endP - 4);
             for (var i = startP; i <= endP; i++) {
-                html += "<button class="" + (i === currentPage ? "active" : "") + "" onclick="goToPage(" + i + ")">" + i + "</button>";
+                html += "<button class=\"" + (i === currentPage ? "active" : "") + "\" onclick=\"goToPage(" + i + ")\">" + i + "</button>";
             }
             pn.innerHTML = html;
         }
@@ -709,7 +709,7 @@
         var resp = await SB.from("workplace_inspections").select("*").order("inspection_date", { ascending: false });
         if (resp.error) {
             var ls = document.getElementById("loadingState");
-            if (ls) ls.innerHTML = "<p style='color:#e74c3c;padding:40px;text-align:center'>Error: " + resp.error.message + "<br><button onclick="loadInspections()" style='margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer'>Retry</button></p>";
+            if (ls) ls.innerHTML = "<p style='color:#e74c3c;padding:40px;text-align:center'>Error: " + resp.error.message + "<br><button onclick=\"loadInspections()\" style='margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer'>Retry</button></p>";
             return;
         }
         allRecords = resp.data || [];
