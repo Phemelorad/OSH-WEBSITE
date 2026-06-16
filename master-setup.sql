@@ -230,6 +230,8 @@ CREATE TABLE IF NOT EXISTS accident_reports (
     employees_injured        TEXT CHECK (employees_injured IN ('Yes','No')),
     notification_submitted   TEXT CHECK (notification_submitted IN ('Yes','No')),
     outside_persons_injured  TEXT,
+  employer_email          TEXT,
+  additional_injured      JSONB,
 
     -- Submission
     report_date          DATE NOT NULL DEFAULT CURRENT_DATE,
