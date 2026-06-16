@@ -1,0 +1,6 @@
+<!-- SECTIONS 4-6: INJURED PERSONS -->
+<div class=form-card id=accidentSection>
+<div class=section-title>4. Injured or Deceased Persons</div>
+<p class=hint style=margin-bottom:16px>Add all persons injured or killed in this accident/dangerous occurrence.</p>
+<div id=injuredPersonsContainer></div>
+</div>
