@@ -373,215 +373,91 @@
             font-weight: 500;
         }
 
-/* ===== Add Record Buttons ===== */
-.action-bar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-.btn-add-record {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #fff;
-}
-.btn-add-record:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-.btn-add-injury {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
-.btn-add-accident {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-}
-.btn-add-record .icon {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-/* ===== Record Modals ===== */
-.rec-modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    padding: 20px;
-    animation: modalFadeIn 0.2s ease;
-}
-.rec-modal {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    width: 100%;
-    max-width: 640px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: recSlideIn 0.25s ease;
-}
-.rec-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e9ecef;
-    position: sticky;
-    top: 0;
-    background: #fff;
-    z-index: 1;
-    border-radius: 16px 16px 0 0;
-}
-.rec-modal-header h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a2e;
-}
-.rec-modal-header .sub {
-    font-size: 13px;
-    color: #6c757d;
-    margin-top: 2px;
-}
-.rec-modal-close {
-    width: 36px; height: 36px;
-    border: none;
-    background: #f8f9fa;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #495057;
-    transition: all 0.2s;
-}
-.rec-modal-close:hover {
-    background: #e9ecef;
-    color: #dc3545;
-    transform: rotate(90deg);
-}
-.rec-modal-body {
-    padding: 24px;
-}
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-.form-group {
-    margin-bottom: 16px;
-}
-.form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 6px;
-}
-.form-group label .req {
-    color: #dc3545;
-    margin-left: 2px;
-}
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid #dee2e6;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.2s;
-    box-sizing: border-box;
-    background: #fff;
-}
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #1a73e8;
-    box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
-}
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-.radio-group {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-.radio-group label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 400;
-    font-size: 14px;
-    cursor: pointer;
-}
-.radio-group input[type="checkbox"] {
-    width: auto;
-    margin: 0;
-}
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid #e9ecef;
-}
-.btn-primary {
-    padding: 10px 28px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    background: #1a73e8;
-    color: #fff;
-    transition: all 0.2s;
-}
-.btn-primary:hover {
-    background: #1557b0;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
-}
-.btn-secondary {
-    padding: 10px 28px;
-    border: 1.5px solid #dee2e6;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    background: #fff;
-    color: #495057;
-    transition: all 0.2s;
-}
-.btn-secondary:hover {
-    background: #f8f9fa;
-    border-color: #adb5bd;
-}
-.col-span-2 {
-    grid-column: span 2;
-}
-@keyframes recSlideIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.97); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
+        /* Action Bar for adding records */
+        .action-bar {
+            display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+        }
+        .btn-add-record {
+            padding: 8px 18px; border-radius: 8px; font-size: 13px;
+            font-weight: 600; border: none; cursor: pointer;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-add-record.injury {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .btn-add-record.injury:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-add-record.accident {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+        }
+        .btn-add-record.accident:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,87,108,0.4); }
+        /* Record Modals */
+        .rec-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 10000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(2px);
+        }
+        .rec-modal-overlay.active { display: flex; }
+        .rec-modal {
+            background: #fff; border-radius: 16px; width: 90%; max-width: 600px;
+            max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 0;
+        }
+        .rec-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 24px; border-bottom: 1px solid #eee;
+            background: #fafafa; border-radius: 16px 16px 0 0;
+        }
+        .rec-modal-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .rec-modal-close {
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            background: #f0f0f0; color: #666; font-size: 18px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .rec-modal-close:hover { background: #e0e0e0; color: #333; }
+        .rec-modal-body { padding: 24px; }
+        .rec-modal-body .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;
+        }
+        .rec-modal-body .form-row.full { grid-template-columns: 1fr; }
+        .rec-modal-body .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .rec-modal-body .form-group label {
+            font-size: 13px; font-weight: 600; color: #444;
+        }
+        .rec-modal-body .form-group input,
+        .rec-modal-body .form-group select,
+        .rec-modal-body .form-group textarea {
+            padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 8px;
+            font-size: 14px; transition: all 0.2s;
+        }
+        .rec-modal-body .form-group input:focus,
+        .rec-modal-body .form-group select:focus,
+        .rec-modal-body .form-group textarea:focus {
+            border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); outline: none;
+        }
+        .rec-modal-body .form-group textarea { min-height: 80px; resize: vertical; }
+        .rec-modal-body .radio-group {
+            display: flex; gap: 16px; padding-top: 4px;
+        }
+        .rec-modal-body .radio-group label {
+            font-size: 14px; font-weight: 400; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .modal-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+            padding-top: 16px; border-top: 1px solid #eee; margin-top: 8px;
+        }
+        .modal-actions .btn {
+            padding: 10px 24px; border-radius: 8px; font-size: 14px;
+            font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .modal-actions .btn-primary { background: #667eea; color: #fff; }
+        .modal-actions .btn-primary:hover { background: #5a6fd6; }
+        .modal-actions .btn-secondary { background: #f0f0f0; color: #666; }
+        .modal-actions .btn-secondary:hover { background: #e0e0e0; }
 </style>
 </head>
 <body>
@@ -615,7 +491,15 @@
                 </div>
                 <button class="search-btn" id="searchBtn" onclick="searchWorker()">Search</button>
             </div>
-        </div>
+        
+            <div class="action-bar">
+              <button class="btn-add-record injury" onclick="openInjuryForm()">
+                + Add Injury Record
+              </button>
+              <button class="btn-add-record accident" onclick="openAccidentForm()">
+                + Add Accident Record
+              </button>
+            </div></div>
 
         <!-- ── Initial empty state ────────────────────────── -->
         <div class="state-box" id="emptyState">
@@ -641,17 +525,7 @@
         <div id="profileView" style="display:none">
 
             <!-- Profile header -->
-            <div class="profile-header" id="profileHeader">
-                <!-- Action Bar - Add Records -->
-                <div class="action-bar">
-                    <button class="btn-add-record btn-add-injury" onclick="openInjuryForm()">
-                        <span class="icon">+</span> Add Injury Record
-                    </button>
-                    <button class="btn-add-record btn-add-accident" onclick="openAccidentForm()">
-                        <span class="icon">+</span> Add Accident Record
-                    </button>
-                </div>
-</div>
+            <div class="profile-header" id="profileHeader"></div>
 
             <!-- Identity & employment (registry + merged forms) -->
             <div class="detail-card" id="identityEmploymentCard"></div>
@@ -837,9 +711,7 @@
     });
 
     // ── Main search ──────────────────────────────────────────
-    async function searchWorker(savedQuery) {
-        var query = savedQuery || document.getElementById('searchInput')?.value?.trim() || '';
-        if (query) window.lastSearchQuery = query;
+    async function searchWorker() {
         const q = document.getElementById('searchInput').value.trim();
         if (!q) return;
         document.getElementById('suggestions').style.display = 'none';
@@ -877,13 +749,13 @@
             if (!allIncidents.length) {
                 const regOr = reportOrFilter('full_name', 'id_number', q);
                 const regRes = await SB.from('workers_registry').select('*').or(regOr).limit(1);
-                if (!regRes.error && regRes.data?.[0]) { registryRow = regRes.data[0]; window.registryRow = registryRow; }
+                if (!regRes.error && regRes.data?.[0]) registryRow = regRes.data[0];
             }
 
             if (idNumber) {
                 const regRes = await SB.from('workers_registry')
                     .select('*').eq('id_number', idNumber).maybeSingle();
-                if (!regRes.error && regRes.data) { registryRow = regRes.data; window.registryRow = registryRow; }
+                if (!regRes.error && regRes.data) registryRow = regRes.data;
             }
 
             allClaims = await fetchClaimsForWorker(q, idNumber, registryRow?.id);
@@ -1585,158 +1457,7 @@ function incidentCard(i) {
         });
     }// ── Helpers ───────────────────────────────────────────────
     // ── Init ──────────────────────────────────────────────────
-    
-/* ===== Injury Record Functions ===== */
-function toggleNOKField() {
-    var nokRow = document.getElementById('inj_nok_row');
-    nokRow.style.display = document.getElementById('inj_death').checked ? 'block' : 'none';
-}
-
-function openInjuryForm() {
-    if (!window.registryRow) {
-        alert('Please search for a worker first.');
-        return;
-    }
-    var w = window.registryRow;
-    document.getElementById('injuryModalWorker').textContent = 'Worker: ' + (w.full_name || '') + ' (' + (w.id_number || '') + ')';
-    document.getElementById('inj_occupation').value = w.occupation || w.usual_occupation || '';
-    document.getElementById('inj_employer').value = w.employer_name || '';
-    document.getElementById('inj_incident_date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('injuryModal').style.display = 'flex';
-}
-
-function closeInjuryForm() {
-    document.getElementById('injuryModal').style.display = 'none';
-    document.getElementById('injuryForm').reset();
-    document.getElementById('inj_nok_row').style.display = 'none';
-}
-
-async function saveInjuryRecord(event) {
-    event.preventDefault();
-    var btn = event.target.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-
-    try {
-        var user = await getCurrentUser();
-        if (!user) { alert('You must be logged in.'); btn.disabled = false; btn.textContent = 'Save Injury Record'; return false; }
-
-        var w = window.registryRow;
-        var payload = {
-            worker_name: w.full_name || '',
-            worker_address: w.address || '',
-            occupation: document.getElementById('inj_occupation').value || w.occupation || w.usual_occupation || '',
-            worker_id_number: w.id_number || '',
-            incident_date: document.getElementById('inj_incident_date').value,
-            place_of_accident: document.getElementById('inj_place').value,
-            incident_type: document.getElementById('inj_incident_type').value,
-            nature_of_injuries: document.getElementById('inj_nature').value,
-            resulted_death: document.getElementById('inj_death').checked ? 'Yes' : 'No',
-            permanent_incapacity: document.getElementById('inj_permanent').checked ? 'Yes' : 'No',
-            temporary_incapacity: document.getElementById('inj_temporary').checked ? 'Yes' : 'No',
-            nok_informed: document.getElementById('inj_death').checked ? (document.getElementById('inj_nok').value || 'No') : null,
-            employer_name: document.getElementById('inj_employer').value || w.employer_name || '',
-            employer_telephone: w.employer_telephone || '',
-            report_date: new Date().toISOString().split('T')[0],
-            signatory_name: window.currentUserDisplayName || '',
-            signatory_designation: '',
-            submitted_by: user.id,
-            status: 'submitted',
-            worker_registry_id: w.id || null
-        };
-
-        var result = await window.supabaseClient.from('injury_disease_reports').insert([payload]).select();
-        if (result.error) throw result.error;
-
-        showToast('Injury/Disease record saved successfully!', 'success');
-        closeInjuryForm();
-        if (window.lastSearchQuery) searchWorker(window.lastSearchQuery);
-    } catch (err) {
-        console.error('Save injury error:', err);
-        alert('Error saving injury record: ' + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save Injury Record';
-    }
-    return false;
-}
-
-/* ===== Accident Record Functions ===== */
-function openAccidentForm() {
-    if (!window.registryRow) {
-        alert('Please search for a worker first.');
-        return;
-    }
-    var w = window.registryRow;
-    document.getElementById('accidentModalWorker').textContent = 'Worker: ' + (w.full_name || '') + ' (' + (w.id_number || '') + ')';
-    document.getElementById('acc_occupation').value = w.occupation || w.usual_occupation || '';
-    document.getElementById('acc_date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('accidentModal').style.display = 'flex';
-}
-
-function closeAccidentForm() {
-    document.getElementById('accidentModal').style.display = 'none';
-    document.getElementById('accidentForm').reset();
-}
-
-async function saveAccidentRecord(event) {
-    event.preventDefault();
-    var btn = event.target.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-
-    try {
-        var user = await getCurrentUser();
-        if (!user) { alert('You must be logged in.'); btn.disabled = false; btn.textContent = 'Save Accident Record'; return false; }
-
-        var w = window.registryRow;
-        var payload = {
-            report_type: 'accident',
-            report_date: new Date().toISOString().split('T')[0],
-            reporter_name: window.currentUserDisplayName || '',
-            reporter_designation: '',
-            occupier_name: w.employer_name || '',
-            premises_address: w.employer_address || '',
-            nature_of_industry: '',
-            industry_sector: '',
-            injured_name: w.full_name || '',
-            injured_age: w.age_years || null,
-            injured_sex: w.sex || null,
-            injured_id_number: w.id_number || '',
-            occupation_at_accident: document.getElementById('acc_occupation').value || w.occupation || w.usual_occupation || '',
-            usual_occupation: w.usual_occupation || w.occupation || '',
-            experience_level: document.getElementById('acc_experience').value || w.experience_level || '',
-            accident_date: document.getElementById('acc_date').value,
-            accident_time: document.getElementById('acc_time').value || null,
-            accident_place: document.getElementById('acc_place').value,
-            accident_description: document.getElementById('acc_description').value,
-            machinery_involved: document.getElementById('acc_machinery').value || '',
-            injury_fatal: document.getElementById('acc_fatal').value,
-            disabled_three_days: document.getElementById('acc_disabled').value || null,
-            medical_practitioner: document.getElementById('acc_practitioner').value || '',
-            investigation_status: 'Pending',
-            status: 'submitted',
-            submitted_by: user.id,
-            worker_registry_id: w.id || null
-        };
-
-        var result = await window.supabaseClient.from('accident_reports').insert([payload]).select();
-        if (result.error) throw result.error;
-
-        showToast('Accident record saved successfully!', 'success');
-        closeAccidentForm();
-        if (window.lastSearchQuery) searchWorker(window.lastSearchQuery);
-    } catch (err) {
-        console.error('Save accident error:', err);
-        alert('Error saving accident record: ' + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save Accident Record';
-    }
-    return false;
-}
-
-window.addEventListener('load', async function () {
+    window.addEventListener('load', async function () {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
 
@@ -1744,7 +1465,6 @@ window.addEventListener('load', async function () {
         if (ur.success && ur.user) {
             const p = await getUserProfile(ur.user.id);
             if (p.success) {
-                window.currentUserDisplayName = p.data.first_name + ' ' + p.data.surname;
                 setUserNameSafely(p.data.first_name + ' ' + p.data.surname);
                 document.getElementById('userDept').textContent = getRoleDisplayName(p.data.role || 'viewer');
             }
@@ -1760,160 +1480,219 @@ window.addEventListener('load', async function () {
         }
     });
     </script>
+<script>
+/* Worker Profile - Injury & Accident Record Functions */
+let currentRegistryRow = null;
 
-<!-- ===== Add Injury Record Modal ===== -->
-<div class="rec-modal-overlay" id="injuryModal" style="display:none" onclick="if(event.target===this)closeInjuryForm()">
-    <div class="rec-modal">
-        <div class="rec-modal-header">
-            <div>
-                <h2>Add Injury/Disease Record</h2>
-                <div class="sub" id="injuryModalWorker">Worker: &mdash;</div>
-            </div>
-            <button class="rec-modal-close" onclick="closeInjuryForm()">&times;</button>
-        </div>
-        <div class="rec-modal-body">
-            <form id="injuryForm" onsubmit="return saveInjuryRecord(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Incident Date <span class="req">*</span></label>
-                        <input type="date" id="inj_incident_date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Incident Type <span class="req">*</span></label>
-                        <select id="inj_incident_type" required>
-                            <option value="">Select...</option>
-                            <option value="Injury">Injury</option>
-                            <option value="Disease">Disease / Occupational Disease</option>
-                            <option value="Both">Both</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Place of Accident <span class="req">*</span></label>
-                    <input type="text" id="inj_place" required placeholder="Exact location of the incident">
-                </div>
-                <div class="form-group">
-                    <label>Nature of Injuries / Disease <span class="req">*</span></label>
-                    <textarea id="inj_nature" required placeholder="Describe the nature of injuries or disease in detail"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Outcome / Resulted In</label>
-                    <div class="radio-group">
-                        <label><input type="checkbox" id="inj_death" onchange="toggleNOKField()"> Death</label>
-                        <label><input type="checkbox" id="inj_permanent"> Permanent Incapacity</label>
-                        <label><input type="checkbox" id="inj_temporary"> Temporary Incapacity</label>
-                    </div>
-                </div>
-                <div class="form-group" id="inj_nok_row" style="display:none">
-                    <label>Next of Kin Informed</label>
-                    <select id="inj_nok">
-                        <option value="">Select...</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Occupation</label>
-                        <input type="text" id="inj_occupation" placeholder="Worker's occupation">
-                    </div>
-                    <div class="form-group">
-                        <label>Employer Name</label>
-                        <input type="text" id="inj_employer" placeholder="Employer/Company name">
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeInjuryForm()">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Injury Record</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+function openInjuryForm() {
+  if (!currentRegistryRow) { alert('Please search and select a worker first.'); return; }
+  document.getElementById('injuryModal').classList.add('active');
+}
 
-<!-- ===== Add Accident Record Modal ===== -->
-<div class="rec-modal-overlay" id="accidentModal" style="display:none" onclick="if(event.target===this)closeAccidentForm()">
-    <div class="rec-modal">
-        <div class="rec-modal-header">
-            <div>
-                <h2>Add Accident Record</h2>
-                <div class="sub" id="accidentModalWorker">Worker: &mdash;</div>
-            </div>
-            <button class="rec-modal-close" onclick="closeAccidentForm()">&times;</button>
-        </div>
-        <div class="rec-modal-body">
-            <form id="accidentForm" onsubmit="return saveAccidentRecord(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Accident Date <span class="req">*</span></label>
-                        <input type="date" id="acc_date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Accident Time</label>
-                        <input type="time" id="acc_time">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Place of Accident <span class="req">*</span></label>
-                    <input type="text" id="acc_place" required placeholder="Exact location where accident occurred">
-                </div>
-                <div class="form-group">
-                    <label>Description of Accident <span class="req">*</span></label>
-                    <textarea id="acc_description" required placeholder="Describe how the accident happened, including cause and circumstances"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Injury Severity <span class="req">*</span></label>
-                        <select id="acc_fatal" required>
-                            <option value="">Select...</option>
-                            <option value="Non-fatal">Non-fatal</option>
-                            <option value="Fatal">Fatal</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Occupation at Accident</label>
-                        <input type="text" id="acc_occupation" placeholder="Worker's occupation during accident">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Machinery / Equipment</label>
-                        <input type="text" id="acc_machinery" placeholder="If machinery/equipment was involved">
-                    </div>
-                    <div class="form-group">
-                        <label>Medical Practitioner</label>
-                        <input type="text" id="acc_practitioner" placeholder="Doctor or hospital name">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Experience Level</label>
-                        <select id="acc_experience">
-                            <option value="">Select...</option>
-                            <option value="Apprentice">Apprentice</option>
-                            <option value="Junior">Junior / New</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Experienced">Experienced</option>
-                            <option value="Expert">Expert / Supervisor</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Disabled for 3+ Days</label>
-                        <select id="acc_disabled">
-                            <option value="">Select...</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeAccidentForm()">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Accident Record</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+function openAccidentForm() {
+  if (!currentRegistryRow) { alert('Please search and select a worker first.'); return; }
+  document.getElementById('accidentModal').classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  // Reset the form inside
+  const form = document.querySelector('#' + id + ' form');
+  if (form) form.reset();
+}
+
+async function saveInjuryRecord(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  
+  try {
+    const nature = document.getElementById('injuryNature').value;
+    const medic = document.getElementById('injuryMedic').value;
+    const pay = document.getElementById('injuryPay').value;
+    const resulted = document.querySelector('input[name="resulted_in"]:checked').value;
+    
+    // Append medic/pay to nature if provided
+    let fullNature = nature;
+    if (medic) fullNature += '\n\nMedical Practitioner: ' + medic;
+    if (pay) fullNature += '\nHourly Pay: BWP ' + pay;
+    
+    const payload = {
+      worker_id: currentRegistryRow.id,
+      worker_name: currentRegistryRow.worker_name,
+      worker_id_number: currentRegistryRow.worker_id_number || null,
+      nature_of_injuries: fullNature,
+      resulted_death: resulted === 'death' ? 'Yes' : 'No',
+      permanent_incapacity: resulted === 'permanent_incapacity' ? 'Yes' : 'No',
+      temporary_incapacity: resulted === 'temporary_incapacity' ? 'Yes' : 'No',
+      employer: currentRegistryRow.company_name || currentRegistryRow.employer || null,
+      report_date: new Date().toISOString().split('T')[0],
+      created_by: window.currentUserDisplayName || null
+    };
+    
+    const { error } = await supabaseClient.from('injury_disease_reports').insert([payload]);
+    if (error) throw error;
+    
+    closeModal('injuryModal');
+    showToast('Injury record saved successfully!');
+    if (typeof searchWorker === 'function') searchWorker();
+  } catch (err) {
+    alert('Error saving injury record: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Record';
+  }
+}
+
+async function saveAccidentRecord(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  
+  try {
+    const payload = {
+      worker_id: currentRegistryRow.id,
+      injured_name: currentRegistryRow.worker_name,
+      injured_id_number: currentRegistryRow.worker_id_number || null,
+      accident_date: document.getElementById('accDate').value,
+      accident_time: document.getElementById('accTime').value || null,
+      accident_place: document.getElementById('accPlace').value,
+      description: document.getElementById('accDescription').value,
+      injury_type: document.getElementById('accInjuryType').value || null,
+      nature_of_injury: document.getElementById('accNature').value || null,
+      employer: currentRegistryRow.company_name || currentRegistryRow.employer || null,
+      report_type: 'Employer',
+      report_date: new Date().toISOString().split('T')[0],
+      created_by: window.currentUserDisplayName || null
+    };
+    
+    const { error } = await supabaseClient.from('accident_reports').insert([payload]);
+    if (error) throw error;
+    
+    closeModal('accidentModal');
+    showToast('Accident record saved successfully!');
+    if (typeof searchWorker === 'function') searchWorker();
+  } catch (err) {
+    alert('Error saving accident record: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Record';
+  }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:#fff;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:500;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.2);opacity:0;transform:translateY(20px);transition:all 0.3s ease;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; }, 3000);
+}
+</script>
+
 
 </body>
+
+<!-- Injury Record Modal -->
+<div class="rec-modal-overlay" id="injuryModal">
+  <div class="rec-modal">
+    <div class="rec-modal-header">
+      <h3>Record Injury/Disease</h3>
+      <button class="rec-modal-close" onclick="closeModal('injuryModal')">&times;</button>
+    </div>
+    <div class="rec-modal-body">
+      <form id="injuryForm" onsubmit="saveInjuryRecord(event)">
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Nature of Injury / Disease <span style="color:red">*</span></label>
+            <textarea name="nature" id="injuryNature" required placeholder="Describe the injury or disease"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Medical Practitioner / Hospital</label>
+            <input type="text" name="medical_practitioner" id="injuryMedic" placeholder="Name and address">
+          </div>
+          <div class="form-group">
+            <label>Average Hourly Pay (BWP)</label>
+            <input type="number" step="0.01" min="0" name="hourly_pay" id="injuryPay" placeholder="0.00">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Resulted In <span style="color:red">*</span></label>
+            <div class="radio-group">
+              <label><input type="radio" name="resulted_in" value="death" required> Death</label>
+              <label><input type="radio" name="resulted_in" value="permanent_incapacity"> Permanent Incapacity</label>
+              <label><input type="radio" name="resulted_in" value="temporary_incapacity"> Temporary Incapacity</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('injuryModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Accident Record Modal -->
+<div class="rec-modal-overlay" id="accidentModal">
+  <div class="rec-modal">
+    <div class="rec-modal-header">
+      <h3>Record Accident</h3>
+      <button class="rec-modal-close" onclick="closeModal('accidentModal')">&times;</button>
+    </div>
+    <div class="rec-modal-body">
+      <form id="accidentForm" onsubmit="saveAccidentRecord(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Accident Date <span style="color:red">*</span></label>
+            <input type="date" name="accident_date" id="accDate" required>
+          </div>
+          <div class="form-group">
+            <label>Accident Time</label>
+            <input type="time" name="accident_time" id="accTime">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Place of Accident <span style="color:red">*</span></label>
+            <input type="text" name="accident_place" id="accPlace" required placeholder="Where did it happen?">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Description <span style="color:red">*</span></label>
+            <textarea name="description" id="accDescription" required placeholder="Describe what happened"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Injury Type</label>
+            <select name="injury_type" id="accInjuryType">
+              <option value="">-- Select --</option>
+              <option value="fatal">Fatal</option>
+              <option value="non_fatal">Non-fatal</option>
+              <option value="dangerous_occurrence">Dangerous Occurrence</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nature of Injury</label>
+            <input type="text" name="nature_of_injury" id="accNature" placeholder="e.g. Fracture, Burn, etc.">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('accidentModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 </html>

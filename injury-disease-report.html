@@ -347,29 +347,29 @@
                 </div>
               </div>
 
-            </div>
+                        </div>
+          </div>
 
-                        <!-- Injury Details (per worker) -->
-            <div style="background:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:20px">
-              <div style="font-weight:700;font-size:14px;color:#333;margin-bottom:12px">Injury Details</div>
-              <div class="form-row form-row-2">
-                <div class="form-group">
-                  <label>Medical Practitioner / Hospital Attended</label>
-                  <input type="text" name="medical_practitioner" id="medicalPractitioner"
-                         placeholder="Name and address of medical practitioner or hospital">
-                </div>
-                <div class="form-group">
-                  <label>Average Hourly Pay of Injured (BWP)</label>
-                  <input type="number" name="hourly_pay" id="hourlyPay"
-                         min="0" step="0.01" placeholder="e.g. 12.50">
-                </div>
+          <!-- Injury Details -->
+          <div class="form-card">
+            <div class="section-title">Injury Details</div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>Medical Practitioner / Hospital Attended</label>
+                <input type="text" name="medical_practitioner" id="medicalPractitioner"
+                       placeholder="Name and address of medical practitioner or hospital">
+              </div>
+              <div class="form-group">
+                <label>Average Hourly Pay of Injured (BWP)</label>
+                <input type="number" step="0.01" min="0" name="hourly_pay" id="hourlyPay"
+                       placeholder="0.00">
               </div>
             </div>
+          </div>
 
-<hr class="divider">
-
-            <!-- ── 
-            <!-- ── Linked Accident (Optional) ──────────────── -->
+          <!-- Linked Accident -->
+          <div class="form-card">
+            <div class="section-title" (Optional) ──────────────── -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-icon">🔗</div>
@@ -557,7 +557,6 @@ Employer Details ─────────────────────
                 permanent_incapacity:     radio('permanent_incapacity'),
                 temporary_incapacity:     radio('temporary_incapacity'),
                 nok_informed:             radio('nok_informed'),
-
                 employer_name:            g('employerName'),
                 employer_telephone:       g('employerTelephone'),
                 employer_fax:             g('employerFax'),
