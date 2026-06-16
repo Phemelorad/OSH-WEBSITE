@@ -185,45 +185,7 @@
     <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="role-permissions.js"></script>
-    <script>
-    const SB = window.supabaseClient;
-    let allCases = [];
-    currentUserId = null; // assigned, declared in role-permissions.js
-    let searchedIdNumber = '';
-
-    document.addEventListener('DOMContentLoaded', async function() {
-        const { data: { user } } = await SB.auth.getUser();
-        if (!user) { showError('Please log in first.'); return; }
-        currentUserId = user.id;
-        // Auto-try submitted cases for company/officer users
-        await loadSubmittedCases();
-    });
-
-    async function searchById() {
-        var rawId = document.getElementById('idInput').value.trim();
-        if (!rawId) { showError('Please enter your ID or Passport number.'); return; }
-        searchedIdNumber = rawId;
-        document.getElementById('searchBtn').disabled = true;
-        document.getElementById('searchBtn').textContent = 'Searching...';
-        await loadCasesById(rawId);
-        document.getElementById('searchBtn').disabled = false;
-        document.getElementById('searchBtn').textContent = 'Search';
-    }
-
-    async function loadSubmittedCases() {
-        showLoading('Checking your submitted cases...');
-        try {
-            const results = await Promise.allSettled([
-                fetchTable('accident_reports', 'accident', 'Accident Report'),
-                fetchTable('injury_disease_reports', 'injury', 'Injury/Disease Report'),
-                fetchTable('injury_claims', 'claim', 'Injury Claim'),
-                fetchTable('medical_examination_reports', 'medical', 'Medical Exam'),
-                fetchTable('permanent_impairment_reports', 'impairment', 'Impairment Assessment')
-            ]);
-            allCases = [];
-            results.forEach(function(r) { if (r.status === 'fulfilled' && r.value) allCases = allCases.concat(r.value); });
-
-            if (allCases.length > 0) {
+     0) {
                 hideLoading();
                 renderAll(allCases);
                 document.getElementById('autoSearchHint').textContent = 'Found ' + allCases.length + ' case(s) you submitted. Use the ID search above to find more.';
