@@ -74,7 +74,74 @@
         .tl-step.done { background: #059669; color: #fff; }
         .tl-step.active { background: #2563eb; color: #fff; }
         @media (max-width: 640px) { .container { padding: 0 14px; } .stats-row { grid-template-columns: repeat(2, 1fr); } .case-card .info-grid { grid-template-columns: 1fr; } .id-search-row { flex-direction: column; } }
-    </style>
+    
+/* ===== Improved Timeline Styles ===== */
+.case-timeline-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 4px 0;
+}
+.tl-step {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #f0f0f0;
+    color: #999;
+    transition: all 0.2s;
+}
+.tl-step.done {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.tl-step.active {
+    background: #1a73e8;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+}
+.tl-arrow {
+    color: #ccc;
+    font-size: 12px;
+    margin: 0 2px;
+}
+.tl-denied {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #ffebee;
+    color: #c62828;
+}
+.case-stage-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #1a73e8;
+}
+.stage-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1a73e8;
+    display: inline-block;
+    animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.9); }
+}
+
+</style>
 </head>
 <body>
     <div id="navbar"></div>
@@ -142,7 +209,7 @@
     <script>
     const SB = window.supabaseClient;
     let allCases = [];
-    let currentUserId = null;
+    currentUserId = null; // assigned, declared in role-permissions.js
     let searchedIdNumber = '';
 
     document.addEventListener('DOMContentLoaded', async function() {

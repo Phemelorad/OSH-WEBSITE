@@ -414,30 +414,7 @@
                      placeholder="e.g. Circular Saw — blade guard, or NIL">
             </div>
 
-            <hr class="section-divider">
-
-            <!-- 6. Injury Severity -->
-            <div class="section-title" style="margin-top:8px">Injury Details</div>
-
-            <div class="form-row form-row-2">
-              <div class="form-group">
-                <label>Was the Injury Fatal?<span class="req">*</span></label>
-                <select name="injury_fatal" id="injuryFatal" required
-                        onchange="toggleFatalFields()">
-                  <option value="">— Select —</option>
-                  <option value="Fatal">Yes — Fatal</option>
-                  <option value="Non-fatal">No — Non-fatal</option>
-                </select>
-                <span class="err-msg">Required</span>
-              </div>
-              <div class="form-group" id="disabledField" style="display:none">
-                <label>Has injured person been disabled for ≥ 3 days?</label>
-                <select name="disabled_three_days" id="disabledThreeDays">
-                  <option value="">— Select —</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
+            
             </div>
 
             <div class="form-row form-row-2" id="nonFatalFields" style="display:none">
@@ -720,12 +697,12 @@
                 accident_place:          g('accidentPlace'),
                 accident_description:    g('accidentDescription'),
                 machinery_involved:      g('machineryInvolved'),
-                // Injury
-                injury_fatal:            g('injuryFatal'),
-                disabled_three_days:     g('disabledThreeDays'),
-                hourly_pay:              document.getElementById('hourlyPay')?.value
-                                          ? parseFloat(document.getElementById('hourlyPay').value) : null,
-                medical_practitioner:    g('medicalPractitioner'),
+                // Injury (per primary worker)
+                injury_fatal:            g('injuryFatal_0'),
+                disabled_three_days:     g('disabledDays_0'),
+                hourly_pay:              document.getElementById('hourlyPay_0')?.value
+                                          ? parseFloat(document.getElementById('hourlyPay_0').value) : null,
+                medical_practitioner:    g('medicalPractitioner_0'),
                 // Dangerous occurrence
                 dangerous_date:          g('dangerousDate'),
                 dangerous_time:          g('dangerousTime'),
@@ -859,7 +836,9 @@
             '<button type="button" onclick="this.closest(\'.injured-worker-entry\').remove();updateWorkerCount();" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600;">Remove</button></div>' +
             '<div class="form-row form-row-3"><div class="form-group col-span-2"><label>Full Name (in block letters)<span class="req">*</span></label><input type="text" name="in_' + n + '" id="in' + n + '" required style="text-transform:uppercase" placeholder="FULL NAME"><span class="err-msg">Required</span></div><div class="form-group"><label>Age<span class="req">*</span></label><input type="number" name="ia' + n + '" id="ia' + n + '" min="0" max="100" placeholder="Age" required><span class="err-msg">Required</span></div></div>' +
             '<div class="form-row form-row-3"><div class="form-group"><label>Gender<span class="req">*</span></label><select name="is' + n + '" id="is' + n + '" required><option value="">\u2014 Select \u2014</option><option value="Male">Male</option><option value="Female">Female</option></select><span class="err-msg">Required</span></div><div class="form-group"><label>Omang / Passport<span class="req">*</span></label><input type="text" name="ii' + n + '" id="ii' + n + '" required maxlength="9" pattern="[0-9]{9}" inputmode="numeric" style="text-transform:uppercase" placeholder="Omang"><span class="err-msg">Required</span></div><div class="form-group"><label>Occupation</label><input type="text" name="oa' + n + '" id="oa' + n + '" placeholder="e.g. Operator"></div></div>' +
-            '<div class="form-row form-row-2"><div class="form-group"><label>Usual Occupation</label><input type="text" name="uo' + n + '" id="uo' + n + '" placeholder="Normal job"></div><div class="form-group"><label>Experience Level</label><input type="text" name="el' + n + '" id="el' + n + '" placeholder="e.g. 2 years"></div></div>';
+            '<div class="form-row form-row-2"><div class="form-group"><label>Usual Occupation</label><input type="text" name="uo' + n + '" id="uo' + n + '" placeholder="Normal job"></div><div class="form-group"><label>Experience Level</label><input type="text" name="el' + n + '" id="el' + n + '" placeholder="e.g. 2 years"></div></div>' +
+            '<div class="form-row form-row-2" style="margin-top:8px;padding-top:8px;border-top:1px dashed #dee2e6"><div class="form-group"><label>Was Injury Fatal?<span class="req">*</span></label><select name="if_' + n + '" id="if' + n + '" required><option value="">\u2014 Select \u2014</option><option value="Fatal">Yes \u2014 Fatal</option><option value="Non-fatal">No \u2014 Non-fatal</option></select></div><div class="form-group"><label>Disabled \u2265 3 days?</label><select name="id_' + n + '" id="id' + n + '"><option value="">\u2014 Select \u2014</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>' +
+            '<div class="form-row form-row-2"><div class="form-group"><label>Hourly Pay (BWP)</label><input type="number" name="hp_' + n + '" id="hp' + n + '" min="0" step="0.01" placeholder="e.g. 12.50"></div><div class="form-group"><label>Medical Practitioner</label><input type="text" name="mp_' + n + '" id="mp' + n + '" placeholder="Name of doctor or hospital"></div></div>';
         c.appendChild(d);
         document.getElementById('workerCount').value = n + 1;
         if (typeof showToast === 'function') showToast('Worker added', 'info');
@@ -868,7 +847,7 @@
     function collectAdditionalWorkers() {
         var workers = []; document.querySelectorAll('.injured-worker-entry').forEach(function(e, i) {
             if (i === 0) return;
-            workers.push({ name: (document.getElementById('in' + i)?.value||'').trim(), age: document.getElementById('ia' + i)?.value||null, sex: document.getElementById('is' + i)?.value||'', id_number: ((document.getElementById('ii' + i)?.value||'')).toUpperCase(), occupation: document.getElementById('oa' + i)?.value||'', usual_occupation: document.getElementById('uo' + i)?.value||'', experience_level: document.getElementById('el' + i)?.value||'' });
+            workers.push({ name: (document.getElementById('in' + i)?.value||'').trim(), age: document.getElementById('ia' + i)?.value||null, sex: document.getElementById('is' + i)?.value||'', id_number: ((document.getElementById('ii' + i)?.value||'')).toUpperCase(), occupation: document.getElementById('oa' + i)?.value||'', usual_occupation: document.getElementById('uo' + i)?.value||'', experience_level: document.getElementById('el' + i)?.value||'', injury_fatal: document.getElementById('if' + i)?.value||'', disabled_days: document.getElementById('id' + i)?.value||'', hourly_pay: document.getElementById('hp' + i)?.value||'', medical_practitioner: document.getElementById('mp' + i)?.value||'' });
         }); return workers.length > 0 ? JSON.stringify(workers) : null;
     }
     function updatePrimaryWorker() {}
