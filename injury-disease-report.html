@@ -349,7 +349,24 @@
 
             </div>
 
-            <hr class="divider">
+                        <!-- Injury Details (per worker) -->
+            <div style="background:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:20px">
+              <div style="font-weight:700;font-size:14px;color:#333;margin-bottom:12px">Injury Details</div>
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label>Medical Practitioner / Hospital Attended</label>
+                  <input type="text" name="medical_practitioner" id="medicalPractitioner"
+                         placeholder="Name and address of medical practitioner or hospital">
+                </div>
+                <div class="form-group">
+                  <label>Average Hourly Pay of Injured (BWP)</label>
+                  <input type="number" name="hourly_pay" id="hourlyPay"
+                         min="0" step="0.01" placeholder="e.g. 12.50">
+                </div>
+              </div>
+            </div>
+
+<hr class="divider">
 
             <!-- ── 
             <!-- ── Linked Accident (Optional) ──────────────── -->
@@ -533,11 +550,14 @@ Employer Details ─────────────────────
                 incident_date:            g('incidentDate'),
                 place_of_accident:        g('placeOfAccident'),
                 incident_type:            g('incidentType'),
-                nature_of_injuries:       g('natureOfInjuries'),
+                nature_of_injuries:       (g('natureOfInjuries') || '') + 
+                                  (g('medicalPractitioner') ? '\n\nMedical Practitioner: ' + g('medicalPractitioner') : '') + 
+                                  (g('hourlyPay') ? '\nHourly Pay: BWP ' + g('hourlyPay') : ''),
                 resulted_death:           radio('resulted_death'),
                 permanent_incapacity:     radio('permanent_incapacity'),
                 temporary_incapacity:     radio('temporary_incapacity'),
                 nok_informed:             radio('nok_informed'),
+
                 employer_name:            g('employerName'),
                 employer_telephone:       g('employerTelephone'),
                 employer_fax:             g('employerFax'),
