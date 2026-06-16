@@ -209,10 +209,11 @@
                             if (typeof showToast === 'function') {
                                 showToast('Company info auto-filled', 'info');
                             }
-                const ee = document.getElementById('employerEmail');
-                if (company.owner_email && ee && !ee.value) ee.value = company.owner_email;
                         }
-                    }}
+                        const ee = document.getElementById('employerEmail');
+                        if (company.owner_email && ee && !ee.value) ee.value = company.owner_email;
+                    }
+                }
                 }, 600);
             });
         }
@@ -673,13 +674,13 @@
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'accident report');
             } else {
-                await showAlert(            alert('Accident report submitted successfully!');
+                await showAlert('Accident report submitted successfully!', {
+                    type: 'success', title: 'Report Submitted', btnText: 'OK'
+                });
             document.getElementById('accidentForm').reset();
             document.getElementById('injuredWorkersContainer').innerHTML = '';
             document.getElementById('workerCount').value = 1;
             addInjuredWorker();
-                    type: 'success', title: 'Report Submitted', btnText: 'OK' 
-                });
             }
 
             document.getElementById('accidentForm').reset();
@@ -828,7 +829,7 @@
 
     <script src="supabase.min.js"></script>
     <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
+    </script>
     <script src="modal.js"></script>
     <script src="worker-lookup.js"></script>
     <script src="claim-draft.js"></script>
@@ -1010,13 +1011,13 @@
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'accident report');
             } else {
-                await showAlert(            alert('Accident report submitted successfully!');
+                await showAlert('Accident report submitted successfully!', {
+                    type: 'success', title: 'Report Submitted', btnText: 'OK'
+                });
             document.getElementById('accidentForm').reset();
             document.getElementById('injuredWorkersContainer').innerHTML = '';
             document.getElementById('workerCount').value = 1;
             addInjuredWorker();
-                    type: 'success', title: 'Report Submitted', btnText: 'OK' 
-                });
             }
 
             document.getElementById('accidentForm').reset();
