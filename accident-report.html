@@ -310,16 +310,6 @@
             <!-- 4. Injured or Deceased Person -->
             <div class="section-title">4. Injured or Deceased Person</div>
 
-            <!-- ID Lookup widget -->
-            <div style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
-              <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
-                🪪 Look Up Person by Omang / Passport
-                <span style="font-weight:400;color:#888;font-size:12px"> — auto-fills injured person details</span>
-              </label>
-              <div id="wl-container-accident"></div>
-            </div>
-            <input type="hidden" id="accidentWorkerRegistryId" name="worker_registry_id">
-
             <div class="form-row form-row-3">
               <div class="form-group col-span-2">
                 <label>Full Name (in block letters)<span class="req">*</span></label>
@@ -697,17 +687,7 @@
               }
             }
 
-            const registryId = await upsertWorkerRegistry({
-                id_number:          'injuredId',
-                full_name:          'injuredName',
-                sex:                'injuredSex',
-                occupation:         'occupationAtAccident',
-                usual_occupation:   'usualOccupation',
-                experience_level:   'experienceLevel',
-                age_years:          'injuredAge',
-                email:              'injuredEmail',
-                worker_registry_id: 'accidentWorkerRegistryId',
-            }) || window._resolvedWorkerId || null;
+            const registryId = null;
 
             const payload = {
                 report_type:             g('reportType'),
@@ -800,23 +780,6 @@
         });
         if (ok) {
             document.getElementById('accidentForm').reset();
-            // Clear lookup state
-            window._pendingWorkerId = null;
-            window._resolvedWorkerId = null;
-            document.getElementById('wl-container-accident').innerHTML = '';
-            attachWorkerLookup({
-                containerId: 'wl-container-accident',
-                fields: {
-                    id_number:          'injuredId',
-                    full_name:          'injuredName',
-                    sex:                'injuredSex',
-                    occupation:         'occupationAtAccident',
-                    usual_occupation:   'usualOccupation',
-                    experience_level:   'experienceLevel',
-                    age_years:          'injuredAge',
-                },
-                saveNewWorker: true
-            });
             toggleSections();
             showToast('Form has been reset.', 'info');
         }
@@ -849,22 +812,6 @@
         document.getElementById('accidentSection').style.display  = 'none';
         document.getElementById('dangerousSection').style.display = 'none';
 
-        // Attach worker lookup — maps registry columns → injured person field IDs
-        attachWorkerLookup({
-            containerId: 'wl-container-accident',
-            fields: {
-                id_number:          'injuredId',
-                full_name:          'injuredName',
-                sex:                'injuredSex',
-                occupation:         'occupationAtAccident',
-                usual_occupation:   'usualOccupation',
-                experience_level:   'experienceLevel',
-                age_years:          'injuredAge',
-                worker_registry_id: 'accidentWorkerRegistryId',
-            },
-            worker_registry_id: 'accidentWorkerRegistryId',
-            saveNewWorker: true
-                });
         // ── Company autofill call ─────────────────────
         attachCompanyAutofill();
 
