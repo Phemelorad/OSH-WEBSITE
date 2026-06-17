@@ -271,9 +271,10 @@
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('tableWrap').style.display = 'none';
         // Fetch accident reports and linked injury data for fatal counts
-            const [accRes, injRes] = await Promise.all([
+            const [accRes, injRes, personsRes] = await Promise.all([
                 SB.from('accident_reports').select('*').order('accident_date', { ascending: false }),
-                SB.from('injury_disease_reports').select('accident_id, resulted_death')
+                SB.from('injury_disease_reports').select('accident_id, resulted_death'),
+                SB.from('accident_injured_persons').select('accident_report_id, injury_fatal, full_name')
             ]);
             const data = accRes.data;
             const error = accRes.error;
@@ -284,6 +285,26 @@
                 injRes.data.forEach(inj => {
                     if (inj.accident_id && inj.resulted_death === 'Yes') {
                         fatalCounts[inj.accident_id] = (fatalCounts[inj.accident_id] || 0) + 1;
+                    }
+                });
+            }
+
+            // Attach injured persons to each record
+            if (personsRes.data) {
+                const personGroups = {};
+                personsRes.data.forEach(p => {
+                    if (!personGroups[p.accident_report_id]) personGroups[p.accident_report_id] = [];
+                    personGroups[p.accident_report_id].push(p);
+                });
+                data.forEach(r => {
+                    const persons = personGroups[r.id];
+                    if (persons) {
+                        r._persons = persons;
+                        r._persons_count = persons.length;
+                        const fatalPersons = persons.filter(p => p.injury_fatal === 'Fatal');
+                        if (fatalPersons.length > 0) {
+                            r._fatal_count = fatalPersons.length;
+                        }
                     }
                 });
             }
@@ -301,8 +322,23 @@
     function buildStats(rows) {
         const now = new Date(), month = new Date(now.getFullYear(), now.getMonth(), 1);
         document.getElementById('statTotal').textContent     = rows.length;
-        document.getElementById('statFatal').textContent     = rows.filter(r => r.injury_fatal === 'Fatal').length;
-        document.getElementById('statNonFatal').textContent  = rows.filter(r => r.injury_fatal === 'Non-fatal').length;
+        let fatalCount = 0;
+        let nonFatalCount = 0;
+        rows.forEach(r => {
+            if (r._fatal_count) {
+                fatalCount += r._fatal_count;
+            } else if (r._persons) {
+                const f = r._persons.filter(p => p.injury_fatal === 'Fatal').length;
+                fatalCount += f;
+                nonFatalCount += r._persons.filter(p => p.injury_fatal === 'Non-fatal').length;
+            } else if (r.injury_fatal === 'Fatal') {
+                fatalCount++;
+            } else if (r.injury_fatal === 'Non-fatal') {
+                nonFatalCount++;
+            }
+        });
+        document.getElementById('statFatal').textContent     = fatalCount;
+        document.getElementById('statNonFatal').textContent  = nonFatalCount;
         document.getElementById('statDangerous').textContent = rows.filter(r => r.report_type === 'dangerous_occurrence').length;
         document.getElementById('statPending').textContent   = rows.filter(r => r.investigation_status === 'Pending').length;
         document.getElementById('statMonth').textContent     = rows.filter(r => new Date(r.accident_date || r.created_at) >= month).length;
@@ -338,7 +374,7 @@
                 <td><span class="badge badge-${typeSlug}">${(r.report_type || '').replace('_',' ').toUpperCase()}</span></td>
                 <td style="white-space:nowrap">${fmtDate(r.accident_date)}</td>
                 <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.accident_place||''}">${r.accident_place || r.premises_address || '—'}</td>
-                <td>${r.fatal_count != null && r.fatal_count > 0 ? '<span class="badge badge-fatal">⚠ ' + r.fatal_count + ' Fatal</span>' : '<span class="badge badge-non-fatal">—</span>'}</td>
+                <td>${(r._fatal_count || r.fatal_count) > 0 ? '<span class="badge badge-fatal">⚠ ' + (r._fatal_count || r.fatal_count) + ' Fatal</span>' : (r._persons_count || 0) > 0 ? '<span class="badge badge-non-fatal">' + r._persons_count + ' persons</span>' : '<span class="badge badge-non-fatal">—</span>'}</td>
                 <td><span class="badge badge-${invSlug}">${r.investigation_status || 'Pending'}</span></td>
                 <td>${r.reporter_name || '—'}</td>
                 <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
@@ -368,31 +404,43 @@
             f('Report Date', fmtDate(r.report_date)) +
             '</div></div>';
 
-        // ── Injured Worker Details ───────────────────────
-        const workerSection = (r.injured_name) ? '<div class="rec-section">' +
-            '<div class="rec-section-header worker">\u{1F464} Injured Worker Details</div>' +
-            '<div class="rec-section-body">' +
-            f('Full Name', r.injured_name) +
-            f('Age', r.injured_age) +
-            f('Sex', r.injured_sex) +
-            f('ID / Passport', r.injured_id_number) +
-            f('Occupation at Accident', r.occupation_at_accident) +
-            f('Usual Occupation', r.usual_occupation) +
-            f('Experience Level', r.experience_level) +
-            '</div></div>' : '';
+           // Injured Worker Details
+        // Build from both main record and accident_injured_persons
+        var workerHtml = '';
+        if (r.injured_name) {
+            workerHtml += '<div class="rec-section">' +
+                '<div class="rec-section-header worker">Injured Worker #1</div>' +
+                '<div class="rec-section-body">' +
+                f('Full Name', r.injured_name) + f('Age', r.injured_age) + f('Sex', r.injured_sex) +
+                f('ID / Passport', r.injured_id_number) + f('Occupation at Accident', r.occupation_at_accident) +
+                f('Physical Activity at Time', r.physical_activity_at_time) + f('Shift Type', r.shift_type) +
+                f('Time of Accident', r.accident_time) +
+                f('How Accident Happened', r.how_accident_happened) + f('Fatal?', r.injury_fatal) +
+                '</div></div>';
 
-        // ── Accident / Injury Details ────────────────────
-        const accidentBody = f('Date', fmtDate(r.accident_date)) +
-            f('Time', r.accident_time) +
-            f('Place', r.accident_place) +
-            f('Description', r.accident_description) +
-            f('Machinery Involved', r.machinery_involved) +
-            f('Fatal?', r.injury_fatal) +
-            f('Disabled 3+ Days', r.disabled_three_days) +
-            f('Hourly Pay (BWP)', r.hourly_pay) +
-            f('Medical Practitioner', r.medical_practitioner);
-
-        const accidentSection = '<div class="rec-section">' +
+            // Additional injured persons from accident_injured_persons table
+            if (r._persons && r._persons.length > 0) {
+                var personNum = 2;
+                r._persons.forEach(function(p) {
+                    workerHtml += '<div class="rec-section">' +
+                        '<div class="rec-section-header worker">Injured Worker #' + personNum + '</div>' +
+                        '<div class="rec-section-body">' +
+                        (p.person_name ? f('Full Name', p.person_name) : '') +
+                        (p.age ? f('Age', p.age) : '') +
+                        (p.sex ? f('Sex', p.sex) : '') +
+                        (p.id_number ? f('ID / Passport', p.id_number) : '') +
+                        (p.occupation ? f('Occupation', p.occupation) : '') +
+                        (p.injuries_sustained ? f('Injuries Sustained', p.injuries_sustained) : '') +
+                        (p.body_part_affected ? f('Body Part', p.body_part_affected) : '') +
+                        (p.person_resulted_death ? f('Fatal?', p.person_resulted_death) : '') +
+                        '</div></div>';
+                    personNum++;
+                });
+            }
+        } else {
+            workerHtml = '<div class="rec-section"><div class="rec-section-body"><p>No injured worker details recorded.</p></div></div>';
+        }
+const accidentSection = '<div class="rec-section">' +
             '<div class="rec-section-header accident">\u{1F6A8} Accident / Injury Details</div>' +
             '<div class="rec-section-body">' +
             accidentBody +

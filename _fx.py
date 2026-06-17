@@ -1,0 +1,1 @@
+import sys; import os; path="accident-entries.html"; with open(path, "r", encoding="utf-8") as f: c = f.read(); idx = c.find("fatal_count > 0"); s = c.rfind("<td>", 0, idx); e = c.find("</td>", idx) + 5; old = c[s:e]; print("Found column:", len(old), "chars")

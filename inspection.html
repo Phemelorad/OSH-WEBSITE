@@ -798,6 +798,9 @@
         }
       }
 
+      // Auto-fill company details if logged in as a company user
+      await window.autoFillCompanyFields();
+
       // Set today as default inspection date
       document.getElementById('inspDate').valueAsDate = new Date();
 

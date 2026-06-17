@@ -481,6 +481,9 @@
                 saveNewWorker: true,
                 onFound: refreshClaimFileNumberPreview,
             });
+            // Auto-fill company details if logged in as a company user
+            await window.autoFillCompanyFields();
+
             // ── Company autofill ──
             function attachCompanyAutofill() {
                 var el = document.getElementById("nameOfEmployer");

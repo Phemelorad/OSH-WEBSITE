@@ -367,6 +367,7 @@
     window.addEventListener('load', async () => {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
+        await window.autoFillCompanyFields();
         await loadData();
     });
 

@@ -638,6 +638,9 @@ Employer Details ─────────────────────
         }
         document.getElementById('reportDate').valueAsDate = new Date();
 
+        // Auto-fill company details if logged in as a company user
+        await window.autoFillCompanyFields();
+
         // Attach worker lookup
         attachWorkerLookup({
             containerId: 'wl-container-idr',

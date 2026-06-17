@@ -585,3 +585,18 @@ async function submitClaim() {
     showToast("Submit failed: "+e.message, "error");
   }
 }
+
+
+// Auto-fill company details if logged in as a company user
+(function() {
+    async function runAutoFill() {
+        if (typeof window.autoFillCompanyFields === 'function') {
+            await window.autoFillCompanyFields();
+        }
+    }
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', runAutoFill);
+    } else {
+        runAutoFill();
+    }
+})();

@@ -501,6 +501,68 @@ window.getUserCompanyName = async function(supabaseClient) {
     }
 };
 
+// ── Auto-fill company fields on forms ───────────────────────
+// When a company user loads a form, automatically fill in company details
+window.autoFillCompanyFields = async function() {
+    try {
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) return;
+
+        const profileResult = await getUserProfile(userResult.user.id);
+        if (!profileResult.success || !profileResult.data) return;
+
+        const profile = profileResult.data;
+        if (profile.role !== 'company') return;
+
+        const sb = window.supabaseClient || null;
+        if (!sb || !profile.company_id) return;
+
+        const companyId = ('' + profile.company_id).trim();
+        if (!isValidUUID(companyId)) return;
+
+        const { data: company, error } = await sb
+            .from('companies')
+            .select('*')
+            .eq('id', companyId)
+            .maybeSingle();
+
+        if (error || !company) return;
+
+        // Build a composite address from company fields
+        const addressParts = [
+            company.physical_address,
+            company.plot_number ? 'Plot ' + company.plot_number : '',
+            company.street_name,
+            company.location
+        ].filter(Boolean);
+        const fullAddress = addressParts.join(', ');
+
+        // Auto-fill common field IDs found on forms
+        const fieldMap = {
+            'occupierName':      company.company_name,
+            'employerName':      company.company_name,
+            'nameOfEmployer':    company.company_name,
+            'employerTelephone': company.telephone || company.company_telephone,
+            'premisesAddress':   fullAddress,
+            'natureOfIndustry':  company.industry,
+            'industrySector':    company.industry,
+            'factoryName':       company.company_name
+        };
+
+        for (const [fieldId, value] of Object.entries(fieldMap)) {
+            if (!value) continue;
+            const el = document.getElementById(fieldId);
+            if (el && !el.value) {
+                el.value = value;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    } catch (e) {
+        console.warn('autoFillCompanyFields error:', e);
+    }
+};
+
 // Show permission denied message
 function showPermissionDenied(action = 'perform this action') {
     alert(`Permission Denied\n\nYou do not have permission to ${action}.\n\nYour role: ${currentUserRole}\nRequired: officer or higher`);
