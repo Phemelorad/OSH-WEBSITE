@@ -691,18 +691,6 @@
 
             const g = id => document.getElementById(id)?.value?.trim() || null;
 
-            // ── Duplicate check (before registry upsert) ──
-            const dupId = ((persons[0] || {}).id_number || null || '').toUpperCase();
-            if (dupId) {
-              const dupeCheck = await window.checkDuplicate('accident_reports', 'injured_id_number', dupId, 'accident report with this ID number');
-              if (dupeCheck.exists && !dupeCheck.confirmed) {
-                btn.disabled = false; btn.textContent = 'Submit Accident Report';
-                return;
-              }
-            }
-
-            const registryId = null;
-
             // Collect all injured persons
             const persons = [];
             document.querySelectorAll('#injuredPersonsContainer .person-entry').forEach(function(entry, idx) {
@@ -723,6 +711,18 @@
                 };
                 persons.push(p);
             });
+
+            // ── Duplicate check ──
+            const firstIdNumber = persons.length > 0 ? (persons[0].id_number || '').toUpperCase() : '';
+            if (firstIdNumber) {
+              const dupeCheck = await window.checkDuplicate('accident_reports', 'injured_id_number', firstIdNumber, 'accident report with this ID number');
+              if (dupeCheck.exists && !dupeCheck.confirmed) {
+                btn.disabled = false; btn.textContent = 'Submit Accident Report';
+                return;
+              }
+            }
+
+            const registryId = null;
 
             const payload = {
                 report_type:             g('reportType'),
