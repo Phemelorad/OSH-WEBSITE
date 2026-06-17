@@ -611,43 +611,6 @@ const accidentSection = '<div class="rec-section">' +
         renderPage();
     }
 
-    var origLoadData = loadData;
-    loadData = async function() {
-        document.getElementById("loadingState").style.display = "block";
-        document.getElementById("tableWrap").style.display = "none";
-        var accRes = await SB.from("accident_reports").select("*").order("accident_date", { ascending: false });
-        var injRes = await SB.from("injury_disease_reports").select("accident_id, resulted_death");
-        if (accRes.error) {
-            var ls = document.getElementById("loadingState");
-            if (ls) ls.innerHTML = "<p style='color:#e74c3c'>Error: " + accRes.error.message + "</p>";
-            return;
-        }
-        var fatalMap = {};
-        (injRes.data || []).forEach(function(inj) { if (inj.resulted_death === "Yes") fatalMap[inj.accident_id] = true; });
-        allRecords = (accRes.data || []).map(function(r) { return Object.assign({}, r, { _fatality: fatalMap[r.id] || false }); });
-        buildStats(allRecords);
-        applyPagination(allRecords);
-        document.getElementById("loadingState").style.display = "none";
-        document.getElementById("tableWrap").style.display = "block";
-    };
-
-    var origApplyFilters = applyFilters;
-    applyFilters = function() {
-        var type = document.getElementById("filterType")?.value;
-        var fatal = document.getElementById("filterDeath")?.value;
-        var inv = document.getElementById("filterInv")?.value;
-        var search = (document.getElementById("filterSearch")?.value || "").toLowerCase().trim();
-        var filtered = allRecords.filter(function(r) {
-            if (type && r.report_type !== type) return false;
-            if (fatal === "Fatal" && !r._fatality) return false;
-            if (fatal === "Non-Fatal" && r._fatality) return false;
-            if (inv && (r.investigation_status || "") !== inv) return false;
-            if (search && !((r.occupier_name || "").toLowerCase().includes(search) || (r.worker_name || "").toLowerCase().includes(search) || (r.location || "").toLowerCase().includes(search))) return false;
-            return true;
-        });
-        applyPagination(filtered);
-    };
-
-</script>
+    </script>
 </body>
 </html>
