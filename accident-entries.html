@@ -291,6 +291,10 @@
 
             // Attach injured persons to each record
             if (personsRes.data) {
+                console.log('[DEBUG] accident_injured_persons rows:', personsRes.data.length);
+                if (personsRes.data.length > 0) {
+                    console.log('[DEBUG] Sample person row:', JSON.stringify(personsRes.data[0]));
+                }
                 const personGroups = {};
                 personsRes.data.forEach(p => {
                     if (!personGroups[p.accident_report_id]) personGroups[p.accident_report_id] = [];
@@ -301,12 +305,17 @@
                     if (persons) {
                         r._persons = persons;
                         r._persons_count = persons.length;
+                        console.log('[DEBUG] Accident', r.id, 'has', persons.length, 'persons');
                         const fatalPersons = persons.filter(p => p.injury_fatal === 'Fatal');
                         if (fatalPersons.length > 0) {
                             r._fatal_count = fatalPersons.length;
                         }
                     }
                 });
+            } else if (personsRes.error) {
+                console.error('[DEBUG] personsRes error:', personsRes.error);
+            } else {
+                console.log('[DEBUG] personsRes.data is null/undefined');
             }
         if (error) {
             document.getElementById('loadingState').innerHTML = `<p style="color:#e74c3c;padding:40px;text-align:center">Error: ${error.message} <br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>`;
