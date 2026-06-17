@@ -440,6 +440,13 @@
         } else {
             workerHtml = '<div class="rec-section"><div class="rec-section-body"><p>No injured worker details recorded.</p></div></div>';
         }
+        const accidentBody = 
+            f('Accident Date', r.accident_date ? fmtDate(r.accident_date) : '') +
+            f('Accident Time', r.accident_time) +
+            f('Place of Accident', r.accident_place) +
+            f('How Accident Happened', r.how_accident_happened) +
+            f('Disabled 3+ Days', r.disabled_three_days) +
+            f('Report Type', r.report_type ? r.report_type.replace('_',' ').toUpperCase() : '');
 const accidentSection = '<div class="rec-section">' +
             '<div class="rec-section-header accident">\u{1F6A8} Accident / Injury Details</div>' +
             '<div class="rec-section-body">' +
@@ -480,7 +487,7 @@ const accidentSection = '<div class="rec-section">' +
             '</div>' +
             '<div class="rec-modal-body">' +
             employerSection +
-            workerSection +
+            workerHtml +
             accidentSection +
             dangerSection +
             investSection +
