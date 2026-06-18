@@ -463,7 +463,7 @@
             (!type   || r.report_type === type) &&
             (!fatal  || r.injury_fatal === fatal) &&
             (!inv    || r.investigation_status === inv) &&
-            (!search || (r.injured_name||'').toLowerCase().includes(search) || (r.occupier_name||'').toLowerCase().includes(search))
+            (!search || (r.injured_name||'').toLowerCase().includes(search) || (r.occupier_name||'').toLowerCase().includes(search) || (r._persons||[]).some(function(p){return (p.full_name||'').toLowerCase().includes(search)}))
         ));
     }
 
