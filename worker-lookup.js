@@ -349,6 +349,7 @@
         if (idFieldId) {
           const el = document.getElementById(idFieldId);
           if (el) el.value = idVal;
+          if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
         }
         if (config.saveNewWorker !== false) {
           document.getElementById('wl-save-note').style.display = 'block';
@@ -366,11 +367,13 @@
         if (registryCol === 'worker_registry_id') {
           const el = document.getElementById(formFieldId);
           if (el) el.value = worker.id;
+          if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
           return;
         }
         if (registryCol === 'id_number') {
           const el = document.getElementById(formFieldId);
           if (el && worker.id_number) el.value = worker.id_number;
+          if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
           return;
         }
         const val = worker[registryCol];
@@ -390,6 +393,7 @@
         } else {
           el.value = val;
         }
+        el.dispatchEvent(new Event('input', { bubbles: true }));
 
         el.style.transition = 'background 0.3s';
         el.style.background = '#d4edda';
