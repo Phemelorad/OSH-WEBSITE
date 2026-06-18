@@ -206,6 +206,14 @@
 
     <div class="container">
 
+        <!-- ── Stats Cards ─────────────────────────────── -->
+        <div class="stats-grid" style="margin-bottom:24px">
+            <div class="stat-card"><h3>Total Workers</h3><div class="stat-value" id="statTotal">—</div></div>
+            <div class="stat-card red"><h3>With Accidents</h3><div class="stat-value" id="statWithAccidents">—</div></div>
+            <div class="stat-card blue"><h3>Medical Reports</h3><div class="stat-value" id="statMedical">—</div></div>
+            <div class="stat-card amber"><h3>Pending Claims</h3><div class="stat-value" id="statPendingClaims">—</div></div>
+        </div>
+
         <!-- ── Search Section ──────────────────────────── -->
         <div class="section-title blue">🔍 Search Worker by ID / Passport</div>
         <div class="card">
@@ -285,8 +293,36 @@
         }
 
         await loadClientele();
+        await loadRegistryStats();
         document.getElementById('searchInput').focus();
     });
+
+    // ── Load registry stats ──────────────────────────────
+    async function loadRegistryStats() {
+        try {
+            const { data: allWorkers } = await SB.from('workers_registry').select('id', { count: 'exact', head: true });
+            document.getElementById('statTotal').textContent = allWorkers?.length || '0';
+
+            const { data: withAccidents } = await SB
+                .from('accident_reports')
+                .select('worker_registry_id', { count: 'exact', head: true })
+                .not('worker_registry_id', 'is', null);
+            document.getElementById('statWithAccidents').textContent = withAccidents?.length || '0';
+
+            const { data: medical } = await SB
+                .from('medical_examination_reports')
+                .select('id', { count: 'exact', head: true });
+            document.getElementById('statMedical').textContent = medical?.length || '0';
+
+            const { data: pendingClaims } = await SB
+                .from('injury_claims')
+                .select('id', { count: 'exact', head: true })
+                .eq('claim_status', 'Pending');
+            document.getElementById('statPendingClaims').textContent = pendingClaims?.length || '0';
+        } catch (e) {
+            console.error('Stats load error:', e);
+        }
+    }
 
     // ── Search type toggle ───────────────────────────────
     function setSearchType(type) {
