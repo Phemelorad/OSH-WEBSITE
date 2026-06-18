@@ -299,26 +299,34 @@
 
     // ── Load registry stats ──────────────────────────────
     async function loadRegistryStats() {
+        // Each query handled independently so one failure doesn't break all stats
         try {
-            const { data: allWorkers } = await SB.from('workers_registry').select('id', { count: 'exact', head: true });
-            document.getElementById('statTotal').textContent = allWorkers?.length || '0';
+            const { count: totalWorkers } = await SB.from('workers_registry').select('id', { count: 'exact', head: true });
+            document.getElementById('statTotal').textContent = totalWorkers != null ? String(totalWorkers) : '0';
+        } catch (e) { console.error('Stats: workers_registry error', e); }
 
-            const { data: withAccidents } = await SB
+        try {
+            const { count: accidentCount } = await SB
                 .from('accident_reports')
                 .select('worker_registry_id', { count: 'exact', head: true })
                 .not('worker_registry_id', 'is', null);
-            document.getElementById('statWithAccidents').textContent = withAccidents?.length || '0';
+            document.getElementById('statWithAccidents').textContent = accidentCount != null ? String(accidentCount) : '0';
+        } catch (e) { console.error('Stats: accident_reports error', e); }
 
-            const { data: medical } = await SB
+        try {
+            const { count: medicalCount } = await SB
                 .from('medical_examination_reports')
                 .select('id', { count: 'exact', head: true });
-            document.getElementById('statMedical').textContent = medical?.length || '0';
+            document.getElementById('statMedical').textContent = medicalCount != null ? String(medicalCount) : '0';
+        } catch (e) { console.error('Stats: medical_examination_reports error', e); }
 
-            const { data: pendingClaims } = await SB
+        try {
+            const { count: pendingCount } = await SB
                 .from('injury_claims')
                 .select('id', { count: 'exact', head: true })
                 .eq('claim_status', 'Pending');
-            document.getElementById('statPendingClaims').textContent = pendingClaims?.length || '0';
+            document.getElementById('statPendingClaims').textContent = pendingCount != null ? String(pendingCount) : '0';
+        } catch (e) { console.error('Stats: injury_claims error', e); }
         } catch (e) {
             console.error('Stats load error:', e);
         }
