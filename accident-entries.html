@@ -317,6 +317,25 @@
             } else {
                 console.log('[DEBUG] personsRes.data is null/undefined');
             }
+
+            // Fallback: for records without _persons data (e.g. existing records),
+            // create synthetic _persons array from main record fields
+            data.forEach(function(r) {
+                if (!r._persons && r.injured_name) {
+                    r._persons = [{
+                        full_name: r.injured_name,
+                        age_years: r.injured_age,
+                        sex: r.injured_sex,
+                        id_number: r.injured_id_number,
+                        occupation_at_accident: r.occupation_at_accident,
+                        injury_fatal: r.injury_fatal
+                    }];
+                    r._persons_count = 1;
+                    if (r.injury_fatal === 'Fatal') {
+                        r._fatal_count = 1;
+                    }
+                }
+            });
         if (error) {
             document.getElementById('loadingState').innerHTML = `<p style="color:#e74c3c;padding:40px;text-align:center">Error: ${error.message} <br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>`;
             return;
@@ -414,9 +433,33 @@
             '</div></div>';
 
            // Injured Worker Details
-        // Build from both main record and accident_injured_persons
+        // Show all persons from _persons array (includes fallback from main fields)
         var workerHtml = '';
-        if (r.injured_name) {
+        if (r._persons && r._persons.length > 0) {
+            r._persons.forEach(function(p, idx) {
+                var num = idx + 1;
+                workerHtml += '<div class="rec-section">' +
+                    '<div class="rec-section-header worker">Injured Worker #' + num + '</div>' +
+                    '<div class="rec-section-body">' +
+                    (p.full_name ? f('Full Name', p.full_name) : '') +
+                    (p.age_years !== null && p.age_years !== undefined ? f('Age', p.age_years) : '') +
+                    (p.sex ? f('Sex', p.sex) : '') +
+                    (p.id_number ? f('ID / Passport', p.id_number) : '') +
+                    (p.occupation_at_accident ? f('Occupation at Accident', p.occupation_at_accident) : '') +
+                    // For the first worker, also show accident-level fields from the record
+                    (idx === 0 ? (
+                        f('Physical Activity at Time', r.physical_activity_at_time) +
+                        f('Shift Type', r.shift_type) +
+                        f('Time of Accident', r.accident_time) +
+                        f('How Accident Happened', r.how_accident_happened)
+                    ) : '') +
+                    (p.usual_occupation ? f('Usual Occupation', p.usual_occupation) : '') +
+                    (p.medical_practitioner ? f('Medical Practitioner', p.medical_practitioner) : '') +
+                    (p.injury_fatal ? f('Fatal?', p.injury_fatal) : '') +
+                    '</div></div>';
+            });
+        } else if (r.injured_name) {
+            // Fallback: show Worker #1 from main record fields (no _persons at all)
             workerHtml += '<div class="rec-section">' +
                 '<div class="rec-section-header worker">Injured Worker #1</div>' +
                 '<div class="rec-section-body">' +
@@ -426,26 +469,6 @@
                 f('Time of Accident', r.accident_time) +
                 f('How Accident Happened', r.how_accident_happened) + f('Fatal?', r.injury_fatal) +
                 '</div></div>';
-
-            // Additional injured persons from accident_injured_persons table
-            if (r._persons && r._persons.length > 0) {
-                var personNum = 2;
-                r._persons.forEach(function(p) {
-                    workerHtml += '<div class="rec-section">' +
-                        '<div class="rec-section-header worker">Injured Worker #' + personNum + '</div>' +
-                        '<div class="rec-section-body">' +
-                        (p.full_name ? f('Full Name', p.full_name) : '') +
-                        (p.age_years ? f('Age', p.age_years) : '') +
-                        (p.sex ? f('Sex', p.sex) : '') +
-                        (p.id_number ? f('ID / Passport', p.id_number) : '') +
-                        (p.occupation_at_accident ? f('Occupation at Accident', p.occupation_at_accident) : '') +
-                        (p.usual_occupation ? f('Usual Occupation', p.usual_occupation) : '') +
-                        (p.medical_practitioner ? f('Medical Practitioner', p.medical_practitioner) : '') +
-                        (p.injury_fatal ? f('Fatal?', p.injury_fatal) : '') +
-                        '</div></div>';
-                    personNum++;
-                });
-            }
         } else {
             workerHtml = '<div class="rec-section"><div class="rec-section-body"><p>No injured worker details recorded.</p></div></div>';
         }
