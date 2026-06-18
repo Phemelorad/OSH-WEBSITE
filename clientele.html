@@ -306,12 +306,16 @@
         } catch (e) { console.error('Stats: workers_registry error', e); }
 
         try {
-            const { count: accidentCount } = await SB
+            // Count from accident_injured_persons (existing records) + accident_reports (future records with worker_registry_id)
+            const { count: personsCount } = await SB
+                .from('accident_injured_persons')
+                .select('id', { count: 'exact', head: true });
+            const { count: regCount } = await SB
                 .from('accident_reports')
                 .select('worker_registry_id', { count: 'exact', head: true })
                 .not('worker_registry_id', 'is', null);
-            document.getElementById('statWithAccidents').textContent = accidentCount != null ? String(accidentCount) : '0';
-        } catch (e) { console.error('Stats: accident_reports error', e); }
+            document.getElementById('statWithAccidents').textContent = String((personsCount || 0) + (regCount || 0));
+        } catch (e) { console.error('Stats: accident count error', e); }
 
         try {
             const { count: medicalCount } = await SB
