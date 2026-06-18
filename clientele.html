@@ -298,43 +298,28 @@
     });
 
     // ── Load registry stats ──────────────────────────────
-    async function loadRegistryStats() {
-        // Each query handled independently so one failure doesn't break all stats
+        async function loadRegistryStats() {
         try {
-            const { count: totalWorkers } = await SB.from('workers_registry').select('id', { count: 'exact', head: true });
-            document.getElementById('statTotal').textContent = totalWorkers != null ? String(totalWorkers) : '0';
-        } catch (e) { console.error('Stats: workers_registry error', e); }
+            const { data: w } = await SB.from('workers_registry').select('id');
+            document.getElementById('statTotal').textContent = w ? String(w.length) : '0';
+        } catch (e) { console.error('Stats: workers error', e); }
 
         try {
-            // Count from accident_injured_persons (existing records) + accident_reports (future records with worker_registry_id)
-            const { count: personsCount } = await SB
-                .from('accident_injured_persons')
-                .select('id', { count: 'exact', head: true });
-            const { count: regCount } = await SB
-                .from('accident_reports')
-                .select('worker_registry_id', { count: 'exact', head: true })
-                .not('worker_registry_id', 'is', null);
-            document.getElementById('statWithAccidents').textContent = String((personsCount || 0) + (regCount || 0));
-        } catch (e) { console.error('Stats: accident count error', e); }
+            const { data: p } = await SB.from('accident_injured_persons').select('id');
+            const { data: r } = await SB.from('accident_reports').select('worker_registry_id').not('worker_registry_id', 'is', null);
+            document.getElementById('statWithAccidents').textContent = String((p ? p.length : 0) + (r ? r.length : 0));
+        } catch (e) { console.error('Stats: accidents error', e); }
 
         try {
-            const { count: medicalCount } = await SB
-                .from('medical_examination_reports')
-                .select('id', { count: 'exact', head: true });
-            document.getElementById('statMedical').textContent = medicalCount != null ? String(medicalCount) : '0';
-        } catch (e) { console.error('Stats: medical_examination_reports error', e); }
+            const { data: m } = await SB.from('medical_examination_reports').select('id');
+            document.getElementById('statMedical').textContent = m ? String(m.length) : '0';
+        } catch (e) { console.error('Stats: medical error', e); }
 
         try {
-            const { count: pendingCount } = await SB
-                .from('injury_claims')
-                .select('id', { count: 'exact', head: true })
-                .eq('claim_status', 'Pending');
-            document.getElementById('statPendingClaims').textContent = pendingCount != null ? String(pendingCount) : '0';
-        } catch (e) { console.error('Stats: injury_claims error', e); }
-        } catch (e) {
-            console.error('Stats load error:', e);
-        }
-    }
+            const { data: cl } = await SB.from('injury_claims').select('id').eq('claim_status', 'Pending');
+            document.getElementById('statPendingClaims').textContent = cl ? String(cl.length) : '0';
+        } catch (e) { console.error('Stats: claims error', e); }
+    }}
 
     // ── Search type toggle ───────────────────────────────
     function setSearchType(type) {
