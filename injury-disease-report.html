@@ -571,27 +571,7 @@
                 await window.createWorkerAccount(we, wi, wn);
             }
 
-            // Auto-populate accident case number when worker is found with past accidents
-            async function lookupWorkerAccidents() {
-                const regId = document.getElementById('idrWorkerRegistryId')?.value;
-                if (regId) {
-                    const { data: accidents } = await window.supabaseClient
-                        .from('accident_reports')
-                        .select('id, accident_case_number, occupier_name, accident_date')
-                        .eq('worker_registry_id', regId)
-                        .order('accident_date', { ascending: false })
-                        .limit(1);
-                    if (accidents && accidents.length > 0) {
-                        var a = accidents[0];
-                        var existingId = document.getElementById('selectedAccidentId')?.value;
-                        if (!existingId) {
-                            selectAccident(a.id, a.accident_case_number || 'N/A', a.occupier_name || '', a.accident_date || '');
-                        }
-                    }
-                }
-            }
-            // Run after registry is resolved
-            setTimeout(lookupWorkerAccidents, 500);
+
 
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'injury & disease report');
@@ -676,6 +656,28 @@
                 worker_registry_id: 'idrWorkerRegistryId'
             },
             saveNewWorker: true
+        });
+
+        // When worker ID is entered, auto-populate accident case number if worker has past accidents
+        document.getElementById('workerIdNumber').addEventListener('input', function() {
+            clearTimeout(window._accidentLookupTimer);
+            window._accidentLookupTimer = setTimeout(function() {
+                var regId = document.getElementById('idrWorkerRegistryId')?.value;
+                var existingAccId = document.getElementById('selectedAccidentId')?.value;
+                if (regId && !existingAccId) {
+                    SB.from('accident_reports')
+                        .select('id, accident_case_number, occupier_name, accident_date')
+                        .eq('worker_registry_id', regId)
+                        .order('accident_date', { ascending: false })
+                        .limit(1)
+                        .then(function(res) {
+                            if (res.data && res.data.length > 0) {
+                                var a = res.data[0];
+                                selectAccident(a.id, a.accident_case_number || 'N/A', a.occupier_name || '', a.accident_date || '');
+                            }
+                        });
+                }
+            }, 800);
         });
 
         // ── Company autofill ──
