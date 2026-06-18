@@ -136,38 +136,73 @@
 
         /* ── Timeline ────────────────────────── */
         .timeline-card {
-            background: white; border-radius: 12px; padding: 28px 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px;
+            background: white; border-radius: 14px; padding: 28px 30px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 20px;
+            border: 1px solid #f0f0f0;
         }
         .timeline-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #f0f0f0;
         }
+        .timeline-header h3 { font-size: 16px; font-weight: 800; color: #222; letter-spacing: -0.3px; }
         .timeline-header h3 { font-size: 18px; color: #333; }
-        .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
         .pill {
-            padding: 5px 14px; border-radius: 20px; font-size: 12px;
+            padding: 6px 16px; border-radius: 20px; font-size: 12px;
             font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
-            background: white; color: #666; transition: all 0.2s; font-family: inherit;
+            background: white; color: #666; transition: all 0.25s ease; font-family: inherit;
         }
-        .pill.active { background: #333; color: white; border-color: #333; }
-        .pill:hover:not(.active) { background: #f5f5f5; }
+        .pill.active { background: #333; color: white; border-color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .pill:hover:not(.active) { background: #f5f5f5; border-color: #ccc; color: #444; }
+
+        /* ── Vertical Timeline ─────────────────── */
+        .incident-list {
+            position: relative;
+            padding-left: 0;
+        }
+        .incident-list::before {
+            content: ''; position: absolute; left: 25px; top: 8px; bottom: 8px;
+            width: 2px; background: linear-gradient(to bottom, #e0e0e0, #f0f0f0);
+            border-radius: 2px;
+        }
 
         /* ── Individual incident card ─────────── */
-        .incident-list { display: flex; flex-direction: column; gap: 14px; }
         .incident-card {
-            border: 1px solid #e8e8e8; border-radius: 10px; padding: 18px 20px;
+            position: relative;
+            border: 1px solid #eee; border-radius: 12px; padding: 18px 20px 18px 28px;
             display: grid; grid-template-columns: auto 1fr auto;
-            gap: 16px; align-items: start; transition: box-shadow 0.2s;
+            gap: 14px; align-items: start;
+            transition: all 0.25s ease;
             cursor: pointer;
+            background: white;
+            margin-left: 44px;
+            margin-bottom: 4px;
         }
-        .incident-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
-        .incident-card.type-accident  { border-left: 4px solid #dc3545; }
-        .incident-card.type-injury    { border-left: 4px solid #fd7e14; }
-        .incident-card.type-disease   { border-left: 4px solid #6f42c1; }
+        .incident-card::before {
+            content: ''; position: absolute; left: -34px; top: 22px;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #ccc; border: 2.5px solid white;
+            box-shadow: 0 0 0 1.5px #ddd;
+            z-index: 1;
+            transition: all 0.25s ease;
+        }
+        .incident-card:hover {
+            box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+            border-color: #ddd;
+            transform: translateX(2px);
+        }
+        .incident-card:hover::before {
+            transform: scale(1.2);
+        }
+        .incident-card.type-accident::before { background: #dc3545; box-shadow: 0 0 0 2px rgba(220,53,69,0.25); }
+        .incident-card.type-injury::before   { background: #fd7e14; box-shadow: 0 0 0 2px rgba(253,126,20,0.25); }
+        .incident-card.type-disease::before  { background: #6f42c1; box-shadow: 0 0 0 2px rgba(111,66,193,0.25); }
+        .incident-card.type-accident  { border-left: 3px solid #dc3545; }
+        .incident-card.type-injury    { border-left: 3px solid #fd7e14; }
+        .incident-card.type-disease   { border-left: 3px solid #6f42c1; }
         .incident-icon {
-            width: 42px; height: 42px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
             flex-shrink: 0;
         }
         .icon-accident  { background: #f8d7da; }
@@ -175,15 +210,35 @@
         .icon-disease   { background: #e8dcf5; }
         .incident-body h4 { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 4px; }
         .incident-body .desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 8px; }
-        .incident-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+        .incident-body .desc.truncated { cursor: help; }
+        .incident-meta { display: flex; gap: 8px; flex-wrap: wrap; }
         .meta-chip {
-            font-size: 11px; color: #888; background: #f5f5f5;
-            padding: 3px 9px; border-radius: 8px;
+            font-size: 11px; color: #666; background: #f5f5f5;
+            padding: 3px 10px; border-radius: 6px;
+            border: 1px solid #eee;
+            font-weight: 500;
         }
-        .incident-date { font-size: 12px; color: #aaa; white-space: nowrap; text-align: right; }
-        .incident-date .date-val { font-size: 14px; font-weight: 700; color: #555; display: block; margin-bottom: 4px; }
+        .meta-chip.claim { background: #f0fafc; color: #0c5460; border-color: #bee5eb; }
+        .incident-date {
+            font-size: 11px; color: #aaa; white-space: nowrap; text-align: right;
+            min-width: 80px;
+        }
+        .incident-date .date-val {
+            font-size: 14px; font-weight: 700; color: #444; display: block; margin-bottom: 2px;
+        }
         .no-incidents { text-align: center; padding: 40px; color: #aaa; }
         .no-incidents p { font-size: 15px; }
+
+        /* ── Severity Tag inside incident card ── */
+        .severity-tag {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .severity-tag.tag-red    { background: #f8d7da; color: #721c24; }
+        .severity-tag.tag-amber  { background: #fff3cd; color: #856404; }
+        .severity-tag.tag-green  { background: #d4edda; color: #155724; }
+        .severity-tag.tag-grey   { background: #e2e3e5; color: #555; }
 
         /* ── Identity / employment card ─────── */
         .detail-card {
@@ -210,7 +265,8 @@
         .detail-row:last-child { border-bottom: none; }
         .detail-row .lbl { color: #888; flex-shrink: 0; }
         .detail-row .val { color: #222; text-align: right; font-weight: 500; }
-        .incident-card.type-claim { border-left: 4px solid #28a745; }
+        .incident-card.type-claim { border-left: 3px solid #28a745; }
+        .incident-card.type-claim::before { background: #28a745; box-shadow: 0 0 0 2px rgba(40,167,69,0.25); }
         .icon-claim { background: #d4edda; }
             /* Medical form cards in profile */
         .med-form-card { cursor: pointer; }
@@ -901,13 +957,13 @@
         // ── Profile header
         const initials = workerName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
         const tags = [];
-        if (fatalities.length) tags.push(`<span class="tag tag-red">⚠ ${fatalities.length} Fatal</span>`);
-        if (permIncap.length)  tags.push(`<span class="tag tag-amber">♿ Permanent Incapacity</span>`);
-        if (accidents.length)  tags.push(`<span class="tag tag-grey">🚨 ${accidents.length} Accident${accidents.length>1?'s':''}</span>`);
-        if (injuries.length)   tags.push(`<span class="tag tag-blue">🏥 ${injuries.length} Injury Record${injuries.length>1?'s':''}</span>`);
-        if (diseases.length)   tags.push(`<span class="tag tag-grey">🦠 ${diseases.length} Disease Record${diseases.length>1?'s':''}</span>`);
-        if (claims.length)     tags.push(`<span class="tag tag-green">📑 ${claims.length} Claim${claims.length>1?'s':''}</span>`);
-        if (registry?.id)      tags.push(`<span class="tag tag-blue">📋 Registry record</span>`);
+        if (fatalities.length) tags.push(`<span class="severity-tag tag-red">⚠ ${fatalities.length} Fatal</span>`);
+        if (permIncap.length)  tags.push(`<span class="severity-tag tag-amber">♿ Permanent Incapacity</span>`);
+        if (accidents.length)  tags.push(`<span class="severity-tag tag-grey">🚨 ${accidents.length} Accident${accidents.length>1?'s':''}</span>`);
+        if (injuries.length)   tags.push(`<span class="severity-tag tag-blue">🏥 ${injuries.length} Injury Record${injuries.length>1?'s':''}</span>`);
+        if (diseases.length)   tags.push(`<span class="severity-tag tag-grey">🦠 ${diseases.length} Disease Record${diseases.length>1?'s':''}</span>`);
+        if (claims.length)     tags.push(`<span class="severity-tag tag-green">📑 ${claims.length} Claim${claims.length>1?'s':''}</span>`);
+        if (registry?.id)      tags.push(`<span class="severity-tag tag-blue">📋 Registry record</span>`);
 
         const employer = identity.employer_name || '—';
 
@@ -922,7 +978,7 @@
                     ${firstDate ? ` &nbsp;·&nbsp; <strong>First incident:</strong> ${fmtDate(firstDate)}` : ''}
                     ${lastDate && dates.length > 1 ? ` &nbsp;·&nbsp; <strong>Last incident:</strong> ${fmtDate(lastDate)}` : ''}
                 </div>
-                <div class="profile-tags">${tags.join('') || '<span class="tag tag-green">✅ No severe outcomes on file</span>'}</div>
+                <div class="profile-tags">${tags.join('') || '<span class="severity-tag tag-green">✅ No severe outcomes on file</span>'}</div>
             </div>`;
 
         renderIdentityCard(identity);
