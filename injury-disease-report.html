@@ -664,71 +664,37 @@
             window._accidentLookupTimer = setTimeout(function() {
                 var regId = document.getElementById('idrWorkerRegistryId')?.value;
                 var idNum = document.getElementById('workerIdNumber')?.value?.trim()?.toUpperCase();
-                // Build query: by worker_registry_id (future) OR by id_number via accident_injured_persons (existing)
-                var accQuery = SB.from('accident_reports')
-                    .select('id, accident_case_number, occupier_name, accident_date')
-                    .order('accident_date', { ascending: false })
-                    .limit(10);
-
+                // Query BOTH worker_registry_id (future records) AND accident_injured_persons (existing records)
+                var queries = [];
                 if (regId) {
-                    accQuery = accQuery.eq('worker_registry_id', regId);
-                    accQuery.then(function(res) {
-                        var accidents = res.data || [];
-                        // Also query via accident_injured_persons for existing backfilled records
-                        if (idNum) {
-                            SB.from('accident_injured_persons')
-                                .select('accident_report_id')
-                                .eq('id_number', idNum)
-                                .then(function(pr) {
-                                    if (pr.data && pr.data.length > 0) {
-                                        var pIds = pr.data.map(function(p) { return p.accident_report_id; });
-                                        SB.from('accident_reports')
-                                            .select('id, accident_case_number, occupier_name, accident_date')
-                                            .in('id', pIds)
-                                            .order('accident_date', { ascending: false })
-                                            .then(function(ar) {
-                                                if (ar.data) {
-                                                    // Merge and deduplicate
-                                                    var seen = {};
-                                                    accidents.concat(ar.data).forEach(function(a) {
-                                                        if (!seen[a.id]) { seen[a.id] = true; accidents.push(a); }
-                                                    });
-                                                    // Remove duplicates (accidents has extras now)
-                                                    accidents = Object.values(seen).map(function() { return null; });
-                                                    // Rebuild properly
-                                                    var unique = [];
-                                                    var seen2 = {};
-                                                    accidents.concat(ar.data).forEach(function(a) {
-                                                        if (a && !seen2[a.id]) { seen2[a.id] = true; unique.push(a); }
-                                                    });
-                                                    showAccidentResults(unique);
-                                                }
-                                            });
-                                    } else {
-                                        showAccidentResults(accidents);
-                                    }
-                                });
-                        } else {
-                            showAccidentResults(accidents);
-                        }
-                    });
-                } else if (idNum) {
-                    // No registry ID but have ID number - query via accident_injured_persons
-                    SB.from('accident_injured_persons')
-                        .select('accident_report_id')
-                        .eq('id_number', idNum)
-                        .then(function(pr) {
-                            if (pr.data && pr.data.length > 0) {
-                                var pIds = pr.data.map(function(p) { return p.accident_report_id; });
-                                SB.from('accident_reports')
-                                    .select('id, accident_case_number, occupier_name, accident_date')
-                                    .in('id', pIds)
-                                    .order('accident_date', { ascending: false })
-                                    .then(function(ar) {
-                                        showAccidentResults(ar.data || []);
-                                    });
-                            }
+                    queries.push(
+                        SB.from('accident_reports').select('id, accident_case_number, occupier_name, accident_date')
+                            .eq('worker_registry_id', regId).order('accident_date', { ascending: false }).limit(10)
+                            .then(function(r) { return r.data || []; })
+                    );
+                }
+                if (idNum) {
+                    queries.push(
+                        SB.from('accident_injured_persons').select('accident_report_id').eq('id_number', idNum)
+                            .then(function(pr) {
+                                var ids = (pr.data || []).map(function(p) { return p.accident_report_id; });
+                                if (!ids.length) return [];
+                                return SB.from('accident_reports').select('id, accident_case_number, occupier_name, accident_date')
+                                    .in('id', ids).order('accident_date', { ascending: false }).limit(10)
+                                    .then(function(ar) { return ar.data || []; });
+                            })
+                    );
+                }
+                if (queries.length > 0) {
+                    Promise.all(queries).then(function(results) {
+                        var seen = {}, merged = [];
+                        results.forEach(function(arr) {
+                            arr.forEach(function(a) {
+                                if (!seen[a.id]) { seen[a.id] = true; merged.push(a); }
+                            });
                         });
+                        showAccidentResults(merged);
+                    });
                 }
             }, 800);
         });
