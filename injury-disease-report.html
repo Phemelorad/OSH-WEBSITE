@@ -663,38 +663,97 @@
             clearTimeout(window._accidentLookupTimer);
             window._accidentLookupTimer = setTimeout(function() {
                 var regId = document.getElementById('idrWorkerRegistryId')?.value;
+                var idNum = document.getElementById('workerIdNumber')?.value?.trim()?.toUpperCase();
+                // Build query: by worker_registry_id (future) OR by id_number via accident_injured_persons (existing)
+                var accQuery = SB.from('accident_reports')
+                    .select('id, accident_case_number, occupier_name, accident_date')
+                    .order('accident_date', { ascending: false })
+                    .limit(10);
+
                 if (regId) {
-                    SB.from('accident_reports')
-                        .select('id, accident_case_number, occupier_name, accident_date')
-                        .eq('worker_registry_id', regId)
-                        .order('accident_date', { ascending: false })
-                        .limit(10)
-                        .then(function(res) {
-                            if (res.data && res.data.length > 0) {
-                                if (res.data.length === 1) {
-                                    // Only one accident — auto-select
-                                    var a = res.data[0];
-                                    selectAccident(a.id, a.accident_case_number || 'N/A', a.occupier_name || '', a.accident_date || '');
-                                } else {
-                                    // Multiple accidents — show dropdown to pick
-                                    var html = res.data.map(function(a) {
-                                        var cn = (a.accident_case_number || 'N/A').replace(/'/g, "\\'");
-                                        var emp = (a.occupier_name || '').replace(/'/g, "\\'");
-                                        return '<div class="accident-search-item" onclick="selectAccident(\'' + a.id + '\',\'' + cn + '\',\'' + emp + '\',\'' + (a.accident_date || '') + '\');document.getElementById(\'accidentSearchResults\').style.display=\'none\'\" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#f8f8f8\'" onmouseout="this.style.background=\'\'">' +
-                                            '<div><strong style="font-size:13px;color:#0c5460">\U0001F4CB ' + cn + '</strong><span style="font-size:12px;color:#555;margin-left:8px">' + emp + '</span></div>' +
-                                            '<span style="font-size:11px;color:#aaa;white-space:nowrap">' + (a.accident_date || '') + '</span></div>';
-                                    }).join('');
-                                    var resultsDiv = document.getElementById('accidentSearchResults');
-                                    if (resultsDiv) {
-                                        resultsDiv.innerHTML = '<div style="padding:8px 14px;font-size:11px;color:#888;background:#f8f8f8;border-bottom:1px solid #e0e0e0;font-weight:600">Select the relevant accident:</div>' + html;
-                                        resultsDiv.style.display = 'block';
+                    accQuery = accQuery.eq('worker_registry_id', regId);
+                    accQuery.then(function(res) {
+                        var accidents = res.data || [];
+                        // Also query via accident_injured_persons for existing backfilled records
+                        if (idNum) {
+                            SB.from('accident_injured_persons')
+                                .select('accident_report_id')
+                                .eq('id_number', idNum)
+                                .then(function(pr) {
+                                    if (pr.data && pr.data.length > 0) {
+                                        var pIds = pr.data.map(function(p) { return p.accident_report_id; });
+                                        SB.from('accident_reports')
+                                            .select('id, accident_case_number, occupier_name, accident_date')
+                                            .in('id', pIds)
+                                            .order('accident_date', { ascending: false })
+                                            .then(function(ar) {
+                                                if (ar.data) {
+                                                    // Merge and deduplicate
+                                                    var seen = {};
+                                                    accidents.concat(ar.data).forEach(function(a) {
+                                                        if (!seen[a.id]) { seen[a.id] = true; accidents.push(a); }
+                                                    });
+                                                    // Remove duplicates (accidents has extras now)
+                                                    accidents = Object.values(seen).map(function() { return null; });
+                                                    // Rebuild properly
+                                                    var unique = [];
+                                                    var seen2 = {};
+                                                    accidents.concat(ar.data).forEach(function(a) {
+                                                        if (a && !seen2[a.id]) { seen2[a.id] = true; unique.push(a); }
+                                                    });
+                                                    showAccidentResults(unique);
+                                                }
+                                            });
+                                    } else {
+                                        showAccidentResults(accidents);
                                     }
-                                }
+                                });
+                        } else {
+                            showAccidentResults(accidents);
+                        }
+                    });
+                } else if (idNum) {
+                    // No registry ID but have ID number - query via accident_injured_persons
+                    SB.from('accident_injured_persons')
+                        .select('accident_report_id')
+                        .eq('id_number', idNum)
+                        .then(function(pr) {
+                            if (pr.data && pr.data.length > 0) {
+                                var pIds = pr.data.map(function(p) { return p.accident_report_id; });
+                                SB.from('accident_reports')
+                                    .select('id, accident_case_number, occupier_name, accident_date')
+                                    .in('id', pIds)
+                                    .order('accident_date', { ascending: false })
+                                    .then(function(ar) {
+                                        showAccidentResults(ar.data || []);
+                                    });
                             }
                         });
                 }
             }, 800);
         });
+
+        // ── Shared helper: show accident results (auto-select or dropdown) ──
+        function showAccidentResults(accidents) {
+            if (!accidents || accidents.length === 0) return;
+            if (accidents.length === 1) {
+                var a = accidents[0];
+                selectAccident(a.id, a.accident_case_number || 'N/A', a.occupier_name || '', a.accident_date || '');
+            } else {
+                var html = accidents.map(function(a) {
+                    var cn = (a.accident_case_number || 'N/A').replace(/'/g, "\'");
+                    var emp = (a.occupier_name || '').replace(/'/g, "\'");
+                    return '<div class="accident-search-item" onclick="selectAccident(\'' + a.id + '\',\'' + cn + '\',\'' + emp + '\',\'' + (a.accident_date || '') + '\');document.getElementById(\'accidentSearchResults\').style.display=\'none\'\" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#f8f8f8\'" onmouseout="this.style.background=\'\'">' +
+                        '<div><strong style="font-size:13px;color:#0c5460">\U0001F4CB ' + cn + '</strong><span style="font-size:12px;color:#555;margin-left:8px">' + emp + '</span></div>' +
+                        '<span style="font-size:11px;color:#aaa;white-space:nowrap">' + (a.accident_date || '') + '</span></div>';
+                }).join('');
+                var resultsDiv = document.getElementById('accidentSearchResults');
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = '<div style="padding:8px 14px;font-size:11px;color:#888;background:#f8f8f8;border-bottom:1px solid #e0e0e0;font-weight:600">Select the relevant accident:</div>' + html;
+                    resultsDiv.style.display = 'block';
+                }
+            }
+        }
 
         // ── Company autofill ──
         function attachCompanyAutofill() {
