@@ -204,6 +204,8 @@
                     </div>
                     <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
                     <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+                    <button class="export-btn" onclick="backfillPersons()" title="Migrate existing records' injured persons into accident_injured_persons table">👥 Backfill Persons</button>
+                    <span id="backfillStatus" style="font-size:12px;color:#666;display:none"></span>
                 </div>
             </div>
 
@@ -291,10 +293,7 @@
 
             // Attach injured persons to each record
             if (personsRes.data) {
-                console.log('[DEBUG] accident_injured_persons rows:', personsRes.data.length);
-                if (personsRes.data.length > 0) {
-                    console.log('[DEBUG] Sample person row:', JSON.stringify(personsRes.data[0]));
-                }
+                // personsRes.data.length available in console if needed
                 const personGroups = {};
                 personsRes.data.forEach(p => {
                     if (!personGroups[p.accident_report_id]) personGroups[p.accident_report_id] = [];
@@ -305,7 +304,7 @@
                     if (persons) {
                         r._persons = persons;
                         r._persons_count = persons.length;
-                        console.log('[DEBUG] Accident', r.id, 'has', persons.length, 'persons');
+                        // persons attached
                         const fatalPersons = persons.filter(p => p.injury_fatal === 'Fatal');
                         if (fatalPersons.length > 0) {
                             r._fatal_count = fatalPersons.length;
@@ -315,7 +314,7 @@
             } else if (personsRes.error) {
                 console.error('[DEBUG] personsRes error:', personsRes.error);
             } else {
-                console.log('[DEBUG] personsRes.data is null/undefined');
+                // personsRes.data is null/undefined
             }
 
             // Fallback: for records without _persons data (e.g. existing records),
@@ -345,6 +344,89 @@
         renderTable(allRecords);
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('tableWrap').style.display = 'block';
+    }
+
+    async function backfillPersons() {
+        const statusEl = document.getElementById('backfillStatus');
+        statusEl.style.display = 'inline';
+        statusEl.innerHTML = '⏳ Backfilling...';
+        statusEl.style.color = '#666';
+
+        const { data: records, error: recErr } = await SB
+            .from('accident_reports')
+            .select('id, injured_name, injured_age, injured_sex, injured_id_number, occupation_at_accident, injury_fatal, outside_persons_injured')
+            .not('injured_name', 'is', null);
+
+        if (recErr) {
+            statusEl.innerHTML = '❌ Error fetching records: ' + recErr.message;
+            statusEl.style.color = '#dc3545';
+            return;
+        }
+
+        let inserted = 0, errors = 0, skipped = 0;
+
+        for (const r of records) {
+            // Check if already backfilled
+            const { data: existing } = await SB
+                .from('accident_injured_persons')
+                .select('id')
+                .eq('accident_report_id', r.id);
+
+            if (existing && existing.length > 0) {
+                skipped++;
+                continue;
+            }
+
+            // Insert the main person from record fields
+            const person = {
+                accident_report_id: r.id,
+                full_name: r.injured_name,
+                age_years: r.injured_age,
+                sex: r.injured_sex,
+                id_number: r.injured_id_number,
+                occupation_at_accident: r.occupation_at_accident,
+                injury_fatal: r.injury_fatal || null,
+                sort_order: 1
+            };
+
+            const { error: insErr } = await SB.from('accident_injured_persons').insert([person]);
+            if (insErr) {
+                console.error('Backfill error for record ' + r.id + ':', insErr);
+                errors++;
+                continue;
+            }
+            inserted++;
+
+            // Try to parse outside_persons_injured for additional names
+            if (r.outside_persons_injured && r.outside_persons_injured.trim()) {
+                const lines = r.outside_persons_injured
+                    .split(/\n|,|;/)
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0 && !/^(nil|none|n\/a|-)$/i.test(l));
+
+                for (let i = 0; i < lines.length; i++) {
+                    const name = lines[i].replace(/^(Name|Names|and)\s*[:.]?\s*/i, '').trim();
+                    if (name.length < 3) continue;
+
+                    const { error: extraErr } = await SB.from('accident_injured_persons').insert([{
+                        accident_report_id: r.id,
+                        full_name: name,
+                        sort_order: i + 2
+                    }]);
+                    if (!extraErr) inserted++;
+                }
+            }
+        }
+
+        if (errors > 0) {
+            statusEl.innerHTML = '⚠️ Done: ' + inserted + ' inserted, ' + skipped + ' skipped, ' + errors + ' errors — <a href="#" onclick="loadData();return false" style="color:#007bff">Refresh page</a>';
+            statusEl.style.color = '#856404';
+        } else {
+            statusEl.innerHTML = '✅ Backfill complete! ' + inserted + ' persons inserted, ' + skipped + ' skipped — <a href="#" onclick="loadData();return false" style="color:#007bff">Refresh page</a>';
+            statusEl.style.color = '#155724';
+        }
+        // Reload data to reflect changes
+        await loadData();
     }
 
     function buildStats(rows) {
