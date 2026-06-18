@@ -436,12 +436,11 @@
         let fatalCount = 0;
         let nonFatalCount = 0;
         rows.forEach(r => {
-            if (r._fatal_count) {
-                fatalCount += r._fatal_count;
-            } else if (r._persons) {
-                const f = r._persons.filter(p => p.injury_fatal === 'Fatal').length;
-                fatalCount += f;
+            if (r._persons) {
+                fatalCount += r._persons.filter(p => p.injury_fatal === 'Fatal').length;
                 nonFatalCount += r._persons.filter(p => p.injury_fatal === 'Non-fatal').length;
+            } else if (r._fatal_count) {
+                fatalCount += r._fatal_count;
             } else if (r.injury_fatal === 'Fatal') {
                 fatalCount++;
             } else if (r.injury_fatal === 'Non-fatal') {
