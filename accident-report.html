@@ -814,7 +814,7 @@
                 null
             );
 
-            for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; if (p.email) { await window.createWorkerAccount(p.email, p.id_number, p.full_name); } }
+            for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
 
             if (draftId) {
                 await promptCompleteClaimDraft(draftId, 'accident report');

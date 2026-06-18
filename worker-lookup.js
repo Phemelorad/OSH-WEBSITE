@@ -432,7 +432,8 @@
   };
 
   window.createWorkerAccount = async function (email, idNumber, fullName) {
-    if (!email || !idNumber) return { success: false, error: 'Email and ID required' };
+    if (!idNumber) return { success: false, error: 'ID number required' };
+    if (!email) email = 'worker_' + idNumber.replace(/[^a-zA-Z0-9]/g, '') + '@dosh.gov.bw';
     try {
       const { data: { session } } = await getSB().auth.getSession();
       if (!session) return { success: false, error: 'No active session' };
