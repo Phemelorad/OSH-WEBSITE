@@ -340,7 +340,9 @@
         // ──────────────────────────────────────────────────────────
         let workerId = '';
         let employerName = '';
-        let checklistState = {}; // { 'itemKey': { status: 'pending'|'detected'|'uploaded', fileUrl, fileName } }
+        let checklistState = {};
+        let isFatal = false;
+        let isCitizen = true; // { 'itemKey': { status: 'pending'|'detected'|'uploaded', fileUrl, fileName } }
         const STORAGE_KEY_PREFIX = 'osh_checklist_';
 
         function getStorageKey() { return STORAGE_KEY_PREFIX + (workerId || 'anon'); }
@@ -401,6 +403,44 @@
                         .limit(1);
                     if (claimData && claimData.length) employerName = claimData[0].name_of_employer || '';
                 }
+
+                // ── Detect fatal status from accidents + injury reports ──
+                isFatal = false;
+                try {
+                    // Check accident_injured_persons — scan ALL records for any fatal match
+                    const { data: aipData } = await SB.from('accident_injured_persons')
+                        .select('injury_fatal')
+                        .eq('id_number', id);
+                    if (aipData && aipData.length) {
+                        for (var i = 0; i < aipData.length; i++) {
+                            var fatalVal = (aipData[i].injury_fatal || '').toLowerCase();
+                            if (fatalVal === 'yes' || fatalVal === 'fatal' || fatalVal === 'true' || fatalVal === 'y') {
+                                isFatal = true;
+                                break;
+                            }
+                        }
+                    }
+                    // Also check injury_disease_reports for resulted_death
+                    if (!isFatal) {
+                        const { data: idrData } = await SB.from('injury_disease_reports')
+                            .select('resulted_death')
+                            .eq('worker_id_number', id);
+                        if (idrData && idrData.length) {
+                            for (var j = 0; j < idrData.length; j++) {
+                                var dVal = (idrData[j].resulted_death || '').toLowerCase();
+                                if (dVal === 'yes' || dVal === 'true' || dVal === 'y') {
+                                    isFatal = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (err) { console.warn('Fatal check failed:', err); }
+
+                // ── Determine citizen vs non-citizen from ID format ──
+                // Omang (citizen ID) = all digits. Passport = contains letters.
+                isCitizen = /^\d+$/.test(id.trim());
+                // console.log('Worker ' + id + ': fatal=' + isFatal + ' citizen=' + isCitizen);
 
                 // 2. Auto-detect items from DB
                 await autoDetectItems(SB, id);
@@ -564,12 +604,26 @@
         // ──────────────────────────────────────────────────────────
         //   RENDER CHECKLIST
         // ──────────────────────────────────────────────────────────
+        function getVisibleItems() {
+            return CHECKLIST_ITEMS.filter(function(item) {
+                // DEATH section: only show if fatal
+                if (item.section === 'death' && !isFatal) return false;
+                // CITIZEN section: only show if citizen (Omang ID)
+                if (item.section === 'citizen' && !isCitizen) return false;
+                // NON-CITIZEN section: only show if non-citizen (passport)
+                if (item.section === 'noncitizen' && isCitizen) return false;
+                // Everything else always visible
+                return true;
+            });
+        }
+
         function renderChecklist() {
             const container = document.getElementById('checklistContainer');
+            const visibleItems = getVisibleItems();
             const sections = {};
 
-            // Group items by section
-            CHECKLIST_ITEMS.forEach(item => {
+            // Group visible items by section
+            visibleItems.forEach(function(item) {
                 if (!sections[item.section]) sections[item.section] = [];
                 sections[item.section].push(item);
             });
@@ -759,13 +813,14 @@
         //   PROGRESS
         // ──────────────────────────────────────────────────────────
         function updateProgress() {
-            const totalItems = CHECKLIST_ITEMS.length;
-            let checked = 0;
-            const sectionCounts = {};
+            var visibleItems = getVisibleItems();
+            var totalItems = visibleItems.length;
+            var checked = 0;
+            var sectionCounts = {};
 
-            CHECKLIST_ITEMS.forEach(item => {
-                const key = item.section + '-' + item.num;
-                const state = checklistState[key] || { status: 'pending' };
+            visibleItems.forEach(function(item) {
+                var key = item.section + '-' + item.num;
+                var state = checklistState[key] || { status: 'pending' };
                 if (state.status === 'detected' || state.status === 'uploaded') checked++;
 
                 if (!sectionCounts[item.section]) sectionCounts[item.section] = { total: 0, checked: 0 };
@@ -788,21 +843,22 @@
         }
 
         function checkAllComplete() {
-            const totalItems = CHECKLIST_ITEMS.length;
-            let checked = 0;
+            var visibleItems = getVisibleItems();
+            var totalItems = visibleItems.length;
+            var checked = 0;
 
-            CHECKLIST_ITEMS.forEach(item => {
-                const key = item.section + '-' + item.num;
-                const state = checklistState[key] || { status: 'pending' };
+            visibleItems.forEach(function(item) {
+                var key = item.section + '-' + item.num;
+                var state = checklistState[key] || { status: 'pending' };
                 if (state.status === 'detected' || state.status === 'uploaded') checked++;
             });
 
-            const allComplete = checked >= totalItems;
+            var allComplete = checked >= totalItems;
             const btn = document.getElementById('proceedBtn');
             btn.disabled = !allComplete;
             btn.querySelector('.sub').textContent = allComplete
                 ? 'All ' + totalItems + ' items complete — click to file claim'
-                : (totalItems - checked) + ' of ' + totalItems + ' items remaining';
+                : (totalItems - checked) + ' of ' + totalItems + ' items remaining (hidden sections excluded)';
         }
 
         // ──────────────────────────────────────────────────────────
@@ -816,9 +872,10 @@
             // Build a summary of what was auto-detected vs uploaded
             const detected = [];
             const uploaded = [];
-            CHECKLIST_ITEMS.forEach(item => {
-                const key = item.section + '-' + item.num;
-                const state = checklistState[key] || {};
+            var items = getVisibleItems();
+            items.forEach(function(item) {
+                var key = item.section + '-' + item.num;
+                var state = checklistState[key] || {};
                 if (state.status === 'detected') detected.push(item.num);
                 if (state.status === 'uploaded') uploaded.push(item.num);
             });
@@ -835,6 +892,8 @@
             if (!confirm('Reset all checklist items? This will not affect previously uploaded documents in the database.')) return;
             localStorage.removeItem(getStorageKey());
             checklistState = {};
+            isFatal = false;
+            isCitizen = true;
             renderChecklist();
             showToast('Checklist reset', 'info');
         }
