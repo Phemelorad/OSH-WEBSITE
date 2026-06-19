@@ -256,7 +256,7 @@ async function loadData() {
     document.getElementById('tableWrap').style.display = 'none';
     
     console.log('[DEBUG] Querying accident_reports with:', companyName);
-    const words = companyName.split(' ').filter(w => w.length > 2);
+    let words = companyName.split(' ').filter(w => w.length > 2);
     if (words.length === 0) words = [companyName];
     const orConditions = words.map(w => 'occupier_name.ilike.*' + w + '*').join(',');
     console.log('[DEBUG] Word-match conditions:', orConditions);
