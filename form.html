@@ -542,6 +542,33 @@
                 })();
             }
 
+            // ── Pre-fill from checklist params (skip if loading a draft) ──
+            if (!draftId) {
+                var cid = params.get('claimant_id');
+                var emp = params.get('employer');
+                if (cid) {
+                    var inp = document.getElementById('claimantIdNumber');
+                    if (inp) {
+                        inp.value = cid;
+                        inp.dispatchEvent(new Event('input', { bubbles: true }));
+                        inp.dispatchEvent(new Event('keyup', { bubbles: true }));
+                    }
+                    if (emp) {
+                        var eInp = document.getElementById('nameOfEmployer');
+                        if (eInp) {
+                            eInp.value = emp;
+                            eInp.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+                } else if (emp) {
+                    var eInp2 = document.getElementById('nameOfEmployer');
+                    if (eInp2) {
+                        eInp2.value = emp;
+                        eInp2.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            }
+
         async function cancelDraftFromForm() {
             const id = document.getElementById('draftClaimId').value;
             if (!id) return;
