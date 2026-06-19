@@ -275,6 +275,21 @@ async function loadData() {
     }
     
     allRecords = data || [];
+    
+    // Filter out false positives - require minimum word matches
+    var matchWords = companyName.split(' ').filter(function(w) { return w.length > 2; });
+    if (matchWords.length === 0) matchWords = [companyName];
+    if (matchWords.length > 1) {
+        var required = matchWords.length >= 3 ? 2 : matchWords.length;
+        allRecords = allRecords.filter(function(r) {
+            var name = (r.occupier_name || '').toLowerCase();
+            var count = 0;
+            for (var i = 0; i < matchWords.length; i++) {
+                if (name.indexOf(matchWords[i].toLowerCase()) >= 0) count++;
+            }
+            return count >= required;
+        });
+    }
     buildStats(allRecords);
     applyPagination(allRecords);
     document.getElementById('loadingState').style.display = 'none';

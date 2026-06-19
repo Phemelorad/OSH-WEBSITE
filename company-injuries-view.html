@@ -353,6 +353,21 @@ async function loadData() {
         return db - da;
     });
     
+    // Filter out false positives - require minimum word matches
+    var matchWords = companyName.split(' ').filter(function(w) { return w.length > 2; });
+    if (matchWords.length === 0) matchWords = [companyName];
+    if (matchWords.length > 1) {
+        var required = matchWords.length >= 3 ? 2 : matchWords.length;
+        allRecords = allRecords.filter(function(r) {
+            var name = (r._employer_name || r.employer_name || r.occupier_name || '').toLowerCase();
+            var count = 0;
+            for (var i = 0; i < matchWords.length; i++) {
+                if (name.indexOf(matchWords[i].toLowerCase()) >= 0) count++;
+            }
+            return count >= required;
+        });
+    }
+    
     if (injRes.error) {
         document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error: ' + injRes.error.message + '<br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
         return;
