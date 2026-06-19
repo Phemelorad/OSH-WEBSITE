@@ -254,7 +254,7 @@ async function loadData() {
     const { data, error } = await SB
         .from('injury_disease_reports')
         .select('*')
-        .ilike('employer_name', companyName)
+        .ilike('employer_name', '%' + companyName + '%')
         .order('incident_date', { ascending: false });
     
     console.log('[DEBUG] Results:', data?.length || 0, 'rows, error:', error?.message || 'OK');
