@@ -53,6 +53,45 @@ tr:hover { background:#fafafa; }
 .action-btn { padding:5px 10px; margin:0 2px; background:white; color:#333; border:1px solid #ddd; border-radius:4px; cursor:pointer; font-size:11px; transition:all 0.2s; font-family:inherit; }
 .action-btn:hover { background:#f0f0f0; }
 .row-count { margin-top:12px; font-size:13px; color:#888; text-align:right; }
+
+/* Pagination */
+.pagination-controls { display:flex; justify-content:space-between; align-items:center; padding-top:16px; margin-top:8px; border-top:1px solid #f0f0f0; flex-wrap:wrap; gap:12px; }
+.pagination-info { font-size:13px; color:#888; }
+.pagination-buttons { display:flex; gap:6px; align-items:center; }
+.pagination-buttons button { padding:6px 14px; background:#fff; color:#333; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:13px; font-family:inherit; transition:all 0.2s; }
+.pagination-buttons button:hover:not(:disabled) { background:#f0f0f0; }
+.pagination-buttons button:disabled { opacity:0.4; cursor:not-allowed; }
+.pagination-buttons button.active { background:#333; color:#fff; border-color:#333; }
+.page-size-select { padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; font-family:inherit; margin-left:8px; }
+.export-btn { padding:8px 16px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; font-size:13px; font-family:inherit; }
+.export-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+
+
+/* Pagination */
+.pagination-controls { display:flex; justify-content:space-between; align-items:center; padding-top:16px; margin-top:8px; border-top:1px solid #f0f0f0; flex-wrap:wrap; gap:12px; }
+.pagination-info { font-size:13px; color:#888; }
+.pagination-buttons { display:flex; gap:6px; align-items:center; }
+.pagination-buttons button { padding:6px 14px; background:#fff; color:#333; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:13px; font-family:inherit; transition:all 0.2s; }
+.pagination-buttons button:hover:not(:disabled) { background:#f0f0f0; }
+.pagination-buttons button:disabled { opacity:0.4; cursor:not-allowed; }
+.pagination-buttons button.active { background:#333; color:#fff; border-color:#333; }
+.page-size-select { padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; font-family:inherit; margin-left:8px; }
+.export-btn { padding:8px 16px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; font-size:13px; font-family:inherit; }
+.export-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+
+
+/* Pagination */
+.pagination-controls { display:flex; justify-content:space-between; align-items:center; padding-top:16px; margin-top:8px; border-top:1px solid #f0f0f0; flex-wrap:wrap; gap:12px; }
+.pagination-info { font-size:13px; color:#888; }
+.pagination-buttons { display:flex; gap:6px; align-items:center; }
+.pagination-buttons button { padding:6px 14px; background:#fff; color:#333; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:13px; font-family:inherit; transition:all 0.2s; }
+.pagination-buttons button:hover:not(:disabled) { background:#f0f0f0; }
+.pagination-buttons button:disabled { opacity:0.4; cursor:not-allowed; }
+.pagination-buttons button.active { background:#333; color:#fff; border-color:#333; }
+.page-size-select { padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; font-family:inherit; margin-left:8px; }
+.export-btn { padding:8px 16px; background:linear-gradient(135deg,#fff 0%,#f8f8f8 100%); color:#333; border:2px solid #ddd; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s; font-size:13px; font-family:inherit; }
+.export-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+
 @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } }
 </style>
 </head>
@@ -101,6 +140,36 @@ tr:hover { background:#fafafa; }
 </select>
 </div>
 <div class="filter-group">
+<label>Investigation</label>
+<select id="filterInv" onchange="applyFilters()">
+<option value="">All Statuses</option>
+<option value="Pending">Pending</option>
+<option value="In Progress">In Progress</option>
+<option value="Completed">Completed</option>
+<option value="Closed">Closed</option>
+</select>
+</div>
+<div class="filter-group">
+<label>Investigation</label>
+<select id="filterInv" onchange="applyFilters()">
+<option value="">All Statuses</option>
+<option value="Pending">Pending</option>
+<option value="In Progress">In Progress</option>
+<option value="Completed">Completed</option>
+<option value="Closed">Closed</option>
+</select>
+</div>
+<div class="filter-group">
+<label>Investigation</label>
+<select id="filterInv" onchange="applyFilters()">
+<option value="">All Statuses</option>
+<option value="Pending">Pending</option>
+<option value="In Progress">In Progress</option>
+<option value="Completed">Completed</option>
+<option value="Closed">Closed</option>
+</select>
+</div>
+<div class="filter-group">
 <label>Search</label>
 <input type="text" id="filterSearch" placeholder="Worker / Case #…" oninput="applyFilters()" style="width:160px">
 </div>
@@ -127,6 +196,23 @@ tr:hover { background:#fafafa; }
 </table>
 </div>
 <div id="emptyState" class="empty-state" style="display:none"><p>🚨 No accident reports found for your company</p></div>
+<div class="pagination-controls" id="paginationControls" style="display:none">
+<div class="pagination-info" id="paginationInfo"></div>
+<div class="pagination-buttons">
+<span style="font-size:12px;color:#888">Rows:</span>
+<select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+<option value="25">25</option>
+<option value="50" selected>50</option>
+<option value="100">100</option>
+<option value="250">250</option>
+</select>
+<button onclick="goToPage(1)" id="firstPageBtn" title="First">&laquo;</button>
+<button onclick="goToPage(currentPage - 1)" id="prevPageBtn" title="Previous">&lsaquo;</button>
+<span id="pageNumbers"></span>
+<button onclick="goToPage(currentPage + 1)" id="nextPageBtn" title="Next">&rsaquo;</button>
+<button onclick="goToPage(totalPages)" id="lastPageBtn" title="Last">&raquo;</button>
+</div>
+</div>
 <div class="row-count" id="rowCount"></div>
 </div>
 </div>
@@ -190,7 +276,7 @@ async function loadData() {
     
     allRecords = data || [];
     buildStats(allRecords);
-    renderTable(allRecords);
+    applyPagination(allRecords);
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('tableWrap').style.display = 'block';
 }
@@ -222,12 +308,15 @@ function buildStats(rows) {
 function applyFilters() {
     const type = document.getElementById('filterType').value;
     const fatal = document.getElementById('filterFatal').value;
+    const inv = document.getElementById('filterInv').value;
     const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-    renderTable(allRecords.filter(r =>
+    const filtered = allRecords.filter(r =>
         (!type || r.report_type === type) &&
         (!fatal || r.injury_fatal === fatal) &&
+        (!inv || r.investigation_status === inv) &&
         (!search || (r.injured_name||'').toLowerCase().includes(search) || (r.accident_case_number||'').toLowerCase().includes(search) || (r._persons||[]).some(function(p){return (p.full_name||'').toLowerCase().includes(search)}))
-    ));
+    );
+    applyPagination(filtered);
 }
 
 function renderTable(rows) {
@@ -249,7 +338,10 @@ function renderTable(rows) {
         <td>${(r._fatal_count || r.fatal_count) > 0 ? '<span class="badge badge-fatal">⚠ Fatal</span>' : (r.injury_fatal === 'Fatal' ? '<span class="badge badge-fatal">⚠ Fatal</span>' : '<span class="badge badge-non-fatal">Non-fatal</span>')}</td>
         <td><span class="badge badge-${invSlug}">${r.investigation_status || 'Pending'}</span></td>
         <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
-        <td style="white-space:nowrap"><button class="action-btn" onclick="viewRecord('${r.id}')">👁 View</button></td>
+        <td style="white-space:nowrap">
+            <button class="action-btn" onclick="viewRecord('${r.id}')">👁 View</button>
+            <button class="action-btn" onclick="editInvestigation('${r.id}','${r.investigation_status||'Pending'}','${r.submitted_by||''}')">Status</button>
+        </td>
         </tr>`;
     }).join('');
 }
@@ -296,6 +388,206 @@ async function viewRecord(id) {
         ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); resolve(); } });
         document.body.appendChild(ov);
     });
+}
+
+
+async function editInvestigation(id, current, ownerId) {
+    if (typeof canEditClaims === 'function' && !canEditClaims(ownerId)) {
+        showPermissionDenied('edit this report'); return;
+    }
+    const newStatus = await showSelect(
+        `Current: <strong>${current}</strong>`,
+        [{ value:'Pending', label:'Pending' }, { value:'In Progress', label:'In Progress' }, { value:'Completed', label:'Completed' }, { value:'Closed', label:'Closed' }],
+        current,
+        { title: 'Update Investigation Status', confirmText: 'Update' }
+    );
+    if (!newStatus || newStatus === current) return;
+    const { error } = await SB.from('accident_reports').update({ investigation_status: newStatus }).eq('id', id);
+    if (error) { await showAlert(error.message, { type:'error', title:'Update Failed' }); return; }
+    showToast('Investigation status updated', 'success');
+    allRecords = allRecords.map(r => r.id === id ? { ...r, investigation_status: newStatus } : r);
+    applyFilters();
+}
+
+function exportCSV() {
+    const headers = ['Accident #','Occupier','Industry','Report Type','Injured Name','Age','Sex','ID No','Occupation','Accident Date','Place','Fatal','Disabled 3+ Days','Investigation','Reporter','Report Date','Causation No'];
+    const rows = allRecords.map(r => [
+        r.accident_case_number, r.occupier_name, r.industry_sector, r.report_type,
+        r.injured_name, r.injured_age, r.injured_sex, r.injured_id_number,
+        r.occupation_at_accident, r.accident_date, r.accident_place, r.injury_fatal,
+        r.disabled_three_days, r.investigation_status, r.reporter_name, r.report_date, r.causation_number
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c||''}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+    a.download = `accident_reports_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// Pagination
+let currentPage = 1;
+let pageSize = 50;
+let totalPages = 1;
+let paginatedRecords = [];
+
+function applyPagination(records) {
+    currentPage = 1;
+    paginatedRecords = records;
+    totalPages = Math.ceil(records.length / pageSize) || 1;
+    renderPage();
+}
+
+function renderPage() {
+    const start = (currentPage - 1) * pageSize;
+    const end = Math.min(start + pageSize, paginatedRecords.length);
+    renderTable(paginatedRecords.slice(start, end));
+    updatePaginationControls();
+    const ctrl = document.getElementById("paginationControls");
+    if (ctrl) ctrl.style.display = paginatedRecords.length > 0 ? "flex" : "none";
+}
+
+function updatePaginationControls() {
+    const pi = document.getElementById("paginationInfo");
+    if (pi) {
+        pi.textContent = paginatedRecords.length > 0
+            ? "Showing " + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, paginatedRecords.length) + " of " + paginatedRecords.length + " records"
+            : "No records";
+    }
+    ["firstPageBtn","prevPageBtn","nextPageBtn","lastPageBtn"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+    var fp = document.getElementById("firstPageBtn"); if(fp) fp.disabled = currentPage <= 1;
+    var pp = document.getElementById("prevPageBtn"); if(pp) pp.disabled = currentPage <= 1;
+    var np = document.getElementById("nextPageBtn"); if(np) np.disabled = currentPage >= totalPages;
+    var lp = document.getElementById("lastPageBtn"); if(lp) lp.disabled = currentPage >= totalPages;
+    var pn = document.getElementById("pageNumbers");
+    if (pn) {
+        var html = "";
+        var startP = Math.max(1, currentPage - 2);
+        var endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+        for (var i = startP; i <= endP; i++) {
+            html += "<button class=\"" + (i === currentPage ? "active" : "") + "\" onclick=\"goToPage(" + i + ")\">" + i + "</button>";
+        }
+        pn.innerHTML = html;
+    }
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPage();
+    var tc = document.querySelector(".table-container");
+    if (tc) tc.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function changePageSize() {
+    pageSize = parseInt(document.getElementById("pageSizeSelect").value) || 50;
+    totalPages = Math.ceil(paginatedRecords.length / pageSize) || 1;
+    currentPage = 1;
+    renderPage();
+}
+
+
+async function editInvestigation(id, current, ownerId) {
+    if (typeof canEditClaims === 'function' && !canEditClaims(ownerId)) {
+        showPermissionDenied('edit this report'); return;
+    }
+    const newStatus = await showSelect(
+        `Current: <strong>${current}</strong>`,
+        [{ value:'Pending', label:'Pending' }, { value:'In Progress', label:'In Progress' }, { value:'Completed', label:'Completed' }, { value:'Closed', label:'Closed' }],
+        current,
+        { title: 'Update Investigation Status', confirmText: 'Update' }
+    );
+    if (!newStatus || newStatus === current) return;
+    const { error } = await SB.from('accident_reports').update({ investigation_status: newStatus }).eq('id', id);
+    if (error) { await showAlert(error.message, { type:'error', title:'Update Failed' }); return; }
+    showToast('Investigation status updated', 'success');
+    allRecords = allRecords.map(r => r.id === id ? { ...r, investigation_status: newStatus } : r);
+    applyFilters();
+}
+
+function exportCSV() {
+    const headers = ['Accident #','Occupier','Industry','Report Type','Injured Name','Age','Sex','ID No','Occupation','Accident Date','Place','Fatal','Disabled 3+ Days','Investigation','Reporter','Report Date','Causation No'];
+    const rows = allRecords.map(r => [
+        r.accident_case_number, r.occupier_name, r.industry_sector, r.report_type,
+        r.injured_name, r.injured_age, r.injured_sex, r.injured_id_number,
+        r.occupation_at_accident, r.accident_date, r.accident_place, r.injury_fatal,
+        r.disabled_three_days, r.investigation_status, r.reporter_name, r.report_date, r.causation_number
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c||''}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+    a.download = `accident_reports_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// Pagination
+let currentPage = 1;
+let pageSize = 50;
+let totalPages = 1;
+let paginatedRecords = [];
+
+function applyPagination(records) {
+    currentPage = 1;
+    paginatedRecords = records;
+    totalPages = Math.ceil(records.length / pageSize) || 1;
+    renderPage();
+}
+
+function renderPage() {
+    const start = (currentPage - 1) * pageSize;
+    const end = Math.min(start + pageSize, paginatedRecords.length);
+    renderTable(paginatedRecords.slice(start, end));
+    updatePaginationControls();
+    const ctrl = document.getElementById("paginationControls");
+    if (ctrl) ctrl.style.display = paginatedRecords.length > 0 ? "flex" : "none";
+}
+
+function updatePaginationControls() {
+    const pi = document.getElementById("paginationInfo");
+    if (pi) {
+        pi.textContent = paginatedRecords.length > 0
+            ? "Showing " + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, paginatedRecords.length) + " of " + paginatedRecords.length + " records"
+            : "No records";
+    }
+    ["firstPageBtn","prevPageBtn","nextPageBtn","lastPageBtn"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+    var fp = document.getElementById("firstPageBtn"); if(fp) fp.disabled = currentPage <= 1;
+    var pp = document.getElementById("prevPageBtn"); if(pp) pp.disabled = currentPage <= 1;
+    var np = document.getElementById("nextPageBtn"); if(np) np.disabled = currentPage >= totalPages;
+    var lp = document.getElementById("lastPageBtn"); if(lp) lp.disabled = currentPage >= totalPages;
+    var pn = document.getElementById("pageNumbers");
+    if (pn) {
+        var html = "";
+        var startP = Math.max(1, currentPage - 2);
+        var endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+        for (var i = startP; i <= endP; i++) {
+            html += "<button class=\"" + (i === currentPage ? "active" : "") + "\" onclick=\"goToPage(" + i + ")\">" + i + "</button>";
+        }
+        pn.innerHTML = html;
+    }
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPage();
+    var tc = document.querySelector(".table-container");
+    if (tc) tc.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function changePageSize() {
+    pageSize = parseInt(document.getElementById("pageSizeSelect").value) || 50;
+    totalPages = Math.ceil(paginatedRecords.length / pageSize) || 1;
+    currentPage = 1;
+    renderPage();
 }
 
 function fmtDate(d) {
