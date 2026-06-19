@@ -286,21 +286,21 @@
   const MENU = [
     {
         id: 'dashboard',
-        label: '\u2302 Dashboard',
+        label: '<img src=ICONS/DASHBOARD.png class=nav-icon> Dashboard',
         href: 'dashboard.html',
         single: true,
         hideFor: ['viewer', 'worker', 'company']
       },
       {
         id: 'company-view',
-        label: '\uD83C\uDFE2 Employer Details',
+        label: '<img src=ICONS/COMPANY.png class=nav-icon> Employer Details',
         href: 'company-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'book-inspection',
-        label: '\uD83D\uDCC5 Book Inspection',
+        label: '<img src=ICONS/INSPECTION.png class=nav-icon> Book Inspection',
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'company-book-inspection', icon: '\uD83D\uDCDD', label: 'New Booking',       href: 'company-book-inspection.html' },
@@ -309,21 +309,21 @@
       },
       {
         id: 'accident',
-        label: '\uD83D\uDEA8 Report Accident',
+        label: '<img src=ICONS/DASHBOARD.png class=nav-icon> Report Accident',
         href: 'accident-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'injury-disease',
-        label: '\uD83C\uDFE5 Report Injury / Disease',
+        label: '<img src=ICONS/INJURY.png class=nav-icon> Report Injury / Disease',
         href: 'injury-disease-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'company-monitoring',
-        label: '\uD83D\uDCCA Monitoring Dashboard',
+        label: '<img src=ICONS/DASHBOARD.png class=nav-icon> Monitoring Dashboard',
         href: 'company-monitoring.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
@@ -338,51 +338,51 @@
       },
       {
         id: 'company-injuries-view',
-        label: '🏥 My Injuries',
+        label: '<img src=ICONS/INJURY.png class=nav-icon> My Injuries',
         href: 'company-injuries-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
       },
       {
         id: 'inspection',
-        label: '\uD83D\uDD0D Inspections',
+        label: '<img src=ICONS/INSPECTION.png class=nav-icon> Inspections',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'inspection-form',     icon: '\uD83D\uDD0D', label: 'New Inspection',       href: 'inspection.html' },
+          { id: 'inspection-form',     icon: '<img src=ICONS/INSPECTION.png class=dd-icon>', label: 'New Inspection',       href: 'inspection.html' },
           { id: 'inspection-bookings', icon: '\uD83D\uDCC5', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
           { id: 'inspection-records',  icon: '\uD83D\uDCC1', label: 'Inspection Records',   href: 'inspection-entries.html' },
         ]
       },
       {
         id: 'accident',
-        label: '\uD83D\uDEA8 Accidents',
+        label: '<img src=ICONS/DASHBOARD.png class=nav-icon> Accidents',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'accident',         icon: '\uD83D\uDEA8', label: 'New Accident Report', href: 'accident-report.html' },
+          { id: 'accident',         icon: '<img src=ICONS/DASHBOARD.png class=dd-icon>', label: 'New Accident Report', href: 'accident-report.html' },
           { id: 'accident-entries', icon: '\uD83D\uDCCA', label: 'View Reports',        href: 'accident-entries.html' },
         ]
       },
       {
         id: 'injury',
-        label: '\uD83C\uDFE5 Injuries',
+        label: '<img src=ICONS/INJURY.png class=nav-icon> Injuries',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'injury-disease',         icon: '\uD83C\uDFE5', label: 'New Report',             href: 'injury-disease-report.html' },
+          { id: 'injury-disease',         icon: '<img src=ICONS/INJURY.png class=dd-icon>', label: 'New Report',             href: 'injury-disease-report.html' },
           { id: 'injury-disease-entries', icon: '\uD83D\uDCCA', label: 'View Reports',           href: 'injury-disease-entries.html' },
           { id: 'worker-profile',         icon: '\uD83D\uDC64', label: 'Worker Profile',         href: 'worker-profile.html' },
         ]
       },
       {
         id: 'investigation',
-        label: '🔍 Investigations',
+        label: '<img src="ICONS/INVESTIGATION.png" class="nav-icon"> Investigations',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'investigation-view', icon: '🔍', label: 'View Investigations', href: 'investigation.html' },
+          { id: 'investigation-view', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'View Investigations', href: 'investigation.html' },
         ]
       },
       {
         id: 'claims',
-        label: '\uD83D\uDCCB Claims',
+        label: '<img src=ICONS/CLAIM.png class=nav-icon> Claims',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
           { id: 'claims-submit',  icon: '\uD83D\uDCDD', label: 'Submit Claim',  href: 'form.html' },
@@ -391,14 +391,14 @@
       },
       {
         id: 'case-tracking',
-        label: '📊 My Cases',
+        label: '<img src=ICONS/DASHBOARD.png class=nav-icon> My Cases',
         href: 'case-tracking.html',
         single: true,
         hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'worker-claims',
-        label: '\uD83D\uDCCB My Claims',
+        label: '<img src=ICONS/CLAIM.png class=nav-icon> My Claims',
         href: 'worker-claims.html',
         single: true,
         hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
@@ -428,14 +428,14 @@
       },
       {
         id: 'company-register',
-        label: '\uD83C\uDFE2 Employers',
+        label: '<img src=ICONS/COMPANY.png class=nav-icon> Employers',
         href: 'company-register.html',
         single: true,
         hideFor: ['company', 'worker', 'medical_practitioner']
       },
       {
         id: 'admin',
-        label: '\u2699 Admin',
+        label: '<img src=ICONS/ADMIN.png class=nav-icon> Admin',
         hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         href: 'admin.html',
         single: true
@@ -463,7 +463,7 @@
         // Direct link button
         const btn = document.createElement('button');
         btn.className = 'osh-nav-btn' + (isSelfActive ? ' active' : '');
-        btn.textContent = item.label;
+        btn.innerHTML = item.label;
         btn.onclick = () => { window.location.href = item.href; };
         // Add notification badge if configured
         if (item.notification) {
