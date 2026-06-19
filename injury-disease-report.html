@@ -450,6 +450,7 @@
     <script src="claim-draft.js"></script>
     <script src="common.js"></script>
     <script>
+    const SB = window.supabaseClient;
     // ── Show next-of-kin question only when Death = Yes ──────
     function toggleNOK() {
         const death = document.querySelector('input[name="resulted_death"]:checked')?.value;
