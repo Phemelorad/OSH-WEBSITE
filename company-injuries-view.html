@@ -253,23 +253,40 @@ async function loadData() {
     console.log('[DEBUG] Querying injury_disease_reports with:', companyName);
     const words = companyName.split(' ').filter(w => w.length > 2);
     if (words.length === 0) words = [companyName];
-    const orConditions = words.map(w => 'employer_name.ilike.*' + w + '*').join(',');
-    console.log('[DEBUG] Word-match conditions:', orConditions);
-    const { data, error } = await SB
-        .from('injury_disease_reports')
-        .select('*')
-        .or(orConditions)
-        .order('incident_date', { ascending: false });
+    const injOrConditions = words.map(w => 'employer_name.ilike.*' + w + '*').join(',');
+    const accOrConditions = words.map(w => 'occupier_name.ilike.*' + w + '*').join(',');
     
-    console.log('[DEBUG] Results:', data?.length || 0, 'rows, error:', error?.message || 'OK');
-    if (data && data.length > 0) console.log('[DEBUG] Sample:', JSON.stringify(data[0]).slice(0,200));
+    const [injRes, accRes] = await Promise.all([
+        SB.from('injury_disease_reports')
+          .select('*')
+          .or(injOrConditions)
+          .order('incident_date', { ascending: false }),
+        SB.from('accident_reports')
+          .select('*')
+          .or(accOrConditions)
+          .order('accident_date', { ascending: false })
+    ]);
     
-    if (error) {
-        document.getElementById('loadingState').innerHTML = `<p style="color:#e74c3c;padding:40px;text-align:center">Error: ${error.message}<br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>`;
+    const injuries = (injRes.data || []).map(function(r) { return Object.assign({}, r, { _source: 'injury_report' }); });
+    const accidents = (accRes.data || []).map(function(r) { return Object.assign({}, r, { _source: 'accident' }); });
+    
+    // Merge and sort by date (newest first)
+    allRecords = injuries.concat(accidents).sort(function(a, b) {
+        var da = new Date(a.incident_date || a.accident_date || 0);
+        var db = new Date(b.incident_date || b.accident_date || 0);
+        return db - da;
+    });
+    
+    console.log('[DEBUG] Injury reports:', injuries.length, ', Accident-linked injuries:', accidents.length, ', Total:', allRecords.length);
+    
+    if (injRes.error) {
+        document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error loading: ' + injRes.error.message + '<br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
         return;
     }
+    if (accRes.error) {
+        console.warn('Accident query error:', accRes.error.message);
+    }
     
-    allRecords = data || [];
     buildStats(allRecords);
     renderTable(allRecords);
     document.getElementById('loadingState').style.display = 'none';
@@ -279,21 +296,28 @@ async function loadData() {
 function buildStats(rows) {
     const now = new Date(), month = new Date(now.getFullYear(), now.getMonth(), 1);
     document.getElementById('statTotal').textContent = rows.length;
-    document.getElementById('statInjury').textContent = rows.filter(r => r.incident_type === 'Injury').length;
-    document.getElementById('statDisease').textContent = rows.filter(r => r.incident_type === 'Disease').length;
-    document.getElementById('statDeath').textContent = rows.filter(r => r.resulted_death === 'Yes').length;
-    document.getElementById('statMonth').textContent = rows.filter(r => new Date(r.incident_date || r.created_at) >= month).length;
+    document.getElementById('statInjury').textContent = rows.filter(function(r) { return r._source === 'accident' || r.incident_type === 'Injury'; }).length;
+    document.getElementById('statDisease').textContent = rows.filter(function(r) { return r.incident_type === 'Disease'; }).length;
+    document.getElementById('statDeath').textContent = rows.filter(function(r) { return r.resulted_death === 'Yes' || r.injury_fatal === 'Fatal'; }).length;
+    document.getElementById('statMonth').textContent = rows.filter(function(r) {
+        var d = new Date(r.incident_date || r.accident_date || r.created_at);
+        return d >= month;
+    }).length;
 }
 
 function applyFilters() {
     const type = document.getElementById('filterType').value;
     const death = document.getElementById('filterDeath').value;
     const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-    renderTable(allRecords.filter(r =>
-        (!type || r.incident_type === type) &&
-        (!death || r.resulted_death === death) &&
-        (!search || (r.worker_name||'').toLowerCase().includes(search))
-    ));
+    renderTable(allRecords.filter(function(r) {
+        var isAcc = r._source === 'accident';
+        var rType = isAcc ? 'Accident Injury' : (r.incident_type || 'Injury');
+        var rDeath = isAcc ? r.injury_fatal : r.resulted_death;
+        var rName = (isAcc ? r.injured_name : r.worker_name) || '';
+        return (!type || rType === type) &&
+               (!death || rDeath === death) &&
+               (!search || rName.toLowerCase().includes(search));
+    }));
 }
 
 function renderTable(rows) {
@@ -303,62 +327,106 @@ function renderTable(rows) {
     if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
     tbody.innerHTML = rows.map(r => {
-        const typeSlug = (r.incident_type || 'injury').toLowerCase();
+        const isAcc = r._source === 'accident';
+        const workerName = isAcc ? r.injured_name : r.worker_name;
+        const workerId   = isAcc ? r.injured_id_number : r.worker_id_number;
+        const occupation = isAcc ? r.occupation_at_accident : r.occupation;
+        const incType    = isAcc ? 'Accident Injury' : (r.incident_type || 'Injury');
+        const typeSlug   = incType.toLowerCase().replace(/ /g,'_');
         const statusSlug = (r.status || 'submitted').toLowerCase().replace(' ','_');
-        const nature = (r.nature_of_injuries || '').length > 60 ? r.nature_of_injuries.substring(0,60) + '…' : (r.nature_of_injuries || '—');
+        const incDate    = isAcc ? r.accident_date : r.incident_date;
+        const incPlace   = isAcc ? r.accident_place : r.place_of_accident;
+        const incNature  = isAcc ? r.accident_description : r.nature_of_injuries;
+        const nature     = (incNature || '').length > 60 ? incNature.substring(0,60) + '…' : (incNature || '—');
+        const death      = isAcc ? r.injury_fatal : r.resulted_death;
+        const deathBadge = death === 'Fatal' ? 'Fatal' : 'No';
+        const permIncap  = isAcc ? (r.disabled_three_days === 'Yes' ? 'Yes' : 'No') : (r.permanent_incapacity || 'No');
+        const tempIncap  = isAcc ? (r.disabled_three_days === 'Yes' ? 'Yes' : 'No') : (r.temporary_incapacity || 'No');
+        const sourceBadge = isAcc
+            ? '<span class="badge badge-accident" style="background:#d1ecf1;color:#0c5460">From Accident</span>'
+            : '<span class="badge badge-injury">Injury Report</span>';
         return `<tr>
-        <td><strong>${r.worker_name || '—'}</strong><br><small style="color:#aaa">${r.worker_id_number || ''}</small></td>
-        <td>${r.occupation || '—'}</td>
-        <td><span class="badge badge-${typeSlug}">${r.incident_type || '—'}</span></td>
-        <td style="white-space:nowrap">${fmtDate(r.incident_date)}</td>
-        <td>${r.place_of_accident || '—'}</td>
-        <td style="max-width:200px" title="${r.nature_of_injuries||''}">${nature}</td>
-        <td><span class="badge badge-${(r.resulted_death||'No').toLowerCase()}">${r.resulted_death || 'No'}</span></td>
-        <td><span class="badge badge-${(r.permanent_incapacity||'No').toLowerCase()}">${r.permanent_incapacity || 'No'}</span></td>
-        <td><span class="badge badge-${(r.temporary_incapacity||'No').toLowerCase()}">${r.temporary_incapacity || 'No'}</span></td>
+        <td><strong>${workerName || '—'}</strong><br><small style="color:#aaa">${workerId || ''}</small></td>
+        <td>${occupation || '—'}</td>
+        <td>${sourceBadge}</td>
+        <td><span class="badge badge-${typeSlug}">${incType}</span></td>
+        <td style="white-space:nowrap">${fmtDate(incDate)}</td>
+        <td>${incPlace || '—'}</td>
+        <td style="max-width:200px" title="${incNature||''}">${nature}</td>
+        <td><span class="badge badge-${deathBadge.toLowerCase()}">${deathBadge}</span></td>
+        <td><span class="badge badge-${permIncap.toLowerCase()}">${permIncap}</span></td>
+        <td><span class="badge badge-${tempIncap.toLowerCase()}">${tempIncap}</span></td>
         <td><span class="badge badge-${statusSlug}">${r.status || 'submitted'}</span></td>
-        <td style="white-space:nowrap"><button class="action-btn" onclick="viewRecord('${r.id}')">👁 View</button></td>
+        <td style="white-space:nowrap"><button class="action-btn" onclick="viewRecord('${r.id}')">View</button></td>
         </tr>`;
     }).join('');
 }
 
-async function viewRecord(id) {
-    const r = allRecords.find(x => x.id === id);
+function viewRecord(id) {
+    var r = allRecords.find(function(x) { return x.id === id; });
     if (!r) return;
     function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
     
-    const workerSection = '<div class="rec-section"><div class="rec-section-header worker">👤 Worker Details</div><div class="rec-section-body">' +
+    if (r._source === 'accident') {
+        // Accident-linked injury from accident_reports
+        var workerSection = '<div class="rec-section"><div class="rec-section-header worker">👤 Injured Worker Details</div><div class="rec-section-body">' +
+            f('Full Name', r.injured_name) + f('Age', r.injured_age) + f('Gender', r.injured_sex) + f('ID / Passport', r.injured_id_number) +
+            f('Occupation at Accident', r.occupation_at_accident) + f('Normal Occupation', r.usual_occupation) + f('Experience Level', r.experience_level) + '</div></div>';
+        
+        var accidentSection = '<div class="rec-section"><div class="rec-section-header incident">🚨 Accident Details</div><div class="rec-section-body">' +
+            f('Date', fmtDate(r.accident_date)) + f('Time', r.accident_time) + f('Place', r.accident_place) +
+            f('Description', r.accident_description) + f('Machinery Involved', r.machinery_involved) +
+            f('Fatal?', r.injury_fatal) + f('Disabled 3+ Days', r.disabled_three_days) + '</div></div>';
+        
+        var employerSection = '<div class="rec-section"><div class="rec-section-header employer">🏢 Employer Details</div><div class="rec-section-body">' +
+            f('Occupier', r.occupier_name) + f('Premises Address', r.premises_address) + f('Industry', r.nature_of_industry) +
+            (r.industry_sector ? f('Sector', r.industry_sector) : '') + f('Case Number', r.accident_case_number) + '</div></div>';
+        
+        var reportSection = '<div class="rec-section"><div class="rec-section-header investigation">🔍 Investigation & Reporting</div><div class="rec-section-body">' +
+            f('Reporter', r.reporter_name + (r.reporter_designation ? ' (' + r.reporter_designation + ')' : '')) +
+            f('Report Date', fmtDate(r.report_date)) + f('Investigation Status', r.investigation_status) +
+            f('Official Action', r.official_action) + '</div></div>';
+        
+        var modalHtml = '<div class="rec-modal">' +
+            '<div class="rec-modal-header"><div><h2>🚨 Accident-Linked Injury</h2><div class="subtitle">From OHS Form 60 - ' + fmtDate(r.accident_date) + '</div></div>' +
+            '<button class="rec-modal-close" id="recCloseBtn">X</button></div>' +
+            '<div class="rec-modal-body">' + workerSection + accidentSection + employerSection + reportSection + '</div></div>';
+        
+        return new Promise(function(resolve) {
+            var ov = document.createElement('div');
+            ov.className = 'rec-modal-overlay';
+            ov.innerHTML = modalHtml;
+            ov.querySelector('#recCloseBtn').addEventListener('click', function() { ov.remove(); resolve(); });
+            ov.addEventListener('click', function(e) { if (e.target === ov) { ov.remove(); resolve(); } });
+            document.body.appendChild(ov);
+        });
+    }
+    
+    // Direct injury / disease report (BL Form 43/10)
+    var workerSection = '<div class="rec-section"><div class="rec-section-header worker">👤 Worker Details</div><div class="rec-section-body">' +
         f('Worker Name', r.worker_name) + f('Address', r.worker_address) + f('Occupation', r.occupation) + f('ID / Passport', r.worker_id_number) + '</div></div>';
     
-    const incidentSection = '<div class="rec-section"><div class="rec-section-header incident">🚨 Incident Details</div><div class="rec-section-body">' +
+    var incidentSection = '<div class="rec-section"><div class="rec-section-header incident">🚨 Incident Details</div><div class="rec-section-body">' +
         f('Date', fmtDate(r.incident_date)) + f('Place', r.place_of_accident) + f('Type', r.incident_type) + f('Nature', r.nature_of_injuries) + '</div></div>';
     
-    const outcomeSection = (r.resulted_death || r.permanent_incapacity || r.temporary_incapacity) ?
+    var outcomeSection = (r.resulted_death || r.permanent_incapacity || r.temporary_incapacity) ?
         '<div class="rec-section"><div class="rec-section-header outcome">⚕️ Outcome</div><div class="rec-section-body">' +
         f('Death', r.resulted_death) + f('Permanent Incapacity', r.permanent_incapacity) + f('Temporary Incapacity', r.temporary_incapacity) + '</div></div>' : '';
     
-    const employerSection = '<div class="rec-section"><div class="rec-section-header employer">🏢 Employer Details</div><div class="rec-section-body">' +
+    var employerSection = '<div class="rec-section"><div class="rec-section-header employer">🏢 Employer Details</div><div class="rec-section-body">' +
         f('Employer', r.employer_name) + f('Telephone', r.employer_telephone) + f('Fax', r.employer_fax) + '</div></div>';
     
-    const modalHtml = `<div class="rec-modal">
-        <div class="rec-modal-header">
-            <div><h2>🏥 Injury & Disease Report</h2><div class="subtitle">BL Form 43/10</div></div>
-            <button class="rec-modal-close" id="recCloseBtn">✕</button>
-        </div>
-        <div class="rec-modal-body">
-            ${workerSection}
-            ${incidentSection}
-            ${outcomeSection}
-            ${employerSection}
-        </div>
-    </div>`;
+    var modalHtml = '<div class="rec-modal">' +
+        '<div class="rec-modal-header"><div><h2>🏥 Injury & Disease Report</h2><div class="subtitle">BL Form 43/10</div></div>' +
+        '<button class="rec-modal-close" id="recCloseBtn">X</button></div>' +
+        '<div class="rec-modal-body">' + workerSection + incidentSection + outcomeSection + employerSection + '</div></div>';
     
-    return new Promise(resolve => {
-        const ov = document.createElement('div');
+    return new Promise(function(resolve) {
+        var ov = document.createElement('div');
         ov.className = 'rec-modal-overlay';
         ov.innerHTML = modalHtml;
-        ov.querySelector('#recCloseBtn').addEventListener('click', () => { ov.remove(); resolve(); });
-        ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); resolve(); } });
+        ov.querySelector('#recCloseBtn').addEventListener('click', function() { ov.remove(); resolve(); });
+        ov.addEventListener('click', function(e) { if (e.target === ov) { ov.remove(); resolve(); } });
         document.body.appendChild(ov);
     });
 }
