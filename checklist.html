@@ -602,13 +602,13 @@
                     if (state.status === 'detected') {
                         html += '<div style="font-size:11px;color:#43a047;font-weight:600;margin-top:4px;">✓ Auto-detected from database</div>';
                     } else if (state.status === 'uploaded') {
-                        html += '<div class="uploaded-file">⬆ Uploaded: ' + (state.fileName || 'file') + ' <button class="rm-btn" onclick="removeDoc('' + key + '')" title="Remove">✕</button></div>';
+                        html += '<div class="uploaded-file">⬆ Uploaded: ' + (state.fileName || 'file') + ' <button class="rm-btn" data-key="' + key + '" onclick="removeDoc(this.dataset.key)" title="Remove">✕</button></div>';
                     } else {
                         // Show upload button for items without DB table or not detected
                         html += '<div class="upload-area">';
-                        html += '<button class="upload-btn" onclick="uploadDoc('' + key + '')" id="upload-btn-' + key + '">📎 Upload Document</button>';
+                        html += '<button class="upload-btn" data-key="' + key + '" onclick="uploadDoc(this.dataset.key)" id="upload-btn-' + key + '">📎 Upload Document</button>';
                         html += '<span class="upload-progress" id="upload-progress-' + key + '"></span>';
-                        html += '<input type="file" id="file-input-' + key + '" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="handleFileSelect('' + key + '', this)">';
+                        html += '<input type="file" id="file-input-' + key + '" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" data-key="' + key + '" onchange="handleFileSelect(this.dataset.key, this)">';
                         html += '</div>';
                     }
 
