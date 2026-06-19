@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Forms Checklist - DOSH</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <style>
+        /* ── Base ── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        /* ── Header ── */
+        .checklist-header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            border-radius: 16px;
+            padding: 40px 48px;
+            margin-bottom: 32px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(26,35,126,0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        .checklist-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .checklist-header h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; position: relative; }
+        .checklist-header .subtitle { font-size: 14px; opacity: 0.85; margin-bottom: 4px; position: relative; }
+        .checklist-header .tel { font-size: 16px; font-weight: 700; margin-top: 12px; position: relative; display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); padding: 8px 20px; border-radius: 8px; }
+        .checklist-header .tel::before { content: '📞'; }
+
+        /* ── Progress bar ── */
+        .progress-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .progress-section .progress-label { font-size: 14px; color: #666; font-weight: 600; white-space: nowrap; }
+        .progress-bar-outer {
+            flex: 1;
+            height: 10px;
+            background: #e8eaf6;
+            border-radius: 10px;
+            overflow: hidden;
+            min-width: 150px;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #43a047, #66bb6a);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .progress-count { font-size: 14px; color: #888; white-space: nowrap; }
+        .progress-count strong { color: #333; }
+        .action-buttons { display: flex; gap: 10px; margin-left: auto; }
+        .print-btn, .reset-btn {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s;
+            color: #555;
+        }
+        .print-btn:hover, .reset-btn:hover {
+            border-color: #1a237e;
+            color: #1a237e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* ── Section cards ── */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+        .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .section-card-header {
+            padding: 18px 28px;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: default;
+        }
+        .section-card-header .icon { font-size: 20px; }
+        .section-card-header .section-count {
+            margin-left: auto;
+            font-size: 12px;
+            text-transform: none;
+            letter-spacing: 0;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+        .sc-forms .section-card-header { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #1565c0; }
+        .sc-letters .section-card-header { background: linear-gradient(135deg, #fff3e0, #ffe0b2); color: #e65100; }
+        .sc-traffic .section-card-header { background: linear-gradient(135deg, #fce4ec, #f8bbd0); color: #c62828; }
+        .sc-death .section-card-header { background: linear-gradient(135deg, #f3e5f5, #e1bee7); color: #6a1b9a; }
+        .sc-noncitizen .section-card-header { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; }
+        .sc-citizen .section-card-header { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); color: #00838f; }
+
+        .section-card-body { padding: 8px 0; }
+
+        /* ── Checklist items ── */
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 14px 28px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .check-item:last-child { border-bottom: none; }
+        .check-item:hover { background: #fafbfc; }
+        .check-item.checked { background: #f1f8e9; }
+        .check-item.checked:hover { background: #e8f5e0; }
+
+        .check-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #bdbdbd;
+            border-radius: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all 0.2s;
+            position: relative;
+            background: white;
+        }
+        .check-item input[type="checkbox"]:checked {
+            background: #43a047;
+            border-color: #43a047;
+        }
+        .check-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .check-item input[type="checkbox"]:hover { border-color: #43a047; }
+
+        .check-item .item-number {
+            font-size: 13px;
+            font-weight: 700;
+            color: #888;
+            min-width: 36px;
+            flex-shrink: 0;
+            padding-top: 1px;
+        }
+        .check-item.checked .item-number { color: #43a047; }
+        .check-item .item-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #444;
+            flex: 1;
+        }
+        .check-item .item-text .highlight {
+            background: #fff8e1;
+            padding: 0 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        .check-item .item-text .note {
+            display: block;
+            font-size: 12px;
+            color: #999;
+            margin-top: 3px;
+            font-style: italic;
+        }
+        .check-item.checked .item-text { color: #666; text-decoration: line-through; }
+        .check-item.checked .item-text .note { text-decoration: none; color: #999; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .checklist-header { padding: 28px 24px; }
+            .checklist-header h1 { font-size: 22px; }
+            .progress-section { flex-direction: column; align-items: stretch; gap: 12px; }
+            .action-buttons { margin-left: 0; }
+            .check-item { padding: 12px 20px; }
+            .section-card-header { padding: 14px 20px; font-size: 13px; }
+        }
+
+        /* ── Print styles ── */
+        @media print {
+            body { background: white; }
+            .navbar, .checklist-header .tel, .progress-section, .action-buttons, .site-nav { display: none !important; }
+            .checklist-header { background: #1a237e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px 30px; box-shadow: none; }
+            .checklist-header h1 { font-size: 20px; }
+            .section-card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+            .section-card-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .check-item input[type="checkbox"]:checked { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .check-item.checked .item-text { text-decoration: none; color: #333; }
+            .check-item input[type="checkbox"] { border: 1px solid #999; }
+            .container { margin: 20px auto; }
+        }
+    </style>
+</head>
+<body>
+    <script>window.OSH_ACTIVE_PAGE = 'checklist';</script>
+    <script src="header.js"></script>
+    <script src="nav.js"></script>
+
+    <div class="container">
+        <!-- ── Header ── -->
+        <div class="checklist-header">
+            <h1>Workers Compensation Claim Forms Checklist</h1>
+            <div class="subtitle">Required documents for processing a workers' compensation claim</div>
+            <div class="tel">Tel: 3956706</div>
+        </div>
+
+        <!-- ── Progress tracker ── -->
+        <div class="progress-section" id="progressSection">
+            <span class="progress-label">Progress</span>
+            <div class="progress-bar-outer">
+                <div class="progress-bar-inner" id="progressBar"></div>
+            </div>
+            <span class="progress-count">
+                <strong id="checkedCount">0</strong> / <strong id="totalCount">0</strong> items
+            </span>
+            <div class="action-buttons">
+                <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
+                <button class="print-btn" onclick="window.print()">🖨️ Print</button>
+            </div>
+        </div>
+
+        <!-- ── Section 1: Forms ── -->
+        <div class="section-card sc-forms">
+            <div class="section-card-header">
+                <span class="icon">📄</span> FORMS
+                <span class="section-count" id="count-forms">0/5</span>
+            </div>
+            <div class="section-card-body">
+                <label class="check-item" data-section="forms">
+                    <input type="checkbox">
+                    <span class="item-number">1.</span>
+                    <span class="item-text">
+                        <strong>Form 43/10</strong> — Injury and Disease Report
+                        <span class="note">To be submitted within 17 days by employer</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="forms">
+                    <input type="checkbox">
+                    <span class="item-number">2.</span>
+                    <span class="item-text">
+                        <strong>Form 43.02</strong> — Wages of Worker
+                        <span class="note">To be completed by employer (3 copies, stamped)</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="forms">
+                    <input type="checkbox">
+                    <span class="item-number">3.</span>
+                    <span class="item-text">
+                        <strong>Form 43/03</strong> — Medical Examination Report
+                        <span class="note">To be completed by a Medical Doctor (4 copies, stamped &amp; signed)</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="forms">
+                    <input type="checkbox">
+                    <span class="item-number">4.</span>
+                    <span class="item-text">
+                        <strong>Form 43/07</strong> — Certificate of Insurance
+                        <span class="note">To be completed by Insurance Company (stamped)</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="forms">
+                    <input type="checkbox">
+                    <span class="item-number">5.</span>
+                    <span class="item-text">
+                        <strong>Form 43/11</strong> — Notification of Time and Place of Attendance of Medical Practitioner
+                        <span class="note">To be completed by employer</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ── Section 2: Letters & Statements ── -->
+        <div class="section-card sc-letters">
+            <div class="section-card-header">
+                <span class="icon">✉️</span> LETTERS &amp; STATEMENTS
+                <span class="section-count" id="count-letters">0/5</span>
+            </div>
+            <div class="section-card-body">
+                <label class="check-item" data-section="letters">
+                    <input type="checkbox">
+                    <span class="item-number">6.</span>
+                    <span class="item-text">
+                        <strong>Covering Letter</strong> (or Savingram for Government Employees) from Employer confirming injury
+                    </span>
+                </label>
+                <label class="check-item" data-section="letters">
+                    <input type="checkbox">
+                    <span class="item-number">7.</span>
+                    <span class="item-text">
+                        <strong>Employee's (Claimant) Statement</strong> of injury
+                    </span>
+                </label>
+                <label class="check-item" data-section="letters">
+                    <input type="checkbox">
+                    <span class="item-number">8.</span>
+                    <span class="item-text">
+                        <strong>2 Witnesses' Sworn Statements</strong>
+                        <span class="note">1 copy each</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="letters">
+                    <input type="checkbox">
+                    <span class="item-number">9.</span>
+                    <span class="item-text">
+                        <strong>Advice Slip / Proof of Salary</strong> with Account Number
+                        <span class="note">Attached to BL FORM 43/02</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="letters">
+                    <input type="checkbox">
+                    <span class="item-number">10.</span>
+                    <span class="item-text">
+                        <strong>Dental Quotations</strong> (in case of tooth loss)
+                        <span class="note">Attach quotations from 3 different dentists</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ── Section 3: Road Traffic Accident ── -->
+        <div class="section-card sc-traffic">
+            <div class="section-card-header">
+                <span class="icon">🚗</span> IN CASE OF ROAD TRAFFIC ACCIDENT
+                <span class="section-count" id="count-traffic">0/3</span>
+            </div>
+            <div class="section-card-body">
+                <div class="check-item note-item" style="padding: 10px 28px; background: #fff8e1; border-bottom: 1px solid #ffeeba;">
+                    <span style="font-size: 13px; color: #856404;">⚠️ In addition to the above documents</span>
+                </div>
+                <label class="check-item" data-section="traffic">
+                    <input type="checkbox">
+                    <span class="item-number">11.</span>
+                    <span class="item-text"><strong>Police Report</strong></span>
+                </label>
+                <label class="check-item" data-section="traffic">
+                    <input type="checkbox">
+                    <span class="item-number">12.</span>
+                    <span class="item-text"><strong>Claimant's Sworn Statement</strong></span>
+                </label>
+                <label class="check-item" data-section="traffic">
+                    <input type="checkbox">
+                    <span class="item-number">13.</span>
+                    <span class="item-text"><strong>2 Witnesses' Sworn Statements</strong></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ── Section 4: Death ── -->
+        <div class="section-card sc-death">
+            <div class="section-card-header">
+                <span class="icon">🕊️</span> IN CASE OF DEATH
+                <span class="section-count" id="count-death">0/4</span>
+            </div>
+            <div class="section-card-body">
+                <label class="check-item" data-section="death">
+                    <input type="checkbox">
+                    <span class="item-number">14.</span>
+                    <span class="item-text">
+                        <strong>Post Mortem Report</strong>
+                        <span class="note highlight">⚠️ Very important</span>
+                    </span>
+                </label>
+                <label class="check-item" data-section="death">
+                    <input type="checkbox">
+                    <span class="item-number">15.</span>
+                    <span class="item-text"><strong>Death Certificate</strong></span>
+                </label>
+                <label class="check-item" data-section="death">
+                    <input type="checkbox">
+                    <span class="item-number">16.</span>
+                    <span class="item-text"><strong>Form 43/03</strong> — Medical Examination</span>
+                </label>
+                <label class="check-item" data-section="death">
+                    <input type="checkbox">
+                    <span class="item-number">17.</span>
+                    <span class="item-text"><strong>Contact Details of Next of Kin</strong></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ── Section 5: Non-Citizen ── -->
+        <div class="section-card sc-noncitizen">
+            <div class="section-card-header">
+                <span class="icon">🛂</span> IN CASE OF NON-CITIZEN
+                <span class="section-count" id="count-noncitizen">0/1</span>
+            </div>
+            <div class="section-card-body">
+                <label class="check-item" data-section="noncitizen">
+                    <input type="checkbox">
+                    <span class="item-number">18.</span>
+                    <span class="item-text"><strong>Copy of Work Permit</strong></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ── Section 6: Citizen ── -->
+        <div class="section-card sc-citizen">
+            <div class="section-card-header">
+                <span class="icon">🇧🇼</span> IN CASE OF CITIZEN
+                <span class="section-count" id="count-citizen">0/1</span>
+            </div>
+            <div class="section-card-body">
+                <label class="check-item" data-section="citizen">
+                    <input type="checkbox">
+                    <span class="item-number">19.</span>
+                    <span class="item-text"><strong>Copy of Omang</strong> (National ID)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Persistent checklist (localStorage) ──
+        (function() {
+            const STORAGE_KEY = 'osh_checklist_state';
+
+            function loadState() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    return saved ? JSON.parse(saved) : {};
+                } catch { return {}; }
+            }
+
+            function saveState(state) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            function getItemId(checkbox) {
+                const parent = checkbox.closest('.check-item');
+                const num = parent?.querySelector('.item-number')?.textContent?.trim();
+                const section = parent?.dataset?.section;
+                return section && num ? section + '-' + num : null;
+            }
+
+            // Restore saved state
+            const state = loadState();
+            document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
+                const id = getItemId(cb);
+                if (id && state[id]) {
+                    cb.checked = true;
+                    cb.closest('.check-item').classList.add('checked');
+                }
+
+                cb.addEventListener('change', function() {
+                    const item = this.closest('.check-item');
+                    const id = getItemId(this);
+                    if (this.checked) {
+                        item.classList.add('checked');
+                        if (id) state[id] = true;
+                    } else {
+                        item.classList.remove('checked');
+                        if (id) delete state[id];
+                    }
+                    saveState(state);
+                    updateProgress();
+                });
+            });
+
+            // ── Progress updater ──
+            window.updateProgress = function() {
+                const allItems = document.querySelectorAll('.check-item input[type="checkbox"]');
+                const checked = document.querySelectorAll('.check-item input[type="checkbox"]:checked');
+                const total = allItems.length;
+
+                document.getElementById('checkedCount').textContent = checked.length;
+                document.getElementById('totalCount').textContent = total;
+
+                const pct = total > 0 ? (checked.length / total) * 100 : 0;
+                document.getElementById('progressBar').style.width = pct + '%';
+
+                // Per-section counts
+                const sections = {};
+                document.querySelectorAll('.check-item').forEach(item => {
+                    const sec = item.dataset.section;
+                    if (!sec) return;
+                    if (!sections[sec]) sections[sec] = { total: 0, checked: 0 };
+                    sections[sec].total++;
+                    if (item.querySelector('input[type="checkbox"]')?.checked) sections[sec].checked++;
+                });
+
+                Object.keys(sections).forEach(sec => {
+                    const el = document.getElementById('count-' + sec);
+                    if (el) {
+                        el.textContent = sections[sec].checked + '/' + sections[sec].total;
+                    }
+                });
+            };
+
+            // ── Reset ──
+            window.resetChecklist = function() {
+                if (!confirm('Reset all checklist items?')) return;
+                localStorage.removeItem(STORAGE_KEY);
+                document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                    cb.closest('.check-item').classList.remove('checked');
+                });
+                updateProgress();
+            };
+
+            // Initial update
+            updateProgress();
+        })();
+    </script>
+</body>
+</html>

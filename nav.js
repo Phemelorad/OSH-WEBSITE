@@ -399,6 +399,7 @@ margin-right: 6px;
         children: [
           { id: 'claims-submit',  icon: '<img src="ICONS/SUBMIT_CLAIM.png" class="dd-icon">', label: 'Submit Claim',  href: 'form.html' },
           { id: 'claims-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Entries',  href: 'entries.html' },
+          { id: 'checklist', icon: '<img src="ICONS/CLAIM.png" class="dd-icon">', label: 'Claim Checklist',  href: 'checklist.html' },
         ]
       },
       {
