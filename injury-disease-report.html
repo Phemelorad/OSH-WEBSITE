@@ -447,8 +447,7 @@
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
     <script src="worker-lookup.js"></script>
-    <script src="claim-draft.js"></script>
-    <script src="common.js"></script>
+        <script src="common.js"></script>
     <script>
     const SB = window.supabaseClient;
     // ── Show next-of-kin question only when Death = Yes ──────
@@ -558,13 +557,6 @@
 
             if (error) throw error;
 
-            const draftId = await createClaimDraftFromInjuryDisease(
-                payload,
-                insertedReport.id,
-                userResult.user.id,
-                registryId
-            );
-
             var we = document.getElementById('workerEmail')?.value?.trim();
             if (we) {
                 var wn = document.getElementById('workerName')?.value?.trim();
@@ -572,16 +564,8 @@
                 await window.createWorkerAccount(we, wi, wn);
             }
 
-
-
-            if (draftId) {
-                await promptCompleteClaimDraft(draftId, 'injury & disease report');
-            } else {
-                await showAlert(
-                    'Injury & Disease Report submitted successfully.',
-                    { type: 'success', title: 'Report Submitted', btnText: 'OK' }
-                );
-            }
+            await showAlert('Injury & Disease Report submitted successfully.',
+                { type: 'success', title: 'Report Submitted', btnText: 'OK' });
 
             document.getElementById('injuryDiseaseForm').reset();
             document.getElementById('nokRow').style.display = 'none';

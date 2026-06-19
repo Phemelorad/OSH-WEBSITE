@@ -543,7 +543,7 @@
     <script src="role-permissions.js"></script>
     <script src="modal.js"></script>
     <script src="worker-lookup.js"></script>
-    <script src="claim-draft.js"></script>
+    
     <script src="common.js"></script>
     <script>
     // ── Toggle sections based on report type ──────────────────
@@ -807,23 +807,11 @@
                 hourly_pay: firstPerson.hourly_pay,
                 medical_practitioner: firstPerson.medical_practitioner
             } : payload;
-            const draftId = await createClaimDraftFromAccident(
-                draftPayload,
-                insertedReport.id,
-                userResult.user.id,
-                null
-            );
-
             for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
 
-            if (draftId) {
-                await promptCompleteClaimDraft(draftId, 'accident report');
-            } else {
-                await showAlert('Accident report submitted successfully!\n\n📋 Case Number: ' + (data?.accident_case_number || 'Pending'), { 
-                    type: 'success', title: 'Report Submitted', btnText: 'OK' 
-                });
-            }
-
+            await showAlert('Accident report submitted successfully!\n\n📋 Case Number: ' + (data?.accident_case_number || 'Pending'), { 
+                type: 'success', title: 'Report Submitted', btnText: 'OK' 
+            });
             document.getElementById('accidentForm').reset();
             toggleSections();
 
