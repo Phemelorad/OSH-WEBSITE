@@ -319,7 +319,7 @@ margin-right: 4px;
       },
       {
         id: 'book-inspection',
-        label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Book Inspection',
+        label: '<img src="ICONS/BOOKINGS.png" class="nav-icon"> Book Inspection',
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'company-book-inspection', icon: '\uD83D\uDCDD', label: 'New Booking',       href: 'company-book-inspection.html' },

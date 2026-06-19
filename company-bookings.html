@@ -154,7 +154,7 @@
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card amber"><div class="stat-icon">⏳</div><h3>Pending</h3><div class="stat-value" id="statPending">—</div></div>
             <div class="stat-card blue"><div class="stat-icon">✅</div><h3>Approved</h3><div class="stat-value" id="statApproved">—</div></div>
-            <div class="stat-card purple"><div class="stat-icon"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div><h3>Scheduled</h3><div class="stat-value" id="statScheduled">—</div></div>
+            <div class="stat-card purple"><div class="stat-icon"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div><h3>Scheduled</h3><div class="stat-value" id="statScheduled">—</div></div>
             <div class="stat-card green"><div class="stat-icon">✔</div><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
             <div class="stat-card red"><div class="stat-icon">✕</div><h3>Cancelled</h3><div class="stat-value" id="statCancelled">—</div></div>
             <div class="stat-card"><div class="stat-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div><h3>Total</h3><div class="stat-value" id="statTotal">—</div></div>
@@ -182,7 +182,7 @@
                 </table>
             </div>
             <div id="emptyState" class="empty-state">
-                <div class="empty-icon"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div>
+                <div class="empty-icon"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>
                 <p>No inspection booking requests yet.</p>
                 <p style="font-size:13px;color:#bbb;margin-top:6px"><a href="company-book-inspection.html" style="color:#17a2b8">Book your first inspection →</a></p>
             </div>
@@ -390,7 +390,7 @@
             let scheduleHTML = '';
             if (r.scheduled_date) {
                 scheduleHTML = '<div style="margin-top:12px;padding:14px;background:#e8f5e9;border-radius:8px;text-align:center;border:1px solid #c8e6c9">'
-                    + '<div style="font-size:20px;margin-bottom:4px"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div>'
+                    + '<div style="font-size:20px;margin-bottom:4px"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>'
                     + '<strong style="color:#155724">Inspection Scheduled</strong>'
                     + '<div style="font-size:13px;color:#155724;margin-top:4px">' + fmtDate(r.scheduled_date) + (r.scheduled_time ? ' at ' + r.scheduled_time : '') + '</div>'
                     + (r.assigned_inspector ? '<div style="font-size:12px;color:#388e3c;margin-top:2px">Inspector: ' + esc(r.assigned_inspector) + '</div>' : '')
@@ -430,7 +430,7 @@
                 + 'padding:28px 26px;font-family:\'Segoe UI\',sans-serif;position:relative;">'
 
                 + '<div style="text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #f0f0f0">'
-                + '<div style="font-size:28px;margin-bottom:4px"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div>'
+                + '<div style="font-size:28px;margin-bottom:4px"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>'
                 + '<h2 style="color:#222;font-size:18px;margin-bottom:2px">Inspection Booking Details</h2>'
                 + '<p style="color:#888;font-size:12px">' + esc(r.company_name) + ' · ' + statusBadge + '</p>'
                 + '</div>'

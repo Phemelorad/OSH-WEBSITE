@@ -1004,7 +1004,7 @@
             const email = await showPrompt(
                 'Enter the email address you registered with:',
                 '',
-                { title: 'Resend Confirmation', icon: '📧' }
+                { title: 'Resend Confirmation', icon: '<img src="ICONS/RECORD.png" class="icon" alt="">' }
             );
             if (!email) return;
             const r = await window.resendConfirmation(email);
@@ -1148,7 +1148,7 @@
                     type: 'success',
                     title: 'Account Created',
                     btnText: 'Go to Login',
-                    extraBtn: { text: '📧 Resend Email', action: async () => {
+                    extraBtn: { text: '<img src="ICONS/RECORD.png" class="icon" alt=""> Resend Email', action: async () => {
                         const r = await resendConfirmation(email);
                         if (r.success) {
                             await showAlert(`Confirmation email resent to <strong>${email}</strong>.`, {

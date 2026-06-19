@@ -879,7 +879,7 @@
             : `Claim ${esc(c.file_number || '—')} — ${esc(c.name_of_employer || '')}`;
         return `
         <div class="incident-card type-claim" onclick="${click}">
-            <div class="incident-icon icon-claim">${isDraft ? '📝' : '<img src="ICONS/CLAIM.png" class="icon" alt="">'}</div>
+            <div class="incident-icon icon-claim">${isDraft ? '<img src="ICONS/RECORD.png" class="icon" alt="">' : '<img src="ICONS/CLAIM.png" class="icon" alt="">'}</div>
             <div class="incident-body">
                 <h4>${title}</h4>
                 <div class="desc">${esc(trunc)}</div>

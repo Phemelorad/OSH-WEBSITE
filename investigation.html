@@ -284,7 +284,7 @@
     <div class="container">
         <div class="info-banner">
             <span style="font-size:24px"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></span>
-            <div>Each <strong>accident</strong> is listed with its affected workers below. An accident can have multiple injured workers — click <strong><img src="ICONS/COMPANY.png" class="icon" alt=""> Workers</strong> to see the full list.</div>
+            <div>Each <strong>accident</strong> is listed with its affected workers below. An accident can have multiple injured workers — click <strong><img src="ICONS/WORKER PROFILE.png" class="icon" alt=""> Workers</strong> to see the full list.</div>
         </div>
 
         <div class="stats-grid">
@@ -512,8 +512,8 @@
                 '</td>' +
                 '<td><span class="badge badge-' + statusSlug + '">' + a.status + '</span></td>' +
                 '<td style="white-space:nowrap">' +
-                '<button class="action-btn" onclick="event.stopPropagation();viewAccident(\'' + a.id + '\')"><img src="ICONS/CLAIM.png" class="icon" alt=""> View</button> ' +
-                (hasInjuries ? '<button class="action-btn" onclick="event.stopPropagation();viewWorkers(\'' + a.id + '\')" style="background:#d1ecf1;color:#0c5460;border-color:#bee5eb"><img src="ICONS/COMPANY.png" class="icon" alt=""> Workers</button>' : '') +
+                '<button class="action-btn" onclick="event.stopPropagation();viewAccident(\'' + a.id + '\')"><img src="ICONS/VIEW.png" class="icon" alt=""> View</button> ' +
+                (hasInjuries ? '<button class="action-btn" onclick="event.stopPropagation();viewWorkers(\'' + a.id + '\')" style="background:#d1ecf1;color:#0c5460;border-color:#bee5eb"><img src="ICONS/WORKER PROFILE.png" class="icon" alt=""> Workers</button>' : '') +
                 '</td>' +
                 '</tr>';
 

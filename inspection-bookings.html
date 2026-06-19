@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inspection Bookings - DOSH</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/INSPECTION.png" class="icon" alt=""></text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/BOOKINGS.png" class="icon" alt=""></text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -119,7 +119,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1><img src="ICONS/INSPECTION.png" class="icon" alt=""> Inspection Bookings</h1>
+        <h1><img src="ICONS/BOOKINGS.png" class="icon" alt=""> Inspection Bookings</h1>
         <div class="user-info">
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
@@ -206,7 +206,7 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display:none">
-                    <p><img src="ICONS/INSPECTION.png" class="icon" alt=""> No booking requests found</p>
+                    <p><img src="ICONS/BOOKINGS.png" class="icon" alt=""> No booking requests found</p>
                     <p class="sub">Companies can submit inspection requests through the company portal.</p>
                 </div>
                 <div id="rowCount" style="margin-top:12px;font-size:13px;color:#888;text-align:right;"></div>
@@ -351,7 +351,7 @@
                         ? `<button class="action-btn approve" onclick="updateStatus('${r.id}','approved')">✓ Approve</button>`
                         : ''}
                     ${canManage && (isPending || isApproved)
-                        ? `<button class="action-btn schedule" onclick="updateStatus('${r.id}','scheduled')"><img src="ICONS/INSPECTION.png" class="icon" alt=""> Schedule</button>`
+                        ? `<button class="action-btn schedule" onclick="updateStatus('${r.id}','scheduled')"><img src="ICONS/BOOKINGS.png" class="icon" alt=""> Schedule</button>`
                         : ''}
                     ${canManage && (isPending || isApproved || isScheduled)
                         ? `<button class="action-btn" onclick="updateStatus('${r.id}','completed')">✅ Complete</button>`
@@ -439,7 +439,7 @@
             // Schedule confirmation
             const scheduleHTML = r.scheduled_date ? `
                 <div style="margin-top:12px;padding:14px;background:#e8f5e9;border-radius:8px;text-align:center;border:1px solid #c8e6c9">
-                    <div style="font-size:20px;margin-bottom:4px"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div>
+                    <div style="font-size:20px;margin-bottom:4px"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>
                     <strong style="color:#155724">Inspection Scheduled</strong>
                     <div style="font-size:13px;color:#155724;margin-top:4px">${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' at ' + r.scheduled_time : ''}</div>
                     ${r.assigned_inspector ? `<div style="font-size:12px;color:#388e3c;margin-top:2px">Inspector: ${esc(r.assigned_inspector)}</div>` : ''}
@@ -484,7 +484,7 @@
 
                     <!-- Header -->
                     <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f0f0f0">
-                        <div style="font-size:32px;margin-bottom:6px"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div>
+                        <div style="font-size:32px;margin-bottom:6px"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>
                         <h2 style="color:#222;font-size:20px;margin-bottom:2px">Inspection Booking Details</h2>
                         <p style="color:#888;font-size:13px">${esc(r.company_name)} · ${statusBadge}</p>
                     </div>
@@ -502,7 +502,7 @@
                         <button id="notifyBtn" style="display:inline-flex;align-items:center;gap:6px;padding:10px 22px;
                             background:#17a2b8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;
                             cursor:pointer;font-family:inherit;transition:all 0.2s;">
-                            📧 Notify Company
+                            <img src="ICONS/RECORD.png" class="icon" alt=""> Notify Company
                         </button>
                         <button id="closeBtn" style="padding:10px 22px;background:#333;color:#fff;border:none;
                             border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
@@ -527,7 +527,7 @@
                     `</div>`,
                     {
                         title: 'Send Email Notification',
-                        icon: '📧',
+                        icon: '<img src="ICONS/RECORD.png" class="icon" alt="">',
                         confirmText: 'Send Email',
                         cancelText: 'Cancel'
                     }
@@ -607,7 +607,7 @@
         const adminNotes = await showPrompt(
             'Add admin notes (optional):',
             r.admin_notes || '',
-            { title: 'Admin Notes', icon: '📝' }
+            { title: 'Admin Notes', icon: '<img src="ICONS/RECORD.png" class="icon" alt="">' }
         );
         if (adminNotes === null) return;
 
@@ -641,7 +641,7 @@
 
         const ok = await showConfirm(confirmMsg, {
             title: 'Update Status',
-            icon: '<img src="ICONS/INSPECTION.png" class="icon" alt="">',
+            icon: '<img src="ICONS/BOOKINGS.png" class="icon" alt="">',
             confirmText: newStatus.charAt(0).toUpperCase() + newStatus.slice(1),
             danger: newStatus === 'cancelled'
         });
@@ -654,7 +654,7 @@
             const dateVal = await showPrompt(
                 'Enter the scheduled inspection date (YYYY-MM-DD):',
                 new Date().toISOString().split('T')[0],
-                { title: 'Schedule Date', icon: '<img src="ICONS/INSPECTION.png" class="icon" alt="">' }
+                { title: 'Schedule Date', icon: '<img src="ICONS/BOOKINGS.png" class="icon" alt="">' }
             );
             if (!dateVal) return;
             extraUpdates.scheduled_date = dateVal;
@@ -671,7 +671,7 @@
         const notes = await showPrompt(
             'Add admin notes (optional):',
             r.admin_notes || '',
-            { title: 'Admin Notes', icon: '📝' }
+            { title: 'Admin Notes', icon: '<img src="ICONS/RECORD.png" class="icon" alt="">' }
         );
         if (notes !== null) extraUpdates.admin_notes = notes;
 

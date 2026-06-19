@@ -317,7 +317,7 @@ async function viewRecord(id) {
     if (!r) return;
     function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
     
-    const workerSection = '<div class="rec-section"><div class="rec-section-header worker"><img src="ICONS/COMPANY.png" class="icon" alt=""> Worker Details</div><div class="rec-section-body">' +
+    const workerSection = '<div class="rec-section"><div class="rec-section-header worker"><img src="ICONS/WORKER PROFILE.png" class="icon" alt=""> Worker Details</div><div class="rec-section-body">' +
         f('Worker Name', r.worker_name) + f('Address', r.worker_address) + f('Occupation', r.occupation) + f('ID / Passport', r.worker_id_number) + '</div></div>';
     
     const incidentSection = '<div class="rec-section"><div class="rec-section-header incident"><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Incident Details</div><div class="rec-section-body">' +
