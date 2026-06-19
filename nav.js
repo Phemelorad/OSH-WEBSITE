@@ -330,6 +330,20 @@
         notification: 'company-bookings-responded'
       },
       {
+        id: 'company-accidents-view',
+        label: '🚨 My Accidents',
+        href: 'company-accidents-view.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+      },
+      {
+        id: 'company-injuries-view',
+        label: '🏥 My Injuries',
+        href: 'company-injuries-view.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+      },
+      {
         id: 'inspection',
         label: '\uD83D\uDD0D Inspections',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
