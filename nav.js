@@ -330,16 +330,20 @@ margin-right: 6px;
       {
         id: 'accident',
         label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Report Accident',
-        href: 'accident-report.html',
-        single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        children: [
+          { id: 'accident-report', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Report', href: 'accident-report.html' },
+          { id: 'company-accidents-view', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'My Accidents', href: 'company-accidents-view.html' },
+        ]
       },
       {
         id: 'injury-disease',
         label: '<img src="ICONS/INJURY.png" class="nav-icon"> Report Injury / Disease',
-        href: 'injury-disease-report.html',
-        single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        children: [
+          { id: 'injury-disease-report', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report', href: 'injury-disease-report.html' },
+          { id: 'company-injuries-view', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'My Injuries', href: 'company-injuries-view.html' },
+        ]
       },
       {
         id: 'company-monitoring',
@@ -349,20 +353,8 @@ margin-right: 6px;
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         notification: 'company-bookings-responded'
       },
-      {
-        id: 'company-accidents-view',
-        label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> My Accidents',
-        href: 'company-accidents-view.html',
-        single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
-      },
-      {
-        id: 'company-injuries-view',
-        label: '<img src="ICONS/INJURY.png" class="nav-icon"> My Injuries',
-        href: 'company-injuries-view.html',
-        single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
-      },
+
+
       {
         id: 'inspection',
         label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Inspections',
