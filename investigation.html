@@ -655,7 +655,7 @@
             let claimsByInjury = {};
             if (injuries.length > 0) {
                 const injuryIds = injuries.map(i => i.id);
-                const { data: claims } = await SB.from('injury_claims').select('id, file_number, status, injury_report_id, incapacity_percentage').in('injury_report_id', injuryIds);
+                const { data: claims } = await SB.from('injury_claims').select('id, file_number, status, injury_report_id, incapacity_percentage').neq('status', 'draft').in('injury_report_id', injuryIds);
                 if (claims) {
                     claims.forEach(cl => {
                         if (cl.injury_report_id) claimsByInjury[cl.injury_report_id] = cl;

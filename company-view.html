@@ -351,7 +351,7 @@
                 SB.from('accident_reports').select('*').ilike('occupier_name', companyName).order('accident_date', { ascending: false }).limit(5),
                 SB.from('workplace_inspections').select('*').ilike('factory_name', companyName).order('inspection_date', { ascending: false }).limit(5),
                 SB.from('injury_disease_reports').select('*').ilike('employer_name', companyName).order('incident_date', { ascending: false }).limit(5),
-                SB.from('injury_claims').select('*').ilike('name_of_employer', companyName).order('created_at', { ascending: false }).limit(5),
+                SB.from('injury_claims').select('*').ilike('name_of_employer', companyName).neq('status', 'draft').order('created_at', { ascending: false }).limit(5),
                 SB.from('company_register_view').select('*').ilike('company_name', companyName).maybeSingle()
             ]);
 

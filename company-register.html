@@ -372,7 +372,7 @@
                 SB.from('accident_reports').select('occupier_name, industry_sector, accident_date, injury_fatal, report_type, id').not('occupier_name', 'is', null),
                 SB.from('workplace_inspections').select('factory_name, industry_type, compliance_level, inspection_date, follow_up_required, employees_male, employees_female, id').not('factory_name', 'is', null),
                 SB.from('injury_disease_reports').select('employer_name, incident_type, resulted_death, incident_date, id').not('employer_name', 'is', null),
-                SB.from('injury_claims').select('name_of_employer, industry, status, date_of_injury, incapacity_percentage, id').not('name_of_employer', 'is', null),
+                SB.from('injury_claims').select('name_of_employer, industry, status, date_of_injury, incapacity_percentage, id').neq('status', 'draft').not('name_of_employer', 'is', null),
             ]);
 
             const dbCompanies = compRes.data || [];

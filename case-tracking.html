@@ -263,7 +263,7 @@
     }
 
     async function fetchClaimsByIdNumber(normId) {
-        const { data } = await SB.from('injury_claims').select('*').ilike('claimant_id_number', normId);
+        const { data } = await SB.from('injury_claims').select('*').ilike('claimant_id_number', normId).neq('status', 'draft');
         if (!data) return [];
         return data.map(function(r) { return makeCase(r, 'claim', 'Injury Claim'); });
     }

@@ -259,6 +259,7 @@
                     .from('injury_claims')
                     .select('*', { count: 'exact', head: false })
                     .eq('claimant_id_number', storedId)
+                    .neq('status', 'draft')
                     .order('created_at', { ascending: false });
             }
 
@@ -275,6 +276,7 @@
                         .from('injury_claims')
                         .select('*', { count: 'exact', head: false })
                         .eq('worker_registry_id', workerId)
+                        .neq('status', 'draft')
                         .order('created_at', { ascending: false });
                 }
             }
@@ -285,6 +287,7 @@
                     .from('injury_claims')
                     .select('*', { count: 'exact', head: false })
                     .eq('claimant_id_number', profile.id_number)
+                    .neq('status', 'draft')
                     .order('created_at', { ascending: false });
             }
 
@@ -293,6 +296,7 @@
                     .from('injury_claims')
                     .select('*', { count: 'exact', head: false })
                     .eq('claimant_email', userResult.user.email)
+                    .neq('status', 'draft')
                     .order('created_at', { ascending: false });
             }
 

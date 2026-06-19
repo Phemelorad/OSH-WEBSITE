@@ -575,7 +575,7 @@
         }
 
         // Also try direct search on injury_claims by claimant_id_number
-        var dc = await SB.from('injury_claims').select('*').eq('claimant_id_number', normId);
+        var dc = await SB.from('injury_claims').select('*').eq('claimant_id_number', normId).neq('status', 'draft');
         if (!dc.error && dc.data && dc.data.length > 0) {
           var seenIds = new Set(results.filter(function(r){return r.claim_id;}).map(function(r){return r.claim_id;}));
           for (var i = 0; i < dc.data.length; i++) {

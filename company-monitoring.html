@@ -376,6 +376,7 @@
                 SB.from('injury_claims')
                     .select('*')
                     .eq('name_of_employer', companyName)
+                    .neq('status', 'draft')
                     .order('created_at', { ascending: false })
                     .limit(50)
             ]);

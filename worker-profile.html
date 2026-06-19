@@ -786,7 +786,7 @@
         const normId = idNumber ? window.normalizeIdentityId(idNumber) : null;
         if (normId) {
             const r = await SB.from('injury_claims').select('*')
-                .eq('claimant_id_number', normId)
+                .eq('claimant_id_number', normId).neq('status', 'draft')
                 .order('date_of_injury', { ascending: false });
             if (!r.error) add(r.data);
         }

@@ -428,7 +428,7 @@
             const btn = document.getElementById('searchBtn');
             btn.disabled=true; btn.innerHTML='<span class="loading-spinner"></span> Searching...';
             try{
-                const {data:claims} = await SB.from('injury_claims').select('*,workers_registry!inner(*)').or('claimant_id_number.ilike.'+q+',file_number.ilike.%'+q+'%').limit(5);
+                const {data:claims} = await SB.from('injury_claims').select('*,workers_registry!inner(*)').neq('status', 'draft').or('claimant_id_number.ilike.'+q+',file_number.ilike.%'+q+'%').limit(5);
                 const {data:workers} = await SB.from('workers_registry').select('*').or('id_number.ilike.'+q+',full_name.ilike.%'+q+'%').limit(5);
                 if(claims&&claims.length>0){
                     const m=claims[0]; searchedClaim=m; searchedWorkerId=m.worker_registry_id||null;

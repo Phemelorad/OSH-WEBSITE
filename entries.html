@@ -462,6 +462,7 @@
                 let query = supabaseClient
                     .from('injury_claims_view')
                     .select('*')
+                    .neq('status', 'draft')
                     .order('created_at', { ascending: false });
 
                 // Apply filters
@@ -743,7 +744,7 @@
             document.getElementById("claimsLoading").style.display = "block";
             document.getElementById("claimsContent").style.display = "none";
             try {
-                let query = supabaseClient.from("injury_claims_view").select("*").order("created_at", { ascending: false });
+                let query = supabaseClient.from("injury_claims_view").select("*").neq("status", "draft").order("created_at", { ascending: false });
                 const statusFilter = document.getElementById("filterStatus").value;
                 const industryFilter = document.getElementById("filterIndustry").value;
                 if (statusFilter) query = query.eq("status", statusFilter);
