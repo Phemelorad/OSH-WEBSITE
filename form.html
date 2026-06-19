@@ -533,11 +533,13 @@
             const params = new URLSearchParams(window.location.search);
             const draftId = params.get('draft');
             if (draftId) {
-                const data = await loadClaimDraftIntoForm(draftId);
-                if (data) {
-                    document.getElementById('cancelDraftBtn').style.display = 'inline-block';
-                    document.getElementById('submitClaimBtn').textContent = 'Complete & submit claim';
-                }
+                (async () => {
+                    const data = await loadClaimDraftIntoForm(draftId);
+                    if (data) {
+                        document.getElementById('cancelDraftBtn').style.display = 'inline-block';
+                        document.getElementById('submitClaimBtn').textContent = 'Complete & submit claim';
+                    }
+                })();
             }
 
         async function cancelDraftFromForm() {
