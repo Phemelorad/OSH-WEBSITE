@@ -348,10 +348,10 @@
             }
 
             const [accRes, insRes, idrRes, clmRes, viewRes] = await Promise.all([
-                SB.from('accident_reports').select('*').ilike('occupier_name', companyName).order('accident_date', { ascending: false }).limit(5),
-                SB.from('workplace_inspections').select('*').ilike('factory_name', companyName).order('inspection_date', { ascending: false }).limit(5),
-                SB.from('injury_disease_reports').select('*').ilike('employer_name', companyName).order('incident_date', { ascending: false }).limit(5),
-                SB.from('injury_claims').select('*').ilike('name_of_employer', companyName).neq('status', 'draft').order('created_at', { ascending: false }).limit(5),
+                SB.from('accident_reports').select('*').or(buildWordMatch('occupier_name', companyName)).order('accident_date', { ascending: false }).limit(5),
+                SB.from('workplace_inspections').select('*').or(buildWordMatch('factory_name', companyName)).order('inspection_date', { ascending: false }).limit(5),
+                SB.from('injury_disease_reports').select('*').or(buildWordMatch('employer_name', companyName)).order('incident_date', { ascending: false }).limit(5),
+                SB.from('injury_claims').select('*').or(buildWordMatch('name_of_employer', companyName)).neq('status', 'draft').order('created_at', { ascending: false }).limit(5),
                 SB.from('company_register_view').select('*').ilike('company_name', companyName).maybeSingle()
             ]);
 
@@ -363,9 +363,9 @@
 
             // Count queries for accurate totals
             const { count: totalAccidents, error: accErr } = await SB
-              .from('accident_reports').select('*', { count: 'exact', head: true }).ilike('occupier_name', companyName);
+              .from('accident_reports').select('*', { count: 'exact', head: true }).or(buildWordMatch('occupier_name', companyName));
             const { count: totalInjuries, error: injErr } = await SB
-              .from('injury_disease_reports').select('*', { count: 'exact', head: true }).ilike('employer_name', companyName);
+              .from('injury_disease_reports').select('*', { count: 'exact', head: true }).or(buildWordMatch('employer_name', companyName));
             const totalInspections = viewData ? (viewData.inspection_count || 0) : inspections.length;
             const avgCompliance = inspections.length ? inspections[0].compliance_level : null;
             const totalClaims = viewData ? (viewData.claim_count || 0) : claims.length;

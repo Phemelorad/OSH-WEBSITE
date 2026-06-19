@@ -251,10 +251,14 @@ async function loadData() {
     document.getElementById('tableWrap').style.display = 'none';
     
     console.log('[DEBUG] Querying injury_disease_reports with:', companyName);
+    const words = companyName.split(' ').filter(w => w.length > 2);
+    if (words.length === 0) words = [companyName];
+    const orConditions = words.map(w => 'employer_name.ilike.*' + w + '*').join(',');
+    console.log('[DEBUG] Word-match conditions:', orConditions);
     const { data, error } = await SB
         .from('injury_disease_reports')
         .select('*')
-        .ilike('employer_name', '%' + companyName + '%')
+        .or(orConditions)
         .order('incident_date', { ascending: false });
     
     console.log('[DEBUG] Results:', data?.length || 0, 'rows, error:', error?.message || 'OK');
