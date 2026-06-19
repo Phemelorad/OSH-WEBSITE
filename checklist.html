@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
     <style>
-        /* ── Base ── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
         .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
@@ -15,217 +14,205 @@
         /* ── Header ── */
         .checklist-header {
             background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
-            border-radius: 16px;
-            padding: 40px 48px;
-            margin-bottom: 32px;
-            color: white;
-            box-shadow: 0 8px 32px rgba(26,35,126,0.25);
-            position: relative;
-            overflow: hidden;
+            border-radius: 16px; padding: 40px 48px; margin-bottom: 28px;
+            color: white; box-shadow: 0 8px 32px rgba(26,35,126,0.25);
+            position: relative; overflow: hidden;
         }
         .checklist-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
+            content: ''; position: absolute; top: -50%; right: -20%;
+            width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%;
         }
         .checklist-header h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; position: relative; }
-        .checklist-header .subtitle { font-size: 14px; opacity: 0.85; margin-bottom: 4px; position: relative; }
-        .checklist-header .tel { font-size: 16px; font-weight: 700; margin-top: 12px; position: relative; display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); padding: 8px 20px; border-radius: 8px; }
+        .checklist-header .subtitle { font-size: 14px; opacity: 0.85; position: relative; }
+        .checklist-header .tel { font-size: 15px; font-weight: 600; margin-top: 14px; position: relative; display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); padding: 8px 20px; border-radius: 8px; }
         .checklist-header .tel::before { content: '📞'; }
+
+        /* ── Search card ── */
+        .search-card {
+            background: white; border-radius: 12px; padding: 28px 32px;
+            margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
+        }
+        .search-card .field-group { flex: 1; min-width: 200px; }
+        .search-card label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; margin-bottom: 6px; }
+        .search-card input {
+            width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 15px; font-family: inherit; transition: border-color 0.2s;
+        }
+        .search-card input:focus { outline: none; border-color: #1a237e; }
+        .search-card button {
+            padding: 10px 28px; background: #1a237e; color: white; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .search-card button:hover { background: #283593; transform: translateY(-1px); }
+        .search-card button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .search-result { width: 100%; padding: 12px 16px; background: #f0f4ff; border-radius: 8px; font-size: 13px; color: #1a237e; display: none; }
 
         /* ── Progress bar ── */
         .progress-section {
-            background: white;
-            border-radius: 12px;
-            padding: 24px 32px;
-            margin-bottom: 28px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
+            background: white; border-radius: 12px; padding: 20px 28px;
+            margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
         }
-        .progress-section .progress-label { font-size: 14px; color: #666; font-weight: 600; white-space: nowrap; }
-        .progress-bar-outer {
-            flex: 1;
-            height: 10px;
-            background: #e8eaf6;
-            border-radius: 10px;
-            overflow: hidden;
-            min-width: 150px;
-        }
-        .progress-bar-inner {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #43a047, #66bb6a);
-            border-radius: 10px;
-            transition: width 0.5s ease;
-        }
-        .progress-count { font-size: 14px; color: #888; white-space: nowrap; }
+        .progress-section .progress-label { font-size: 13px; color: #666; font-weight: 600; white-space: nowrap; }
+        .progress-bar-outer { flex: 1; height: 10px; background: #e8eaf6; border-radius: 10px; overflow: hidden; min-width: 120px; }
+        .progress-bar-inner { height: 100%; width: 0%; background: linear-gradient(90deg, #43a047, #66bb6a); border-radius: 10px; transition: width 0.5s ease; }
+        .progress-count { font-size: 13px; color: #888; white-space: nowrap; }
         .progress-count strong { color: #333; }
         .action-buttons { display: flex; gap: 10px; margin-left: auto; }
         .print-btn, .reset-btn {
-            padding: 10px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            transition: all 0.2s;
-            color: #555;
+            padding: 8px 18px; border: 2px solid #e0e0e0; border-radius: 8px; background: white;
+            cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit;
+            transition: all 0.2s; color: #555;
         }
-        .print-btn:hover, .reset-btn:hover {
-            border-color: #1a237e;
-            color: #1a237e;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
+        .print-btn:hover, .reset-btn:hover { border-color: #1a237e; color: #1a237e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
         /* ── Section cards ── */
         .section-card {
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            overflow: hidden;
+            background: white; border-radius: 12px; margin-bottom: 18px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden;
             transition: box-shadow 0.3s ease;
         }
         .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         .section-card-header {
-            padding: 18px 28px;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            cursor: default;
+            padding: 16px 24px; font-size: 14px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            display: flex; align-items: center; gap: 12px; cursor: default;
         }
-        .section-card-header .icon { font-size: 20px; }
-        .section-card-header .section-count {
-            margin-left: auto;
-            font-size: 12px;
-            text-transform: none;
-            letter-spacing: 0;
-            opacity: 0.7;
-            font-weight: 500;
-        }
+        .section-card-header .icon { font-size: 18px; }
+        .section-card-header .section-count { margin-left: auto; font-size: 11px; text-transform: none; letter-spacing: 0; opacity: 0.7; font-weight: 500; white-space: nowrap; }
         .sc-forms .section-card-header { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #1565c0; }
         .sc-letters .section-card-header { background: linear-gradient(135deg, #fff3e0, #ffe0b2); color: #e65100; }
         .sc-traffic .section-card-header { background: linear-gradient(135deg, #fce4ec, #f8bbd0); color: #c62828; }
         .sc-death .section-card-header { background: linear-gradient(135deg, #f3e5f5, #e1bee7); color: #6a1b9a; }
         .sc-noncitizen .section-card-header { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; }
         .sc-citizen .section-card-header { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); color: #00838f; }
-
-        .section-card-body { padding: 8px 0; }
+        .section-card-body { padding: 4px 0; }
 
         /* ── Checklist items ── */
         .check-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            padding: 14px 28px;
-            border-bottom: 1px solid #f5f5f5;
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 12px 24px; border-bottom: 1px solid #f5f5f5;
             transition: background 0.2s;
-            cursor: pointer;
         }
         .check-item:last-child { border-bottom: none; }
-        .check-item:hover { background: #fafbfc; }
         .check-item.checked { background: #f1f8e9; }
         .check-item.checked:hover { background: #e8f5e0; }
+        .check-item.detected { background: #e8f5e9; border-left: 3px solid #43a047; }
+        .check-item.uploaded { background: #fff8e1; border-left: 3px solid #ffa000; }
 
-        .check-item input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            border: 2px solid #bdbdbd;
-            border-radius: 6px;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-top: 1px;
-            transition: all 0.2s;
-            position: relative;
-            background: white;
+        .check-item .check-icon {
+            width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+            margin-top: 1px; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; transition: all 0.2s;
         }
-        .check-item input[type="checkbox"]:checked {
-            background: #43a047;
-            border-color: #43a047;
-        }
-        .check-item input[type="checkbox"]:checked::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .check-item input[type="checkbox"]:hover { border-color: #43a047; }
+        .check-item .check-icon.pending { background: #f5f5f5; border: 2px solid #bdbdbd; color: transparent; }
+        .check-item .check-icon.checked { background: #43a047; border: 2px solid #43a047; color: white; }
+        .check-item .check-icon.detected { background: #2e7d32; border: 2px solid #2e7d32; color: white; }
+        .check-item .check-icon.uploaded { background: #ff8f00; border: 2px solid #ff8f00; color: white; }
 
         .check-item .item-number {
-            font-size: 13px;
-            font-weight: 700;
-            color: #888;
-            min-width: 36px;
-            flex-shrink: 0;
-            padding-top: 1px;
+            font-size: 13px; font-weight: 700; color: #999;
+            min-width: 32px; flex-shrink: 0; padding-top: 2px;
         }
-        .check-item.checked .item-number { color: #43a047; }
-        .check-item .item-text {
-            font-size: 14px;
-            line-height: 1.5;
-            color: #444;
-            flex: 1;
+        .check-item.checked .item-number, .check-item.detected .item-number { color: #43a047; }
+        .check-item.uploaded .item-number { color: #ff8f00; }
+
+        .check-item .item-content { flex: 1; min-width: 0; }
+        .check-item .item-text { font-size: 14px; line-height: 1.5; color: #444; }
+        .check-item .item-text strong { color: #222; }
+        .check-item .item-text .note { display: block; font-size: 12px; color: #999; margin-top: 2px; font-style: italic; }
+        .check-item.detected .item-text { color: #2e7d32; }
+        .check-item.detected .item-text strong { color: #1b5e20; }
+        .check-item.detected .item-text .note { color: #66bb6a; font-style: normal; }
+        .check-item.uploaded .item-text { color: #e65100; }
+        .check-item.uploaded .item-text .note { color: #ffa000; font-style: normal; }
+
+        /* ── File upload ── */
+        .upload-area {
+            margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
         }
-        .check-item .item-text .highlight {
-            background: #fff8e1;
-            padding: 0 4px;
-            border-radius: 3px;
-            font-weight: 600;
+        .upload-btn {
+            padding: 6px 16px; border: 2px dashed #90caf9; border-radius: 6px;
+            background: #f5faff; cursor: pointer; font-size: 12px; font-weight: 600;
+            font-family: inherit; color: #1565c0; transition: all 0.2s;
         }
-        .check-item .item-text .note {
-            display: block;
-            font-size: 12px;
-            color: #999;
-            margin-top: 3px;
-            font-style: italic;
+        .upload-btn:hover { background: #e3f2fd; border-color: #42a5f5; }
+        .upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .upload-progress { font-size: 11px; color: #888; }
+        .uploaded-file {
+            font-size: 12px; color: #e65100; display: flex; align-items: center; gap: 6px;
         }
-        .check-item.checked .item-text { color: #666; text-decoration: line-through; }
-        .check-item.checked .item-text .note { text-decoration: none; color: #999; }
+        .uploaded-file .rm-btn {
+            background: none; border: none; color: #c62828; cursor: pointer;
+            font-size: 14px; padding: 0 4px;
+        }
+        .uploaded-file .rm-btn:hover { color: #b71c1c; }
+
+        /* ── Proceed button ── */
+        .proceed-section {
+            background: white; border-radius: 12px; padding: 24px 28px;
+            margin-top: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            text-align: center; display: none;
+        }
+        .proceed-btn {
+            padding: 14px 40px; font-size: 16px; font-weight: 700;
+            background: linear-gradient(135deg, #1a237e, #3949ab); color: white;
+            border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
+            transition: all 0.2s; box-shadow: 0 4px 16px rgba(26,35,126,0.3);
+        }
+        .proceed-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(26,35,126,0.4); }
+        .proceed-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .proceed-btn .sub { display: block; font-size: 11px; font-weight: 400; opacity: 0.8; margin-top: 4px; }
+        .proceed-note { font-size: 12px; color: #888; margin-top: 10px; }
+
+        /* ── Empty state ── */
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; display: none; }
+        .empty-state .big-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; color: #666; margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ── Loading ── */
+        .loading-overlay {
+            display: none; text-align: center; padding: 40px; color: #888;
+        }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1a237e; border-radius: 50%; width: 32px; height: 32px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
 
         /* ── Responsive ── */
         @media (max-width: 768px) {
-            .checklist-header { padding: 28px 24px; }
-            .checklist-header h1 { font-size: 22px; }
+            .checklist-header { padding: 24px 20px; }
+            .checklist-header h1 { font-size: 20px; }
+            .search-card { padding: 20px; }
             .progress-section { flex-direction: column; align-items: stretch; gap: 12px; }
             .action-buttons { margin-left: 0; }
-            .check-item { padding: 12px 20px; }
-            .section-card-header { padding: 14px 20px; font-size: 13px; }
+            .check-item { padding: 10px 16px; }
+            .section-card-header { padding: 12px 16px; font-size: 12px; }
+            .proceed-section { padding: 20px; }
         }
 
-        /* ── Print styles ── */
         @media print {
             body { background: white; }
-            .navbar, .checklist-header .tel, .progress-section, .action-buttons, .site-nav { display: none !important; }
+            .navbar, .search-card, .upload-area, .upload-btn, .action-buttons,
+            .proceed-section, .site-nav { display: none !important; }
             .checklist-header { background: #1a237e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px 30px; box-shadow: none; }
-            .checklist-header h1 { font-size: 20px; }
-            .section-card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
-            .section-card-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .check-item input[type="checkbox"]:checked { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .check-item.checked .item-text { text-decoration: none; color: #333; }
-            .check-item input[type="checkbox"] { border: 1px solid #999; }
+            .check-item.detected, .check-item.uploaded { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .container { margin: 20px auto; }
         }
+
+        /* ── Toast notification ── */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px;
+            padding: 14px 24px; border-radius: 10px; color: white;
+            font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999; transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #43a047; }
+        .toast.error { background: #e53935; }
+        .toast.info { background: #1e88e5; }
     </style>
 </head>
 <body>
@@ -237,305 +224,622 @@
         <!-- ── Header ── -->
         <div class="checklist-header">
             <h1>Workers Compensation Claim Forms Checklist</h1>
-            <div class="subtitle">Required documents for processing a workers' compensation claim</div>
+            <div class="subtitle">Verify all required documents before filing a claim</div>
             <div class="tel">Tel: 3956706</div>
+            <div style="margin-top:14px;padding:10px 18px;background:rgba(255,193,7,0.2);border-radius:8px;font-size:12px;position:relative;color:#ffe082;">
+                ⚡ Documents with a database record are auto-detected. For others, upload the file.
+            </div>
         </div>
 
-        <!-- ── Progress tracker ── -->
-        <div class="progress-section" id="progressSection">
+        <!-- ── Search / identify worker ── -->
+        <div class="search-card" id="searchCard">
+            <div class="field-group">
+                <label for="workerIdInput">Worker ID (Omang / Passport)</label>
+                <input type="text" id="workerIdInput" placeholder="e.g. 123456789" maxlength="20">
+            </div>
+            <button id="searchBtn" onclick="searchWorker()">🔍 Search &amp; Check</button>
+            <div class="search-result" id="searchResult"></div>
+        </div>
+
+        <!-- ── Loading ── -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <span>Searching database for existing documents...</span>
+        </div>
+
+        <!-- ── Progress bar ── -->
+        <div class="progress-section" id="progressSection" style="display:none;">
             <span class="progress-label">Progress</span>
             <div class="progress-bar-outer">
                 <div class="progress-bar-inner" id="progressBar"></div>
             </div>
-            <span class="progress-count">
-                <strong id="checkedCount">0</strong> / <strong id="totalCount">0</strong> items
-            </span>
+            <span class="progress-count"><strong id="checkedCount">0</strong> / <strong id="totalCount">0</strong> items</span>
             <div class="action-buttons">
                 <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>
             </div>
         </div>
 
-        <!-- ── Section 1: Forms ── -->
-        <div class="section-card sc-forms">
-            <div class="section-card-header">
-                <span class="icon">📄</span> FORMS
-                <span class="section-count" id="count-forms">0/5</span>
-            </div>
-            <div class="section-card-body">
-                <label class="check-item" data-section="forms">
-                    <input type="checkbox">
-                    <span class="item-number">1.</span>
-                    <span class="item-text">
-                        <strong>Form 43/10</strong> — Injury and Disease Report
-                        <span class="note">To be submitted within 17 days by employer</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="forms">
-                    <input type="checkbox">
-                    <span class="item-number">2.</span>
-                    <span class="item-text">
-                        <strong>Form 43.02</strong> — Wages of Worker
-                        <span class="note">To be completed by employer (3 copies, stamped)</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="forms">
-                    <input type="checkbox">
-                    <span class="item-number">3.</span>
-                    <span class="item-text">
-                        <strong>Form 43/03</strong> — Medical Examination Report
-                        <span class="note">To be completed by a Medical Doctor (4 copies, stamped &amp; signed)</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="forms">
-                    <input type="checkbox">
-                    <span class="item-number">4.</span>
-                    <span class="item-text">
-                        <strong>Form 43/07</strong> — Certificate of Insurance
-                        <span class="note">To be completed by Insurance Company (stamped)</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="forms">
-                    <input type="checkbox">
-                    <span class="item-number">5.</span>
-                    <span class="item-text">
-                        <strong>Form 43/11</strong> — Notification of Time and Place of Attendance of Medical Practitioner
-                        <span class="note">To be completed by employer</span>
-                    </span>
-                </label>
-            </div>
+        <!-- ── Empty state (no worker found) ── -->
+        <div class="empty-state" id="emptyState">
+            <div class="big-icon">🔍</div>
+            <h3>No records found</h3>
+            <p>Enter a worker's ID number above to check document status.</p>
         </div>
 
-        <!-- ── Section 2: Letters & Statements ── -->
-        <div class="section-card sc-letters">
-            <div class="section-card-header">
-                <span class="icon">✉️</span> LETTERS &amp; STATEMENTS
-                <span class="section-count" id="count-letters">0/5</span>
-            </div>
-            <div class="section-card-body">
-                <label class="check-item" data-section="letters">
-                    <input type="checkbox">
-                    <span class="item-number">6.</span>
-                    <span class="item-text">
-                        <strong>Covering Letter</strong> (or Savingram for Government Employees) from Employer confirming injury
-                    </span>
-                </label>
-                <label class="check-item" data-section="letters">
-                    <input type="checkbox">
-                    <span class="item-number">7.</span>
-                    <span class="item-text">
-                        <strong>Employee's (Claimant) Statement</strong> of injury
-                    </span>
-                </label>
-                <label class="check-item" data-section="letters">
-                    <input type="checkbox">
-                    <span class="item-number">8.</span>
-                    <span class="item-text">
-                        <strong>2 Witnesses' Sworn Statements</strong>
-                        <span class="note">1 copy each</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="letters">
-                    <input type="checkbox">
-                    <span class="item-number">9.</span>
-                    <span class="item-text">
-                        <strong>Advice Slip / Proof of Salary</strong> with Account Number
-                        <span class="note">Attached to BL FORM 43/02</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="letters">
-                    <input type="checkbox">
-                    <span class="item-number">10.</span>
-                    <span class="item-text">
-                        <strong>Dental Quotations</strong> (in case of tooth loss)
-                        <span class="note">Attach quotations from 3 different dentists</span>
-                    </span>
-                </label>
-            </div>
-        </div>
+        <!-- ── Checklist items container ── -->
+        <div id="checklistContainer" style="display:none;"></div>
 
-        <!-- ── Section 3: Road Traffic Accident ── -->
-        <div class="section-card sc-traffic">
-            <div class="section-card-header">
-                <span class="icon">🚗</span> IN CASE OF ROAD TRAFFIC ACCIDENT
-                <span class="section-count" id="count-traffic">0/3</span>
-            </div>
-            <div class="section-card-body">
-                <div class="check-item note-item" style="padding: 10px 28px; background: #fff8e1; border-bottom: 1px solid #ffeeba;">
-                    <span style="font-size: 13px; color: #856404;">⚠️ In addition to the above documents</span>
-                </div>
-                <label class="check-item" data-section="traffic">
-                    <input type="checkbox">
-                    <span class="item-number">11.</span>
-                    <span class="item-text"><strong>Police Report</strong></span>
-                </label>
-                <label class="check-item" data-section="traffic">
-                    <input type="checkbox">
-                    <span class="item-number">12.</span>
-                    <span class="item-text"><strong>Claimant's Sworn Statement</strong></span>
-                </label>
-                <label class="check-item" data-section="traffic">
-                    <input type="checkbox">
-                    <span class="item-number">13.</span>
-                    <span class="item-text"><strong>2 Witnesses' Sworn Statements</strong></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- ── Section 4: Death ── -->
-        <div class="section-card sc-death">
-            <div class="section-card-header">
-                <span class="icon">🕊️</span> IN CASE OF DEATH
-                <span class="section-count" id="count-death">0/4</span>
-            </div>
-            <div class="section-card-body">
-                <label class="check-item" data-section="death">
-                    <input type="checkbox">
-                    <span class="item-number">14.</span>
-                    <span class="item-text">
-                        <strong>Post Mortem Report</strong>
-                        <span class="note highlight">⚠️ Very important</span>
-                    </span>
-                </label>
-                <label class="check-item" data-section="death">
-                    <input type="checkbox">
-                    <span class="item-number">15.</span>
-                    <span class="item-text"><strong>Death Certificate</strong></span>
-                </label>
-                <label class="check-item" data-section="death">
-                    <input type="checkbox">
-                    <span class="item-number">16.</span>
-                    <span class="item-text"><strong>Form 43/03</strong> — Medical Examination</span>
-                </label>
-                <label class="check-item" data-section="death">
-                    <input type="checkbox">
-                    <span class="item-number">17.</span>
-                    <span class="item-text"><strong>Contact Details of Next of Kin</strong></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- ── Section 5: Non-Citizen ── -->
-        <div class="section-card sc-noncitizen">
-            <div class="section-card-header">
-                <span class="icon">🛂</span> IN CASE OF NON-CITIZEN
-                <span class="section-count" id="count-noncitizen">0/1</span>
-            </div>
-            <div class="section-card-body">
-                <label class="check-item" data-section="noncitizen">
-                    <input type="checkbox">
-                    <span class="item-number">18.</span>
-                    <span class="item-text"><strong>Copy of Work Permit</strong></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- ── Section 6: Citizen ── -->
-        <div class="section-card sc-citizen">
-            <div class="section-card-header">
-                <span class="icon">🇧🇼</span> IN CASE OF CITIZEN
-                <span class="section-count" id="count-citizen">0/1</span>
-            </div>
-            <div class="section-card-body">
-                <label class="check-item" data-section="citizen">
-                    <input type="checkbox">
-                    <span class="item-number">19.</span>
-                    <span class="item-text"><strong>Copy of Omang</strong> (National ID)</span>
-                </label>
-            </div>
+        <!-- ── Proceed to claim button ── -->
+        <div class="proceed-section" id="proceedSection">
+            <button class="proceed-btn" id="proceedBtn" disabled onclick="proceedToClaim()">
+                Proceed to File Claim
+                <span class="sub">Complete all items above to enable</span>
+            </button>
+            <div class="proceed-note">All documents must be verified before filing a claim.</div>
         </div>
     </div>
 
+    <!-- ── Toast container ── -->
+    <div class="toast" id="toast"></div>
+
     <script>
-        // ── Persistent checklist (localStorage) ──
-        (function() {
-            const STORAGE_KEY = 'osh_checklist_state';
+        // ──────────────────────────────────────────────────────────
+        //   DATA: Checklist items mapped to DB tables
+        // ──────────────────────────────────────────────────────────
+        const CHECKLIST_ITEMS = [
+            // ── FORMS ──
+            { section: 'forms', num: '1',  label: 'Form 43/10',        desc: 'Injury and Disease Report',                       note: 'To be submitted within 17 days by employer',       table: 'injury_disease_reports',      queryField: 'worker_id_number' },
+            { section: 'forms', num: '2',  label: 'Form 43.02',        desc: 'Wages of Worker',                                 note: 'To be completed by employer (3 copies, stamped)', table: 'injury_claims',              queryField: 'claimant_id_number' },
+            { section: 'forms', num: '3',  label: 'Form 43/03',        desc: 'Medical Examination Report',                      note: 'To be completed by a Medical Doctor (4 copies)',  table: 'medical_examination_reports', queryField: 'worker_id_number' },
+            { section: 'forms', num: '4',  label: 'Form 43/07',        desc: 'Certificate of Insurance',                        note: 'To be completed by Insurance Company (stamped)',  table: 'injury_claims',              queryField: 'claimant_id_number' },
+            { section: 'forms', num: '5',  label: 'Form 43/11',        desc: 'Notification of Attendance of Medical Practitioner', note: 'To be completed by employer',                    table: null },
+            // ── LETTERS & STATEMENTS ──
+            { section: 'letters', num: '6',  label: 'Covering Letter',           desc: 'From Employer confirming injury',                                note: 'Or Savingram for Government Employees', table: null },
+            { section: 'letters', num: '7',  label: 'Employee Statement',        desc: "Claimant's statement of injury",                                   note: null,                                          table: null },
+            { section: 'letters', num: '8',  label: "Witnesses' Statements",     desc: '2 Witnesses sworn statements',                                     note: '1 copy each',                                 table: null },
+            { section: 'letters', num: '9',  label: 'Advice Slip / Salary Proof', desc: 'Proof of salary with Account Number',                              note: 'Attached to BL FORM 43/02',                   table: 'injury_claims', queryField: 'claimant_id_number' },
+            { section: 'letters', num: '10', label: 'Dental Quotations',         desc: 'In case of tooth loss',                                            note: 'Attach quotations from 3 different dentists', table: null },
+            // ── ROAD TRAFFIC ACCIDENT ──
+            { section: 'traffic', num: '11', label: 'Police Report',             desc: 'In case of Road Traffic Accident',                                 note: null,                                          table: 'accident_reports', queryField: 'injured_id_number' },
+            { section: 'traffic', num: '12', label: "Claimant's Statement",      desc: "Claimant's sworn statement",                                       note: null,                                          table: null },
+            { section: 'traffic', num: '13', label: "Witnesses' Statements",     desc: '2 Witnesses sworn statements (Road Traffic Accident)',              note: null,                                          table: null },
+            // ── DEATH ──
+            { section: 'death', num: '14', label: 'Post Mortem Report',          desc: 'Very important',                                                    note: null,                                          table: null },
+            { section: 'death', num: '15', label: 'Death Certificate',           desc: 'Death Certificate',                                                note: null,                                          table: null },
+            { section: 'death', num: '16', label: 'Form 43/03',                  desc: 'Medical Examination (in case of death)',                            note: null,                                          table: 'medical_examination_reports', queryField: 'worker_id_number' },
+            { section: 'death', num: '17', label: 'Next of Kin Details',         desc: 'Contact details of next of kin',                                   note: null,                                          table: null },
+            // ── NON-CITIZEN ──
+            { section: 'noncitizen', num: '18', label: 'Work Permit',            desc: 'Copy of Work Permit (in case of Non-Citizen)',                     note: null,                                          table: null },
+            // ── CITIZEN ──
+            { section: 'citizen', num: '19', label: 'Omang',                     desc: 'Copy of Omang / National ID (in case of Citizen)',                 note: null,                                          table: null }
+        ];
 
-            function loadState() {
-                try {
-                    const saved = localStorage.getItem(STORAGE_KEY);
-                    return saved ? JSON.parse(saved) : {};
-                } catch { return {}; }
-            }
+        // Section metadata
+        const SECTIONS = {
+            forms:      { icon: '📄', title: 'FORMS' },
+            letters:    { icon: '✉️', title: 'LETTERS &amp; STATEMENTS' },
+            traffic:    { icon: '🚗', title: 'IN CASE OF ROAD TRAFFIC ACCIDENT' },
+            death:      { icon: '🕊️', title: 'IN CASE OF DEATH' },
+            noncitizen: { icon: '🛂', title: 'IN CASE OF NON-CITIZEN' },
+            citizen:    { icon: '🇧🇼', title: 'IN CASE OF CITIZEN' }
+        };
 
-            function saveState(state) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-            }
+        // ──────────────────────────────────────────────────────────
+        //   STATE
+        // ──────────────────────────────────────────────────────────
+        let workerId = '';
+        let employerName = '';
+        let checklistState = {}; // { 'itemKey': { status: 'pending'|'detected'|'uploaded', fileUrl, fileName } }
+        const STORAGE_KEY_PREFIX = 'osh_checklist_';
 
-            function getItemId(checkbox) {
-                const parent = checkbox.closest('.check-item');
-                const num = parent?.querySelector('.item-number')?.textContent?.trim();
-                const section = parent?.dataset?.section;
-                return section && num ? section + '-' + num : null;
-            }
+        function getStorageKey() { return STORAGE_KEY_PREFIX + (workerId || 'anon'); }
+        function loadState() {
+            try { return JSON.parse(localStorage.getItem(getStorageKey())) || {}; }
+            catch { return {}; }
+        }
+        function saveState() {
+            try { localStorage.setItem(getStorageKey(), JSON.stringify(checklistState)); }
+            catch {}
+        }
 
-            // Restore saved state
-            const state = loadState();
-            document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
-                const id = getItemId(cb);
-                if (id && state[id]) {
-                    cb.checked = true;
-                    cb.closest('.check-item').classList.add('checked');
+        // ──────────────────────────────────────────────────────────
+        //   TOAST
+        // ──────────────────────────────────────────────────────────
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = 'toast ' + (type||'info') + ' show';
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   SEARCH WORKER
+        // ──────────────────────────────────────────────────────────
+        async function searchWorker() {
+            const input = document.getElementById('workerIdInput');
+            const id = input.value.trim();
+            if (!id || id.length < 4) { showToast('Please enter a valid ID number (min 4 digits)', 'error'); return; }
+
+            const btn = document.getElementById('searchBtn');
+            btn.disabled = true; btn.textContent = '⏳ Searching...';
+            document.getElementById('loadingOverlay').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('checklistContainer').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('proceedSection').style.display = 'none';
+
+            workerId = id;
+
+            try {
+                const SB = window.supabaseClient || window.SB;
+                if (!SB) { showToast('Database not available', 'error'); return; }
+
+                // 1. Try to find employer name from existing records
+                employerName = '';
+                const { data: empData } = await SB.from('injury_disease_reports')
+                    .select('employer_name')
+                    .ilike('worker_id_number', id)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                if (empData && empData.length) employerName = empData[0].employer_name || '';
+
+                if (!employerName) {
+                    const { data: claimData } = await SB.from('injury_claims')
+                        .select('name_of_employer')
+                        .eq('claimant_id_number', id)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    if (claimData && claimData.length) employerName = claimData[0].name_of_employer || '';
                 }
 
-                cb.addEventListener('change', function() {
-                    const item = this.closest('.check-item');
-                    const id = getItemId(this);
-                    if (this.checked) {
-                        item.classList.add('checked');
-                        if (id) state[id] = true;
-                    } else {
-                        item.classList.remove('checked');
-                        if (id) delete state[id];
+                // 2. Auto-detect items from DB
+                await autoDetectItems(SB, id);
+
+                // 3. Load any previously uploaded documents
+                await loadUploadedDocs(SB, id);
+
+                // 4. Render the checklist
+                renderChecklist();
+
+                // Show worker info
+                const resultEl = document.getElementById('searchResult');
+                if (employerName) {
+                    resultEl.innerHTML = '✅ Found: Worker <strong>' + id + '</strong> — Employer: <strong>' + employerName + '</strong>';
+                } else {
+                    resultEl.innerHTML = '✅ Searching for Worker <strong>' + id + '</strong> — No employer record found (you can still proceed)';
+                }
+                resultEl.style.display = 'block';
+
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('checklistContainer').style.display = 'block';
+                document.getElementById('progressSection').style.display = 'flex';
+                updateProgress();
+
+                // Show proceed section
+                document.getElementById('proceedSection').style.display = 'block';
+                checkAllComplete();
+
+            } catch (err) {
+                console.error('Search error:', err);
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('emptyState').querySelector('h3').textContent = 'Error searching';
+                document.getElementById('emptyState').querySelector('p').textContent = err.message || 'Could not connect to database.';
+                showToast('Error searching: ' + (err.message || 'Unknown'), 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = '🔍 Search & Check';
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   AUTO-DETECT from DB tables
+        // ──────────────────────────────────────────────────────────
+        async function autoDetectItems(SB, id) {
+            // Reset state but keep uploaded docs
+            const uploadedItems = {};
+            for (const key of Object.keys(checklistState)) {
+                if (checklistState[key].status === 'uploaded') {
+                    uploadedItems[key] = checklistState[key];
+                }
+            }
+            checklistState = { ...uploadedItems };
+
+            // For each item with a DB table, query it
+            for (const item of CHECKLIST_ITEMS) {
+                if (!item.table) continue;
+                const key = item.section + '-' + item.num;
+                if (checklistState[key] && checklistState[key].status === 'uploaded') continue; // already uploaded
+
+                try {
+                    const queryField = item.queryField || 'worker_id_number';
+                    let found = false;
+
+                    if (item.table === 'injury_disease_reports') {
+                        const { data, error } = await SB.from('injury_disease_reports')
+                            .select('id')
+                            .eq(queryField, id)
+                            .limit(1);
+                        if (data && data.length) found = true;
                     }
-                    saveState(state);
-                    updateProgress();
-                });
+                    else if (item.table === 'injury_claims') {
+                        const { data, error } = await SB.from('injury_claims')
+                            .select('id')
+                            .eq(queryField, id)
+                            .not('status', 'eq', 'draft')
+                            .limit(1);
+                        if (data && data.length) found = true;
+                    }
+                    else if (item.table === 'medical_examination_reports') {
+                        const { data, error } = await SB.from('medical_examination_reports')
+                            .select('id')
+                            .eq(queryField, id)
+                            .limit(1);
+                        if (data && data.length) found = true;
+                    }
+                    else if (item.table === 'accident_reports') {
+                        // Check in accident_reports AND accident_injured_persons
+                        const { data: arData } = await SB.from('accident_reports')
+                            .select('id')
+                            .eq(queryField, id)
+                            .limit(1);
+                        if (arData && arData.length) { found = true; }
+                        else {
+                            const { data: aipData } = await SB.from('accident_injured_persons')
+                                .select('id')
+                                .eq('id_number', id)
+                                .limit(1);
+                            if (aipData && aipData.length) found = true;
+                        }
+                    }
+                    else {
+                        // Generic fallback - try .eq() first
+                        const { data, error } = await SB.from(item.table)
+                            .select('id')
+                            .eq(queryField, id)
+                            .limit(1);
+                        if (data && data.length) found = true;
+                    }
+
+                    if (found) {
+                        checklistState[key] = { status: 'detected', autoDetected: true };
+                    }
+                } catch (err) {
+                    console.warn('Error checking ' + item.table + ':', err);
+                }
+            }
+
+            saveState();
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   LOAD uploaded documents from DB
+        // ──────────────────────────────────────────────────────────
+        async function loadUploadedDocs(SB, id) {
+            try {
+                const { data, error } = await SB.from('claim_documents')
+                    .select('*')
+                    .eq('worker_id_number', id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    // Table might not exist yet
+                    console.warn('claim_documents table may not exist:', error.message);
+                    return;
+                }
+
+                if (data && data.length) {
+                    data.forEach(doc => {
+                        const key = doc.item_number ? getItemKeyByNum(doc.item_number) : null;
+                        if (key) {
+                            checklistState[key] = {
+                                status: 'uploaded',
+                                fileUrl: doc.file_path,
+                                fileName: doc.file_name,
+                                docId: doc.id
+                            };
+                        }
+                    });
+                    saveState();
+                }
+            } catch (err) {
+                console.warn('Could not load uploaded docs:', err);
+            }
+        }
+
+        function getItemKeyByNum(num) {
+            const item = CHECKLIST_ITEMS.find(i => parseInt(i.num) === parseInt(num));
+            return item ? item.section + '-' + item.num : null;
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   RENDER CHECKLIST
+        // ──────────────────────────────────────────────────────────
+        function renderChecklist() {
+            const container = document.getElementById('checklistContainer');
+            const sections = {};
+
+            // Group items by section
+            CHECKLIST_ITEMS.forEach(item => {
+                if (!sections[item.section]) sections[item.section] = [];
+                sections[item.section].push(item);
             });
 
-            // ── Progress updater ──
-            window.updateProgress = function() {
-                const allItems = document.querySelectorAll('.check-item input[type="checkbox"]');
-                const checked = document.querySelectorAll('.check-item input[type="checkbox"]:checked');
-                const total = allItems.length;
+            let html = '';
+            for (const [sec, items] of Object.entries(sections)) {
+                const meta = SECTIONS[sec] || { icon: '📋', title: sec.toUpperCase() };
+                html += '<div class="section-card sc-' + sec + '">';
+                html += '<div class="section-card-header">';
+                html += '<span class="icon">' + meta.icon + '</span> ' + meta.title;
+                html += '<span class="section-count" id="count-' + sec + '">0/' + items.length + '</span>';
+                html += '</div><div class="section-card-body">';
 
-                document.getElementById('checkedCount').textContent = checked.length;
-                document.getElementById('totalCount').textContent = total;
+                items.forEach(item => {
+                    const key = sec + '-' + item.num;
+                    const state = checklistState[key] || { status: 'pending' };
+                    const isChecked = state.status === 'detected' || state.status === 'uploaded';
+                    const iconClass = state.status === 'detected' ? 'detected' : (state.status === 'uploaded' ? 'uploaded' : (isChecked ? 'checked' : 'pending'));
+                    const iconText = state.status === 'detected' ? '✓' : (state.status === 'uploaded' ? '⬆' : (isChecked ? '✓' : ''));
 
-                const pct = total > 0 ? (checked.length / total) * 100 : 0;
-                document.getElementById('progressBar').style.width = pct + '%';
+                    html += '<div class="check-item ' + state.status + '" id="item-' + key + '">';
+                    html += '<div class="check-icon ' + iconClass + '">' + iconText + '</div>';
+                    html += '<span class="item-number">' + item.num + '.</span>';
+                    html += '<div class="item-content">';
+                    html += '<div class="item-text"><strong>' + item.label + '</strong> — ' + item.desc;
+                    if (item.note) html += '<span class="note">' + item.note + '</span>';
+                    html += '</div>';
 
-                // Per-section counts
-                const sections = {};
-                document.querySelectorAll('.check-item').forEach(item => {
-                    const sec = item.dataset.section;
-                    if (!sec) return;
-                    if (!sections[sec]) sections[sec] = { total: 0, checked: 0 };
-                    sections[sec].total++;
-                    if (item.querySelector('input[type="checkbox"]')?.checked) sections[sec].checked++;
-                });
-
-                Object.keys(sections).forEach(sec => {
-                    const el = document.getElementById('count-' + sec);
-                    if (el) {
-                        el.textContent = sections[sec].checked + '/' + sections[sec].total;
+                    // Status badge
+                    if (state.status === 'detected') {
+                        html += '<div style="font-size:11px;color:#43a047;font-weight:600;margin-top:4px;">✓ Auto-detected from database</div>';
+                    } else if (state.status === 'uploaded') {
+                        html += '<div class="uploaded-file">⬆ Uploaded: ' + (state.fileName || 'file') + ' <button class="rm-btn" onclick="removeDoc('' + key + '')" title="Remove">✕</button></div>';
+                    } else {
+                        // Show upload button for items without DB table or not detected
+                        html += '<div class="upload-area">';
+                        html += '<button class="upload-btn" onclick="uploadDoc('' + key + '')" id="upload-btn-' + key + '">📎 Upload Document</button>';
+                        html += '<span class="upload-progress" id="upload-progress-' + key + '"></span>';
+                        html += '<input type="file" id="file-input-' + key + '" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="handleFileSelect('' + key + '', this)">';
+                        html += '</div>';
                     }
-                });
-            };
 
-            // ── Reset ──
-            window.resetChecklist = function() {
-                if (!confirm('Reset all checklist items?')) return;
-                localStorage.removeItem(STORAGE_KEY);
-                document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
-                    cb.checked = false;
-                    cb.closest('.check-item').classList.remove('checked');
+                    html += '</div></div>';
                 });
-                updateProgress();
-            };
 
-            // Initial update
+                html += '</div></div>';
+            }
+
+            container.innerHTML = html;
             updateProgress();
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   FILE UPLOAD
+        // ──────────────────────────────────────────────────────────
+        function uploadDoc(key) {
+            document.getElementById('file-input-' + key).click();
+        }
+
+        async function handleFileSelect(key, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const btn = document.getElementById('upload-btn-' + key);
+            const progress = document.getElementById('upload-progress-' + key);
+            btn.disabled = true;
+            progress.textContent = 'Uploading...';
+
+            try {
+                const SB = window.supabaseClient || window.SB;
+                if (!SB) { showToast('Database not available', 'error'); return; }
+
+                // Upload to Supabase Storage
+                const fileExt = file.name.split('.').pop();
+                const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = workerId + '/' + key + '/' + Date.now() + '_' + sanitizedName;
+
+                // Upload to Supabase Storage
+                let fileUrl = null;
+                const { data: uploadData, error: uploadError } = await SB.storage
+                    .from('claim-documents')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (uploadError) {
+                    showToast('Storage upload failed: ' + uploadError.message + '. Make sure the claim-documents bucket exists in Supabase.', 'error');
+                    btn.disabled = false;
+                    progress.textContent = '';
+                    input.value = '';
+                    return;
+                }
+                const { data: publicUrlData } = SB.storage.from('claim-documents').getPublicUrl(filePath);
+                fileUrl = publicUrlData.publicUrl;
+
+                // Save to claim_documents table
+                try {
+                    const { data: insertData, error: insertError } = await SB.from('claim_documents')
+                        .insert({
+                            worker_id_number: workerId,
+                            employer_name: employerName,
+                            item_number: parseInt(key.split('-')[1]),
+                            item_label: getItemLabel(key),
+                            status: 'uploaded',
+                            file_name: file.name,
+                            file_path: fileUrl,
+                            file_size: file.size,
+                            content_type: file.type,
+                            auto_detected: false
+                        })
+                        .select('id')
+                        .single();
+
+                    if (insertError) {
+                        console.warn('DB insert failed:', insertError.message);
+                        // Still save locally even if DB insert fails
+                    }
+
+                    // Update state
+                    checklistState[key] = {
+                        status: 'uploaded',
+                        fileName: file.name,
+                        fileUrl: fileUrl,
+                        docId: insertData?.id || null
+                    };
+                    saveState();
+
+                } catch (dbErr) {
+                    console.warn('DB error, saving locally:', dbErr);
+                    checklistState[key] = {
+                        status: 'uploaded',
+                        fileName: file.name,
+                        fileUrl: fileUrl
+                    };
+                    saveState();
+                }
+
+                // Re-render to show uploaded state
+                renderChecklist();
+                showToast('"' + file.name + '" uploaded successfully', 'success');
+
+            } catch (err) {
+                console.error('Upload error:', err);
+                showToast('Upload failed: ' + (err.message || 'Unknown error'), 'error');
+                progress.textContent = 'Upload failed';
+            } finally {
+                btn.disabled = false;
+                input.value = '';
+            }
+        }
+
+
+
+        function getItemLabel(key) {
+            const parts = key.split('-');
+            const num = parts[1];
+            const item = CHECKLIST_ITEMS.find(i => i.num === num);
+            return item ? item.label + ' — ' + item.desc : key;
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   REMOVE DOCUMENT
+        // ──────────────────────────────────────────────────────────
+        async function removeDoc(key) {
+            if (!confirm('Remove this uploaded document?')) return;
+
+            const state = checklistState[key];
+            if (state && state.docId) {
+                try {
+                    const SB = window.supabaseClient || window.SB;
+                    if (SB) {
+                        await SB.from('claim_documents').delete().eq('id', state.docId);
+                    }
+                } catch (err) {
+                    console.warn('Error deleting doc record:', err);
+                }
+            }
+
+            delete checklistState[key];
+            saveState();
+            renderChecklist();
+            showToast('Document removed', 'info');
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   PROGRESS
+        // ──────────────────────────────────────────────────────────
+        function updateProgress() {
+            const totalItems = CHECKLIST_ITEMS.length;
+            let checked = 0;
+            const sectionCounts = {};
+
+            CHECKLIST_ITEMS.forEach(item => {
+                const key = item.section + '-' + item.num;
+                const state = checklistState[key] || { status: 'pending' };
+                if (state.status === 'detected' || state.status === 'uploaded') checked++;
+
+                if (!sectionCounts[item.section]) sectionCounts[item.section] = { total: 0, checked: 0 };
+                sectionCounts[item.section].total++;
+                if (state.status === 'detected' || state.status === 'uploaded') sectionCounts[item.section].checked++;
+            });
+
+            document.getElementById('checkedCount').textContent = checked;
+            document.getElementById('totalCount').textContent = totalItems;
+            const pct = totalItems > 0 ? (checked / totalItems) * 100 : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+
+            // Section counts
+            for (const [sec, counts] of Object.entries(sectionCounts)) {
+                const el = document.getElementById('count-' + sec);
+                if (el) el.textContent = counts.checked + '/' + counts.total;
+            }
+
+            checkAllComplete();
+        }
+
+        function checkAllComplete() {
+            const totalItems = CHECKLIST_ITEMS.length;
+            let checked = 0;
+
+            CHECKLIST_ITEMS.forEach(item => {
+                const key = item.section + '-' + item.num;
+                const state = checklistState[key] || { status: 'pending' };
+                if (state.status === 'detected' || state.status === 'uploaded') checked++;
+            });
+
+            const allComplete = checked >= totalItems;
+            const btn = document.getElementById('proceedBtn');
+            btn.disabled = !allComplete;
+            btn.querySelector('.sub').textContent = allComplete
+                ? 'All ' + totalItems + ' items complete — click to file claim'
+                : (totalItems - checked) + ' of ' + totalItems + ' items remaining';
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   PROCEED TO CLAIM FORM
+        // ──────────────────────────────────────────────────────────
+        function proceedToClaim() {
+            const params = new URLSearchParams();
+            if (workerId) params.set('claimant_id', workerId);
+            if (employerName) params.set('employer', employerName);
+
+            // Build a summary of what was auto-detected vs uploaded
+            const detected = [];
+            const uploaded = [];
+            CHECKLIST_ITEMS.forEach(item => {
+                const key = item.section + '-' + item.num;
+                const state = checklistState[key] || {};
+                if (state.status === 'detected') detected.push(item.num);
+                if (state.status === 'uploaded') uploaded.push(item.num);
+            });
+            if (detected.length) params.set('detected', detected.join(','));
+            if (uploaded.length) params.set('uploaded', uploaded.join(','));
+
+            window.location.href = 'form.html?' + params.toString();
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   RESET
+        // ──────────────────────────────────────────────────────────
+        function resetChecklist() {
+            if (!confirm('Reset all checklist items? This will not affect previously uploaded documents in the database.')) return;
+            localStorage.removeItem(getStorageKey());
+            checklistState = {};
+            renderChecklist();
+            showToast('Checklist reset', 'info');
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //   INIT - Check URL params for pre-filled worker ID
+        // ──────────────────────────────────────────────────────────
+        (function init() {
+            const params = new URLSearchParams(window.location.search);
+            const prefillId = params.get('claimant_id');
+            if (prefillId) {
+                document.getElementById('workerIdInput').value = prefillId;
+                // Auto-search after a short delay
+                setTimeout(() => document.getElementById('searchBtn').click(), 300);
+            }
         })();
     </script>
 </body>
