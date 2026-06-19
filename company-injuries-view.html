@@ -220,6 +220,7 @@ font-weight: 500;
 <th>Worker</th>
 <th>Occupation</th>
 <th>Employer</th>
+<th>Source</th>
 <th>Type</th>
 <th>Incident Date</th>
 <th>Place</th>
@@ -278,25 +279,87 @@ async function loadData() {
     document.getElementById('tableWrap').style.display = 'none';
     
     console.log('[DEBUG] Querying injury_disease_reports with:', companyName);
-    let words = companyName.split(' ').filter(w => w.length > 2);
-    if (words.length === 0) words = [companyName];
-    const orConditions = words.map(w => 'employer_name.ilike.*' + w + '*').join(',');
+    let injWords = companyName.split(' ').filter(w => w.length > 2);
+    if (injWords.length === 0) injWords = [companyName];
+    const injOrConditions = injWords.map(w => 'employer_name.ilike.*' + w + '*').join(',');
     
-    const { data, error } = await SB
-        .from('injury_disease_reports')
-        .select('*')
-        .or(orConditions)
-        .order('incident_date', { ascending: false });
+    // Also fetch company's accident IDs to get linked injured persons
+    let accWords = companyName.split(' ').filter(w => w.length > 2);
+    if (accWords.length === 0) accWords = [companyName];
+    const accOrConditions = accWords.map(w => 'occupier_name.ilike.*' + w + '*').join(',');
     
-    console.log('[DEBUG] Results:', data?.length || 0, 'rows, error:', error?.message || 'OK');
-    if (data && data.length > 0) console.log('[DEBUG] Sample:', JSON.stringify(data[0]).slice(0,200));
+    const [injRes, accRes] = await Promise.all([
+        SB.from('injury_disease_reports')
+          .select('*')
+          .or(injOrConditions)
+          .order('incident_date', { ascending: false }),
+        SB.from('accident_reports')
+          .select('id, accident_case_number, occupier_name, accident_date, accident_place')
+          .or(accOrConditions)
+          .order('accident_date', { ascending: false })
+    ]);
     
-    if (error) {
-        document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error: ' + error.message + '<br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
+    // Get the company's accident IDs and fetch linked injured persons
+    const accidentIds = (accRes.data || []).map(function(a) { return a.id; });
+    const accidentMap = {};
+    (accRes.data || []).forEach(function(a) { accidentMap[a.id] = a; });
+    
+    let personsData = [];
+    if (accidentIds.length > 0) {
+        const pRes = await SB
+            .from('accident_injured_persons')
+            .select('*')
+            .in('accident_report_id', accidentIds);
+        personsData = pRes.data || [];
+    }
+    
+    console.log('[DEBUG] injury_disease_reports:', injRes.data?.length || 0, 'rows, accidents:', accidentIds.length, 'accidents, injured_persons:', personsData.length);
+    
+    // Mark records by source
+    const injuries = (injRes.data || []).map(function(r) {
+        return Object.assign({}, r, { _source: 'injury_report' });
+    });
+    
+    const persons = personsData.map(function(p) {
+        var acc = accidentMap[p.accident_report_id] || {};
+        return Object.assign({}, p, {
+            _source: 'accident_person',
+            // Copy relevant accident fields for display
+            _accident_case: acc.accident_case_number || '',
+            _accident_date: acc.accident_date || '',
+            _accident_place: acc.accident_place || '',
+            _employer_name: acc.occupier_name || '',
+            // Map person fields to match injury report field names
+            worker_name: p.full_name,
+            worker_id_number: p.id_number,
+            occupation: p.occupation_at_accident,
+            incident_type: 'Accident Injury',
+            incident_date: acc.accident_date || '',
+            place_of_accident: acc.accident_place || '',
+            nature_of_injuries: p.medical_practitioner || '',
+            resulted_death: p.injury_fatal === 'Fatal' ? 'Yes' : 'No',
+            permanent_incapacity: p.disabled_three_days === 'Yes' ? 'Yes' : 'No',
+            temporary_incapacity: p.disabled_three_days === 'Yes' ? 'Yes' : 'No',
+            status: 'linked_to_accident',
+            report_date: '',
+            employer_name: acc.occupier_name || ''
+        });
+    });
+    
+    // Merge and sort by date (newest first)
+    allRecords = injuries.concat(persons).sort(function(a, b) {
+        var da = new Date(a.incident_date || a._accident_date || a.incident_date || 0);
+        var db = new Date(b.incident_date || b._accident_date || b.incident_date || 0);
+        return db - da;
+    });
+    
+    if (injRes.error) {
+        document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error: ' + injRes.error.message + '<br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
         return;
     }
     
-    allRecords = data || [];
+    console.log('[DEBUG] Total records:', allRecords.length, '(injuries:', injuries.length, '+ accident persons:', persons.length, ')');
+    
     buildStats(allRecords);
     applyPagination(allRecords);
     document.getElementById('loadingState').style.display = 'none';
@@ -306,9 +369,11 @@ async function loadData() {
 function buildStats(rows) {
     const now = new Date(), month = new Date(now.getFullYear(), now.getMonth(), 1);
     document.getElementById('statTotal').textContent = rows.length;
-    document.getElementById('statInjury').textContent = rows.filter(function(r) { return r.incident_type === 'Injury'; }).length;
+    document.getElementById('statInjury').textContent = rows.filter(function(r) { return r.incident_type === 'Injury' || r._source === 'accident_person'; }).length;
     document.getElementById('statDisease').textContent = rows.filter(function(r) { return r.incident_type === 'Disease'; }).length;
     document.getElementById('statDeath').textContent = rows.filter(function(r) { return r.resulted_death === 'Yes'; }).length;
+    document.getElementById('statPerm').textContent = rows.filter(function(r) { return r.permanent_incapacity === 'Yes'; }).length;
+    document.getElementById('statTemp').textContent = rows.filter(function(r) { return r.temporary_incapacity === 'Yes'; }).length;
     document.getElementById('statMonth').textContent = rows.filter(function(r) {
         var d = new Date(r.incident_date || r.created_at);
         return d >= month;
@@ -321,10 +386,15 @@ function applyFilters() {
     const status = document.getElementById('filterStatus').value;
     const search = document.getElementById('filterSearch').value.toLowerCase().trim();
     const filtered = allRecords.filter(function(r) {
-        return (!type || r.incident_type === type) &&
-               (!death || r.resulted_death === death) &&
-               (!status || r.status === status) &&
-               (!search || (r.worker_name||'').toLowerCase().includes(search) || (r.employer_name||'').toLowerCase().includes(search));
+        var rType = r._source === 'accident_person' ? 'Accident Injury' : (r.incident_type || '');
+        var rDeath = r.resulted_death || 'No';
+        var rStatus = r._source === 'accident_person' ? 'linked_to_accident' : (r.status || '');
+        var rName = (r.worker_name || '').toLowerCase();
+        var rEmployer = (r.employer_name || '').toLowerCase();
+        return (!type || rType === type || r.incident_type === type) &&
+               (!death || rDeath === death) &&
+               (!status || rStatus === status) &&
+               (!search || rName.includes(search) || rEmployer.includes(search));
     });
     applyPagination(filtered);
 }
@@ -336,25 +406,44 @@ function renderTable(rows) {
     if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
     tbody.innerHTML = rows.map(r => {
-        const typeSlug   = (r.incident_type || 'injury').toLowerCase();
-        const statusSlug = (r.status || 'submitted').toLowerCase().replace(' ','_');
-        const nature     = (r.nature_of_injuries || '').length > 60 ? r.nature_of_injuries.substring(0,60) + '...' : (r.nature_of_injuries || '-');
+        const isPerson = r._source === 'accident_person';
+        const workerName = isPerson ? r.full_name : r.worker_name;
+        const workerId   = isPerson ? r.id_number : r.worker_id_number;
+        const occupation = isPerson ? r.occupation_at_accident : r.occupation;
+        const incType    = isPerson ? 'Accident Injury' : (r.incident_type || 'Injury');
+        const typeSlug   = incType.toLowerCase().replace(/ /g,'_');
+        const statusSlug = isPerson ? 'linked' : ((r.status || 'submitted').toLowerCase().replace(' ','_'));
+        const incDate    = isPerson ? r._accident_date : r.incident_date;
+        const incPlace   = isPerson ? r._accident_place : r.place_of_accident;
+        const incNature  = isPerson ? (r.medical_practitioner || 'From accident report') : r.nature_of_injuries;
+        const nature     = (incNature || '').length > 60 ? incNature.substring(0,60) + '...' : (incNature || '-');
+        const death      = isPerson ? (r.injury_fatal === 'Fatal' ? 'Yes' : 'No') : r.resulted_death;
+        const permIncap  = isPerson ? (r.disabled_three_days === 'Yes' ? 'Yes' : 'No') : (r.permanent_incapacity || 'No');
+        const tempIncap  = isPerson ? (r.disabled_three_days === 'Yes' ? 'Yes' : 'No') : (r.temporary_incapacity || 'No');
+        const sourceLabel = isPerson ? 'From Accident' : 'Injury Report';
+        const sourceBadge = isPerson
+            ? '<span class="badge" style="background:#d1ecf1;color:#0c5460">From Accident</span>'
+            : '<span class="badge badge-injury">Injury Report</span>';
+        const statusDisplay = isPerson ? 'Linked to Accident' : (r.status || 'submitted');
+        const reportDate = isPerson ? fmtDate(r._accident_date) : fmtDate(r.report_date);
+        const empName = isPerson ? (r._employer_name || r.employer_name || '-') : (r.employer_name || '-');
         return `<tr>
-        <td><strong>${r.worker_name || '-'}</strong><br><small style="color:#aaa">${r.worker_id_number || ''}</small></td>
-        <td>${r.occupation || '-'}</td>
-        <td>${r.employer_name || '-'}</td>
-        <td><span class="badge badge-${typeSlug}">${r.incident_type || '-'}</span></td>
-        <td style="white-space:nowrap">${fmtDate(r.incident_date)}</td>
-        <td>${r.place_of_accident || '-'}</td>
-        <td style="max-width:200px" title="${r.nature_of_injuries||''}">${nature}</td>
-        <td><span class="badge badge-${(r.resulted_death||'No').toLowerCase()}">${r.resulted_death || 'No'}</span></td>
-        <td><span class="badge badge-${(r.permanent_incapacity||'No').toLowerCase()}">${r.permanent_incapacity || 'No'}</span></td>
-        <td><span class="badge badge-${(r.temporary_incapacity||'No').toLowerCase()}">${r.temporary_incapacity || 'No'}</span></td>
-        <td><span class="badge badge-${statusSlug}">${r.status || 'submitted'}</span></td>
-        <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
+        <td><strong>${workerName || '-'}</strong><br><small style="color:#aaa">${workerId || ''}</small></td>
+        <td>${occupation || '-'}</td>
+        <td>${empName}</td>
+        <td>${sourceBadge}</td>
+        <td><span class="badge badge-${typeSlug}">${incType}</span></td>
+        <td style="white-space:nowrap">${fmtDate(incDate)}</td>
+        <td>${incPlace || '-'}</td>
+        <td style="max-width:200px" title="${incNature||''}">${nature}</td>
+        <td><span class="badge badge-${(death||'No').toLowerCase()}">${death||'No'}</span></td>
+        <td><span class="badge badge-${permIncap.toLowerCase()}">${permIncap}</span></td>
+        <td><span class="badge badge-${tempIncap.toLowerCase()}">${tempIncap}</span></td>
+        <td><span class="badge badge-${statusSlug}">${statusDisplay}</span></td>
+        <td style="white-space:nowrap">${reportDate}</td>
         <td style="white-space:nowrap">
             <button class="action-btn" onclick="viewRecord('${r.id}')">View</button>
-            <button class="action-btn" onclick="editStatus('${r.id}','${r.status||'submitted'}','${r.submitted_by||''}')">Status</button>
+            ${isPerson ? '' : '<button class="action-btn" onclick="editStatus('' + r.id + '','' + (r.status||'submitted') + '','' + (r.submitted_by||'') + '')">Status</button>'}
         </td>
         </tr>`;
     }).join('');
@@ -365,7 +454,33 @@ function viewRecord(id) {
     if (!r) return;
     function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
     
-        // Injury / disease report (BL Form 43/10)
+            if (r._source === 'accident_person') {
+        // Worker injured in a company accident (from accident_injured_persons)
+        var workerSection = '<div class="rec-section"><div class="rec-section-header worker">Injured Worker Details</div><div class="rec-section-body">' +
+            f('Full Name', r.full_name) + f('Age', r.age_years) + f('Gender', r.sex) + f('ID / Passport', r.id_number) +
+            f('Occupation at Accident', r.occupation_at_accident) + f('Usual Occupation', r.usual_occupation) + f('Experience Level', r.experience_level) +
+            f('Fatal?', r.injury_fatal) + f('Disabled 3+ Days', r.disabled_three_days) + '</div></div>';
+        
+        var accidentSection = '<div class="rec-section"><div class="rec-section-header incident">Linked Accident Details</div><div class="rec-section-body">' +
+            f('Case Number', r._accident_case) + f('Accident Date', fmtDate(r._accident_date)) + f('Place', r._accident_place) +
+            f('Employer', r._employer_name) + '</div></div>';
+        
+        var modalHtml = '<div class="rec-modal">' +
+            '<div class="rec-modal-header"><div><h2>Accident-Linked Injury</h2><div class="subtitle">From OHS Form 60 - ' + fmtDate(r._accident_date) + '</div></div>' +
+            '<button class="rec-modal-close" id="recCloseBtn">X</button></div>' +
+            '<div class="rec-modal-body">' + workerSection + accidentSection + '</div></div>';
+        
+        return new Promise(function(resolve) {
+            var ov = document.createElement('div');
+            ov.className = 'rec-modal-overlay';
+            ov.innerHTML = modalHtml;
+            ov.querySelector('#recCloseBtn').addEventListener('click', function() { ov.remove(); resolve(); });
+            ov.addEventListener('click', function(e) { if (e.target === ov) { ov.remove(); resolve(); } });
+            document.body.appendChild(ov);
+        });
+    }
+    
+// Injury / disease report (BL Form 43/10)
     var workerSection = '<div class="rec-section"><div class="rec-section-header worker">👤 Worker Details</div><div class="rec-section-body">' +
         f('Worker Name', r.worker_name) + f('Address', r.worker_address) + f('Occupation', r.occupation) + f('ID / Passport', r.worker_id_number) + '</div></div>';
     
