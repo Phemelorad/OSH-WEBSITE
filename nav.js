@@ -305,21 +305,21 @@ margin-right: 4px;
   const MENU = [
     {
         id: 'dashboard',
-        label: '<img src='ICONS/DASHBOARD.png' class='nav-icon'> Dashboard',
+        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Dashboard',
         href: 'dashboard.html',
         single: true,
         hideFor: ['viewer', 'worker', 'company']
       },
       {
         id: 'company-view',
-        label: '<img src='ICONS/COMPANY.png' class='nav-icon'> Employer Details',
+        label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employer Details',
         href: 'company-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'book-inspection',
-        label: '<img src='ICONS/INSPECTION.png' class='nav-icon'> Book Inspection',
+        label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Book Inspection',
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'company-book-inspection', icon: '\uD83D\uDCDD', label: 'New Booking',       href: 'company-book-inspection.html' },
@@ -328,21 +328,21 @@ margin-right: 4px;
       },
       {
         id: 'accident',
-        label: '<img src='ICONS/DASHBOARD.png' class='nav-icon'> Report Accident',
+        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Report Accident',
         href: 'accident-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'injury-disease',
-        label: '<img src='ICONS/INJURY.png' class='nav-icon'> Report Injury / Disease',
+        label: '<img src="ICONS/INJURY.png" class="nav-icon"> Report Injury / Disease',
         href: 'injury-disease-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'company-monitoring',
-        label: '<img src='ICONS/DASHBOARD.png' class='nav-icon'> Monitoring Dashboard',
+        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Monitoring Dashboard',
         href: 'company-monitoring.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
@@ -357,36 +357,36 @@ margin-right: 4px;
       },
       {
         id: 'company-injuries-view',
-        label: '<img src='ICONS/INJURY.png' class='nav-icon'> My Injuries',
+        label: '<img src="ICONS/INJURY.png" class="nav-icon"> My Injuries',
         href: 'company-injuries-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
       },
       {
         id: 'inspection',
-        label: '<img src='ICONS/INSPECTION.png' class='nav-icon'> Inspections',
+        label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Inspections',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'inspection-form',     icon: '<img src='ICONS/INVESTIGATION.png' class='dd-icon'>', label: 'New Inspection',       href: 'inspection.html' },
+          { id: 'inspection-form',     icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'New Inspection',       href: 'inspection.html' },
           { id: 'inspection-bookings', icon: '\uD83D\uDCC5', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
           { id: 'inspection-records',  icon: '\uD83D\uDCC1', label: 'Inspection Records',   href: 'inspection-entries.html' },
         ]
       },
       {
         id: 'accident',
-        label: '<img src='ICONS/DASHBOARD.png' class='nav-icon'> Accidents',
+        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Accidents',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'accident',         icon: '<img src='ICONS/DASHBOARD.png' class='dd-icon'>', label: 'New Accident Report', href: 'accident-report.html' },
+          { id: 'accident',         icon: '<img src="ICONS/DASHBOARD.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
           { id: 'accident-entries', icon: '\uD83D\uDCCA', label: 'View Reports',        href: 'accident-entries.html' },
         ]
       },
       {
         id: 'injury',
-        label: '<img src='ICONS/INJURY.png' class='nav-icon'> Injuries',
+        label: '<img src="ICONS/INJURY.png" class="nav-icon"> Injuries',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'injury-disease',         icon: '<img src='ICONS/INJURY.png' class='dd-icon'>', label: 'New Report',             href: 'injury-disease-report.html' },
+          { id: 'injury-disease',         icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report',             href: 'injury-disease-report.html' },
           { id: 'injury-disease-entries', icon: '\uD83D\uDCCA', label: 'View Reports',           href: 'injury-disease-entries.html' },
           { id: 'worker-profile',         icon: '\uD83D\uDC64', label: 'Worker Profile',         href: 'worker-profile.html' },
         ]
@@ -401,7 +401,7 @@ margin-right: 4px;
       },
       {
         id: 'claims',
-        label: '<img src='ICONS/CLAIM.png' class='nav-icon'> Claims',
+        label: '<img src="ICONS/CLAIM.png" class="nav-icon"> Claims',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
           { id: 'claims-submit',  icon: '\uD83D\uDCDD', label: 'Submit Claim',  href: 'form.html' },
@@ -410,14 +410,14 @@ margin-right: 4px;
       },
       {
         id: 'case-tracking',
-        label: '<img src='ICONS/DASHBOARD.png' class='nav-icon'> My Cases',
+        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> My Cases',
         href: 'case-tracking.html',
         single: true,
         hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'worker-claims',
-        label: '<img src='ICONS/CLAIM.png' class='nav-icon'> My Claims',
+        label: '<img src="ICONS/CLAIM.png" class="nav-icon"> My Claims',
         href: 'worker-claims.html',
         single: true,
         hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
@@ -447,14 +447,14 @@ margin-right: 4px;
       },
       {
         id: 'company-register',
-        label: '<img src='ICONS/COMPANY.png' class='nav-icon'> Employers',
+        label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employers',
         href: 'company-register.html',
         single: true,
         hideFor: ['company', 'worker', 'medical_practitioner']
       },
       {
         id: 'admin',
-        label: '<img src='ICONS/ADMIN.png' class='nav-icon'> Admin',
+        label: '<img src="ICONS/ADMIN.png" class="nav-icon"> Admin',
         hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         href: 'admin.html',
         single: true
