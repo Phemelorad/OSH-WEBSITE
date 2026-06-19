@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Clientele - Medical Practitioner</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/COMPANY.png" class="icon" alt=""></text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -190,7 +190,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>👥 My Clientele</h1>
+        <h1><img src="ICONS/COMPANY.png" class="icon" alt=""> My Clientele</h1>
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name" id="userName">Loading...</div>
@@ -215,7 +215,7 @@
         </div>
 
         <!-- ── Search Section ──────────────────────────── -->
-        <div class="section-title blue">🔍 Search Worker by ID / Passport</div>
+        <div class="section-title blue"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Search Worker by ID / Passport</div>
         <div class="card">
             <div class="search-tabs">
                 <button class="search-tab active" id="tabOmang" onclick="setSearchType('Omang')">🪪 Omang (National ID)</button>
@@ -227,7 +227,7 @@
                       
                        onkeydown="if(event.key==='Enter'){event.preventDefault();searchWorker()}"
                        autocomplete="off">
-                <button class="search-btn" id="searchBtn" onclick="searchWorker()">🔍 Search</button>
+                <button class="search-btn" id="searchBtn" onclick="searchWorker()"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Search</button>
             </div>
             <div class="search-status" id="searchStatus"></div>
 
@@ -246,7 +246,7 @@
 
         <!-- ── Past Reports ───────────────────────────── -->
         <div id="pastReportsSection" style="display:none">
-            <div class="section-title blue">📋 Past Medical Examination Reports</div>
+            <div class="section-title blue"><img src="ICONS/CLAIM.png" class="icon" alt=""> Past Medical Examination Reports</div>
             <div class="card">
                 <div id="pastReportsContent">
                     <div class="empty-state">Search for a worker to see their past reports.</div>
@@ -255,7 +255,7 @@
         </div>
 
         <!-- ── My Clientele ────────────────────────────── -->
-        <div class="section-title green">👥 My Clientele</div>
+        <div class="section-title green"><img src="ICONS/COMPANY.png" class="icon" alt=""> My Clientele</div>
         <div class="card">
             <div id="clienteleContent">
                 <div class="loading">Loading your clientele…</div>
@@ -416,7 +416,7 @@
             worker.id_type ? worker.id_type : null,
             worker.sex ? worker.sex : null,
             worker.occupation ? worker.occupation : null,
-            worker.employer_name ? `🏢 ${worker.employer_name}` : null,
+            worker.employer_name ? `<img src="ICONS/COMPANY.png" class="icon" alt=""> ${worker.employer_name}` : null,
         ].filter(c => c).join(' · ') || 'No details';
 
         document.getElementById('wbDetails').textContent = chips;
@@ -566,7 +566,7 @@
                         Added: ${client.created_at ? new Date(client.created_at).toLocaleDateString() : '—'}
                         ${client.last_exam_date ? ' · Last exam: ' + new Date(client.last_exam_date).toLocaleDateString() : ''}
                     </div>
-                    <div class="cc-reports-count">📋 Past reports available</div>
+                    <div class="cc-reports-count"><img src="ICONS/CLAIM.png" class="icon" alt=""> Past reports available</div>
                     <div class="cc-actions">
                         ${client.worker_id_number ? `<button class="cc-view" onclick="window.location.href='worker-profile.html?id=${client.worker_id_number}'">👁 View</button>` : `<button class="cc-view" style="opacity:0.4;cursor:not-allowed" disabled>👁 View</button>`}
                         <button class="cc-remove" onclick="removeClient('${client.id}', '${client.worker_name.replace(/'/g, "\\'")}')">✕ Remove</button>

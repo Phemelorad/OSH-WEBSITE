@@ -209,7 +209,7 @@
             </div>
             <div style="margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #e0e0e0">
               <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
-                🔍 Look Up Claimant by ID / Passport
+                <img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Look Up Claimant by ID / Passport
                 <span style="font-weight:400;color:#888;font-size:12px"> — enter the worker's Omang or passport number to fetch their record</span>
               </label>
               <div style="display:flex;gap:10px">
@@ -218,7 +218,7 @@
                        style="flex:1;padding:10px 13px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;font-family:inherit;text-transform:uppercase"
                        onkeydown="if(event.key==='Enter'){event.preventDefault();searchClaim()}">
                 <button type="button" class="btn-search-claim" id="searchBtn" onclick="searchClaim()">
-                  🔍 Search
+                  <img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Search
                 </button>
               </div>
               <div id="claimSearchResult" style="margin-top:10px;display:none"></div>
@@ -446,7 +446,7 @@
                     showToast('Worker found: '+(w.full_name||'N/A'),'success');
                 } else { showToast('No matching claim or worker found','error'); }
             } catch(e){ console.error(e); showToast('Search failed','error'); }
-            finally{ btn.disabled=false; btn.textContent='🔍 Search'; }
+            finally{ btn.disabled=false; btn.textContent='<img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Search'; }
         };
 
         // Incapacity rows

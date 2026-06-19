@@ -308,3 +308,11 @@ tr:hover td { background: #fafafa; }
 /* ── Action Buttons Row ───────────────────────────────────── */
 .form-actions {
     display:
+
+/* ── ICONS folder image icons ── */
+.icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 3px;
+}

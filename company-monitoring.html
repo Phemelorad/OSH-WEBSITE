@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Dashboard - DOSH</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/DASHBOARD.png" class="icon" alt=""></text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -142,7 +142,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>📊 Monitoring Dashboard</h1>
+        <h1><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Monitoring Dashboard</h1>
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name" id="userName">Loading...</div>
@@ -168,33 +168,33 @@
         </div>
 
         <div class="page-header">
-            <h1>📊 Monitoring Dashboard</h1>
+            <h1><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Monitoring Dashboard</h1>
             <p>Track your inspection bookings, reports, and compensation claims in one place.</p>
         </div>
 
         <div class="stats-grid" id="statsGrid">
-            <div class="stat-card blue"><div class="stat-icon">📅</div><h3>Inspection Bookings</h3><div class="stat-value" id="statBookings">—</div><div class="stat-sub">Total requests</div></div>
-            <div class="stat-card green"><div class="stat-icon">🔍</div><h3>Inspections</h3><div class="stat-value" id="statInspections">—</div><div class="stat-sub">Conducted</div></div>
-            <div class="stat-card red"><div class="stat-icon">🚨</div><h3>Accidents</h3><div class="stat-value" id="statAccidents">—</div><div class="stat-sub">Reports submitted</div></div>
-            <div class="stat-card amber"><div class="stat-icon">🏥</div><h3>Injuries &amp; Diseases</h3><div class="stat-value" id="statInjuries">—</div><div class="stat-sub">Reports submitted</div></div>
-            <div class="stat-card purple"><div class="stat-icon">📑</div><h3>Compensation Claims</h3><div class="stat-value" id="statClaims">—</div><div class="stat-sub">Total claims</div></div>
+            <div class="stat-card blue"><div class="stat-icon"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div><h3>Inspection Bookings</h3><div class="stat-value" id="statBookings">—</div><div class="stat-sub">Total requests</div></div>
+            <div class="stat-card green"><div class="stat-icon"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div><h3>Inspections</h3><div class="stat-value" id="statInspections">—</div><div class="stat-sub">Conducted</div></div>
+            <div class="stat-card red"><div class="stat-icon"><img src="ICONS/DASHBOARD.png" class="icon" alt=""></div><h3>Accidents</h3><div class="stat-value" id="statAccidents">—</div><div class="stat-sub">Reports submitted</div></div>
+            <div class="stat-card amber"><div class="stat-icon"><img src="ICONS/INJURY.png" class="icon" alt=""></div><h3>Injuries &amp; Diseases</h3><div class="stat-value" id="statInjuries">—</div><div class="stat-sub">Reports submitted</div></div>
+            <div class="stat-card purple"><div class="stat-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div><h3>Compensation Claims</h3><div class="stat-value" id="statClaims">—</div><div class="stat-sub">Total claims</div></div>
             <div class="stat-card orange"><div class="stat-icon">⚠</div><h3>Pending Actions</h3><div class="stat-value" id="statPending">—</div><div class="stat-sub">Awaiting response</div></div>
         </div>
 
         <!-- Tabs -->
         <div class="section-card">
             <div class="tabs" id="tabBar">
-                <button class="tab-btn active" data-tab="tab-bookings">📅 Bookings</button>
-                <button class="tab-btn" data-tab="tab-inspections">🔍 Inspections</button>
-                <button class="tab-btn" data-tab="tab-accidents">🚨 Accidents</button>
-                <button class="tab-btn" data-tab="tab-injuries">🏥 Injuries</button>
-                <button class="tab-btn" data-tab="tab-claims">📑 Claims</button>
+                <button class="tab-btn active" data-tab="tab-bookings"><img src="ICONS/INSPECTION.png" class="icon" alt=""> Bookings</button>
+                <button class="tab-btn" data-tab="tab-inspections"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Inspections</button>
+                <button class="tab-btn" data-tab="tab-accidents"><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Accidents</button>
+                <button class="tab-btn" data-tab="tab-injuries"><img src="ICONS/INJURY.png" class="icon" alt=""> Injuries</button>
+                <button class="tab-btn" data-tab="tab-claims"><img src="ICONS/CLAIM.png" class="icon" alt=""> Claims</button>
             </div>
 
             <!-- Bookings Tab -->
             <div class="tab-content active" id="tab-bookings">
                 <div class="section-header">
-                    <h2>📅 Inspection Booking Requests</h2>
+                    <h2><img src="ICONS/INSPECTION.png" class="icon" alt=""> Inspection Booking Requests</h2>
                     <a href="company-book-inspection.html" class="section-link">New Booking →</a>
                 </div>
                 <div class="table-wrap">
@@ -211,13 +211,13 @@
                         <tbody id="bookingsTable"></tbody>
                     </table>
                 </div>
-                <div id="bookingsEmpty" class="empty-state"><div class="empty-icon">📅</div><p>No inspection booking requests yet.</p></div>
+                <div id="bookingsEmpty" class="empty-state"><div class="empty-icon"><img src="ICONS/INSPECTION.png" class="icon" alt=""></div><p>No inspection booking requests yet.</p></div>
             </div>
 
             <!-- Inspections Tab -->
             <div class="tab-content" id="tab-inspections">
                 <div class="section-header">
-                    <h2>🔍 Inspections Conducted</h2>
+                    <h2><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Inspections Conducted</h2>
                     <a href="inspection-entries.html" class="section-link">View All →</a>
                 </div>
                 <div class="table-wrap">
@@ -234,13 +234,13 @@
                         <tbody id="inspectionsTable"></tbody>
                     </table>
                 </div>
-                <div id="inspectionsEmpty" class="empty-state"><div class="empty-icon">🔍</div><p>No inspections conducted yet.</p></div>
+                <div id="inspectionsEmpty" class="empty-state"><div class="empty-icon"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div><p>No inspections conducted yet.</p></div>
             </div>
 
             <!-- Accidents Tab -->
             <div class="tab-content" id="tab-accidents">
                 <div class="section-header">
-                    <h2>🚨 Accident Reports</h2>
+                    <h2><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Accident Reports</h2>
                     <a href="accident-report.html" class="section-link">New Report →</a>
                 </div>
                 <div class="table-wrap">
@@ -256,13 +256,13 @@
                         <tbody id="accidentsTable"></tbody>
                     </table>
                 </div>
-                <div id="accidentsEmpty" class="empty-state"><div class="empty-icon">🚨</div><p>No accident reports on record.</p></div>
+                <div id="accidentsEmpty" class="empty-state"><div class="empty-icon"><img src="ICONS/DASHBOARD.png" class="icon" alt=""></div><p>No accident reports on record.</p></div>
             </div>
 
             <!-- Injuries Tab -->
             <div class="tab-content" id="tab-injuries">
                 <div class="section-header">
-                    <h2>🏥 Injury &amp; Disease Reports</h2>
+                    <h2><img src="ICONS/INJURY.png" class="icon" alt=""> Injury &amp; Disease Reports</h2>
                     <a href="injury-disease-report.html" class="section-link">New Report →</a>
                 </div>
                 <div class="table-wrap">
@@ -279,13 +279,13 @@
                         <tbody id="injuriesTable"></tbody>
                     </table>
                 </div>
-                <div id="injuriesEmpty" class="empty-state"><div class="empty-icon">🏥</div><p>No injury or disease reports on record.</p></div>
+                <div id="injuriesEmpty" class="empty-state"><div class="empty-icon"><img src="ICONS/INJURY.png" class="icon" alt=""></div><p>No injury or disease reports on record.</p></div>
             </div>
 
             <!-- Claims Tab -->
             <div class="tab-content" id="tab-claims">
                 <div class="section-header">
-                    <h2>📑 Compensation Claims</h2>
+                    <h2><img src="ICONS/CLAIM.png" class="icon" alt=""> Compensation Claims</h2>
                     <a href="entries.html" class="section-link">View All →</a>
                 </div>
                 <div class="table-wrap">
@@ -301,7 +301,7 @@
                         <tbody id="claimsTable"></tbody>
                     </table>
                 </div>
-                <div id="claimsEmpty" class="empty-state"><div class="empty-icon">📑</div><p>No compensation claims on record.</p></div>
+                <div id="claimsEmpty" class="empty-state"><div class="empty-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div><p>No compensation claims on record.</p></div>
             </div>
         </div>
     </div>

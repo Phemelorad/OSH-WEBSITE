@@ -339,7 +339,7 @@
         var wrap = document.getElementById('recentClaimsWrap');
         if (!claims || claims.length === 0) {
             wrap.innerHTML = '<div class="empty-state">' +
-              '<div class="empty-icon">📋</div>' +
+              '<div class="empty-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div>' +
               '<div>No claims yet. Submit your first injury claim to get started.</div>' +
               '</div>';
             return;
@@ -501,15 +501,15 @@
           </div>
 
           <div class="actions-row">
-            <a href="form.html" class="action-btn primary">📋 Submit Injury Claim</a>
+            <a href="form.html" class="action-btn primary"><img src="ICONS/CLAIM.png" class="icon" alt=""> Submit Injury Claim</a>
             <a href="worker-claims.html" class="action-btn">👁 View My Claims</a>
-            <a href="worker-profile.html" class="action-btn">👤 My Profile</a>
+            <a href="worker-profile.html" class="action-btn"><img src="ICONS/COMPANY.png" class="icon" alt=""> My Profile</a>
           </div>
 
           <div class="section-title">📄 Recent Claims</div>
           <div id="recentClaimsWrap" class="claims-table-wrap">
             <div class="empty-state">
-              <div class="empty-icon">📋</div>
+              <div class="empty-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div>
               <div>No claims yet. Submit your first injury claim to get started.</div>
             </div>
           </div>
@@ -538,7 +538,7 @@ function renderMedPractDashboard(container, userId) {
 
           <div class="actions-row">
             <a href="medical-examination.html" class="action-btn primary">📝 New Medical Exam (Form 43/03)</a>
-            <a href="clientele.html" class="action-btn">👥 My Clientele</a>
+            <a href="clientele.html" class="action-btn"><img src="ICONS/COMPANY.png" class="icon" alt=""> My Clientele</a>
           </div>
         `;
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accident Report - DOSH Form 60</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/DASHBOARD.png" class="icon" alt=""></text></svg>">
     <style>
         .logout-btn {
             padding: 10px 20px;
@@ -809,7 +809,7 @@
             } : payload;
             for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
 
-            await showAlert('Accident report submitted successfully!\n\n📋 Case Number: ' + (data?.accident_case_number || 'Pending'), { 
+            await showAlert('Accident report submitted successfully!\n\n<img src="ICONS/CLAIM.png" class="icon" alt=""> Case Number: ' + (data?.accident_case_number || 'Pending'), { 
                 type: 'success', title: 'Report Submitted', btnText: 'OK' 
             });
             document.getElementById('accidentForm').reset();

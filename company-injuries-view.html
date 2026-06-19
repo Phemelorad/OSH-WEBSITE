@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Injuries & Diseases - Employer</title>
 <link rel="stylesheet" href="styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/INJURY.png" class="icon" alt=""></text></svg>">
 <style>
 .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
 .navbar h1 { color:#333; font-size:24px; }
@@ -139,7 +139,7 @@ font-weight: 500;
 </head>
 <body>
 <div class="navbar">
-<h1>🏥 My Injuries &amp; Diseases</h1>
+<h1><img src="ICONS/INJURY.png" class="icon" alt=""> My Injuries &amp; Diseases</h1>
 <div class="user-info">
 <div class="user-details">
 <div class="user-name" id="userName">Loading...</div>
@@ -161,7 +161,7 @@ font-weight: 500;
 </div>
 <div class="section-card">
 <div class="section-header">
-<h2>🏥 Injury &amp; Disease Reports Linked to Your Company</h2>
+<h2><img src="ICONS/INJURY.png" class="icon" alt=""> Injury &amp; Disease Reports Linked to Your Company</h2>
 <div class="filters">
 <div class="filter-group">
 <label>Type</label>
@@ -207,7 +207,7 @@ font-weight: 500;
 <tbody id="tableBody"></tbody>
 </table>
 </div>
-<div id="emptyState" class="empty-state" style="display:none"><p>🏥 No injury or disease reports found for your company</p></div>
+<div id="emptyState" class="empty-state" style="display:none"><p><img src="ICONS/INJURY.png" class="icon" alt=""> No injury or disease reports found for your company</p></div>
 <div class="row-count" id="rowCount"></div>
 </div>
 </div>
@@ -317,22 +317,22 @@ async function viewRecord(id) {
     if (!r) return;
     function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + val + '</span></div>' : ''; }
     
-    const workerSection = '<div class="rec-section"><div class="rec-section-header worker">👤 Worker Details</div><div class="rec-section-body">' +
+    const workerSection = '<div class="rec-section"><div class="rec-section-header worker"><img src="ICONS/COMPANY.png" class="icon" alt=""> Worker Details</div><div class="rec-section-body">' +
         f('Worker Name', r.worker_name) + f('Address', r.worker_address) + f('Occupation', r.occupation) + f('ID / Passport', r.worker_id_number) + '</div></div>';
     
-    const incidentSection = '<div class="rec-section"><div class="rec-section-header incident">🚨 Incident Details</div><div class="rec-section-body">' +
+    const incidentSection = '<div class="rec-section"><div class="rec-section-header incident"><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Incident Details</div><div class="rec-section-body">' +
         f('Date', fmtDate(r.incident_date)) + f('Place', r.place_of_accident) + f('Type', r.incident_type) + f('Nature', r.nature_of_injuries) + '</div></div>';
     
     const outcomeSection = (r.resulted_death || r.permanent_incapacity || r.temporary_incapacity) ?
         '<div class="rec-section"><div class="rec-section-header outcome">⚕️ Outcome</div><div class="rec-section-body">' +
         f('Death', r.resulted_death) + f('Permanent Incapacity', r.permanent_incapacity) + f('Temporary Incapacity', r.temporary_incapacity) + '</div></div>' : '';
     
-    const employerSection = '<div class="rec-section"><div class="rec-section-header employer">🏢 Employer Details</div><div class="rec-section-body">' +
+    const employerSection = '<div class="rec-section"><div class="rec-section-header employer"><img src="ICONS/COMPANY.png" class="icon" alt=""> Employer Details</div><div class="rec-section-body">' +
         f('Employer', r.employer_name) + f('Telephone', r.employer_telephone) + f('Fax', r.employer_fax) + '</div></div>';
     
     const modalHtml = `<div class="rec-modal">
         <div class="rec-modal-header">
-            <div><h2>🏥 Injury & Disease Report</h2><div class="subtitle">BL Form 43/10</div></div>
+            <div><h2><img src="ICONS/INJURY.png" class="icon" alt=""> Injury & Disease Report</h2><div class="subtitle">BL Form 43/10</div></div>
             <button class="rec-modal-close" id="recCloseBtn">✕</button>
         </div>
         <div class="rec-modal-body">

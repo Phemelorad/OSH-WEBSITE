@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Accidents - Employer</title>
 <link rel="stylesheet" href="styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/DASHBOARD.png" class="icon" alt=""></text></svg>">
 <style>
 .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
 .navbar h1 { color:#333; font-size:24px; }
@@ -58,7 +58,7 @@ tr:hover { background:#fafafa; }
 </head>
 <body>
 <div class="navbar">
-<h1>🚨 My Accidents</h1>
+<h1><img src="ICONS/DASHBOARD.png" class="icon" alt=""> My Accidents</h1>
 <div class="user-info">
 <div class="user-details">
 <div class="user-name" id="userName">Loading...</div>
@@ -81,7 +81,7 @@ tr:hover { background:#fafafa; }
 </div>
 <div class="section-card">
 <div class="section-header">
-<h2>🚨 Accident Reports Linked to Your Company</h2>
+<h2><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Accident Reports Linked to Your Company</h2>
 <div class="filters">
 <div class="filter-group">
 <label>Report Type</label>
@@ -126,7 +126,7 @@ tr:hover { background:#fafafa; }
 <tbody id="tableBody"></tbody>
 </table>
 </div>
-<div id="emptyState" class="empty-state" style="display:none"><p>🚨 No accident reports found for your company</p></div>
+<div id="emptyState" class="empty-state" style="display:none"><p><img src="ICONS/DASHBOARD.png" class="icon" alt=""> No accident reports found for your company</p></div>
 <div class="row-count" id="rowCount"></div>
 </div>
 </div>
@@ -268,13 +268,13 @@ async function viewRecord(id) {
     
     const modalHtml = `<div class="rec-modal">
         <div class="rec-modal-header">
-            <div><h2>🚨 Accident Report</h2><div class="subtitle">${r.accident_case_number || ''}</div></div>
+            <div><h2><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Accident Report</h2><div class="subtitle">${r.accident_case_number || ''}</div></div>
             <button class="rec-modal-close" id="recCloseBtn">✕</button>
         </div>
         <div class="rec-modal-body">
-            <div class="rec-section"><div class="rec-section-header accident">🚨 Accident Details</div><div class="rec-section-body">${accidentBody}</div></div>
-            <div class="rec-section"><div class="rec-section-header worker">👤 Injured Worker</div><div class="rec-section-body">${workerHtml}</div></div>
-            ${investHtml ? '<div class="rec-section"><div class="rec-section-header investigation">🔍 Investigation</div><div class="rec-section-body">' + investHtml + '</div></div>' : ''}
+            <div class="rec-section"><div class="rec-section-header accident"><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Accident Details</div><div class="rec-section-body">${accidentBody}</div></div>
+            <div class="rec-section"><div class="rec-section-header worker"><img src="ICONS/COMPANY.png" class="icon" alt=""> Injured Worker</div><div class="rec-section-body">${workerHtml}</div></div>
+            ${investHtml ? '<div class="rec-section"><div class="rec-section-header investigation"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Investigation</div><div class="rec-section-body">' + investHtml + '</div></div>' : ''}
         </div>
     </div>`;
     

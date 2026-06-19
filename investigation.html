@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investigations - DOSH</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></text></svg>">
     <style>
 .navbar { background:white; padding:20px 40px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
         .navbar h1 { color:#333; font-size:24px; }
@@ -271,7 +271,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>🔍 Investigations</h1>
+        <h1><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Investigations</h1>
         <div class="user-info">
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
@@ -283,8 +283,8 @@
 
     <div class="container">
         <div class="info-banner">
-            <span style="font-size:24px">🔍</span>
-            <div>Each <strong>accident</strong> is listed with its affected workers below. An accident can have multiple injured workers — click <strong>👥 Workers</strong> to see the full list.</div>
+            <span style="font-size:24px"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></span>
+            <div>Each <strong>accident</strong> is listed with its affected workers below. An accident can have multiple injured workers — click <strong><img src="ICONS/COMPANY.png" class="icon" alt=""> Workers</strong> to see the full list.</div>
         </div>
 
         <div class="stats-grid">
@@ -298,7 +298,7 @@
 
         <div class="section-card">
             <div class="section-header">
-                <h2>📋 Accident Cases</h2>
+                <h2><img src="ICONS/CLAIM.png" class="icon" alt=""> Accident Cases</h2>
                 <div class="filters">
                     <div class="filter-group">
                         <label>Type</label>
@@ -347,7 +347,7 @@
                         <tbody id="tableBody"></tbody>
                     </table>
                 </div>
-                <div id="emptyState" class="empty-state" style="display:none"><p>🔍 No investigation cases found</p></div>
+                <div id="emptyState" class="empty-state" style="display:none"><p><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> No investigation cases found</p></div>
                 <div class="row-count" id="rowCount"></div>
             </div>
         </div>
@@ -512,8 +512,8 @@
                 '</td>' +
                 '<td><span class="badge badge-' + statusSlug + '">' + a.status + '</span></td>' +
                 '<td style="white-space:nowrap">' +
-                '<button class="action-btn" onclick="event.stopPropagation();viewAccident(\'' + a.id + '\')">📋 View</button> ' +
-                (hasInjuries ? '<button class="action-btn" onclick="event.stopPropagation();viewWorkers(\'' + a.id + '\')" style="background:#d1ecf1;color:#0c5460;border-color:#bee5eb">👥 Workers</button>' : '') +
+                '<button class="action-btn" onclick="event.stopPropagation();viewAccident(\'' + a.id + '\')"><img src="ICONS/CLAIM.png" class="icon" alt=""> View</button> ' +
+                (hasInjuries ? '<button class="action-btn" onclick="event.stopPropagation();viewWorkers(\'' + a.id + '\')" style="background:#d1ecf1;color:#0c5460;border-color:#bee5eb"><img src="ICONS/COMPANY.png" class="icon" alt=""> Workers</button>' : '') +
                 '</td>' +
                 '</tr>';
 
@@ -596,9 +596,9 @@
         // Show linked injured workers
         if (injuries && injuries.length > 0) {
             rowsHTML += '<div style="border-top:2px solid #f0f0f0;padding-top:12px;margin-top:8px">' +
-                '<div style="font-size:12px;font-weight:700;color:#333;margin-bottom:8px">👥 Injured Workers (' + injuries.length + ')</div>';
+                '<div style="font-size:12px;font-weight:700;color:#333;margin-bottom:8px"><img src="ICONS/COMPANY.png" class="icon" alt=""> Injured Workers (' + injuries.length + ')</div>';
             injuries.forEach(inj => {
-                const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '🏥';
+                const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '<img src="ICONS/INJURY.png" class="icon" alt="">';
                 rowsHTML += '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;align-items:center">' +
                     '<span>' + typeIcon + '</span>' +
                     '<div style="flex:1">' +
@@ -615,7 +615,7 @@
         const ov = document.createElement('div');
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
         ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
-            '<div style="font-size:32px;text-align:center;margin-bottom:8px">🔍</div>' +
+            '<div style="font-size:32px;text-align:center;margin-bottom:8px"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div>' +
             '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Accident Investigation</h2>' +
             rowsHTML +
             '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div>' +
@@ -669,21 +669,21 @@
 
             let workersHTML = '';
             if (injuries.length === 0) {
-                workersHTML = '<div class="workers-empty">👤 No injury/disease reports linked to this accident yet.</div>';
+                workersHTML = '<div class="workers-empty"><img src="ICONS/COMPANY.png" class="icon" alt=""> No injury/disease reports linked to this accident yet.</div>';
             } else {
                 workersHTML = injuries.map(inj => {
                     const isFatal = inj.resulted_death === 'Yes';
                     const isPermanent = inj.permanent_incapacity === 'Yes';
                     const isTemporary = inj.temporary_incapacity === 'Yes' && !isPermanent;
                     const cardClass = isFatal ? 'fatal' : (inj.incident_type === 'Disease' ? 'disease' : 'injury');
-                    const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '🏥';
+                    const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '<img src="ICONS/INJURY.png" class="icon" alt="">';
                     const typeLbl = inj.incident_type === 'Disease' ? 'Disease' : (inj.incident_type === 'Both' ? 'Injury & Disease' : 'Injury');
                     const claim = claimsByInjury[inj.id];
                     const badges = [
                         isFatal ? '<span class="worker-badge fatal">⚰ Fatal</span>' : '',
                         isPermanent ? '<span class="worker-badge permanent">♿ Permanent Incapacity</span>' : '',
                         isTemporary ? '<span class="worker-badge temporary">🩹 Temporary</span>' : '',
-                        claim ? '<span class="worker-badge claim">📑 Claim Filed</span>' : '',
+                        claim ? '<span class="worker-badge claim"><img src="ICONS/CLAIM.png" class="icon" alt=""> Claim Filed</span>' : '',
                     ].filter(Boolean).join(' ');
 
                     return '<div class="worker-card ' + cardClass + '">' +
@@ -710,20 +710,20 @@
 
             const caseNumber = acc.accident_case_number || '—';
             const summaryBar = '<div class="workers-summary-bar">' +
-                '<div class="workers-summary-item">👥 <strong>' + totalWorkers + '</strong> Total Workers</div>' +
+                '<div class="workers-summary-item"><img src="ICONS/COMPANY.png" class="icon" alt=""> <strong>' + totalWorkers + '</strong> Total Workers</div>' +
                 (fatalCount > 0 ? '<div class="workers-summary-item fatal-summary">⚰ <strong>' + fatalCount + '</strong> Fatal</div>' : '') +
-                '<div class="workers-summary-item">🏥 <strong>' + injuries.filter(i => i.incident_type === 'Injury' || i.incident_type === 'Both').length + '</strong> Injuries</div>' +
+                '<div class="workers-summary-item"><img src="ICONS/INJURY.png" class="icon" alt=""> <strong>' + injuries.filter(i => i.incident_type === 'Injury' || i.incident_type === 'Both').length + '</strong> Injuries</div>' +
                 '<div class="workers-summary-item">🦠 <strong>' + injuries.filter(i => i.incident_type === 'Disease' || i.incident_type === 'Both').length + '</strong> Diseases</div>' +
                 '<div class="workers-summary-item">♿ <strong>' + injuries.filter(i => i.permanent_incapacity === 'Yes').length + '</strong> Permanent</div>' +
-                '<div class="workers-summary-item">📑 <strong>' + Object.keys(claimsByInjury).length + '</strong> Claims</div>' +
+                '<div class="workers-summary-item"><img src="ICONS/CLAIM.png" class="icon" alt=""> <strong>' + Object.keys(claimsByInjury).length + '</strong> Claims</div>' +
                 '</div>';
 
             overlay.innerHTML = '<div class="workers-modal">' +
                 '<div class="workers-modal-header">' +
                 '<div>' +
-                '<h2>👥 Injured Workers</h2>' +
+                '<h2><img src="ICONS/COMPANY.png" class="icon" alt=""> Injured Workers</h2>' +
                 '<span style="font-size:12px;color:#888">' + esc(acc.occupier_name || '') +
-                (caseNumber !== '—' ? ' - 📋 ' + esc(caseNumber) : '') +
+                (caseNumber !== '—' ? ' - <img src="ICONS/CLAIM.png" class="icon" alt=""> ' + esc(caseNumber) : '') +
                 ' - ' + fmtDate(acc.accident_date) + '</span>' +
                 '</div>' +
                 '<button class="workers-modal-close" onclick="this.closest(\'.workers-modal-overlay\').remove()">✕</button>' +
@@ -764,7 +764,7 @@
         const ov = document.createElement('div');
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
         ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
-            '<div style="font-size:32px;text-align:center;margin-bottom:8px">🏥</div>' +
+            '<div style="font-size:32px;text-align:center;margin-bottom:8px"><img src="ICONS/INJURY.png" class="icon" alt=""></div>' +
             '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Injury/Disease Report</h2>' +
             rowsHTML +
             '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div>' +
