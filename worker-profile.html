@@ -801,6 +801,7 @@
             const pat = `%${escapeIlike(raw)}%`;
             const idPat = `%${escapeIlike(upper)}%`;
             const r = await SB.from('injury_claims').select('*')
+                .neq('status', 'draft')
                 .or(`name_of_claimant.ilike.${pat},claimant_id_number.ilike.${idPat}`)
                 .order('date_of_injury', { ascending: false })
                 .limit(50);

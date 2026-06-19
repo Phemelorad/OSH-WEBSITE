@@ -505,7 +505,8 @@
             try {
                 const { data: industries, error } = await supabaseClient
                     .from('injury_claims')
-                    .select('industry');
+                    .select('industry')
+                    .neq('status', 'draft');
 
                 if (error) throw error;
 
