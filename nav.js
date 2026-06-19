@@ -203,20 +203,21 @@
       
 /* Nav icon images */
 .nav-icon {
-width: 18px;
-height: 18px;
+width: 48px;
+height: 48px;
 vertical-align: middle;
-margin-right: 6px;
+margin-right: 12px;
 flex-shrink: 0;
 object-fit: contain;
 }
 .dd-icon img {
-width: 16px;
-height: 16px;
+width: 40px;
+height: 40px;
+margin-right: 8px;
 vertical-align: middle;
 }
 .osh-dropdown a .dd-icon img {
-margin-right: 4px;
+margin-right: 8px;
 }
 
 .osh-dropdown a .dd-icon {
