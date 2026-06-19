@@ -328,7 +328,7 @@ margin-right: 4px;
       },
       {
         id: 'accident',
-        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Report Accident',
+        label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Report Accident',
         href: 'accident-report.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
@@ -350,8 +350,7 @@ margin-right: 4px;
       },
       {
         id: 'company-accidents-view',
-        label: '<img src=\ICONS/DASHBOARD.png\ class=
-av-icon\> My Accidents',
+        label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> My Accidents',
         href: 'company-accidents-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
@@ -375,10 +374,10 @@ av-icon\> My Accidents',
       },
       {
         id: 'accident',
-        label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Accidents',
+        label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Accidents',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'accident',         icon: '<img src="ICONS/DASHBOARD.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
+          { id: 'accident',         icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
           { id: 'accident-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',        href: 'accident-entries.html' },
         ]
       },
