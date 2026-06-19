@@ -206,7 +206,7 @@
 width: 18px;
 height: 18px;
 vertical-align: middle;
-margin-right: 2px;
+margin-right: 6px;
 flex-shrink: 0;
 object-fit: contain;
 }
