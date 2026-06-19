@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employer Register - DOSH</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/COMPANY.png" class="icon" alt=""></text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -173,7 +173,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1><img src="ICONS/COMPANY.png" class="icon" alt=""> Employer Register</h1>
+        <h1>🏢 Employer Register</h1>
         <div class="user-info">
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
@@ -208,7 +208,7 @@
         <!-- ── Table section ──────────────────────── -->
         <div class="section-card">
             <div class="section-header">
-                <h2><img src="ICONS/CLAIM.png" class="icon" alt=""> Employer Directory</h2>
+                <h2>📋 Employer Directory</h2>
                 <div class="filters">
                     <div class="filter-group">
                         <label>Industry</label>
@@ -266,7 +266,7 @@
                     </table>
                 </div>
                 <div id="emptyState" class="empty-state" style="display:none">
-                    <p><img src="ICONS/COMPANY.png" class="icon" alt=""> No employers found</p>
+                    <p>🏢 No employers found</p>
                     <p style="font-size:13px;color:#aaa">Try adjusting the filters.</p>
                 </div>
                 <div class="row-count" id="rowCount"></div>
@@ -659,16 +659,16 @@
         const tabsEl = document.getElementById('ddTabs');
         tabsEl.innerHTML = `
             <button class="dd-tab active" data-panel="Accidents" onclick="switchDDTab(this,'Accidents')">
-                <img src="ICONS/DASHBOARD.png" class="icon" alt=""> Accidents <span class="tab-count">${ddAccidents.length}</span>
+                🚨 Accidents <span class="tab-count">${ddAccidents.length}</span>
             </button>
             <button class="dd-tab" data-panel="Inspections" onclick="switchDDTab(this,'Inspections')">
-                <img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Inspections <span class="tab-count">${ddInspections.length}</span>
+                🔍 Inspections <span class="tab-count">${ddInspections.length}</span>
             </button>
             <button class="dd-tab" data-panel="Injuries" onclick="switchDDTab(this,'Injuries')">
-                <img src="ICONS/INJURY.png" class="icon" alt=""> Injuries <span class="tab-count">${ddInjuries.length}</span>
+                🏥 Injuries <span class="tab-count">${ddInjuries.length}</span>
             </button>
             <button class="dd-tab" data-panel="Claims" onclick="switchDDTab(this,'Claims')">
-                <img src="ICONS/CLAIM.png" class="icon" alt=""> Claims <span class="tab-count">${ddClaims.length}</span>
+                📑 Claims <span class="tab-count">${ddClaims.length}</span>
             </button>`;
 
         // Render all panels
@@ -698,11 +698,11 @@
     function renderAccidentPanel() {
         const el = document.getElementById('ddPanelAccidents');
         if (!ddAccidents.length) {
-            el.innerHTML = '<div class="dd-empty"><img src="ICONS/DASHBOARD.png" class="icon" alt=""> No accident reports for this company</div>'; return;
+            el.innerHTML = '<div class="dd-empty">🚨 No accident reports for this company</div>'; return;
         }
         el.innerHTML = ddAccidents.map(a => `
             <div class="dd-list-item">
-                <div class="dd-item-icon icon-accident" style="background:#f8d7da"><img src="ICONS/DASHBOARD.png" class="icon" alt=""></div>
+                <div class="dd-item-icon icon-accident" style="background:#f8d7da">🚨</div>
                 <div class="dd-item-body">
                     <h4>${esc(a.injured_name || 'Unknown')} — ${esc(a.accident_description ? a.accident_description.substring(0,80) + (a.accident_description.length > 80 ? '…' : '') : 'No description')}</h4>
                     <div class="dd-meta">
@@ -719,14 +719,14 @@
     function renderInspectionPanel() {
         const el = document.getElementById('ddPanelInspections');
         if (!ddInspections.length) {
-            el.innerHTML = '<div class="dd-empty"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> No inspections recorded for this company</div>'; return;
+            el.innerHTML = '<div class="dd-empty">🔍 No inspections recorded for this company</div>'; return;
         }
         el.innerHTML = ddInspections.map(i => {
             const comp = i.compliance_level || 0;
             const clr  = comp >= 75 ? '#155724' : comp >= 50 ? '#856404' : '#721c24';
             return `
             <div class="dd-list-item">
-                <div class="dd-item-icon" style="background:#d1ecf1"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div>
+                <div class="dd-item-icon" style="background:#d1ecf1">🔍</div>
                 <div class="dd-item-body">
                     <h4>${esc(i.inspection_type || 'Inspection')} — ${esc(i.inspector_name || 'Unknown')}</h4>
                     <div class="dd-meta">
@@ -744,12 +744,12 @@
     function renderInjuryPanel() {
         const el = document.getElementById('ddPanelInjuries');
         if (!ddInjuries.length) {
-            el.innerHTML = '<div class="dd-empty"><img src="ICONS/INJURY.png" class="icon" alt=""> No injury or disease reports for this company</div>'; return;
+            el.innerHTML = '<div class="dd-empty">🏥 No injury or disease reports for this company</div>'; return;
         }
         el.innerHTML = ddInjuries.map(idr => {
             const cls = idr.incident_type === 'Disease' ? 'icon-disease' : 'icon-injury';
             const bg  = idr.incident_type === 'Disease' ? '#e8dcf5' : '#ffe5d0';
-            const icn = idr.incident_type === 'Disease' ? '🦠' : '<img src="ICONS/INJURY.png" class="icon" alt="">';
+            const icn = idr.incident_type === 'Disease' ? '🦠' : '🏥';
             return `
             <div class="dd-list-item">
                 <div class="dd-item-icon" style="background:${bg}">${icn}</div>
@@ -771,11 +771,11 @@
     function renderClaimPanel() {
         const el = document.getElementById('ddPanelClaims');
         if (!ddClaims.length) {
-            el.innerHTML = '<div class="dd-empty"><img src="ICONS/CLAIM.png" class="icon" alt=""> No compensation claims for this company</div>'; return;
+            el.innerHTML = '<div class="dd-empty">📑 No compensation claims for this company</div>'; return;
         }
         el.innerHTML = ddClaims.map(c => `
             <div class="dd-list-item">
-                <div class="dd-item-icon" style="background:#d4edda"><img src="ICONS/CLAIM.png" class="icon" alt=""></div>
+                <div class="dd-item-icon" style="background:#d4edda">📑</div>
                 <div class="dd-item-body">
                     <h4>${esc(c.name_of_claimant || 'Unknown')} — ${c.file_number ? esc(c.file_number) : 'Draft'}</h4>
                     <div class="dd-meta">

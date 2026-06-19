@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Injury & Disease Report - BL Form 43/10</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/INJURY.png" class="icon" alt=""></text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -758,7 +758,7 @@
                     const emp = esc(a.occupier_name || '');
                     const wn = a.injured_name ? esc(a.injured_name) : '';
                     return '<div class="accident-search-item" onclick="selectAccident(\'' + a.id + '\',\'' + cn.replace(/'/g, "\\'") + '\',\'' + emp.replace(/'/g, "\\'") + '\',\'' + (a.accident_date || '') + '\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#f8f8f8\'" onmouseout="this.style.background=\'\'">' +
-                        '<div><strong style="font-size:13px;color:#0c5460"><img src="ICONS/CLAIM.png" class="icon" alt=""> ' + cn + '</strong><span style="font-size:12px;color:#555;margin-left:8px">' + emp + '</span><span style="font-size:11px;color:#888;margin-left:6px">' + wn + '</span></div>' +
+                        '<div><strong style="font-size:13px;color:#0c5460">📋 ' + cn + '</strong><span style="font-size:12px;color:#555;margin-left:8px">' + emp + '</span><span style="font-size:11px;color:#888;margin-left:6px">' + wn + '</span></div>' +
                         '<span style="font-size:11px;color:#aaa;white-space:nowrap">' + (a.accident_date || '') + '</span></div>';
                 }).join('');
                 resultsDiv.style.display = 'block';
@@ -767,7 +767,7 @@
     }
     function selectAccident(id, caseNumber, employer, date) {
         document.getElementById('selectedAccidentId').value = id;
-        document.getElementById('selectedAccidentNumber').textContent = '<img src="ICONS/CLAIM.png" class="icon" alt=""> ' + caseNumber;
+        document.getElementById('selectedAccidentNumber').textContent = '📋 ' + caseNumber;
         document.getElementById('selectedAccidentEmployer').textContent = employer;
         document.getElementById('selectedAccidentDate').textContent = date || '';
         document.getElementById('selectedAccident').style.display = 'block';

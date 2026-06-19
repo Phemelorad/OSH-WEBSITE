@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employer - DOSH</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/COMPANY.png" class="icon" alt=""></text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -216,7 +216,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1><img src="ICONS/COMPANY.png" class="icon" alt=""> Employer</h1>
+        <h1>🏢 Employer</h1>
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name" id="userName">Loading...</div>
@@ -237,16 +237,16 @@
 
     <div id="mainContent" class="container" style="display:none">
         <div class="company-hero" id="companyHero">
-            <div class="company-icon"><img src="ICONS/COMPANY.png" class="icon" alt=""></div>
+            <div class="company-icon">🏢</div>
             <div class="company-info">
                 <h2 id="companyName">&mdash;</h2>
                 <div class="company-meta">
                     <span class="company-meta-item">🏭 <strong>Industry:</strong> <span id="companyIndustry">&mdash;</span></span>
                     <span class="company-meta-item">📍 <strong>Plot:</strong> <span id="companyPlot">&mdash;</span></span>
                     <span class="company-meta-item">🛣️ <strong>Street:</strong> <span id="companyStreet">&mdash;</span></span>
-                    <span class="company-meta-item"><img src="ICONS/COMPANY.png" class="icon" alt=""> <strong>Address:</strong> <span id="companyAddress">&mdash;</span></span>
+                    <span class="company-meta-item">🏠 <strong>Address:</strong> <span id="companyAddress">&mdash;</span></span>
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
-                    <span class="company-meta-item"><img src="ICONS/CLAIM.png" class="icon" alt=""> <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
+                    <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
                 </div>
                 <div class="update-section">
                     <button class="btn-update" id="updateBtn" onclick="toggleEditMode()">✏️ Update Details</button>
@@ -268,7 +268,7 @@
         </div>
 
         <div class="section-card" id="complianceCard">
-            <div class="section-header"><h2><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Compliance Overview</h2></div>
+            <div class="section-header"><h2>📊 Compliance Overview</h2></div>
             <div class="compliance-section" id="complianceSection">
                 <div class="gauge" id="complianceGauge"><div class="gauge-value" id="gaugeValue">&mdash;</div><div class="gauge-label">Compliance</div></div>
                 <div class="gauge-details">
@@ -281,20 +281,20 @@
         </div>
 
         <div class="section-card">
-            <div class="section-header"><h2><img src="ICONS/DASHBOARD.png" class="icon" alt=""> Recent Accidents</h2><a href="accident-entries.html" class="section-link">View all &rarr;</a></div>
+            <div class="section-header"><h2>🚨 Recent Accidents</h2><a href="accident-entries.html" class="section-link">View all &rarr;</a></div>
             <div id="accidentsList" class="activity-list"><div class="empty-state"><div class="empty-icon">✅</div><p>No accident reports on record</p></div></div>
         </div>
         <div class="section-card">
-            <div class="section-header"><h2><img src="ICONS/INVESTIGATION.png" class="icon" alt=""> Recent Inspections</h2><a href="inspection-entries.html" class="section-link">View all &rarr;</a></div>
-            <div id="inspectionsList" class="activity-list"><div class="empty-state"><div class="empty-icon"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div><p>No inspections recorded yet</p></div></div>
+            <div class="section-header"><h2>🔍 Recent Inspections</h2><a href="inspection-entries.html" class="section-link">View all &rarr;</a></div>
+            <div id="inspectionsList" class="activity-list"><div class="empty-state"><div class="empty-icon">🔍</div><p>No inspections recorded yet</p></div></div>
         </div>
         <div class="section-card">
-            <div class="section-header"><h2><img src="ICONS/INJURY.png" class="icon" alt=""> Recent Injuries &amp; Diseases</h2><a href="injury-disease-entries.html" class="section-link">View all &rarr;</a></div>
+            <div class="section-header"><h2>🏥 Recent Injuries &amp; Diseases</h2><a href="injury-disease-entries.html" class="section-link">View all &rarr;</a></div>
             <div id="injuriesList" class="activity-list"><div class="empty-state"><div class="empty-icon">✅</div><p>No injury or disease reports on record</p></div></div>
         </div>
         <div class="section-card">
-            <div class="section-header"><h2><img src="ICONS/CLAIM.png" class="icon" alt=""> Compensation Claims</h2><a href="entries.html" class="section-link">View all &rarr;</a></div>
-            <div id="claimsList" class="activity-list"><div class="empty-state"><div class="empty-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div><p>No compensation claims on record</p></div></div>
+            <div class="section-header"><h2>📑 Compensation Claims</h2><a href="entries.html" class="section-link">View all &rarr;</a></div>
+            <div id="claimsList" class="activity-list"><div class="empty-state"><div class="empty-icon">📑</div><p>No compensation claims on record</p></div></div>
         </div>
     </div>
 
@@ -423,7 +423,7 @@
         el.innerHTML = list.map(a => {
             const badgeCls = a.injury_fatal === 'Fatal' ? 'badge-fatal' : a.injury_fatal === 'Serious' ? 'badge-serious' : 'badge-info';
             return '<div class="activity-item">'
-                + '<div class="activity-icon" style="background:#f8d7da"><img src="ICONS/DASHBOARD.png" class="icon" alt=""></div>'
+                + '<div class="activity-icon" style="background:#f8d7da">🚨</div>'
                 + '<div class="activity-body">'
                 + '<h4>' + esc(a.injured_name || 'Unknown') + (a.injury_fatal ? ' <span class="badge ' + badgeCls + '">' + esc(a.injury_fatal) + '</span>' : '') + '</h4>'
                 + '<div class="activity-meta">' + (a.accident_place ? esc(a.accident_place) + ' · ' : '') + (a.accident_description ? esc(a.accident_description.substring(0, 120)) + (a.accident_description.length > 120 ? '…' : '') : 'No description') + '</div>'
@@ -434,13 +434,13 @@
 
     function renderInspections(list) {
         const el = document.getElementById('inspectionsList');
-        if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div><p>No inspections recorded yet</p></div>'; return; }
+        if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No inspections recorded yet</p></div>'; return; }
         el.innerHTML = list.map(i => {
             const comp = i.compliance_level || 0;
             const barClass = comp >= 75 ? '' : comp >= 50 ? 'medium' : 'low';
             const color = comp >= 75 ? '#155724' : comp >= 50 ? '#856404' : '#721c24';
             return '<div class="activity-item">'
-                + '<div class="activity-icon" style="background:#d1ecf1"><img src="ICONS/INVESTIGATION.png" class="icon" alt=""></div>'
+                + '<div class="activity-icon" style="background:#d1ecf1">🔍</div>'
                 + '<div class="activity-body">'
                 + '<h4>' + esc(i.inspection_type || 'Inspection') + ' &mdash; ' + esc(i.inspector_name || 'Unknown') + '</h4>'
                 + '<div class="activity-meta">' + (i.nature_of_work ? esc(i.nature_of_work) + ' · ' : '') + (i.action_taken ? esc(i.action_taken) + ' · ' : '') + (i.follow_up_required ? '⚠ Follow-up needed' : '✅ No follow-up needed') + '</div>'
@@ -455,7 +455,7 @@
         el.innerHTML = list.map(idr => {
             const isDisease = idr.incident_type === 'Disease';
             const bg = isDisease ? '#e8dcf5' : '#ffe5d0';
-            const icon = isDisease ? '🦠' : '<img src="ICONS/INJURY.png" class="icon" alt="">';
+            const icon = isDisease ? '🦠' : '🏥';
             return '<div class="activity-item">'
                 + '<div class="activity-icon" style="background:' + bg + '">' + icon + '</div>'
                 + '<div class="activity-body">'
@@ -468,11 +468,11 @@
 
     function renderClaims(list) {
         const el = document.getElementById('claimsList');
-        if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div><p>No compensation claims on record</p></div>'; return; }
+        if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📑</div><p>No compensation claims on record</p></div>'; return; }
         el.innerHTML = list.map(c => {
             const statusBadge = c.status === 'approved' ? 'badge-ok' : c.status === 'draft' ? 'badge-neutral' : 'badge-info';
             return '<div class="activity-item">'
-                + '<div class="activity-icon" style="background:#d4edda"><img src="ICONS/CLAIM.png" class="icon" alt=""></div>'
+                + '<div class="activity-icon" style="background:#d4edda">📑</div>'
                 + '<div class="activity-body">'
                 + '<h4>' + esc(c.name_of_claimant || 'Unknown') + ' &mdash; ' + (c.file_number ? esc(c.file_number) : 'Draft') + ' <span class="badge ' + statusBadge + '">' + esc(c.status || 'pending') + '</span></h4>'
                 + '<div class="activity-meta">' + (c.industry ? esc(c.industry) + ' · ' : '') + (c.nature_of_injury ? esc(c.nature_of_injury.substring(0, 80)) : '') + '</div>'

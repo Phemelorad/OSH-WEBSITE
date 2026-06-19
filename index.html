@@ -454,7 +454,7 @@
                 <div class="role-selection">
                     <label class="role-option" data-role="company">
                         <input type="radio" name="loginRole" value="company">
-                        <div class="icon"><img src="ICONS/COMPANY.png" class="icon" alt=""></div>
+                        <div class="icon">🏢</div>
                         <div class="label">Employer</div>
                     </label>
                     <label class="role-option" data-role="worker">
@@ -531,7 +531,7 @@
                 <div class="role-selection">
                     <label class="role-option" data-role="company">
                         <input type="radio" name="role" value="company">
-                        <div class="icon"><img src="ICONS/COMPANY.png" class="icon" alt=""></div>
+                        <div class="icon">🏢</div>
                         <div class="label">Employer</div>
                     </label>
                     <label class="role-option" data-role="worker">
@@ -1004,7 +1004,7 @@
             const email = await showPrompt(
                 'Enter the email address you registered with:',
                 '',
-                { title: 'Resend Confirmation', icon: '<img src="ICONS/RECORD.png" class="icon" alt="">' }
+                { title: 'Resend Confirmation', icon: '📧' }
             );
             if (!email) return;
             const r = await window.resendConfirmation(email);
@@ -1148,7 +1148,7 @@
                     type: 'success',
                     title: 'Account Created',
                     btnText: 'Go to Login',
-                    extraBtn: { text: '<img src="ICONS/RECORD.png" class="icon" alt=""> Resend Email', action: async () => {
+                    extraBtn: { text: '📧 Resend Email', action: async () => {
                         const r = await resendConfirmation(email);
                         if (r.success) {
                             await showAlert(`Confirmation email resent to <strong>${email}</strong>.`, {

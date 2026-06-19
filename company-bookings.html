@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - DOSH</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><img src="ICONS/CLAIM.png" class="icon" alt=""></text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
     <style>
 .navbar {
             background: white; padding: 20px 40px;
@@ -123,7 +123,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1><img src="ICONS/CLAIM.png" class="icon" alt=""> My Bookings</h1>
+        <h1>📋 My Bookings</h1>
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name" id="userName">Loading...</div>
@@ -147,22 +147,22 @@
         <div id="notifBanner" class="notif-banner"></div>
 
         <div class="page-header">
-            <h1><img src="ICONS/CLAIM.png" class="icon" alt=""> My Inspection Bookings</h1>
+            <h1>📋 My Inspection Bookings</h1>
             <p>View and track all your inspection booking requests. <a href="company-book-inspection.html" style="color:#17a2b8;font-weight:600">New Booking →</a></p>
         </div>
 
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card amber"><div class="stat-icon">⏳</div><h3>Pending</h3><div class="stat-value" id="statPending">—</div></div>
             <div class="stat-card blue"><div class="stat-icon">✅</div><h3>Approved</h3><div class="stat-value" id="statApproved">—</div></div>
-            <div class="stat-card purple"><div class="stat-icon"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div><h3>Scheduled</h3><div class="stat-value" id="statScheduled">—</div></div>
+            <div class="stat-card purple"><div class="stat-icon">📅</div><h3>Scheduled</h3><div class="stat-value" id="statScheduled">—</div></div>
             <div class="stat-card green"><div class="stat-icon">✔</div><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
             <div class="stat-card red"><div class="stat-icon">✕</div><h3>Cancelled</h3><div class="stat-value" id="statCancelled">—</div></div>
-            <div class="stat-card"><div class="stat-icon"><img src="ICONS/CLAIM.png" class="icon" alt=""></div><h3>Total</h3><div class="stat-value" id="statTotal">—</div></div>
+            <div class="stat-card"><div class="stat-icon">📋</div><h3>Total</h3><div class="stat-value" id="statTotal">—</div></div>
         </div>
 
         <div class="section-card">
             <div class="section-header">
-                <h2><img src="ICONS/CLAIM.png" class="icon" alt=""> Booking Requests</h2>
+                <h2>📋 Booking Requests</h2>
                 <a href="company-book-inspection.html" class="section-link">+ New Booking</a>
             </div>
             <div class="table-wrap">
@@ -182,7 +182,7 @@
                 </table>
             </div>
             <div id="emptyState" class="empty-state">
-                <div class="empty-icon"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>
+                <div class="empty-icon">📅</div>
                 <p>No inspection booking requests yet.</p>
                 <p style="font-size:13px;color:#bbb;margin-top:6px"><a href="company-book-inspection.html" style="color:#17a2b8">Book your first inspection →</a></p>
             </div>
@@ -390,7 +390,7 @@
             let scheduleHTML = '';
             if (r.scheduled_date) {
                 scheduleHTML = '<div style="margin-top:12px;padding:14px;background:#e8f5e9;border-radius:8px;text-align:center;border:1px solid #c8e6c9">'
-                    + '<div style="font-size:20px;margin-bottom:4px"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>'
+                    + '<div style="font-size:20px;margin-bottom:4px">📅</div>'
                     + '<strong style="color:#155724">Inspection Scheduled</strong>'
                     + '<div style="font-size:13px;color:#155724;margin-top:4px">' + fmtDate(r.scheduled_date) + (r.scheduled_time ? ' at ' + r.scheduled_time : '') + '</div>'
                     + (r.assigned_inspector ? '<div style="font-size:12px;color:#388e3c;margin-top:2px">Inspector: ' + esc(r.assigned_inspector) + '</div>' : '')
@@ -430,7 +430,7 @@
                 + 'padding:28px 26px;font-family:\'Segoe UI\',sans-serif;position:relative;">'
 
                 + '<div style="text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #f0f0f0">'
-                + '<div style="font-size:28px;margin-bottom:4px"><img src="ICONS/BOOKINGS.png" class="icon" alt=""></div>'
+                + '<div style="font-size:28px;margin-bottom:4px">📅</div>'
                 + '<h2 style="color:#222;font-size:18px;margin-bottom:2px">Inspection Booking Details</h2>'
                 + '<p style="color:#888;font-size:12px">' + esc(r.company_name) + ' · ' + statusBadge + '</p>'
                 + '</div>'
