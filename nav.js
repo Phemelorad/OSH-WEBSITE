@@ -322,8 +322,8 @@ margin-right: 4px;
         label: '<img src="ICONS/BOOKINGS.png" class="nav-icon"> Book Inspection',
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
-          { id: 'company-book-inspection', icon: '\uD83D\uDCDD', label: 'New Booking',       href: 'company-book-inspection.html' },
-          { id: 'company-bookings',        icon: '\uD83D\uDCCB', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
+          { id: 'company-book-inspection', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'New Booking',       href: 'company-book-inspection.html' },
+          { id: 'company-bookings',        icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
         ]
       },
       {
@@ -350,7 +350,8 @@ margin-right: 4px;
       },
       {
         id: 'company-accidents-view',
-        label: '🚨 My Accidents',
+        label: '<img src=\ICONS/DASHBOARD.png\ class=
+av-icon\> My Accidents',
         href: 'company-accidents-view.html',
         single: true,
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
@@ -368,8 +369,8 @@ margin-right: 4px;
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
           { id: 'inspection-form',     icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'New Inspection',       href: 'inspection.html' },
-          { id: 'inspection-bookings', icon: '\uD83D\uDCC5', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
-          { id: 'inspection-records',  icon: '\uD83D\uDCC1', label: 'Inspection Records',   href: 'inspection-entries.html' },
+          { id: 'inspection-bookings', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
+          { id: 'inspection-records',  icon: '<img src="ICONS/RECORD.png" class="dd-icon">', label: 'Inspection Records',   href: 'inspection-entries.html' },
         ]
       },
       {
@@ -378,7 +379,7 @@ margin-right: 4px;
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
           { id: 'accident',         icon: '<img src="ICONS/DASHBOARD.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
-          { id: 'accident-entries', icon: '\uD83D\uDCCA', label: 'View Reports',        href: 'accident-entries.html' },
+          { id: 'accident-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',        href: 'accident-entries.html' },
         ]
       },
       {
@@ -387,8 +388,8 @@ margin-right: 4px;
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
           { id: 'injury-disease',         icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report',             href: 'injury-disease-report.html' },
-          { id: 'injury-disease-entries', icon: '\uD83D\uDCCA', label: 'View Reports',           href: 'injury-disease-entries.html' },
-          { id: 'worker-profile',         icon: '\uD83D\uDC64', label: 'Worker Profile',         href: 'worker-profile.html' },
+          { id: 'injury-disease-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',           href: 'injury-disease-entries.html' },
+          { id: 'worker-profile',         icon: '<img src="ICONS/WORKER_PROFILE.png" class="dd-icon">', label: 'Worker Profile',         href: 'worker-profile.html' },
         ]
       },
       {
@@ -404,8 +405,8 @@ margin-right: 4px;
         label: '<img src="ICONS/CLAIM.png" class="nav-icon"> Claims',
         hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
         children: [
-          { id: 'claims-submit',  icon: '\uD83D\uDCDD', label: 'Submit Claim',  href: 'form.html' },
-          { id: 'claims-entries', icon: '\uD83D\uDCCA', label: 'View Entries',  href: 'entries.html' },
+          { id: 'claims-submit',  icon: '<img src="ICONS/SUBMIT_CLAIM.png" class="dd-icon">', label: 'Submit Claim',  href: 'form.html' },
+          { id: 'claims-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Entries',  href: 'entries.html' },
         ]
       },
       {
@@ -440,7 +441,7 @@ margin-right: 4px;
       },
       {
         id: 'clientele',
-        label: '\uD83D\uDC65 Clientele',
+        label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Clientele',
         href: 'clientele.html',
         single: true,
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
