@@ -270,9 +270,6 @@
                 claimsQuery = loadClaims({ claimantIdNumber: profile.id_number, excludeDrafts: true, selectCount: true });
             }
 
-            if (!claimsQuery && userResult?.user?.email) {
-                claimsQuery = loadClaims({ claimantEmail: userResult.user.email, excludeDrafts: true, selectCount: true });
-            }
 
             if (claimsQuery) {
                 var { data: claims, error } = await claimsQuery;

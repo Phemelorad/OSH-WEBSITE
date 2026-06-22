@@ -18,7 +18,6 @@
    * @param {string} [opts.industry] - Filter by industry (eq)
    * @param {string} [opts.claimantIdNumber] - Filter by claimant ID (eq)
    * @param {string} [opts.claimantIdNumberIlike] - Filter by claimant ID (ilike)
-   * @param {string} [opts.claimantEmail] - Filter by claimant email (eq)
    * @param {string} [opts.workerRegistryId] - Filter by worker registry ID (eq)
    * @param {string} [opts.employerName] - Filter by employer name (ilike)
    * @param {string} [opts.nameOfEmployer] - Filter by exact employer name (eq)
@@ -53,7 +52,6 @@
     if (opts.industry)          query = query.eq("industry", opts.industry);
     if (opts.claimantIdNumber)  query = query.eq("claimant_id_number", opts.claimantIdNumber);
     if (opts.claimantIdNumberIlike) query = query.ilike("claimant_id_number", opts.claimantIdNumberIlike);
-    if (opts.claimantEmail)     query = query.eq("claimant_email", opts.claimantEmail);
     if (opts.workerRegistryId)  query = query.eq("worker_registry_id", opts.workerRegistryId);
     if (opts.nameOfEmployer)    query = query.eq("name_of_employer", opts.nameOfEmployer);
     if (opts.employerName)      query = query.ilike("name_of_employer", "%" + opts.employerName + "%");

@@ -308,7 +308,7 @@
         } catch (e) { console.error('Stats: medical error', e); }
 
         try {
-            const { data: cl } = await SB.from('injury_claims').select('id').eq('claim_status', 'Pending');
+            const { data: cl } = await SB.from('injury_claims').select('id').eq('status', 'pending');
             document.getElementById('statPendingClaims').textContent = cl ? String(cl.length) : '0';
         } catch (e) { console.error('Stats: claims error', e); }
     }}
