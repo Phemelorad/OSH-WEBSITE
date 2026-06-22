@@ -274,4 +274,6 @@
     ALL_ROLES: C.ALL_ROLES
   };
 
+  })();
+
 })();
