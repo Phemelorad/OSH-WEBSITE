@@ -275,7 +275,7 @@
             }
 
             if (claimsQuery) {
-                var { data: claims } = await claimsQuery;
+                var { data: claims, error } = await claimsQuery;
                 if (!error && claims) {
                     const total = claims.length;
                     const pending  = claims.filter(c => {
