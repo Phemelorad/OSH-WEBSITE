@@ -310,6 +310,7 @@
   window.canManageUsers = canManageUsers;
   window.enforcePermissions = enforcePermissions;
   window.setUserNameSafely = setUserNameSafely;
+  window.getRoleDisplayName = C.getRoleDisplayName;
 
   })();
 
