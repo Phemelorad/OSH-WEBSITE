@@ -325,7 +325,7 @@
             } catch (error) {
                 console.error("Error loading claims:", error);
                 document.getElementById("claimsLoading").innerHTML =
-                    "<div style="text-align:center;padding:40px;"><p style="color:#e74c3c;margin-bottom:10px;">Error loading claims: " + error.message + "</p><button onclick="loadClaims()" style="margin-top:20px;padding:10px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;">Retry</button></div>";
+                    '<div style="text-align:center;padding:40px;"><p style="color:#e74c3c;margin-bottom:10px;">Error loading claims: ' + error.message + '</p><button onclick="loadClaims()" style="margin-top:20px;padding:10px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;">Retry</button></div>';
             }
         };
 

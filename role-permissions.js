@@ -255,7 +255,10 @@
           button.disabled = true;
           button.style.opacity = '0.5';
           button.style.cursor = 'not-allowed';
-          butto
+          }
+        });
+      }
+    }
 
   window.RolePermissions = {
     ROLES: ROLES, PERMISSIONS: PERMISSIONS,
