@@ -290,6 +290,14 @@
     ALL_ROLES: C.ALL_ROLES
   };
 
+  // Expose critical functions globally for HTML pages
+  window.initializeRoleSystem = initializeRoleSystem;
+  window.showPermissionDenied = showPermissionDenied;
+  window.checkPageAccess = checkPageAccess;
+  window.canEditClaims = canEditClaims;
+  window.canManageUsers = canManageUsers;
+  window.enforcePermissions = enforcePermissions;
+
   })();
 
 })();
