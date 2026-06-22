@@ -260,6 +260,22 @@
       }
     }
 
+  function showPermissionDenied(action) {
+    if (typeof window.showAlert === "function") {
+      window.showAlert("Access denied. You do not have permission to " + action + ".", { type: "error", title: "Permission Denied" });
+    } else {
+      alert("Access denied. You do not have permission to " + action + ".");
+    }
+  }
+
+  function checkPageAccess() {
+    if (!currentUserRole) {
+      window.location.href = "index.html";
+      return false;
+    }
+    return true;
+  }
+
   window.RolePermissions = {
     ROLES: ROLES, PERMISSIONS: PERMISSIONS,
     initializeRoleSystem: initializeRoleSystem,
