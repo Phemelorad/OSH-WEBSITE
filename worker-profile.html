@@ -8,23 +8,13 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>">
     <style>
 /* ── Navbar ─────────────────────────── */
-        .navbar {
-            background: white; padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        
         .navbar h1 { color: #333; font-size: 24px; }
         .user-info { display: flex; align-items: center; gap: 20px; }
         .user-details { text-align: right; }
         .user-name { font-weight: 600; color: #333; }
         .user-department { font-size: 14px; color: #666; }
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
-            color: #333; border: 2px solid #ddd; border-radius: 8px;
-            cursor: pointer; font-weight: 600; transition: all 0.3s;
-        }
-        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
         /* ── Page layout ─────────────────────── */
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
@@ -131,8 +121,6 @@
         .stat-card.green .val { --stat-color: #28a745; }
         .stat-card h3 { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .stat-card .val { font-size: 26px; font-weight: 700; color: var(--stat-color, #333); }
-        
-        
 
         /* ── Timeline ────────────────────────── */
         .timeline-card {
@@ -442,10 +430,6 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'worker-profile';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
-
     <div class="container">
 
         <!-- ── Search ─────────────────────────────────────── -->
@@ -539,13 +523,20 @@
         </div>
     </div>
 
-    <script src="supabase.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
-    <script src="modal.js"></script>
-    <script src="worker-lookup.js"></script>
-    <script src="common.js"></script>
-    <script>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'worker-profile';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script src="worker-lookup.js"></script>
+<script>
     const SB = window.supabaseClient;
     let allIncidents = [];
     let allClaims = [];
@@ -785,26 +776,18 @@
 
         const normId = idNumber ? window.normalizeIdentityId(idNumber) : null;
         if (normId) {
-            const r = await SB.from('injury_claims').select('*')
-                .eq('claimant_id_number', normId).neq('status', 'draft')
-                .order('date_of_injury', { ascending: false });
+            var r = { data: await loadClaims({ claimantIdNumber: normId, excludeDrafts: true, orderBy: 'date_of_injury' }) };
             if (!r.error) add(r.data);
         }
         if (registryId) {
-            const r = await SB.from('injury_claims').select('*')
-                .eq('worker_registry_id', registryId)
-                .order('date_of_injury', { ascending: false });
+            var r = { data: await loadClaims({ workerRegistryId: registryId, orderBy: 'date_of_injury' }) };
             if (!r.error) add(r.data);
         }
         if (!out.length && searchQ) {
             const { raw, upper } = normalizeSearchQuery(searchQ);
             const pat = `%${escapeIlike(raw)}%`;
             const idPat = `%${escapeIlike(upper)}%`;
-            const r = await SB.from('injury_claims').select('*')
-                .neq('status', 'draft')
-                .or(`name_of_claimant.ilike.${pat},claimant_id_number.ilike.${idPat}`)
-                .order('date_of_injury', { ascending: false })
-                .limit(50);
+            var r = { data: await loadClaims({ searchQuery: searchQ, excludeDrafts: true, orderBy: 'date_of_injury', limit: 50 }) };
             if (!r.error) add(r.data);
         }
         return out.sort((a, b) =>
@@ -1053,7 +1036,6 @@
     renderMedicalForms(medicalExams || [], permImpairments || []);
     }
 
-    
 // ── Medical forms rendering ──────────────────────────────────────
 
 function renderMedicalForms(medicalExams, permImpairments) {
@@ -1121,7 +1103,6 @@ function filterMedicalForms(btn) {
     card.style.display = (filter === "all" || card.getAttribute("data-form-type") === filter) ? "" : "none";
   });
 }
-
 
 function viewMedForm(formType, formId) {
   const allForms = window._allMedicalForms || [];

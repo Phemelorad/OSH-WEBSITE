@@ -7,26 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
-.navbar {
-            background: white; padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .navbar h1 { color: #333; font-size: 24px; }
-        .user-info { display: flex; align-items: center; gap: 20px; }
-        .user-details { text-align: right; }
-        .user-name { font-weight: 600; color: #333; }
-        .user-department { font-size: 14px; color: #666; }
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
-            color: #333; border: 2px solid #ddd; border-radius: 8px;
-            cursor: pointer; font-weight: 600; transition: all 0.3s;
-        }
-        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .container {
-            max-width: 1200px; margin: 40px auto; padding: 0 20px;
-        }
+/* .navbar, .logout-btn in styles.css */
 
         /* ── Dashboard Header ──────────────────────────── */
         .dash-header {
@@ -168,7 +149,7 @@
 
         /* ── Responsive ─────────────────────────────────── */
         @media (max-width: 768px) {
-            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            
             .dash-header { flex-direction: column; align-items: flex-start; }
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
             .stat-card { padding: 20px 16px; }
@@ -211,17 +192,7 @@
         .claims-table tr:hover td {
             background: #fafafa;
         }
-        .claims-table .status-badge {
-            display: inline-block; padding: 4px 12px;
-            border-radius: 12px; font-size: 12px; font-weight: 600;
-        }
-        .status-badge.draft { background: #fef3cd; color: #856404; }
-        .status-badge.pending { background: #cce5ff; color: #004085; }
-        .status-badge.submitted { background: #cce5ff; color: #004085; }
-        .status-badge.under_review { background: #fff3cd; color: #856404; }
-        .status-badge.approved { background: #d4edda; color: #155724; }
-        .status-badge.rejected { background: #f8d7da; color: #721c24; }
-        .status-badge.closed { background: #e2e3e5; color: #383d41; }
+        /* .status-badge in styles.css */
         .claims-table .view-link {
             color: #0c5460; font-weight: 600; text-decoration: none;
         }
@@ -245,7 +216,30 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'dashboard';
+    <div class="container">
+
+        <!-- ── Dynamic content (filled by JS) ──────────── -->
+        <div id="dashContent"></div>
+
+    </div>
+
+    <!-- Supabase JS Client -->
+    
+    <!-- Supabase Configuration -->
+
+    <!-- Role permissions -->
+    
+    <!-- Custom Modals -->
+
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'dashboard';
     // ── Worker stats loader ──────────────────────────────
     async function loadWorkerStats(profile, userResult) {
         try {
@@ -255,12 +249,7 @@
             // Check sessionStorage for ID number set during login
             const storedId = sessionStorage.getItem('worker_id_number');
             if (storedId) {
-                claimsQuery = SB
-                    .from('injury_claims')
-                    .select('*', { count: 'exact', head: false })
-                    .eq('claimant_id_number', storedId)
-                    .neq('status', 'draft')
-                    .order('created_at', { ascending: false });
+                claimsQuery = loadClaims({ claimantIdNumber: storedId, excludeDrafts: true, selectCount: true });
             }
 
             // Try to find worker in registry by email
@@ -272,36 +261,21 @@
                     .maybeSingle();
                 if (registry) {
                     workerId = registry.id;
-                    claimsQuery = SB
-                        .from('injury_claims')
-                        .select('*', { count: 'exact', head: false })
-                        .eq('worker_registry_id', workerId)
-                        .neq('status', 'draft')
-                        .order('created_at', { ascending: false });
+                    claimsQuery = loadClaims({ workerRegistryId: workerId, excludeDrafts: true, selectCount: true });
                 }
             }
 
             // Fallback: try by claimant_id_number from profile
             if (!workerId && profile?.id_number) {
-                claimsQuery = SB
-                    .from('injury_claims')
-                    .select('*', { count: 'exact', head: false })
-                    .eq('claimant_id_number', profile.id_number)
-                    .neq('status', 'draft')
-                    .order('created_at', { ascending: false });
+                claimsQuery = loadClaims({ claimantIdNumber: profile.id_number, excludeDrafts: true, selectCount: true });
             }
 
             if (!claimsQuery && userResult?.user?.email) {
-                claimsQuery = SB
-                    .from('injury_claims')
-                    .select('*', { count: 'exact', head: false })
-                    .eq('claimant_email', userResult.user.email)
-                    .neq('status', 'draft')
-                    .order('created_at', { ascending: false });
+                claimsQuery = loadClaims({ claimantEmail: userResult.user.email, excludeDrafts: true, selectCount: true });
             }
 
             if (claimsQuery) {
-                const { data: claims, error } = await claimsQuery;
+                var { data: claims } = await claimsQuery;
                 if (!error && claims) {
                     const total = claims.length;
                     const pending  = claims.filter(c => {
@@ -368,27 +342,10 @@
     }
 
     </script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
+<script src="nav.js"></script>
 
-    <div class="container">
-
-        <!-- ── Dynamic content (filled by JS) ──────────── -->
-        <div id="dashContent"></div>
-
-    </div>
-
-    <!-- Supabase JS Client -->
-    <script src="supabase.min.js"></script>
-    <!-- Supabase Configuration -->
-    <script src="supabase-config.js"></script>
-    <!-- Role permissions -->
-    <script src="role-permissions.js"></script>
-    <!-- Custom Modals -->
-    <script src="modal.js"></script>
-    <script src="common.js"></script>
-
-    <script>
+<script src="claim-service.js"></script>
+<script>
     const SB = window.supabaseClient;
 
     // ── SVG ring circumference ───────────────────────────
@@ -609,6 +566,5 @@ function renderMedPractDashboard(container, userId) {
   }
 })();
 </script>
-
 </body>
 </html>

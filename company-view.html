@@ -7,23 +7,12 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
-.navbar {
-            background: white; padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+
         .navbar h1 { color: #333; font-size: 24px; }
         .user-info { display: flex; align-items: center; gap: 20px; }
         .user-details { text-align: right; }
         .user-name { font-weight: 600; color: #333; font-size: 14px; }
         .user-company-name { font-size: 12px; color: #888; }
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
-            color: #333; border: 2px solid #ddd; border-radius: 8px;
-            cursor: pointer; font-weight: 600; transition: all 0.3s;
-        }
-        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
 
@@ -140,7 +129,7 @@
         .badge-neutral { background: #e2e3e5; color: #383d41; }
 
         @media (max-width: 768px) {
-            .navbar { flex-direction: column; gap: 10px; padding: 15px 20px; }
+            
             .company-hero { padding: 24px; flex-direction: column; text-align: center; }
             .company-meta { justify-content: center; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -226,10 +215,6 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'company-view';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
-
     <div id="loadingState" class="loading">
         <div class="spinner"></div>
         <p>Loading your company data&hellip;</p>
@@ -298,12 +283,19 @@
         </div>
     </div>
 
-    <script src="supabase.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
-    <script src="modal.js"></script>
-    <script src="common.js"></script>
-    <script>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'company-view';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script>
     const SB = window.supabaseClient;
     let companyName = null;
 
@@ -400,7 +392,6 @@
             renderInjuries(injuries);
             renderClaims(claims);
 
-            
             // Show last-updated timestamp
             let tsEl = document.getElementById('lastUpdated');
             if (!tsEl) {

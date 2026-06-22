@@ -317,6 +317,12 @@
 </style>
 </head>
 <body>
+    <div class="navbar">
+        <h1>Claim Forms Checklist - DOSH</h1>
+        <div class="user-info">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
     <header class="site-header">
         <div class="header-top">
             <div class="header-brand">
@@ -343,61 +349,6 @@
         <span id="userDepartment" style="display:none"></span>
         <span id="userCompanyName" style="display:none"></span>
     </header>
-    <script src="supabase.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
-    <script src="common.js"></script>
-    <script>window.OSH_ACTIVE_PAGE = 'checklist';</script>
-    <script src="nav.js"></script>
-    <script>
-        // ── Header user info populator (replaces header.js functionality) ──
-        window.toggleRoleSwitcher = function() {
-            var el = document.getElementById('roleSwitcher');
-            if (el) el.classList.toggle('open');
-        };
-        document.addEventListener('DOMContentLoaded', function() {
-            // Populate user info from cached profile or API
-            if (typeof getCachedUserProfile === 'function') {
-                var profile = getCachedUserProfile();
-                if (profile) {
-                    var nameEl = document.getElementById('userName');
-                    var desEl = document.getElementById('userDesignation');
-                    var deptEl = document.getElementById('userDept');
-                    if (nameEl) nameEl.textContent = profile.name || profile.full_name || 'User';
-                    if (desEl) desEl.textContent = profile.designation || profile.department || '';
-                    if (deptEl && profile.department) deptEl.textContent = profile.department;
-                }
-            }
-            // Try getting current user info
-            if (typeof getCurrentUser === 'function') {
-                getCurrentUser().then(function(user) {
-                    if (user && user.user) {
-                        var nameEl = document.getElementById('userName');
-                        if (nameEl && nameEl.textContent === 'Loading...') {
-                            nameEl.textContent = user.user.email || user.user.id || 'User';
-                        }
-                    }
-                }).catch(function(){});
-            }
-            // Update role badge
-            if (typeof getCurrentUserRole === 'function') {
-                var role = getCurrentUserRole();
-                var badge = document.getElementById('userRoleBadge');
-                if (badge && role) badge.textContent = role.replace(/_/g, ' ');
-            }
-        });
-        // Also try to populate immediately if DOM already interactive
-        if (document.readyState !== 'loading') {
-            var nm = document.getElementById('userName');
-            if (nm && nm.textContent === 'Loading...') {
-                if (typeof getCurrentUserRole === 'function') {
-                    var rl = getCurrentUserRole();
-                    var bg = document.getElementById('userRoleBadge');
-                    if (bg && rl) bg.textContent = rl.replace(/_/g, ' ');
-                }
-            }
-        }
-    </script>
 
     <div class="container">
         <!-- ── Header ── -->
@@ -462,7 +413,69 @@
     <!-- ── Toast container ── -->
     <div class="toast" id="toast"></div>
 
-    <script>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'checklist';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script>initializeRoleSystem();</script>
+<script>
+        // ── Header user info populator (replaces header.js functionality) ──
+        window.toggleRoleSwitcher = function() {
+            var el = document.getElementById('roleSwitcher');
+            if (el) el.classList.toggle('open');
+        };
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate user info from cached profile or API
+            if (typeof getCachedUserProfile === 'function') {
+                var profile = getCachedUserProfile();
+                if (profile) {
+                    var nameEl = document.getElementById('userName');
+                    var desEl = document.getElementById('userDesignation');
+                    var deptEl = document.getElementById('userDept');
+                    if (nameEl) nameEl.textContent = profile.name || profile.full_name || 'User';
+                    if (desEl) desEl.textContent = profile.designation || profile.department || '';
+                    if (deptEl && profile.department) deptEl.textContent = profile.department;
+                }
+            }
+            // Try getting current user info
+            if (typeof getCurrentUser === 'function') {
+                getCurrentUser().then(function(user) {
+                    if (user && user.user) {
+                        var nameEl = document.getElementById('userName');
+                        if (nameEl && nameEl.textContent === 'Loading...') {
+                            nameEl.textContent = user.user.email || user.user.id || 'User';
+                        }
+                    }
+                }).catch(function(){});
+            }
+            // Update role badge
+            if (typeof getCurrentUserRole === 'function') {
+                var role = getCurrentUserRole();
+                var badge = document.getElementById('userRoleBadge');
+                if (badge && role) badge.textContent = role.replace(/_/g, ' ');
+            }
+        });
+        // Also try to populate immediately if DOM already interactive
+        if (document.readyState !== 'loading') {
+            var nm = document.getElementById('userName');
+            if (nm && nm.textContent === 'Loading...') {
+                if (typeof getCurrentUserRole === 'function') {
+                    var rl = getCurrentUserRole();
+                    var bg = document.getElementById('userRoleBadge');
+                    if (bg && rl) bg.textContent = rl.replace(/_/g, ' ');
+                }
+            }
+        }
+    </script>
+<script>
         // ──────────────────────────────────────────────────────────
         //   DATA: Checklist items mapped to DB tables
         // ──────────────────────────────────────────────────────────
@@ -944,8 +957,6 @@
                 input.value = '';
             }
         }
-
-
 
         function getItemLabel(key) {
             const parts = key.split('-');

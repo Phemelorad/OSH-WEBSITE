@@ -307,4 +307,10 @@ tr:hover td { background: #fafafa; }
 
 /* ── Action Buttons Row ───────────────────────────────────── */
 .form-actions {
-    display:
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+}

@@ -7,16 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
     <style>
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
-            color: #333;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
 
         .page-container {
             padding: 20px;
@@ -214,11 +204,6 @@
         }
 
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
-            }
 
             .user-info {
                 width: 100%;
@@ -248,10 +233,6 @@
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
     </div>
-
-    <script>window.OSH_ACTIVE_PAGE = 'claims-submit';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
 
     <div class="page-container">
         <div class="container">
@@ -437,20 +418,31 @@
     </div>
 
     <!-- Supabase JS Client -->
-    <script src="supabase.min.js"></script>
+    
     <!-- Supabase Configuration -->
-    <script src="supabase-config.js"></script>
-    <!-- Role Permissions System -->
-    <script src="role-permissions.js"></script>
-    <!-- Custom Modals -->
-    <script src="modal.js"></script>
-    <!-- Worker Lookup -->
-    <script src="worker-lookup.js"></script>
-    <script src="nationalities.js"></script>
-    <script src="nationality-select.js"></script>
-        <script src="common.js"></script>
 
-    <script>
+    <!-- Role Permissions System -->
+    
+    <!-- Custom Modals -->
+    
+    <!-- Worker Lookup -->
+
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'claims-submit';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script src="worker-lookup.js"></script>
+<script src="nationalities.js"></script>
+<script src="nationality-select.js"></script>
+<script>
         const form = document.getElementById('mainForm');
         const successMessage = document.getElementById('successMessage');
 

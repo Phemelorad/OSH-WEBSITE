@@ -1,0 +1,200 @@
+-- =============================================================================
+-- DB NEW FIXES
+-- Standalone migration script: run in Supabase SQL Editor after base schema.
+-- =============================================================================
+
+-- =============================================================================
+-- FIX 1: Add ON DELETE actions to auth.users foreign keys
+-- =============================================================================
+-- Drop existing FKs and recreate with ON DELETE
+-- CASCADE for user-owned data; SET NULL for business records
+
+ALTER TABLE public.user_profiles
+  DROP CONSTRAINT IF EXISTS user_profiles_user_id_fkey,
+  ADD CONSTRAINT user_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.login_history
+  DROP CONSTRAINT IF EXISTS login_history_user_id_fkey,
+  ADD CONSTRAINT login_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.password_reset_requests
+  DROP CONSTRAINT IF EXISTS password_reset_requests_user_id_fkey,
+  ADD CONSTRAINT password_reset_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.user_activity_log
+  DROP CONSTRAINT IF EXISTS user_activity_log_user_id_fkey,
+  ADD CONSTRAINT user_activity_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.injury_claims
+  DROP CONSTRAINT IF EXISTS injury_claims_submitted_by_fkey,
+  ADD CONSTRAINT injury_claims_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.role_change_log
+  DROP CONSTRAINT IF EXISTS role_change_log_user_id_fkey,
+  DROP CONSTRAINT IF EXISTS role_change_log_changed_by_fkey,
+  ADD CONSTRAINT role_change_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  ADD CONSTRAINT role_change_log_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.workplace_inspections
+  DROP CONSTRAINT IF EXISTS workplace_inspections_submitted_by_fkey,
+  ADD CONSTRAINT workplace_inspections_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.accident_reports
+  DROP CONSTRAINT IF EXISTS accident_reports_submitted_by_fkey,
+  ADD CONSTRAINT accident_reports_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.injury_disease_reports
+  DROP CONSTRAINT IF EXISTS injury_disease_reports_submitted_by_fkey,
+  ADD CONSTRAINT injury_disease_reports_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.workers_registry
+  DROP CONSTRAINT IF EXISTS workers_registry_created_by_fkey,
+  DROP CONSTRAINT IF EXISTS workers_registry_updated_by_fkey,
+  ADD CONSTRAINT workers_registry_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET,
+  ADD CONSTRAINT workers_registry_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.inspection_bookings
+  DROP CONSTRAINT IF EXISTS inspection_bookings_submitted_by_fkey,
+  ADD CONSTRAINT inspection_bookings_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.medical_examination_reports
+  DROP CONSTRAINT IF EXISTS medical_examination_reports_submitted_by_fkey,
+  ADD CONSTRAINT medical_examination_reports_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.permanent_impairment_reports
+  DROP CONSTRAINT IF EXISTS permanent_impairment_reports_submitted_by_fkey,
+  ADD CONSTRAINT permanent_impairment_reports_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES auth.users(id) ON DELETE SET;
+
+ALTER TABLE public.practitioner_clients
+  DROP CONSTRAINT IF EXISTS practitioner_clients_practitioner_id_fkey,
+  ADD CONSTRAINT practitioner_clients_practitioner_id_fkey FOREIGN KEY (practitioner_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.claim_documents
+  DROP CONSTRAINT IF EXISTS claim_documents_uploaded_by_fkey,
+  ADD CONSTRAINT claim_documents_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES auth.users(id) ON DELETE SET;
+
+-- =============================================================================
+-- FIX 2: Table ordering fix (schema-only: companies before user_profiles)
+-- =============================================================================
+-- NOTE: This fix is applied directly in DATABASE AS IS.sql by reordering
+-- the CREATE TABLE statements. If your schema already exists, no action needed.
+-- The FK user_profiles.company_id -> companies.id now resolves correctly.
+-- If recreating from scratch, ensure companies is created before user_profiles.
+
+-- =============================================================================
+-- FIX 3: Enable Row Level Security on all tables
+-- =============================================================================
+
+ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.login_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.password_reset_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_activity_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.injury_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles_info ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.role_change_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workplace_inspections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.accident_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.injury_disease_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workers_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inspection_bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.medical_examination_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.permanent_impairment_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.practitioner_clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.accident_injured_persons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.claim_documents ENABLE ROW LEVEL SECURITY;
+
+-- =============================================================================
+-- FIX 4: Add updated_at trigger function and apply to tables
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON public.user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON public.user_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_injury_claims_updated_at ON public.injury_claims;
+CREATE TRIGGER update_injury_claims_updated_at
+  BEFORE UPDATE ON public.injury_claims
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_workplace_inspections_updated_at ON public.workplace_inspections;
+CREATE TRIGGER update_workplace_inspections_updated_at
+  BEFORE UPDATE ON public.workplace_inspections
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_accident_reports_updated_at ON public.accident_reports;
+CREATE TRIGGER update_accident_reports_updated_at
+  BEFORE UPDATE ON public.accident_reports
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_injury_disease_reports_updated_at ON public.injury_disease_reports;
+CREATE TRIGGER update_injury_disease_reports_updated_at
+  BEFORE UPDATE ON public.injury_disease_reports
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_workers_registry_updated_at ON public.workers_registry;
+CREATE TRIGGER update_workers_registry_updated_at
+  BEFORE UPDATE ON public.workers_registry
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_companies_updated_at ON public.companies;
+CREATE TRIGGER update_companies_updated_at
+  BEFORE UPDATE ON public.companies
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_inspection_bookings_updated_at ON public.inspection_bookings;
+CREATE TRIGGER update_inspection_bookings_updated_at
+  BEFORE UPDATE ON public.inspection_bookings
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_medical_examination_reports_updated_at ON public.medical_examination_reports;
+CREATE TRIGGER update_medical_examination_reports_updated_at
+  BEFORE UPDATE ON public.medical_examination_reports
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_permanent_impairment_reports_updated_at ON public.permanent_impairment_reports;
+CREATE TRIGGER update_permanent_impairment_reports_updated_at
+  BEFORE UPDATE ON public.permanent_impairment_reports
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_claim_documents_updated_at ON public.claim_documents;
+CREATE TRIGGER update_claim_documents_updated_at
+  BEFORE UPDATE ON public.claim_documents
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
+-- =============================================================================
+-- FIX 5: Performance indexes for common query patterns
+-- =============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_ic_claimant_id_number ON public.injury_claims(claimant_id_number);
+CREATE INDEX IF NOT EXISTS idx_wr_id_number ON public.workers_registry(id_number);
+CREATE INDEX IF NOT EXISTS idx_ic_claimant_email ON public.injury_claims(claimant_email);
+CREATE INDEX IF NOT EXISTS idx_ic_status_created ON public.injury_claims(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ar_occupier_name ON public.accident_reports(occupier_name);
+CREATE INDEX IF NOT EXISTS idx_idr_employer_name ON public.injury_disease_reports(employer_name);
+CREATE INDEX IF NOT EXISTS idx_wi_factory_name ON public.workplace_inspections(factory_name);
+
+-- =============================================================================
+-- END OF DB NEW FIXES
+-- =============================================================================

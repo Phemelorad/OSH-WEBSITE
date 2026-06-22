@@ -7,20 +7,9 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
-.navbar {
-            background: white; padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+
         .navbar h1 { color: #333; font-size: 24px; }
         .user-info { display: flex; align-items: center; gap: 20px; }
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
-            color: #333; border: 2px solid #ddd; border-radius: 0;
-            cursor: pointer; font-weight: 600; transition: all 0.3s;
-        }
-        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         .container { max-width: 1600px; margin: 40px auto; padding: 0 20px; }
 
@@ -179,20 +168,6 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'company-register';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
-    <script>
-    // Redirect workers away from company register
-    window.addEventListener('load', async function() {
-        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
-        await initializeRoleSystem();
-        if (currentUserRole === 'worker') {
-            window.location.href = 'worker-portal.html';
-        }
-    });
-    </script>
-
     <div class="container">
 
         <!-- ── Stats grid ──────────────────────────── -->
@@ -305,12 +280,29 @@
         </div>
     </div>
 
-    <script src="supabase.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
-    <script src="modal.js"></script>
-    <script src="common.js"></script>
-    <script>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'company-register';</script>
+<script src="nav.js"></script>
+
+<script>
+    // Redirect workers away from company register
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        if (currentUserRole === 'worker') {
+            window.location.href = 'worker-portal.html';
+        }
+    });
+    </script>
+<script src="claim-service.js"></script>
+<script>
     const SB = window.supabaseClient;
     let allCompanies = [];
     let ddAccidents = [];
@@ -372,7 +364,7 @@
                 SB.from('accident_reports').select('occupier_name, industry_sector, accident_date, injury_fatal, report_type, id').not('occupier_name', 'is', null),
                 SB.from('workplace_inspections').select('factory_name, industry_type, compliance_level, inspection_date, follow_up_required, employees_male, employees_female, id').not('factory_name', 'is', null),
                 SB.from('injury_disease_reports').select('employer_name, incident_type, resulted_death, incident_date, id').not('employer_name', 'is', null),
-                SB.from('injury_claims').select('name_of_employer, industry, status, date_of_injury, incapacity_percentage, id').neq('status', 'draft').not('name_of_employer', 'is', null),
+                loadClaims({ selectCols: 'name_of_employer, industry, status, date_of_injury, incapacity_percentage, id', excludeDrafts: true }).then(function(d){return d||[];}),
             ]);
 
             const dbCompanies = compRes.data || [];
@@ -566,8 +558,6 @@
             const compColor   = compLevel >= 75 ? '#155724' : compLevel >= 50 ? '#856404' : '#721c24';
             const lastAct     = c.last_activity_date || c.last_accident_date || c.last_inspection_date || c.last_idr_date || null;
 
-            
-
             return `<tr class="clickable-row" onclick="openDrilldown('${esc(c.company_name)}')">
                 <td><strong>${esc(c.company_name)}</strong></td>
                 <td>${c.industry ? `<span class="industry-chip">${esc(c.industry)}</span>` : '<span style="color:#bbb">—</span>'}</td>
@@ -589,8 +579,6 @@
             </tr>`;
         }).join('');
     }
-
-
 
     // ── Drill-down ───────────────────────────────────────────
     async function openDrilldown(companyName) {
@@ -645,9 +633,7 @@
             SB.from('injury_disease_reports').select('*')
                 .eq('employer_name', companyName)
                 .order('incident_date', { ascending: false }),
-            SB.from('injury_claims').select('*')
-                .eq('name_of_employer', companyName)
-                .order('created_at', { ascending: false }),
+            loadClaims({ nameOfEmployer: companyName, orderBy: 'created_at' }),
         ]);
 
         ddAccidents   = accRes.data || [];

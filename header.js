@@ -282,12 +282,12 @@
     if (!sw) return;
 
     const roles = ['viewer', 'worker', 'company', 'medical_practitioner', 'officer', 'admin', 'super_admin'];
-    const labels = {
+    const labels = window.OSH_CONSTANTS ? window.OSH_CONSTANTS.ROLE_LABELS : {
       viewer: '👁 Viewer', worker: '👷 Worker', company: '🏢 Employer',
       medical_practitioner: '🩺 Medical Practitioner', officer: '👮 Officer',
       admin: '⚙ Admin', super_admin: '🔧 Super Admin'
     };
-    const colors = {
+    const colors = window.OSH_CONSTANTS ? window.OSH_CONSTANTS.ROLE_COLORS : {
       viewer: '#e2e3e5', worker: '#cce5ff', company: '#cce5ff',
       medical_practitioner: '#e8d5f5', officer: '#d1ecf1',
       admin: '#fff3cd', super_admin: '#d4edda'

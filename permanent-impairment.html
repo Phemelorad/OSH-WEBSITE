@@ -13,23 +13,13 @@
             background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
             min-height: 100vh;
         }
-        .navbar {
-            background: white; padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        
         .navbar h1 { color: #333; font-size: 24px; }
         .user-info { display: flex; align-items: center; gap: 20px; }
         .user-details { text-align: right; }
         .user-name { font-weight: 600; color: #333; }
         .user-department { font-size: 14px; color: #666; }
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg,#fff 0%,#f8f8f8 100%);
-            color: #333; border: 2px solid #ddd; border-radius: 8px;
-            cursor: pointer; font-weight: 600; transition: all 0.3s;
-        }
-        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
         .page-container { padding: 20px; }
         .container { max-width: 850px; margin: 0 auto; }
         .form-card {
@@ -186,10 +176,6 @@
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
     </div>
-    
-    <script>window.OSH_ACTIVE_PAGE = 'permanent-impairment';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
 
     <div class="toast-container" id="toastContainer"></div>
     <div class="page-container">
@@ -410,12 +396,19 @@
     </div>
     </div>
 
-    <script src="supabase.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
-    <script src="modal.js"></script>
-    <script src="common.js"></script>
-    <script>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'permanent-impairment';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script>
         const SB = window.supabaseClient;
         let searchedClaim = null, searchedWorkerId = null;
 

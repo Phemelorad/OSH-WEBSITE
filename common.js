@@ -1,3 +1,6 @@
+(function () {
+  "use strict";
+
 // ============================================
 // SHARED UTILITY FUNCTIONS
 // Include this script on every page after modal.js
@@ -44,3 +47,11 @@ async function handleLogout() {
     }
 }
 
+
+
+  // Export globally for HTML onclick handlers and inline scripts
+  window.handleLogout = handleLogout;
+  window.fmtDate = fmtDate;
+  window.esc = esc;
+
+})();

@@ -77,10 +77,14 @@
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <h1>My Cases - DOSH</h1>
+        <div class="user-info">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
     <div id="navbar"></div>
-    <script>window.OSH_ACTIVE_PAGE = 'case-tracking';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
+
     <div class="container">
         <div class="page-header">
             <h1>\U0001f4ca My Cases</h1>
@@ -136,10 +140,21 @@
         <!-- Results -->
         <div id="casesContainer"></div>
     </div>
-    <script src="supabase.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <script src="role-permissions.js"></script>
-    <script>
+
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'case-tracking';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script>initializeRoleSystem();</script>
+<script>
     const SB = window.supabaseClient;
     let allCases = [];
     let currentUserId = null;
@@ -263,7 +278,7 @@
     }
 
     async function fetchClaimsByIdNumber(normId) {
-        const { data } = await SB.from('injury_claims').select('*').ilike('claimant_id_number', normId).neq('status', 'draft');
+        const data = await loadClaims({ claimantIdNumberIlike: normId, excludeDrafts: true });
         if (!data) return [];
         return data.map(function(r) { return makeCase(r, 'claim', 'Injury Claim'); });
     }

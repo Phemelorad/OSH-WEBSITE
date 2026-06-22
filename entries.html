@@ -7,16 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <style>
-        .logout-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
-            color: #333;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
 
         .container {
             max-width: 1600px;
@@ -312,10 +302,6 @@
         </div>
     </div>
 
-    <script>window.OSH_ACTIVE_PAGE = 'claims-entries';</script>
-    <script src="header.js"></script>
-    <script src="nav.js"></script>
-
     <div class="container">
         <!-- Statistics Cards -->
         <div class="stats-grid">
@@ -422,16 +408,26 @@
     </div>
 
     <!-- Supabase JS Client -->
-    <script src="supabase.min.js"></script>
+    
     <!-- Supabase Configuration -->
-    <script src="supabase-config.js"></script>
-    <!-- Role Permissions System -->
-    <script src="role-permissions.js"></script>
-    <!-- Custom Modals -->
-    <script src="modal.js"></script>
-    <script src="common.js"></script>
 
-    <script>
+    <!-- Role Permissions System -->
+    
+    <!-- Custom Modals -->
+
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'claims-entries';</script>
+<script src="nav.js"></script>
+
+<script src="claim-service.js"></script>
+<script>
         const supabaseClient = window.supabaseClient;
         let allClaims = [];
 
@@ -459,26 +455,16 @@
             document.getElementById('claimsContent').style.display = 'none';
 
             try {
-                let query = supabaseClient
-                    .from('injury_claims_view')
-                    .select('*')
-                    .neq('status', 'draft')
-                    .order('created_at', { ascending: false });
+                let query = { view: 'injury_claims_view', excludeDrafts: true, orderBy: 'created_at' };
 
                 // Apply filters
                 const statusFilter = document.getElementById('filterStatus').value;
                 const industryFilter = document.getElementById('filterIndustry').value;
 
-                if (statusFilter) {
-                    query = query.eq('status', statusFilter);
-                }
-                if (industryFilter) {
-                    query = query.eq('industry', industryFilter);
-                }
+                if (statusFilter) query.status = statusFilter;
+                if (industryFilter) query.industry = industryFilter;
 
-                const { data: claims, error } = await query;
-
-                if (error) throw error;
+                var claims = await window.loadClaims(query);
 
                 allClaims = claims;
 
@@ -503,12 +489,8 @@
 
         async function populateIndustryFilter() {
             try {
-                const { data: industries, error } = await supabaseClient
-                    .from('injury_claims')
-                    .select('industry')
-                    .neq('status', 'draft');
-
-                if (error) throw error;
+                var industries = await loadUniqueIndustries();
+                industries = industries.map(function(i) { return {industry: i}; });
 
                 const uniqueIndustries = [...new Set(industries.map(i => i.industry))].sort();
                 const select = document.getElementById('filterIndustry');
@@ -634,7 +616,7 @@
             try {
                 const { error } = await supabaseClient
                     .from('injury_claims').update({ status: newStatus }).eq('id', claimId);
-                if (error) throw error;
+                
                 showToast('Status updated successfully', 'success');
                 loadClaims();
             } catch (error) {
@@ -675,7 +657,6 @@
             a.click();
             window.URL.revokeObjectURL(url);
         }
-
 
         // -- Pagination --
         let currentPage = 1;
@@ -751,7 +732,7 @@
                 if (statusFilter) query = query.eq("status", statusFilter);
                 if (industryFilter) query = query.eq("industry", industryFilter);
                 const { data: claims, error } = await query;
-                if (error) throw error;
+                
                 allClaims = claims;
                 updateStatistics(claims);
                 applyPagination(claims);

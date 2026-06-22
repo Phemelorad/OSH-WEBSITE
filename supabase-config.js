@@ -13,11 +13,14 @@
     window.supabaseClient = supabaseClient;
 
     // Helper function to handle errors
-    // Map form role values to database role values
+    // Map form role values to database role values (delegated to constants.js)
     function mapRole(formRole) {
+        if (window.OSH_CONSTANTS) {
+            return window.OSH_CONSTANTS.mapRole(formRole);
+        }
         if (formRole === 'osh_officer') return 'officer';
         if (formRole === 'medical_practitioner') return 'medical_practitioner';
-        return formRole; // 'company' → 'company', 'worker' → 'worker'
+        return formRole;
     }
 
     function handleError(error) {
