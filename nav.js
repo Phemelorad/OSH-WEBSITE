@@ -551,6 +551,7 @@ margin-right: 6px;
     const siteHeader = document.querySelector('.site-header');
     if (siteHeader) {
       siteHeader.appendChild(nav);
+      nav.classList.remove("osh-nav-loading");
       return;
     }
 
@@ -563,6 +564,9 @@ margin-right: 6px;
       if (navbar) navbar.insertAdjacentElement('afterend', nav);
       else document.body.prepend(nav);
     }
+
+    // Remove loading state now that nav is in the DOM
+    nav.classList.remove("osh-nav-loading");
   }
 
   if (document.readyState === 'loading') {
