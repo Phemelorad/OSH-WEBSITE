@@ -262,11 +262,12 @@ async function loadData() {
     if (words.length === 0) words = [companyName];
     const orConditions = words.map(w => 'occupier_name.ilike.*' + w + '*').join(',');
     console.log('[DEBUG] Word-match conditions:', orConditions);
-    const { data, error } = await SB
-        .from('accident_reports')
-        .select('*')
-        .or(orConditions)
-        .order('accident_date', { ascending: false });
+    const [accRes, personsRes] = await Promise.all([
+        SB.from('accident_reports').select('*').or(orConditions).order('accident_date', { ascending: false }),
+        SB.from('accident_injured_persons').select('accident_report_id, full_name, age_years, sex, id_number, occupation_at_accident, usual_occupation, experience_level, injury_fatal, disabled_three_days, hourly_pay, medical_practitioner, sort_order')
+    ]);
+    const data = accRes.data;
+    const error = accRes.error;
     
     console.log('[DEBUG] Results:', data?.length || 0, 'rows, error:', error?.message || 'OK');
     if (data && data.length > 0) console.log('[DEBUG] Sample:', JSON.stringify(data[0]).slice(0,200));
@@ -275,6 +276,42 @@ async function loadData() {
         document.getElementById('loadingState').innerHTML = `<p style="color:#e74c3c;padding:40px;text-align:center">Error: ${error.message}<br><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>`;
         return;
     }
+    
+    // Attach injured persons to each accident record
+    if (personsRes.data) {
+        const personGroups = {};
+        personsRes.data.forEach(function(p) {
+            if (!personGroups[p.accident_report_id]) personGroups[p.accident_report_id] = [];
+            personGroups[p.accident_report_id].push(p);
+        });
+        data.forEach(function(r) {
+            const persons = personGroups[r.id];
+            if (persons) {
+                r._persons = persons;
+                r._persons_count = persons.length;
+                const fatalPersons = persons.filter(function(p) { return p.injury_fatal === 'Fatal'; });
+                if (fatalPersons.length > 0) r._fatal_count = fatalPersons.length;
+            }
+        });
+    } else if (personsRes.error) {
+        console.error('[DEBUG] personsRes error:', personsRes.error);
+    }
+    
+    // Fallback: for records without _persons, create synthetic _persons from main record fields
+    data.forEach(function(r) {
+        if (!r._persons && r.injured_name) {
+            r._persons = [{
+                full_name: r.injured_name,
+                age_years: r.injured_age,
+                sex: r.injured_sex,
+                id_number: r.injured_id_number,
+                occupation_at_accident: r.occupation_at_accident,
+                injury_fatal: r.injury_fatal
+            }];
+            r._persons_count = 1;
+            if (r.injury_fatal === 'Fatal') r._fatal_count = 1;
+        }
+    });
     
     allRecords = data || [];
     
@@ -347,7 +384,7 @@ function renderTable(rows) {
         const invSlug = (r.investigation_status || 'submitted').toLowerCase().replace(' ','_');
         return `<tr>
         <td><span style="font-size:12px;color:#0c5460;font-weight:600">${r.accident_case_number || '—'}</span></td>
-        <td><strong>${r.injured_name || '—'}</strong><br><small style="color:#aaa">${r.injured_id_number || ''}</small></td>
+        <td><div class="persons-list">${(r._persons || []).slice(0,3).map(function(p, i) { return "<div class="person-entry"" + (i > 0 ? " style="margin-top:4px;padding-top:4px;border-top:1px solid #eee"" : "") + "><strong>" + (p.full_name || "?") + "</strong><br><small style="color:#888">" + (p.id_number || "") + (p.injury_fatal === "Fatal" ? " <span class="badge badge-fatal" style="font-size:10px">Fatal</span>" : "") + "</small></div>"; }).join("") + (r._persons_count > 3 ? "<div style="margin-top:6px;font-size:12px;color:#0c5460;font-weight:600">+" + (r._persons_count - 3) + " more</div>" : "")} ${!r._persons && r.injured_name ? "<strong>" + r.injured_name + "</strong><br><small style="color:#aaa">" + (r.injured_id_number || "") + "</small>" : ""} ${!r._persons && !r.injured_name ? "—" : ""} </div></td>
         <td>${r.industry_sector || r.nature_of_industry || '—'}</td>
         <td><span class="badge badge-${typeSlug}">${(r.report_type || '').replace('_',' ').toUpperCase()}</span></td>
         <td style="white-space:nowrap">${fmtDate(r.accident_date)}</td>
@@ -381,7 +418,26 @@ async function viewRecord(id) {
         f('Reporter', r.reporter_name + (r.reporter_designation ? ' (' + r.reporter_designation + ')' : '')) +
         f('Report Date', fmtDate(r.report_date));
     
-    const workerHtml = r.injured_name ? f('Worker Name', r.injured_name) + f('Age', r.injured_age) + f('Sex', r.injured_sex) + f('ID / Passport', r.injured_id_number) + f('Occupation', r.occupation_at_accident) + f('Fatal?', r.injury_fatal) : 'No worker details recorded.';
+    var workerHtml = '';
+    var persons = r._persons || [];
+    if (persons.length > 0) {
+        persons.forEach(function(p, idx) {
+            workerHtml += '<div class="person-section"' + (idx > 0 ? ' style="margin-top:16px;padding-top:16px;border-top:2px solid #eee"' : '') + '>';
+            workerHtml += '<h4 style="margin:0 0 8px 0;font-size:14px;color:#333">' + (idx + 1) + '. ' + (p.full_name || 'Unknown') + '</h4>';
+            workerHtml += f('Age', p.age_years) + f('Sex', p.sex) + f('ID / Passport', p.id_number);
+            workerHtml += f('Occupation at Accident', p.occupation_at_accident) + f('Usual Occupation', p.usual_occupation);
+            workerHtml += f('Experience Level', p.experience_level) + f('Fatal?', p.injury_fatal);
+            workerHtml += f('Disabled 3+ Days', p.disabled_three_days) + f('Hourly Pay', p.hourly_pay);
+            workerHtml += '</div>';
+        });
+    } else if (r.injured_name) {
+        workerHtml = '<div class="person-section">';
+        workerHtml += f('Worker Name', r.injured_name) + f('Age', r.injured_age) + f('Sex', r.injured_sex);
+        workerHtml += f('ID / Passport', r.injured_id_number) + f('Occupation', r.occupation_at_accident) + f('Fatal?', r.injury_fatal);
+        workerHtml += '</div>';
+    } else {
+        workerHtml = 'No worker details recorded.';
+    }
     
     const investHtml = (r.causation_number || r.investigation_status) ? f('Causation No.', r.causation_number) + f('Investigation Status', r.investigation_status) + f('Official Action', r.official_action) : '';
     

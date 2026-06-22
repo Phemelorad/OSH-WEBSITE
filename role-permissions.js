@@ -266,8 +266,8 @@
     showPermissionDenied: showPermissionDenied,
     getRoleDisplayName: C.getRoleDisplayName, getRoleColor: C.getRoleColor,
     checkPageAccess: checkPageAccess,
-    getCurrentUserRole: lambda: currentUserRole,
-    getCurrentUserId: lambda: currentUserId,
+    getCurrentUserRole: function() { return currentUserRole; },
+    getCurrentUserId: function() { return currentUserId; },
     ALL_ROLES: C.ALL_ROLES
   };
 
