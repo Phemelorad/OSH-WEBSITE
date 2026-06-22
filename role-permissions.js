@@ -222,6 +222,11 @@
   }
 
   // ── UI updates ────────────────────────────────────────
+  function applyNavVisibility() {
+    // Nav visibility handled by updateUIForRole() for specific links
+    // and by the nav.js configuration system
+  }
+
   function updateUIForRole() {
     document.querySelectorAll('[href="admin.html"], [onclick*="admin.html"]').forEach(function(link) {
       link.style.display = canAccessAdmin() ? '' : 'none';
@@ -268,6 +273,13 @@
     }
   }
 
+  function setUserNameSafely(name) {
+    var el = document.getElementById("userName");
+    if (el && name) {
+      el.textContent = name;
+    }
+  }
+
   function checkPageAccess() {
     if (!currentUserRole) {
       window.location.href = "index.html";
@@ -297,6 +309,7 @@
   window.canEditClaims = canEditClaims;
   window.canManageUsers = canManageUsers;
   window.enforcePermissions = enforcePermissions;
+  window.setUserNameSafely = setUserNameSafely;
 
   })();
 
