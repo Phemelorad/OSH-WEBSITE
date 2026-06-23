@@ -1,0 +1,9 @@
+nul
+node_modules/
+.env
+*.log
+tmp/
+_temp/
+_py_cache/
+__pycache__/
+*.pyc

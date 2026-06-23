@@ -460,6 +460,17 @@ margin-right: 6px;
         href: 'debug-console.html',
         single: true
       },
+      {
+        id: 'bl-forms',
+        label: '📋 BL Forms',
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
+        children: [
+          { id: 'form-43-02', icon: '<i class="dd-icon">💰</i>', label: 'Form 43/02 - Wages', href: 'form-43-02-wages.html' },
+          { id: 'form-43-03', icon: '<i class="dd-icon">🏥</i>', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
+          { id: 'form-43-07', icon: '<i class="dd-icon">🛡️</i>', label: 'Form 43/07 - Insurance', href: 'form-43-07-insurance.html' },
+          { id: 'form-43-11', icon: '<i class="dd-icon">📋</i>', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
+        ]
+      },
   ];
 
   // ── Build HTML ───────────────────────────────────────────

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BL Form 43-07 - Certificate of Insurance - DOSH</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+<link rel="stylesheet" href="styles.css">
+<style>
+body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }}
+.container {{ max-width: 900px; margin: 20px auto; padding: 0 16px; }}
+.form-card {{ background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; margin-bottom: 20px; }}
+.form-header {{ text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #2c3e50; }}
+.form-header .crest {{ font-size: 48px; }}
+.form-header h1 {{ font-size: 20px; color: #2c3e50; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 1px; }}
+.form-header h2 {{ font-size: 14px; color: #7f8c8d; margin: 4px 0; font-weight: normal; }}
+.form-header .form-no {{ font-size: 13px; color: #e74c3c; font-weight: bold; margin-top: 8px; }}
+.form-header .act-ref {{ font-size: 12px; color: #555; margin-top: 4px; }}
+.section-title {{ font-size: 15px; font-weight: 700; color: #2c3e50; margin: 24px 0 16px; padding-bottom: 6px; border-bottom: 1px solid #ddd; }}
+.section-title:first-of-type {{ margin-top: 0; }}
+.form-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }}
+.form-row-3 {{ grid-template-columns: 1fr 1fr 1fr; }}
+.form-row-4 {{ grid-template-columns: 1fr 1fr 1fr 1fr; }}
+.form-group {{ display: flex; flex-direction: column; }}
+.form-group.full {{ grid-column: 1 / -1; }}
+.form-group label {{ font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }}
+.form-group input, .form-group select, .form-group textarea {{ padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {{ outline: none; border-color: #2c3e50; box-shadow: 0 0 0 3px rgba(44,62,80,0.1); }}
+.form-group textarea {{ min-height: 60px; resize: vertical; }}
+.wages-table {{ width: 100%; border-collapse: collapse; margin: 12px 0; }}
+.wages-table th {{ background: #2c3e50; color: #fff; font-size: 12px; padding: 8px 10px; text-align: left; }}
+.wages-table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; }}
+.wages-table input {{ width: 100%; border: none; border-bottom: 1px dotted #999; padding: 4px 0; font-size: 13px; background: transparent; }}
+.wages-table input:focus {{ border-bottom-color: #2c3e50; outline: none; }}
+.btn-row {{ display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }}
+.btn {{ padding: 10px 28px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }}
+.btn-primary {{ background: #2c3e50; color: #fff; }}
+.btn-primary:hover {{ background: #34495e; transform: translateY(-1px); }}
+.btn-secondary {{ background: #ecf0f1; color: #2c3e50; }}
+.btn-secondary:hover {{ background: #dfe6e9; }}
+.radio-group {{ display: flex; gap: 20px; align-items: center; padding: 6px 0; }}
+.radio-group label {{ font-weight: normal; font-size: 13px; cursor: pointer; }}
+.radio-group input[type="radio"] {{ margin-right: 4px; }}
+@media (max-width: 768px) {{ .form-row {{ grid-template-columns: 1fr; }} .form-row-3, .form-row-4 {{ grid-template-columns: 1fr 1fr; }} }}
+</style>
+</head>
+<body>
+<div id="headerPlaceholder"></div>
+<div class="container">
+<div class="form-card">
+<div class="form-header">
+<div class="crest">⚖️</div>
+<h1>BL FORM 43/07</h1>
+<h2>Certificate of Insurance</h2>
+<div class="form-no">Worker's Compensation Act (Act No. 23 of 1998), Section 32</div>
+</div>
+
+<form id="insuranceForm">
+<h3 class="section-title">Insurance Details</h3>
+<div class="form-row">
+<div class="form-group full"><label>Name of Insurer</label><input type="text" name="insurer_name" placeholder="Full name of insurer/insurance company" required></div>
+</div>
+<div class="form-row">
+<div class="form-group full"><label>Policy Number</label><input type="text" name="policy_number" placeholder="Policy number"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Coverage Period Start</label><input type="date" name="coverage_period_start"></div>
+<div class="form-group"><label>Coverage Period End</label><input type="date" name="coverage_period_end"></div>
+</div>
+
+<h3 class="section-title">Employer Details</h3>
+<div class="form-row">
+<div class="form-group full"><label>Full Name of Employer</label><input type="text" name="employer_name" placeholder="Full name of employer" required></div>
+</div>
+<div class="form-row">
+<div class="form-group full"><label>Full Address of Employer</label><textarea name="employer_address" rows="3" placeholder="Full address"></textarea></div>
+</div>
+
+<h3 class="section-title">Certification</h3>
+<p style="font-size:13px;color:#555;margin-bottom:16px;">This is to certify that the above-named employer holds a policy of insurance as required by the Worker's Compensation Act.</p>
+<div class="form-row form-row-3">
+<div class="form-group"><label>Date</label><input type="date" name="certificate_date"></div>
+<div class="form-group"><label>Signature</label><input type="text" name="signature" placeholder="Signature"></div>
+<div class="form-group"><label>Status of Signatory</label><input type="text" name="signatory_status" placeholder="e.g. Manager, Actuary"></div>
+</div>
+
+<div class="btn-row">
+<button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
+<button type="submit" class="btn btn-primary">Submit</button>
+</div>
+</form>
+</div>
+</div>
+<div id="navPlaceholder"></div>
+<script src="bootstrap.js"></script>
+<script src="role-config.js"></script>
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script src="nav.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'bl-form-43-07';</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof renderHeader === 'function') renderHeader();
+    if (typeof initNav === 'function') initNav();
+});
+
+var formEl = document.getElementById('insuranceForm');
+if (formEl) {
+    formEl.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var btn = formEl.querySelector('button[type="submit"]');
+        btn.textContent = 'Submitting...';
+        btn.disabled = true;
+
+        try {
+            var payload = {};
+            var inputs = formEl.querySelectorAll('[name]');
+            inputs.forEach(function(inp) {
+                var val = inp.type === 'checkbox' ? inp.checked : inp.value;
+                if (inp.type === 'number' && val) val = parseFloat(val);
+                if (val !== '') payload[inp.name] = val;
+            });
+
+            var user = await getCurrentUser();
+            if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit'; btn.disabled = false; return; }
+            payload.submitted_by = user.id;
+
+            var result = await supabaseClient
+                .from('certificate_of_insurance')
+                .insert([payload])
+                .select();
+
+            if (result.error) throw result.error;
+            alert('Form submitted successfully!');
+            formEl.reset();
+        } catch(err) {
+            alert('Error: ' + err.message);
+            console.error('Form submit error:', err);
+        } finally {
+            btn.textContent = 'Submit';
+            btn.disabled = false;
+        }
+    });
+}
+</script>
+</body>
+</html>

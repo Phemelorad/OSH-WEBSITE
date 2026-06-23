@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BL Form 43/07 – Certificate of Insurance</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 11pt; background: #fff; color: #000; }
+
+  .page {
+    width: 210mm; min-height: 297mm;
+    margin: 0 auto; padding: 18mm 22mm 18mm 22mm;
+    background: #fff; position: relative;
+  }
+
+  .form-number { text-align: right; font-weight: bold; font-size: 11pt; margin-bottom: 8mm; }
+
+  .header-titles { text-align: center; margin-bottom: 8mm; line-height: 1.8; }
+  .header-titles .main  { font-weight: bold; font-size: 11pt; letter-spacing: 0.03em; }
+  .header-titles .sub   { font-size: 11pt; }
+  .header-titles .cert  { font-weight: bold; font-size: 11pt; text-transform: uppercase; margin-top: 4mm; letter-spacing: 0.05em; }
+
+  .body-block { font-size: 11pt; line-height: 2.0; }
+
+  .dline {
+    border-bottom: 1px dotted #000;
+    display: block; width: 100%; min-height: 6mm;
+    margin-bottom: 1mm;
+  }
+  .dline-inline {
+    border-bottom: 1px dotted #000;
+    display: inline-block; min-height: 5mm;
+  }
+
+  .caption {
+    text-align: center; font-style: italic;
+    font-size: 11pt; margin-bottom: 5mm; margin-top: 1mm;
+  }
+
+  .field-group { margin-bottom: 4mm; }
+
+  /* Two-column sig row */
+  .sig-row {
+    display: flex; gap: 20mm;
+    margin-bottom: 5mm; align-items: flex-start;
+  }
+  .sig-left  { min-width: 55mm; font-size: 11pt; }
+  .sig-right { flex: 1; font-size: 11pt; }
+
+  .bottom-rule {
+    border-top: 1px solid #000; margin-top: 30mm;
+  }
+
+  @media print { body { background:#fff; } .page { margin:0; width:100%; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="form-number">BL FORM 43/07</div>
+
+  <div class="header-titles">
+    <div class="main">WORKER'S COMPENSATION ACT</div>
+    <div class="sub">(Act No. 23 of 1998)</div>
+    <div class="sub">(Section 32)</div>
+    <div class="cert">Certificate of Insurance</div>
+  </div>
+
+  <div class="body-block">
+
+    <!-- This is to certify -->
+    <div class="field-group">
+      This is to certify that –<br>
+      <span class="dline" style="margin-top:2mm;"></span>
+      <div class="caption">(full name of employer)</div>
+    </div>
+
+    <!-- of -->
+    <div class="field-group">
+      of –<br>
+      <span class="dline" style="margin-top:2mm;"></span>
+      <span class="dline"></span>
+      <div class="caption">(full address of employer)</div>
+    </div>
+
+    <!-- certification statement -->
+    <div class="field-group" style="margin-top:2mm; margin-bottom:10mm;">
+      is fully insured with this company against liability under the Worker's Compensation Act.
+    </div>
+
+    <!-- Sig row -->
+    <div class="sig-row">
+      <div class="sig-left">
+        Date:
+        <span class="dline-inline" style="min-width:38mm;"></span>
+      </div>
+      <div class="sig-right">
+        Signature:
+        <span class="dline-inline" style="min-width:80mm;"></span><br>
+        Company seal:<br><br><br>
+        Status of Signatory:
+        <span class="dline-inline" style="min-width:68mm;"></span><br>
+        <span style="font-style:italic;">(manager, actuary, etc.)</span>
+      </div>
+    </div>
+
+  </div><!-- /body-block -->
+
+  <div class="bottom-rule"></div>
+
+</div>
+</body>
+</html>
