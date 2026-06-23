@@ -13,9 +13,9 @@
 
         /* ── Header ── */
         .checklist-header {
-            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #4a6274 100%);
             border-radius: 16px; padding: 40px 48px; margin-bottom: 28px;
-            color: white; box-shadow: 0 8px 32px rgba(26,35,126,0.25);
+            color: white; box-shadow: 0 8px 32px rgba(44,62,80,0.25);
             position: relative; overflow: hidden;
         }
         .checklist-header::before {
@@ -39,15 +39,15 @@
             width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px;
             font-size: 15px; font-family: inherit; transition: border-color 0.2s;
         }
-        .search-card input:focus { outline: none; border-color: #1a237e; }
+        .search-card input:focus { outline: none; border-color: #4a6274; }
         .search-card button {
-            padding: 10px 28px; background: #1a237e; color: white; border: none;
+            padding: 10px 28px; background: #2c3e50; color: white; border: none;
             border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit;
             cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
         .search-card button:hover { background: #283593; transform: translateY(-1px); }
         .search-card button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .search-result { width: 100%; padding: 12px 16px; background: #f0f4ff; border-radius: 8px; font-size: 13px; color: #1a237e; display: none; }
+        .search-result { width: 100%; padding: 12px 16px; background: #f0f4ff; border-radius: 8px; font-size: 13px; color: #2c3e50; display: none; }
 
         /* ── Progress bar ── */
         .progress-section {
@@ -66,7 +66,7 @@
             cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit;
             transition: all 0.2s; color: #555;
         }
-        .print-btn:hover, .reset-btn:hover { border-color: #1a237e; color: #1a237e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .print-btn:hover, .reset-btn:hover { border-color: #2c3e50; color: #2c3e50; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
         /* ── Section cards ── */
         .section-card {
@@ -82,7 +82,7 @@
         }
         .section-card-header .icon { font-size: 18px; }
         .section-card-header .section-count { margin-left: auto; font-size: 11px; text-transform: none; letter-spacing: 0; opacity: 0.7; font-weight: 500; white-space: nowrap; }
-        .sc-forms .section-card-header { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #1565c0; }
+        .sc-forms .section-card-header { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #2c3e50; }
         .sc-letters .section-card-header { background: linear-gradient(135deg, #fff3e0, #ffe0b2); color: #e65100; }
         .sc-traffic .section-card-header { background: linear-gradient(135deg, #fce4ec, #f8bbd0); color: #c62828; }
         .sc-death .section-card-header { background: linear-gradient(135deg, #f3e5f5, #e1bee7); color: #6a1b9a; }
@@ -136,7 +136,7 @@
         .upload-btn {
             padding: 6px 16px; border: 2px dashed #90caf9; border-radius: 6px;
             background: #f5faff; cursor: pointer; font-size: 12px; font-weight: 600;
-            font-family: inherit; color: #1565c0; transition: all 0.2s;
+            font-family: inherit; color: #2c3e50; transition: all 0.2s;
         }
         .upload-btn:hover { background: #e3f2fd; border-color: #42a5f5; }
         .upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -158,7 +158,7 @@
         }
         .proceed-btn {
             padding: 14px 40px; font-size: 16px; font-weight: 700;
-            background: linear-gradient(135deg, #1a237e, #3949ab); color: white;
+            background: linear-gradient(135deg, #2c3e50, #4a6274); color: white;
             border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
             transition: all 0.2s; box-shadow: 0 4px 16px rgba(26,35,126,0.3);
         }
@@ -177,7 +177,7 @@
         .loading-overlay {
             display: none; text-align: center; padding: 40px; color: #888;
         }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1a237e; border-radius: 50%; width: 32px; height: 32px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #2c3e50; border-radius: 50%; width: 32px; height: 32px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
 
         /* ── Responsive ── */
@@ -196,7 +196,7 @@
             body { background: white; }
             .search-card, .upload-area, .upload-btn, .action-buttons,
             .proceed-section { display: none !important; }
-            .checklist-header { background: #1a237e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px 30px; box-shadow: none; }
+            .checklist-header { background: #2c3e50 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px 30px; box-shadow: none; }
             .check-item.detected, .check-item.uploaded { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .container { margin: 20px auto; }
         }
@@ -305,7 +305,7 @@
             transition: background 0.2s;
         }
         .role-switcher-item:hover { background: #f5f5f5; }
-        .role-switcher-item.active { font-weight: 700; background: #f0f4ff; color: #1a237e; }
+        .role-switcher-item.active { font-weight: 700; background: #f0f4ff; color: #2c3e50; }
 
         @media (max-width: 768px) {
             .header-top { padding: 12px 16px; }
@@ -323,32 +323,7 @@
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
     </div>
-    <header class="site-header">
-        <div class="header-top">
-            <div class="header-brand">
-                <img src="COAT_OF_ARMS.png" alt="Coat of Arms" class="header-crest-img" onerror="this.style.display='none'">
-                <div class="header-titles">
-                    <h1>Claim Forms Checklist</h1>
-                    <div class="header-subtitle">Ministry of Labour &amp; Home Affairs &middot; Department of Occupational Health &amp; Safety</div>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-user">
-                    <div class="header-user-name" id="userName">Loading...</div>
-                    <div class="header-user-designation" id="userDesignation"></div>
-                    <div class="header-user-role" id="userRoleContainer">
-                        <span class="role-badge" id="userRoleBadge" onclick="toggleRoleSwitcher()">Loading role...</span>
-                        <div class="role-switcher" id="roleSwitcher"></div>
-                    </div>
-                </div>
-                <button class="header-logout" onclick="if(typeof handleLogout==='function')handleLogout();else console.warn('handleLogout not ready')">Sign Out</button>
-            </div>
-        </div>
-        <!-- Hidden elements for backward compatibility -->
-        <span id="userDept" style="display:none"></span>
-        <span id="userDepartment" style="display:none"></span>
-        <span id="userCompanyName" style="display:none"></span>
-    </header>
+
 
     <div class="container">
         <!-- ── Header ── -->
@@ -426,55 +401,7 @@
 
 <script src="claim-service.js"></script>
 <script>initializeRoleSystem();</script>
-<script>
-        // ── Header user info populator (replaces header.js functionality) ──
-        window.toggleRoleSwitcher = function() {
-            var el = document.getElementById('roleSwitcher');
-            if (el) el.classList.toggle('open');
-        };
-        document.addEventListener('DOMContentLoaded', function() {
-            // Populate user info from cached profile or API
-            if (typeof getCachedUserProfile === 'function') {
-                var profile = getCachedUserProfile();
-                if (profile) {
-                    var nameEl = document.getElementById('userName');
-                    var desEl = document.getElementById('userDesignation');
-                    var deptEl = document.getElementById('userDept');
-                    if (nameEl) nameEl.textContent = profile.name || profile.full_name || 'User';
-                    if (desEl) desEl.textContent = profile.designation || profile.department || '';
-                    if (deptEl && profile.department) deptEl.textContent = profile.department;
-                }
-            }
-            // Try getting current user info
-            if (typeof getCurrentUser === 'function') {
-                getCurrentUser().then(function(user) {
-                    if (user && user.user) {
-                        var nameEl = document.getElementById('userName');
-                        if (nameEl && nameEl.textContent === 'Loading...') {
-                            nameEl.textContent = user.user.email || user.user.id || 'User';
-                        }
-                    }
-                }).catch(function(){});
-            }
-            // Update role badge
-            if (typeof getCurrentUserRole === 'function') {
-                var role = getCurrentUserRole();
-                var badge = document.getElementById('userRoleBadge');
-                if (badge && role) badge.textContent = role.replace(/_/g, ' ');
-            }
-        });
-        // Also try to populate immediately if DOM already interactive
-        if (document.readyState !== 'loading') {
-            var nm = document.getElementById('userName');
-            if (nm && nm.textContent === 'Loading...') {
-                if (typeof getCurrentUserRole === 'function') {
-                    var rl = getCurrentUserRole();
-                    var bg = document.getElementById('userRoleBadge');
-                    if (bg && rl) bg.textContent = rl.replace(/_/g, ' ');
-                }
-            }
-        }
-    </script>
+
 <script>
         // ──────────────────────────────────────────────────────────
         //   DATA: Checklist items mapped to DB tables
