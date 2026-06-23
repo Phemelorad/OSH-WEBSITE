@@ -358,7 +358,7 @@ margin-right: 6px;
       {
         id: 'inspection',
         label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Inspections',
-        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'inspection-form',     icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'New Inspection',       href: 'inspection.html' },
           { id: 'inspection-bookings', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
@@ -368,7 +368,7 @@ margin-right: 6px;
       {
         id: 'accident',
         label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Accidents',
-        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'accident',         icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
           { id: 'accident-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',        href: 'accident-entries.html' },
@@ -377,7 +377,7 @@ margin-right: 6px;
       {
         id: 'injury',
         label: '<img src="ICONS/INJURY.png" class="nav-icon"> Injuries',
-        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'injury-disease',         icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report',             href: 'injury-disease-report.html' },
           { id: 'injury-disease-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',           href: 'injury-disease-entries.html' },
@@ -387,7 +387,7 @@ margin-right: 6px;
       {
         id: 'investigation',
         label: '<img src="ICONS/INVESTIGATION.png" class="nav-icon"> Investigations',
-        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'investigation-view', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'View Investigations', href: 'investigation.html' },
         ]
@@ -395,7 +395,7 @@ margin-right: 6px;
       {
         id: 'claims',
         label: '<img src="ICONS/CLAIM.png" class="nav-icon"> Claims',
-        hideFor: ['company', 'viewer', 'worker', 'medical_practitioner'],
+        hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'claims-submit',  icon: '<img src="ICONS/SUBMIT_CLAIM.png" class="dd-icon">', label: 'Submit Claim',  href: 'form.html' },
           { id: 'claims-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Entries',  href: 'entries.html' },
