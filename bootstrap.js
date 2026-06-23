@@ -51,12 +51,8 @@
     }
   });
 
-  if (missingCritical.length > 0) {
-    var msg = '[bootstrap] Not yet loaded (normal at startup): ' + missingCritical.map(function(d){return d.name+' ('+d.source+')'}).join(', ');
-    msg += ' — they will be defined by their source scripts after bootstrap loads.';
-    console.warn(msg);
-  } else if (missingAll.length > 0) {
-    console.warn('[bootstrap] ' + missingAll.length + ' non-critical deps missing at load: ' + missingAll.map(function(d){return d.name}).join(', '));
+  if (missingAll.length > 0) {
+    console.log('[bootstrap] ' + missingAll.length + ' deps pending at startup: ' + missingAll.map(function(d){return d.name}).join(', '));
   }
 
   window.OSH = window.OSH || {};
@@ -75,5 +71,5 @@
     }
   };
 
-  console.log('[bootstrap] v' + VERSION + ' loaded — ' + (missingAll.length ? missingAll.length + ' deps pending (will be resolved by their source scripts)' : 'all OK'));
+  console.log('[bootstrap] v' + VERSION + ' loaded — ' + (missingAll.length ? missingAll.length + ' pending' : 'all OK'));
 })();

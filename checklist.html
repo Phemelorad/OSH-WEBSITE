@@ -404,7 +404,7 @@
 <script src="claim-service.js"></script>
 <script>
     // ── Auth & Role Init (copied pattern from dashboard.html) ──
-    window.addEventListener('load', async function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         const authenticated = await isAuthenticated();
         if (!authenticated) { window.location.href = 'index.html'; return; }
 
