@@ -311,7 +311,8 @@
             const { data: cl } = await SB.from('injury_claims').select('id').eq('status', 'pending');
             document.getElementById('statPendingClaims').textContent = cl ? String(cl.length) : '0';
         } catch (e) { console.error('Stats: claims error', e); }
-    }}
+    }
+
 
     // ── Search type toggle ───────────────────────────────
     function setSearchType(type) {
