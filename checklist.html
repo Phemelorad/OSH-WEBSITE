@@ -402,7 +402,30 @@
 <script src="nav.js"></script>
 
 <script src="claim-service.js"></script>
-<script>initializeRoleSystem();</script>
+<script>
+    // ── Auth & Role Init (copied pattern from dashboard.html) ──
+    window.addEventListener('load', async function() {
+        const authenticated = await isAuthenticated();
+        if (!authenticated) { window.location.href = 'index.html'; return; }
+
+        await initializeRoleSystem();
+
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) return;
+
+        const profileResult = await getUserProfile(userResult.user.id);
+        const profile = profileResult.success ? profileResult.data : null;
+
+        // Update header
+        if (profile) {
+            setUserNameSafely(profile.first_name + ' ' + profile.surname);
+            document.getElementById('userDepartment').textContent =
+                getRoleDisplayName(profile.role) || 'Department of Occupational Health & Safety';
+        } else {
+            setUserNameSafely(userResult.user.email.split('@')[0]);
+        }
+    });
+</script>
 
 <script>
         // ──────────────────────────────────────────────────────────
