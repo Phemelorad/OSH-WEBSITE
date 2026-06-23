@@ -52,6 +52,11 @@
     return realRole;
   }
 
+  function clearLoadingFallback() {
+    var el = document.getElementById('userName');
+    if (el) el.textContent = 'Not logged in';
+  }
+
   // ── Initialize role system ─────────────────────────────
   async function initializeRoleSystem() {
     try {
@@ -71,6 +76,7 @@
 
       var userResult = await getCurrentUser();
       if (!userResult.success || !userResult.user) {
+        clearLoadingFallback();
         return false;
       }
 
@@ -94,9 +100,11 @@
         updateUIForRole();
         return true;
       }
+      clearLoadingFallback();
       return false;
     } catch (error) {
       console.error('Error initializing role system:', error);
+      clearLoadingFallback();
       return false;
     }
   }
