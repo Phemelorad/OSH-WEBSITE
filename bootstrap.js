@@ -1,20 +1,22 @@
-/* ─── OSH Bootstrap — Centralized Global Validation & Stubs ───
+/* ─── OSH Bootstrap — Centralized Global Validation ───
  * Load this FIRST on every page, before any other scripts.
  * It validates that all expected globals exist and provides
- * graceful fallbacks so pages don't crash with cryptic errors.
+ * a check() method for runtime validation.
+ * NOTE: Does NOT create stubs — just reports, so real scripts
+ * can define their globals naturally without conflicts.
  ─────────────────────────────────────────────────────────────── */
 
 (function () {
   'use strict';
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
 
   var DEPENDENCIES = [
     { name: 'supabaseClient',          source: 'supabase-config.js', critical: true },
     { name: 'OSH_CONSTANTS',           source: 'constants.js',       critical: true },
     { name: 'ROLES',                   source: 'role-permissions.js',critical: true },
     { name: 'RolePermissions',         source: 'role-permissions.js',critical: true },
-    { name: 'rolePermissions',         source: 'role-permissions.js',critical: true },
+
     { name: 'initializeRoleSystem',    source: 'role-permissions.js',critical: true },
     { name: 'showPermissionDenied',    source: 'role-permissions.js',critical: true },
     { name: 'checkPageAccess',         source: 'role-permissions.js',critical: true },
@@ -28,7 +30,7 @@
     { name: 'cacheUserProfile',        source: 'role-permissions.js'},
     { name: 'getCurrentUser',          source: 'role-permissions.js'},
     { name: 'getCurrentUserRole',      source: 'role-permissions.js'},
-    { name: 'currentUserRole',         source: 'role-permissions.js'},
+    { name: 'currentUserRole',         source: 'role-permissions.js', critical: true },
     { name: 'handleLogout',            source: 'common.js',          critical: true },
     { name: 'fmtDate',                 source: 'common.js'},
     { name: 'esc',                     source: 'common.js'},
@@ -46,31 +48,15 @@
     if (!exists) {
       missingAll.push(dep);
       if (dep.critical) missingCritical.push(dep);
-      if (dep.name === 'currentUserRole') {
-        if (!('currentUserRole' in window)) {
-          var warned = false;
-          Object.defineProperty(window, 'currentUserRole', {
-            get: function () {
-              if (!warned) { console.warn('[bootstrap] currentUserRole accessed but not yet set'); warned = true; }
-              return null;
-            },
-            set: function (v) { Object.defineProperty(window, 'currentUserRole', { value: v, writable: true, configurable: true }); },
-            configurable: true
-          });
-        }
-      } else {
-        var warned = false;
-        window[dep.name] = function () {
-          if (!warned) { console.warn('[bootstrap] ' + dep.name + '() called — not yet defined (from ' + dep.source + ')'); warned = true; }
-        };
-      }
     }
   });
 
   if (missingCritical.length > 0) {
-    console.error('[bootstrap] CRITICAL missing: ' + missingCritical.map(function(d){return d.name+' ('+d.source+')'}).join(', '));
+    var msg = '[bootstrap] Not yet loaded (normal at startup): ' + missingCritical.map(function(d){return d.name+' ('+d.source+')'}).join(', ');
+    msg += ' — they will be defined by their source scripts after bootstrap loads.';
+    console.warn(msg);
   } else if (missingAll.length > 0) {
-    console.warn('[bootstrap] ' + missingAll.length + ' stubs created: ' + missingAll.map(function(d){return d.name}).join(', '));
+    console.warn('[bootstrap] ' + missingAll.length + ' non-critical deps missing at load: ' + missingAll.map(function(d){return d.name}).join(', '));
   }
 
   window.OSH = window.OSH || {};
@@ -89,5 +75,5 @@
     }
   };
 
-  console.log('[bootstrap] loaded — ' + (missingAll.length ? missingAll.length + ' stubs' : 'all OK'));
+  console.log('[bootstrap] v' + VERSION + ' loaded — ' + (missingAll.length ? missingAll.length + ' deps pending (will be resolved by their source scripts)' : 'all OK'));
 })();

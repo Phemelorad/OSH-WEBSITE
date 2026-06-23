@@ -323,6 +323,8 @@
   window.enforcePermissions = enforcePermissions;
   window.setUserNameSafely = setUserNameSafely;
   window.getRoleDisplayName = C.getRoleDisplayName;
+  window.ROLES = ROLES;
+
   // Expose currentUserRole globally for inline scripts in HTML pages
   Object.defineProperty(window, "currentUserRole", {
     get: function() { return currentUserRole; },
