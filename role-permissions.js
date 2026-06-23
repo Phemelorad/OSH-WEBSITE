@@ -223,8 +223,20 @@
 
   // ── UI updates ────────────────────────────────────────
   function applyNavVisibility() {
-    // Nav visibility handled by updateUIForRole() for specific links
-    // and by the nav.js configuration system
+    var role = currentUserRole;
+    if (!role) return;
+    role = String(role).toLowerCase().trim();
+
+    // Find all nav items with data-hide-for (written by nav.js as dataset.hideFor -> data-hide-for)
+    var items = document.querySelectorAll('.osh-nav [data-hide-for]');
+    items.forEach(function(item) {
+      var hideFor = (item.dataset.hideFor || '').toLowerCase().split(',');
+      if (hideFor.indexOf(role) !== -1) {
+        item.style.display = 'none';
+      } else {
+        item.style.display = '';
+      }
+    });
   }
 
   function updateUIForRole() {
