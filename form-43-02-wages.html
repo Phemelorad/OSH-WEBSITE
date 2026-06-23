@@ -8,7 +8,8 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }}
-.container {{ max-width: 900px; margin: 20px auto; padding: 0 16px; }}
+.page-container { padding: 20px; }
+        .container {{ max-width: 820px; margin: 20px auto; padding: 0 16px; }}
 .form-card {{ background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; margin-bottom: 20px; }}
 .form-header {{ text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #2c3e50; }}
 .form-header .crest {{ font-size: 48px; }}
@@ -46,6 +47,7 @@ body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin:
 </head>
 <body>
 <div id="headerPlaceholder"></div>
+<div class="page-container">
 <div class="container">
 <div class="form-card">
 <div class="form-header">
@@ -132,10 +134,11 @@ body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin:
 <script src="nav.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-02';</script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     if (typeof renderHeader === 'function') renderHeader();
     if (typeof initNav === 'function') initNav();
-});
+    if (typeof initializeRoleSystem === 'function') await initializeRoleSystem();
+    });
 
 var formEl = document.getElementById('wagesForm');
 if (formEl) {
@@ -176,5 +179,8 @@ if (formEl) {
     });
 }
 </script>
+
+        </div>
+    </div>
 </body>
 </html>

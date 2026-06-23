@@ -282,7 +282,10 @@ function exportLog() {
 }
 
 // ---- Init ----
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    if (typeof renderHeader === 'function') renderHeader();
+    if (typeof initNav === 'function') initNav();
+    if (typeof initializeRoleSystem === 'function') await initializeRoleSystem();
     runAllChecks();
 });
 </script>
