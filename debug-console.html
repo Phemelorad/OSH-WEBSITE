@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug Console - DOSH</title>
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .debug-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin: 20px 0; }
+  .debug-card { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #2c3e50; }
+  .debug-card.pass { border-left-color: #27ae60; }
+  .debug-card.fail { border-left-color: #e74c3c; }
+  .debug-card.warn { border-left-color: #f39c12; }
+  .debug-card h3 { margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #555; }
+  .debug-card .status { font-size: 13px; margin: 4px 0; padding: 4px 8px; border-radius: 4px; background: #f8f9fa; }
+  .debug-card .status.ok { color: #27ae60; }
+  .debug-card .status.fail { color: #e74c3c; background: #fde8e8; }
+  .debug-card .status.warn { color: #f39c12; background: #fef9e7; }
+  .debug-dep { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 12px; font-family: monospace; border-bottom: 1px solid #eee; }
+  .debug-dep:nth-child(odd) { background: #f8f9fa; }
+  .debug-dep .dep-name { color: #333; }
+  .debug-dep .dep-source { color: #999; font-size: 11px; }
+  .debug-dep .dep-status { font-weight: bold; }
+  .debug-dep .dep-status.ok { color: #27ae60; }
+  .debug-dep .dep-status.fail { color: #e74c3c; }
+  .error-log { background: #1a1a2e; color: #e0e0e0; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 6px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+  .error-log .entry { padding: 6px 8px; border-bottom: 1px solid #333; }
+  .error-log .entry:last-child { border-bottom: none; }
+  .error-log .entry .time { color: #888; }
+  .error-log .entry .level-error { color: #e74c3c; }
+  .error-log .entry .level-warn { color: #f39c12; }
+  .error-log .entry .level-info { color: #3498db; }
+  .error-log .entry .source { color: #2ecc71; font-size: 11px; }
+  .error-log .entry .msg { color: #eee; }
+  .debug-actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  .debug-actions button { padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; font-size: 13px; }
+  .debug-actions button:hover { background: #f0f0f0; }
+  .debug-actions button.primary { background: #2c3e50; color: #fff; border-color: #2c3e50; }
+  .debug-actions button.primary:hover { background: #34495e; }
+  .debug-actions button.danger { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+  .debug-actions button.danger:hover { background: #c0392b; }
+</style>
+</head>
+<body>
+
+<script src="bootstrap.js"></script>
+<script src="role-config.js"></script>
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>
+window.OSH_ACTIVE_PAGE = 'debug-console';
+</script>
+<script src="nav.js"></script>
+
+<script>
+// ── Global Error Capture ──
+window.__debugLog = [];
+
+// Intercept console.error
+var origConsoleError = console.error;
+console.error = function() {
+    var args = Array.prototype.slice.call(arguments);
+    window.__debugLog.push({
+        time: new Date().toISOString(),
+        level: 'error',
+        source: window.OSH_ACTIVE_PAGE || 'unknown',
+        message: args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ')
+    });
+    origConsoleError.apply(console, args);
+};
+
+// Intercept console.warn
+var origConsoleWarn = console.warn;
+console.warn = function() {
+    var args = Array.prototype.slice.call(arguments);
+    window.__debugLog.push({
+        time: new Date().toISOString(),
+        level: 'warn',
+        source: window.OSH_ACTIVE_PAGE || 'unknown',
+        message: args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ')
+    });
+    origConsoleWarn.apply(console, args);
+};
+
+// Global error handler
+window.onerror = function(message, source, lineno, colno, error) {
+    window.__debugLog.push({
+        time: new Date().toISOString(),
+        level: 'error',
+        source: source || 'global',
+        message: message + ' (' + (lineno || '?') + ':' + (colno || '?') + ')'
+    });
+};
+
+// Capture unhandled promise rejections
+window.addEventListener('unhandledrejection', function(e) {
+    window.__debugLog.push({
+        time: new Date().toISOString(),
+        level: 'error',
+        source: 'promise',
+        message: e.reason ? (e.reason.message || String(e.reason)) : 'Unhandled promise rejection'
+    });
+});
+</script>
+
+<div class="container" style="margin-top: 80px;">
+    <div class="section-card">
+        <div class="section-header">
+            <h2>🛠️ Debug Console</h2>
+            <div class="debug-actions">
+                <button class="primary" onclick="runAllChecks()">🔄 Run All Checks</button>
+                <button onclick="clearLog()">🗑️ Clear Log</button>
+                <button class="danger" onclick="exportLog()">📥 Export</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="debug-grid">
+        <div class="debug-card">
+            <h3>📊 System Info</h3>
+            <div id="sysInfo">Loading...</div>
+        </div>
+        <div class="debug-card">
+            <h3>🔐 Auth / Session</h3>
+            <div id="authInfo">Loading...</div>
+        </div>
+        <div class="debug-card">
+            <h3>⚡ Supabase Status</h3>
+            <div id="supabaseInfo">Loading...</div>
+        </div>
+        <div class="debug-card">
+            <h3>📄 Page Info</h3>
+            <div id="pageInfo">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Dependency Check -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3>📦 Dependency Check</h3>
+            <span id="depSummary" style="font-size:13px;color:#666;"></span>
+        </div>
+        <div id="depCheck"></div>
+    </div>
+
+    <!-- Error Log -->
+    <div class="section-card" style="margin-top:16px;">
+        <div class="section-header">
+            <h3>🚨 Error Log <span id="errorCount" style="font-size:12px;color:#999;"></span></h3>
+        </div>
+        <div class="error-log" id="errorLog">
+            <div class="entry" style="color:#666;">Waiting for errors...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Debug Functions ──
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderSystemInfo() {
+    var el = document.getElementById('sysInfo');
+    var html = '<div class="status">';
+    html += '<b>User Agent:</b> ' + escapeHtml(navigator.userAgent.substring(0, 80)) + '...<br>';
+    html += '<b>Platform:</b> ' + escapeHtml(navigator.platform) + '<br>';
+    html += '<b>Language:</b> ' + escapeHtml(navigator.language) + '<br>';
+    html += '<b>Online:</b> ' + (navigator.onLine ? '✓' : '✗') + '<br>';
+    html += '<b>Bootstrap v:</b> ' + (window.OSH && window.OSH.bootstrap ? window.OSH.bootstrap.version : 'N/A') + '<br>';
+    html += '<b>DOM Ready:</b> ' + (document.readyState) + '<br>';
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+function renderAuthInfo() {
+    var el = document.getElementById('authInfo');
+    var html = '<div class="status">';
+    html += '<b>Current Role:</b> ' + (typeof currentUserRole !== 'undefined' ? currentUserRole : '<span class="fail">not set</span>') + '<br>';
+    html += '<b>User ID:</b> ' + (typeof currentUserId !== 'undefined' && currentUserId ? currentUserId : '<span class="fail">not set</span>') + '<br>';
+    html += '<b>Role Override:</b> ' + (window.hasRoleOverride ? (window.hasRoleOverride() ? '✓ active' : '—') : '

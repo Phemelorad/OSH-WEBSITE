@@ -147,6 +147,10 @@ text-align: right;
 line-height: 1.4;
 font-weight: 500;
 }
+
+.stat-card.debug { background: #f0f0f0; border: 1px dashed #999; }
+.stat-card.debug h3 { font-size: 12px; }
+.stat-card.debug .stat-value { font-size: 16px; color: #666; }
 </style>
 </head>
 <body>
@@ -170,6 +174,7 @@ font-weight: 500;
 <div class="stat-card amber"><h3>Permanent Incapacity</h3><div class="stat-value" id="statPerm">—</div></div>
 <div class="stat-card blue"><h3>Temporary Incapacity</h3><div class="stat-value" id="statTemp">—</div></div>
 <div class="stat-card blue"><h3>This Month</h3><div class="stat-value" id="statMonth">—</div></div>
+<div class="stat-card debug"><h3>🔍 Accident Persons</h3><div class="stat-value" id="statAccidentPersons">—</div></div>
 </div>
 <div class="section-card">
 <div class="section-header">
@@ -378,6 +383,7 @@ async function loadData() {
     }
     
     console.log('[DEBUG] Total records:', allRecords.length, '(injuries:', injuries.length, '+ accident persons:', persons.length, ')');
+        
     
     buildStats(allRecords);
     applyPagination(allRecords);
@@ -397,6 +403,7 @@ function buildStats(rows) {
         var d = new Date(r.incident_date || r.created_at);
         return d >= month;
     }).length;
+    document.getElementById('statAccidentPersons').textContent = rows.filter(function(r) { return r._source === 'accident_person'; }).length;
 }
 
 function applyFilters() {

@@ -453,6 +453,13 @@ margin-right: 6px;
         href: 'admin.html',
         single: true
       },
+      {
+        id: 'debug',
+        label: '🛠️ Debug Console',
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
+        href: 'debug-console.html',
+        single: true
+      },
   ];
 
   // ── Build HTML ───────────────────────────────────────────
