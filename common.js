@@ -54,4 +54,45 @@ async function handleLogout() {
   window.fmtDate = fmtDate;
   window.esc = esc;
 
+  window.autoFillCompanyFields = async function() {
+    try {
+      if (!window.supabaseClient) return;
+      var { data: { user } } = await window.supabaseClient.auth.getUser();
+      if (!user) return;
+      var { data: profile } = await window.supabaseClient
+        .from('user_profiles')
+        .select('role, company_id, company_name')
+        .eq('user_id', user.id)
+        .single();
+      if (!profile || profile.role !== 'company') return;
+      var companyId = profile.company_id;
+      var companyName = profile.company_name;
+      if (companyId) {
+        var { data: company } = await window.supabaseClient
+          .from('companies')
+          .select('company_name, physical_address, plot_number, street_name, location, industry_sector, town_city')
+          .eq('id', companyId)
+          .single();
+        if (company) {
+          companyName = company.company_name || companyName;
+          var occEl = document.getElementById('occupierName');
+          if (occEl && !occEl.value) occEl.value = companyName;
+          var addrEl = document.getElementById('premisesAddress');
+          if (addrEl && !addrEl.value) {
+            var parts = [company.physical_address, company.plot_number, company.street_name, company.location, company.town_city].filter(Boolean);
+            addrEl.value = parts.join(', ');
+          }
+          var indEl = document.getElementById('natureOfIndustry');
+          if (indEl && !indEl.value && company.industry_sector) indEl.value = company.industry_sector;
+        }
+      }
+      if (companyName) {
+        var occEl = document.getElementById('occupierName');
+        if (occEl && !occEl.value) occEl.value = companyName;
+      }
+    } catch (e) {
+      console.warn('autoFillCompanyFields:', e);
+    }
+  };
+
 })();
