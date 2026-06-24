@@ -278,6 +278,25 @@
               </div>
             </div>
 
+            <!-- ── Accident Type (for Claims Checklist) ── -->
+            <div class="form-group" style="margin-bottom:16px">
+              <label style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;display:block">
+                Accident Type (check all that apply)
+                <span style="font-weight:400;color:#888;font-size:12px"> — used for claims checklist validation</span>
+              </label>
+              <div style="display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;background:#f8f9fa;border-radius:8px;border:1px solid #e0e0e0">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                  <input type="checkbox" name="is_factory_accident" value="yes" style="width:16px;height:16px;cursor:pointer"> Factory Accident
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                  <input type="checkbox" name="is_mine_accident" value="yes" style="width:16px;height:16px;cursor:pointer"> Mine Accident
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                  <input type="checkbox" name="is_road_traffic_accident" value="yes" style="width:16px;height:16px;cursor:pointer"> Road Traffic Accident
+                </label>
+              </div>
+            </div>
+
             <div class="form-group" style="margin-bottom:20px">
               <label>Nature of Injuries / Disease<span class="req">*</span>
                 <span class="sub">(describe injuries sustained or disease diagnosed, including body part affected)</span>
@@ -482,8 +501,10 @@
         btn.textContent = 'Submitting…';
 
         try {
+            window.showLoading('Submitting Injury & Disease Report...');
             const userResult = await getCurrentUser();
             if (!userResult.success || !userResult.user) {
+                window.hideLoading();
                 await showAlert('You must be logged in.', {
                     type: 'warning', title: 'Not Authenticated', btnText: 'Go to Login'
                 });
@@ -525,6 +546,9 @@
                 incident_date:            g('incidentDate'),
                 place_of_accident:        g('placeOfAccident'),
                 incident_type:            g('incidentType'),
+                is_factory_accident:      document.querySelector('input[name="is_factory_accident"]:checked') ? 'yes' : 'no',
+                is_mine_accident:         document.querySelector('input[name="is_mine_accident"]:checked') ? 'yes' : 'no',
+                is_road_traffic_accident: document.querySelector('input[name="is_road_traffic_accident"]:checked') ? 'yes' : 'no',
                 nature_of_injuries:       g('natureOfInjuries'),
                 resulted_death:           radio('resulted_death'),
                 permanent_incapacity:     radio('permanent_incapacity'),
@@ -556,8 +580,8 @@
                 await window.createWorkerAccount(we, wi, wn);
             }
 
-            await showAlert('Injury & Disease Report submitted successfully.',
-                { type: 'success', title: 'Report Submitted', btnText: 'OK' });
+            window.hideLoading();
+            window.showSuccess('Injury & Disease Report submitted successfully!');
 
             document.getElementById('injuryDiseaseForm').reset();
             document.getElementById('nokRow').style.display = 'none';
@@ -565,7 +589,8 @@
         } catch (err) {
             btn.disabled = false;
             btn.textContent = 'Submit Report';
-            await showAlert(err.message, { type: 'error', title: 'Submission Failed' });
+            window.hideLoading();
+            window.showError(err.message);
         }
     });
 

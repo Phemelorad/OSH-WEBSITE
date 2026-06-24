@@ -46,7 +46,16 @@ body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin:
 </style>
 </head>
 <body>
-<div id="headerPlaceholder"></div>
+<div class="navbar">
+    <h1>BL Form 43/11 - Notification Medical Attendance</h1>
+    <div class="user-info">
+        <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-department" id="userDepartment"></div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
 <div class="page-container">
 <div class="container">
 <div class="form-card">
@@ -98,9 +107,7 @@ body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin:
 </form>
 </div>
 </div>
-<div id="navPlaceholder"></div>
-<script src="bootstrap.js"></script>
-<script src="role-config.js"></script>
+
 <script src="supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="constants.js"></script>
@@ -111,11 +118,21 @@ body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin:
 <script src="nav.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-11';</script>
 <script>
-document.addEventListener('DOMContentLoaded', async function() {
-    if (typeof renderHeader === 'function') renderHeader();
-    if (typeof initNav === 'function') initNav();
-    if (typeof initializeRoleSystem === 'function') await initializeRoleSystem();
-    });
+window.addEventListener('load', async function() {
+    const authenticated = await isAuthenticated();
+    if (!authenticated) { window.location.href = 'index.html'; return; }
+    await initializeRoleSystem();
+    const userResult = await getCurrentUser();
+    if (!userResult.success || !userResult.user) return;
+    const profileResult = await getUserProfile(userResult.user.id);
+    const profile = profileResult.success ? profileResult.data : null;
+    if (profile) {
+        setUserNameSafely(profile.first_name + ' ' + profile.surname);
+        var deptEl = document.getElementById('userDepartment');
+        if (deptEl) deptEl.textContent = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(profile.role) : profile.role) || 'Department of Occupational Health & Safety';
+    } else {
+        setUserNameSafely(userResult.user.email.split('@')[0]);
+    }
 
 var formEl = document.getElementById('attendanceForm');
 if (formEl) {
@@ -155,9 +172,6 @@ if (formEl) {
         }
     });
 }
-</script>
-
-        </div>
-    </div>
-</body>
+});
+</script></body>
 </html>

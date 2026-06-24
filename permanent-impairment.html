@@ -116,10 +116,10 @@
         .incap-table tr:hover td { background: #f8f9fb; }
         .incap-table input[type="text"], .incap-table input[type="number"] { width: 100%; padding: 6px 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px; font-family: inherit; transition: border-color 0.2s; }
         .incap-table input:focus { outline: none; border-color: #999; }
-        .incap-table .remove-row-btn { padding: 4px 10px; background: #fff; color: #c62828; border: 1px solid #ef9a9a; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.2s; font-family: inherit; }
-        .incap-table .remove-row-btn:hover { background: #c62828; color: #fff; }
-        .incap-table .add-row-btn { padding: 6px 14px; background: #fff; color: #2e7d32; border: 1px solid #a5d6a7; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; font-family: inherit; }
-        .incap-table .add-row-btn:hover { background: #2e7d32; color: #fff; }
+        .incap-table .remove-row-btn { padding: 8px 16px; background: #fff; color: #c62828; border: 2px solid #ef9a9a; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; font-family: inherit; }
+        .incap-table .remove-row-btn:hover { background: #c62828; color: #fff; border-color: #c62828; }
+        .incap-table .add-row-btn { padding: 10px 24px; background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%); color: #333; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; font-family: inherit; }
+        .incap-table .add-row-btn:hover { background: #f0f0f0; color: #111; border-color: #bbb; transform: translateY(-1px); }
         .incap-total { text-align: right; font-size: 14px; font-weight: 700; padding: 8px 12px; background: #fafafa; border-top: 2px solid #e0e0e0; color: #333; }
         .form-actions { display: flex; gap: 15px; justify-content: flex-end; padding-top: 20px; border-top: 2px solid #f0f0f0; }
         .btn { padding: 12px 30px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: 2px solid #ddd; font-family: inherit; }
@@ -489,6 +489,7 @@
             btn.disabled=true; btn.textContent='Submitting...';
             try{
                 const u=await window.getCurrentUser();
+                if(!u||!u.user){ window.hideLoading(); window.location.href='index.html'; return; }
                 if(!u||!u.user){window.location.href='index.html';return}
 
                 const mh={
@@ -533,9 +534,13 @@
 
                 const {error}=await SB.from('permanent_impairment_reports').insert([payload]);
                 if(error) throw error;
-                showToast('Permanent impairment report submitted successfully','success');
+                window.hideLoading();
+                window.showSuccess('Permanent Impairment Report submitted successfully!');
                 resetForm();
-            } catch(err){ console.error(err); showToast('Error: '+(err.message||'Unknown'),'error'); }
+            } catch(err){ 
+                window.hideLoading(); 
+                window.showError(err.message||'Unknown error');
+            }
             finally{ btn.disabled=false; btn.textContent='Submit Report'; }
         });
 
@@ -555,7 +560,9 @@
             const rd=document.getElementById('reportDate'); if(rd) rd.valueAsDate=new Date();
             const pd=document.getElementById('practitionerDate'); if(pd) pd.valueAsDate=new Date();
             try{
+                window.showLoading('Submitting Permanent Impairment Report...');
                 const u=await window.getCurrentUser();
+                if(!u||!u.user){ window.hideLoading(); window.location.href='index.html'; return; }
                 if(u&&u.user){
                     const p=await window.getUserProfile(u.user.id);
                     if(p&&p.data){

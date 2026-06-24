@@ -668,8 +668,10 @@
             submitButton.textContent = 'Submitting...';
 
             try {
+                window.showLoading('Submitting Claim...');
                 const userResult = await getCurrentUser();
                 if (!userResult.success || !userResult.user) {
+                    window.hideLoading();
                     await showAlert('You must be logged in to submit a claim.', {
                         type: 'warning', title: 'Not Authenticated', btnText: 'Go to Login'
                     });
@@ -782,19 +784,19 @@
                     await window.createWorkerAccount(ce, ci, cn);
                 }
 
-                await showAlert(
+                window.hideLoading();
+                window.showSuccess(
                     assignedFile
-                        ? `Your injury claim has been submitted.\n\nFile number: ${assignedFile}`
-                        : 'Your injury claim has been submitted successfully.',
-                    { type: 'success', title: 'Claim Submitted', btnText: 'View Entries' }
+                        ? `Claim submitted! File number: ${assignedFile}`
+                        : 'Claim submitted successfully!'
                 );
                 form.reset();
                 window.location.href = 'entries.html';
-
             } catch (error) {
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
-                await showAlert(error.message, { type: 'error', title: 'Submission Failed' });
+                window.hideLoading();
+                window.showError(error.message);
             }
         });
 

@@ -679,8 +679,10 @@
         btn.disabled = true; btn.textContent = 'Submitting…';
 
         try {
+            window.showLoading('Submitting Accident Report...');
             const userResult = await getCurrentUser();
             if (!userResult.success || !userResult.user) {
+                window.hideLoading();
                 await showAlert('You must be logged in.', { type:'warning', title:'Not Authenticated', btnText:'Go to Login' });
                 window.location.href = 'index.html'; return;
             }
@@ -714,6 +716,7 @@
               const dupeCheck = await window.checkDuplicate('accident_reports', 'injured_id_number', firstIdNumber, 'accident report with this ID number');
               if (dupeCheck.exists && !dupeCheck.confirmed) {
                 btn.disabled = false; btn.textContent = 'Submit Accident Report';
+                window.hideLoading();
                 return;
               }
             }
@@ -805,15 +808,15 @@
             } : payload;
             for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
 
-            await showAlert('Accident report submitted successfully!\n\n📋 Case Number: ' + (data?.accident_case_number || 'Pending'), { 
-                type: 'success', title: 'Report Submitted', btnText: 'OK' 
-            });
+                        window.hideLoading();
+            window.showSuccess('Accident Report submitted successfully!');
             document.getElementById('accidentForm').reset();
             toggleSections();
 
         } catch(err) {
             btn.disabled = false; btn.textContent = 'Submit Accident Report';
-            await showAlert(err.message, { type:'error', title:'Submission Failed' });
+            window.hideLoading();
+            window.showError(err.message);
         }
     });
 

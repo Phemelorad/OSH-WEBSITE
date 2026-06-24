@@ -98,29 +98,6 @@
         .tag-green  { background: #d4edda; color: #155724; }
         .tag-grey   { background: #e2e3e5; color: #383d41; }
 
-        /* ── Summary stat cards ──────────────── */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px; margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white; border-radius: 0; padding: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            border-left: 4px solid #333; text-align: center;
-        }
-        .stat-card.red   { border-left-color: #dc3545; }
-        .stat-card.amber { border-left-color: #ffc107; }
-        .stat-card.blue  { border-left-color: #17a2b8; }
-        .stat-card.green { border-left-color: #28a745; }
-        /* -- Stat value colors */
-        .stat-card .val { color: var(--stat-color, #333); }
-        .stat-card.red .val { --stat-color: #dc3545; }
-        .stat-card.amber .val { --stat-color: #d97706; }
-        .stat-card.blue .val { --stat-color: #17a2b8; }
-        .stat-card.green .val { --stat-color: #28a745; }
-        .stat-card h3 { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .stat-card .val { font-size: 26px; font-weight: 700; color: var(--stat-color, #333); }
 
         /* ── Timeline ────────────────────────── */
         .timeline-card {
@@ -166,22 +143,13 @@
             margin-left: 44px;
             margin-bottom: 4px;
         }
-        .incident-card::before {
-            content: ''; position: absolute; left: -34px; top: 22px;
-            width: 12px; height: 12px; border-radius: 50%;
-            background: #ccc; border: 2.5px solid white;
-            box-shadow: 0 0 0 1.5px #ddd;
-            z-index: 1;
-            transition: all 0.25s ease;
-        }
+
         .incident-card:hover {
             box-shadow: 0 6px 24px rgba(0,0,0,0.1);
             border-color: #ddd;
             transform: translateX(2px);
         }
-        .incident-card:hover::before {
-            transform: scale(1.2);
-        }
+
         .incident-card.type-accident::before { background: #dc3545; box-shadow: 0 0 0 2px rgba(220,53,69,0.25); }
         .incident-card.type-injury::before   { background: #fd7e14; box-shadow: 0 0 0 2px rgba(253,126,20,0.25); }
         .incident-card.type-disease::before  { background: #6f42c1; box-shadow: 0 0 0 2px rgba(111,66,193,0.25); }
@@ -476,8 +444,7 @@
             <!-- Identity & employment (registry + merged forms) -->
             <div class="detail-card" id="identityEmploymentCard"></div>
 
-            <!-- Summary stats -->
-            <div class="stats-row" id="statsRow"></div>
+
 
             <!-- Compensation claims -->
             <div class="timeline-card" id="claimsCard" style="display:none">
@@ -968,40 +935,7 @@
         renderIdentityCard(identity);
         renderClaimsList();
 
-        // ── Stats row
-        document.getElementById('statsRow').innerHTML = `
-            <div class="stat-card ${claims.length ? 'green' : ''}">
-                <h3>Claims</h3>
-                <div class="val">${claims.length}</div>
-            </div>
-            <div class="stat-card ${incidents.length ? '' : 'green'}">
-                <h3>Total Incidents</h3>
-                <div class="val">${incidents.length}</div>
-            </div>
-            <div class="stat-card ${accidents.length ? 'red' : ''}">
-                <h3>Accidents (Form 60)</h3>
-                <div class="val">${accidents.length}</div>
-            </div>
-            <div class="stat-card ${injuries.length ? 'amber' : ''}">
-                <h3>Injury Reports</h3>
-                <div class="val">${injuries.length}</div>
-            </div>
-            <div class="stat-card ${diseases.length ? 'blue' : ''}">
-                <h3>Disease Reports</h3>
-                <div class="val">${diseases.length}</div>
-            </div>
-            <div class="stat-card ${fatalities.length ? 'red' : 'green'}">
-                <h3>Fatal Outcomes</h3>
-                <div class="val">${fatalities.length}</div>
-            </div>
-            <div class="stat-card ${permIncap.length ? 'amber' : ''}">
-                <h3>Permanent Incapacity</h3>
-                <div class="val">${permIncap.length}</div>
-            </div>
-            <div class="stat-card">
-                <h3>Temporary Incapacity</h3>
-                <div class="val">${tempIncap.length}</div>
-            </div>`;
+
 
         const timelineHeader = document.querySelector('#profileView .timeline-card .timeline-header h3');
         if (timelineHeader) {

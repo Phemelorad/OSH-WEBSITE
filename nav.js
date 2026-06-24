@@ -120,12 +120,23 @@
       }
 
       .osh-nav-btn.active {
-        color: #111;
+        color: #000;
         border-bottom: 3px solid #222;
-        background: #fafafa;
+        background: linear-gradient(180deg, #f0f0f0 0%, #fafafa 100%);
+        font-weight: 700;
+        position: relative;
       }
-
-      /* ── Caret for dropdowns ─────────────────────────── */
+      .osh-nav-btn.active::before {
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: #222;
+        border-radius: 50%;
+      }     /* ── Caret for dropdowns ─────────────────────────── */
       .osh-caret {
         font-size: 9px;
         opacity: 0.45;
@@ -194,13 +205,20 @@
 
       /* ── Dropdown active state ────────────────────────── */
       .osh-dropdown a.active {
-        background: #f0f2f5;
-        color: #111;
+        background: #e8ecf0;
+        color: #000;
         font-weight: 700;
-        border-left-color: #222;
+        border-left-color: #000;
+        border-left-width: 4px;
+        padding-left: 15px;
       }
-
-      
+      .osh-dropdown a.active::after {
+        content: '◀';
+        font-size: 9px;
+        color: #222;
+        margin-left: auto;
+        opacity: 0.6;
+      }     
 /* Nav icon images */
 .nav-icon {
 width: 25px;
@@ -273,12 +291,11 @@ margin-right: 6px;
 
       /* Active parent highlight */
       .osh-nav-item.has-active > .osh-nav-btn {
-        color: #111;
+        color: #000;
         border-bottom: 3px solid #222;
-        background: #fafafa;
-      }
-
-      /* ── Responsive (mobile) ──────────────────────────── */
+        background: linear-gradient(180deg, #f0f0f0 0%, #fafafa 100%);
+        font-weight: 700;
+      }     /* ── Responsive (mobile) ──────────────────────────── */
       @media (max-width: 768px) {
         .osh-nav { flex-direction: column; }
         .osh-nav-item { width: 100%; }
@@ -371,7 +388,7 @@ margin-right: 6px;
         hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'accident',         icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
-          { id: 'accident-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',        href: 'accident-entries.html' },
+          { id: 'accident-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',        href: 'accident-entries.html' , notification:'new-accidents'},
         ]
       },
       {
@@ -380,7 +397,7 @@ margin-right: 6px;
         hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'injury-disease',         icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report',             href: 'injury-disease-report.html' },
-          { id: 'injury-disease-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',           href: 'injury-disease-entries.html' },
+          { id: 'injury-disease-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',           href: 'injury-disease-entries.html' , notification:'new-injuries'},
           { id: 'worker-profile',         icon: '<img src="ICONS/WORKER_PROFILE.png" class="dd-icon">', label: 'Worker Profile',         href: 'worker-profile.html' },
         ]
       },
@@ -389,7 +406,7 @@ margin-right: 6px;
         label: '<img src="ICONS/INVESTIGATION.png" class="nav-icon"> Investigations',
         hideFor: ['viewer', 'medical_practitioner'],
         children: [
-          { id: 'investigation-view', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'View Investigations', href: 'investigation.html' },
+          { id: 'investigation-view', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'View Investigations', href: 'investigation.html' , notification:'new-investigations'},
         ]
       },
       {
@@ -398,7 +415,7 @@ margin-right: 6px;
         hideFor: ['viewer', 'medical_practitioner'],
         children: [
           { id: 'claims-submit',  icon: '<img src="ICONS/SUBMIT_CLAIM.png" class="dd-icon">', label: 'Submit Claim',  href: 'form.html' },
-          { id: 'claims-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Entries',  href: 'entries.html' },
+          { id: 'claims-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Entries',  href: 'entries.html' , notification:'new-claims'},
           { id: 'checklist', icon: '<img src="ICONS/CLAIM.png" class="dd-icon">', label: 'Claim Checklist',  href: 'checklist.html' },
         ]
       },
@@ -465,10 +482,10 @@ margin-right: 6px;
         label: '📋 BL Forms',
         hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         children: [
-          { id: 'form-43-02', icon: '<i class="dd-icon">💰</i>', label: 'Form 43/02 - Wages', href: 'form-43-02-wages.html' },
-          { id: 'form-43-03', icon: '<i class="dd-icon">🏥</i>', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
-          { id: 'form-43-07', icon: '<i class="dd-icon">🛡️</i>', label: 'Form 43/07 - Insurance', href: 'form-43-07-insurance.html' },
-          { id: 'form-43-11', icon: '<i class="dd-icon">📋</i>', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
+          { id: 'form-43-02', icon: '<img src="ICONS/wages.png" class="dd-icon">', label: 'Form 43/02 - Wages', href: 'form-43-02-wages.html' },
+          { id: 'form-43-03', icon: '<img src="ICONS/medical exams.png" class="dd-icon">', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
+          { id: 'form-43-07', icon: '<img src="ICONS/insurance.png" class="dd-icon">', label: 'Form 43/07 - Insurance', href: 'form-43-07-insurance.html' },
+          { id: 'form-43-11', icon: '<img src="ICONS/medical attendance.png" class="dd-icon">', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
         ]
       },
   ];
@@ -593,6 +610,44 @@ margin-right: 6px;
     inject();
   }
 
+  // ---- Helper: update a single notification badge from Supabase count ----
+  async function updateBadgeCount(notifKey, table, filterField, filterValue) {
+    try {
+      const sb = window.supabaseClient;
+      if (!sb) return;
+
+      const { count, error } = await sb
+        .from(table)
+        .select('id', { count: 'exact', head: true })
+        .eq(filterField, filterValue);
+
+      if (!error && typeof count === 'number') {
+        let show = true;
+        try {
+          const seenRaw = sessionStorage.getItem(notifKey + '_seen');
+          if (seenRaw !== null) {
+            const seen = parseInt(seenRaw, 10);
+            if (count <= seen) show = false;
+          }
+        } catch (e) {}
+
+        const displayCount = show ? count : 0;
+        const badge = document.getElementById('notif-' + notifKey);
+        if (badge) {
+          badge.textContent = displayCount;
+          badge.classList.toggle('zero', displayCount === 0);
+        }
+        const parentBadge = document.getElementById('parent-notif-' + notifKey);
+        if (parentBadge) {
+          parentBadge.textContent = displayCount;
+          parentBadge.classList.toggle('zero', displayCount === 0);
+        }
+      }
+    } catch (e) {
+      // Silently fail
+    }
+  }
+
   // ── Fetch notification counts from Supabase ────────────
   // Called shortly after injection to update notification badges.
   // Uses the global supabaseClient (available once all scripts load).
@@ -651,6 +706,19 @@ margin-right: 6px;
           parentBadge.classList.toggle('zero', respondedBadge?.classList.contains('zero'));
         }
       }
+
+      // ── Officer-side: new submitted accident reports ──────────
+      await updateBadgeCount('new-accidents', 'accident_reports', 'status', 'submitted');
+
+      // ── Officer-side: new submitted injury/disease reports ────
+      await updateBadgeCount('new-injuries', 'injury_disease_reports', 'status', 'submitted');
+
+      // ── Officer-side: new injury claims ───────────────────────
+      await updateBadgeCount('new-claims', 'injury_claims', 'status', 'submitted');
+
+      // ── Officer-side: new investigations pending ──────────────
+      await updateBadgeCount('new-investigations', 'accident_reports', 'investigation_status', 'Pending');
+
     } catch (e) {
       // Silently fail — notifications are non-critical
     }

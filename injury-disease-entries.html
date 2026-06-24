@@ -318,6 +318,11 @@
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         await loadData();
+        // Dismiss new-injuries badge with actual count
+        try {
+            const { count } = await SB.from('injury_disease_reports').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
+            sessionStorage.setItem('new-injuries_seen', String(count || 0));
+        } catch(e) {}
     });
 
     async function loadData() {

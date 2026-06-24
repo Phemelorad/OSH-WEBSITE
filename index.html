@@ -940,7 +940,7 @@
                     const redirectUrl = profile.role === 'company'
                         ? 'company-view.html'
                         : profile.role === 'medical_practitioner'
-                            ? 'medical-examination.html'
+                            ? 'clientele.html'
                             : 'dashboard.html';
                     showToast('Login successful! Redirecting...', 'success', 1800);
                     setTimeout(() => { window.location.href = redirectUrl; }, 1200);
@@ -1122,7 +1122,7 @@
                         const redirectUrl = profile.data.role === 'company'
                             ? 'company-view.html'
                             : profile.data.role === 'medical_practitioner'
-                                ? 'medical-examination.html'
+                                ? 'clientele.html'
                                 : 'dashboard.html';
                         showToast('Account created! Redirecting...', 'success', 1800);
                         setTimeout(() => { window.location.href = redirectUrl; }, 1200);
@@ -1186,7 +1186,7 @@
                         return;
                     }
                     if (profile.success && profile.data.role === 'medical_practitioner') {
-                        window.location.href = 'medical-examination.html';
+                        window.location.href = 'clientele.html';
                         return;
                     }
                 }

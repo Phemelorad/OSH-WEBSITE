@@ -269,6 +269,11 @@
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         await loadData();
+        // Dismiss new-accidents badge with actual count
+        try {
+            const { count } = await SB.from('accident_reports').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
+            sessionStorage.setItem('new-accidents_seen', String(count || 0));
+        } catch(e) {}
     });
 
     async function loadData() {
@@ -492,6 +497,7 @@
                 <td style="white-space:nowrap">
                     <button class="action-btn" onclick="viewRecord('${r.id}')">View</button>
                     <button class="action-btn" onclick="editInvestigation('${r.id}','${r.investigation_status||'Pending'}','${r.submitted_by||''}')">Status</button>
+                    <button class="action-btn" onclick="assignInvestigator('${r.id}')">Assign</button>
                 </td>
             </tr>`;
         }).join('');
@@ -617,6 +623,80 @@ const accidentSection = '<div class="rec-section">' +
             ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); resolve(); } });
             document.body.appendChild(ov);
         });
+    }
+    // ── Assign Investigator ────────────────────────────────────────────
+    async function assignInvestigator(id) {
+        try {
+            const officers = await loadOfficersForSelect();
+            const result = await showSelect(
+                'Select an OSH Officer to assign as investigator:',
+                officers,
+                null,
+                { title: "Assign Investigator", confirmText: "Assign" }
+            );
+            if (!result) return;
+            const { error } = await SB.from('accident_reports').update({ 
+                assigned_investigator: result,
+                investigation_status: "In Progress"
+            }).eq('id', id);
+            if (error) { 
+                await showAlert(error.message, { type:'error', title:'Assignment Failed' }); 
+                return; 
+            }
+                        // Send notification to the assigned officer
+            try {
+                // Find the officer's user profile
+                const { data: officerProfile } = await SB
+                    .from('user_profiles')
+                    .select('user_id')
+                    .eq('full_name', result)
+                    .maybeSingle();
+                
+                if (officerProfile) {
+                    // Try to create notification in a notifications table
+                    const notifPayload = {
+                        user_id: officerProfile.user_id,
+                        title: 'Investigation Assignment',
+                        message: 'You have been assigned as investigator for an accident report.',
+                        type: 'assignment',
+                        is_read: false
+                    };
+                    await SB.from('notifications').insert([notifPayload]).maybeSingle();
+                }
+            } catch (notifErr) {
+                // Notifications are non-critical - silently fail
+            }
+            showToast('Investigator assigned: ' + result, 'success');
+            await loadData();
+        } catch (e) {
+            await showAlert(e.message, { type:'error', title:'Error' });
+        }
+    }
+    
+    // ── Load OSH Officers for Select ────────────────────────────────────────
+    async function loadOfficersForSelect() {
+        const { data, error } = await SB
+            .from('user_profiles')
+            .select('full_name, role')
+            .in('role', ['officer', 'admin', 'super_admin'])
+            .order('full_name');
+        if (error || !data) {
+            showToast('Could not load officers list', 'error');
+            return [{ value: '', label: "No officers found" }];
+        }
+        const seen = new Set();
+        return data
+            .filter(function(o) {
+                if (!o.full_name || seen.has(o.full_name)) return false;
+                seen.add(o.full_name);
+                return true;
+            })
+            .map(function(o) {
+                return {
+                    value: o.full_name,
+                    label: o.full_name + " (" + o.role.replace('_', ' ') + ")"
+                };
+            });
     }
     async function editInvestigation(id, current, ownerId) {
         if (typeof canEditClaims === 'function' && !canEditClaims(ownerId)) {

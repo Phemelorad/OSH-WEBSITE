@@ -307,8 +307,10 @@
         btn.textContent = 'Submitting…';
 
         try {
+            window.showLoading('Submitting Inspection Booking...');
             const userResult = await getCurrentUser();
             if (!userResult.success || !userResult.user) {
+                window.hideLoading();
                 await showAlert('You must be logged in.', { type:'warning', title:'Not Authenticated' });
                 window.location.href = 'index.html';
                 return;
@@ -348,10 +350,8 @@
 
             if (error) throw error;
 
-            await showAlert(
-                'Your inspection booking request has been submitted successfully. A DOSH officer will review and schedule your inspection.',
-                { type: 'success', title: 'Request Submitted', btnText: 'Done' }
-            );
+            window.hideLoading();
+            window.showSuccess('Inspection Booking submitted successfully!');
 
             document.getElementById('bookingForm').reset();
             await reFillCompanyData();
@@ -359,7 +359,8 @@
         } catch(err) {
             btn.disabled = false;
             btn.textContent = 'Submit Booking Request';
-            await showAlert(err.message, { type: 'error', title: 'Submission Failed' });
+            window.hideLoading();
+            window.showError(err.message);
         }
     });
 

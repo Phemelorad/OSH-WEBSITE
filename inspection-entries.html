@@ -245,12 +245,9 @@
                             <tr>
                                 <th>File #</th>
                                 <th>Factory Name</th>
-                                <th>Location</th>
-                                <th>Nature of Work</th>
                                 <th>Industry</th>
                                 <th>Reg.</th>
                                 <th>Type</th>
-                                <th>Employees</th>
                                 <th>Inspector</th>
                                 <th>Contraventions</th>
                                 <th>Compliance</th>
@@ -388,7 +385,7 @@
             if (search && !(
                 (r.factory_name || '').toLowerCase().includes(search) ||
                 (r.file_number  || '').toLowerCase().includes(search) ||
-                (r.location     || '').toLowerCase().includes(search)
+                (r.industry_type || '').toLowerCase().includes(search)
             )) return false;
             return true;
         });
@@ -432,20 +429,9 @@
                 <td><strong>${r.file_number || '—'}</strong></td>
                 <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
                     title="${r.factory_name || ''}">${r.factory_name || '—'}</td>
-                <td>${r.location || '—'}</td>
-                <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
-                    title="${r.nature_of_work || ''}">${r.nature_of_work || '—'}</td>
                 <td>${r.industry_type || '—'}</td>
                 <td><span class="badge badge-${regSlug}">${r.registration_status || '—'}</span></td>
                 <td><span class="badge badge-${typeSlug}">${r.inspection_type || '—'}</span></td>
-                <td style="text-align:center">${totalEmp}
-                    <span style="font-size:10px;color:#aaa;display:block">
-                        M:${r.employees_male||0} F:${r.employees_female||0}
-                        ${r.employees_foreign_male||0 || r.employees_foreign_female||0
-                            ? ` · FM:${r.employees_foreign_male||0} FF:${r.employees_foreign_female||0}`
-                            : ''}
-                    </span>
-                </td>
                 <td>${r.inspector_name || '—'}</td>
                 <td style="text-align:center;font-weight:700;color:${compColor}">
                     ${contravCount}

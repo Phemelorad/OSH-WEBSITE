@@ -1157,8 +1157,10 @@
         btn.textContent = 'Submitting…';
 
         try {
+            window.showLoading('Submitting Medical Examination Report...');
             const userResult = await getCurrentUser();
             if (!userResult.success || !userResult.user) {
+                window.hideLoading();
                 await showAlert('You must be logged in.', { type: 'warning', title: 'Not Authenticated', btnText: 'Go to Login' });
                 window.location.href = 'index.html'; return;
             }
@@ -1219,10 +1221,8 @@
 
             if (error) throw error;
 
-            await showAlert(
-                'Medical Examination Report (BL Form 43/03) submitted successfully.',
-                { type: 'success', title: 'Report Submitted', btnText: 'OK' }
-            );
+            window.hideLoading();
+            window.showSuccess('Medical Examination Report submitted successfully!');
             document.getElementById('medicalExamForm').reset();
             toggleTempDuration();
 

@@ -42,6 +42,16 @@
 </style>
 </head>
 <body>
+<div class="navbar">
+    <h1>Debug Console</h1>
+    <div class="user-info">
+        <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-department" id="userDepartment"></div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
 <div class="container">
   <h1 style="margin-bottom: 4px;">Debug Console</h1>
   <p style="color: #999; font-size: 13px; margin-top: 0;">Diagnostic dashboard for system health and error tracking</p>
@@ -281,17 +291,12 @@ function exportLog() {
     URL.revokeObjectURL(url);
 }
 
-// ---- Init ----
-document.addEventListener('DOMContentLoaded', async function() {
-    if (typeof renderHeader === 'function') renderHeader();
-    if (typeof initNav === 'function') initNav();
-    if (typeof initializeRoleSystem === 'function') await initializeRoleSystem();
-    runAllChecks();
-});
-</script>
 
-<script src="bootstrap.js"></script>
-<script src="role-config.js"></script>
+
+
+<script>window.OSH_ACTIVE_PAGE = 'debug';</script>
+
+
 <script src="supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="constants.js"></script>
@@ -300,5 +305,26 @@ document.addEventListener('DOMContentLoaded', async function() {
 <script src="common.js"></script>
 <script src="header.js"></script>
 <script src="nav.js"></script>
+
+<script>
+// ---- Init ----
+window.addEventListener('load', async function() {
+    const authenticated = await isAuthenticated();
+    if (!authenticated) { window.location.href = 'index.html'; return; }
+    await initializeRoleSystem();
+    const userResult = await getCurrentUser();
+    if (!userResult.success || !userResult.user) return;
+    const profileResult = await getUserProfile(userResult.user.id);
+    const profile = profileResult.success ? profileResult.data : null;
+    if (profile) {
+        setUserNameSafely(profile.first_name + ' ' + profile.surname);
+        var deptEl = document.getElementById('userDepartment');
+        if (deptEl) deptEl.textContent = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(profile.role) : profile.role) || 'Department of Occupational Health & Safety';
+    } else {
+        setUserNameSafely(userResult.user.email.split('@')[0]);
+    }
+    runAllChecks();
+});
+</script>
 </body>
 </html>

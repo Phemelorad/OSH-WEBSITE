@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OHS Form 19 - Accident Investigation Report - DOSH</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
+<link rel="stylesheet" href="styles.css">
+<style>
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }
+.page-container { padding: 20px; }
+.container { max-width: 900px; margin: 20px auto; padding: 0 16px; }
+.form-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; margin-bottom: 20px; }
+.form-header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #2c3e50; }
+.form-header .crest { font-size: 48px; }
+.form-header h1 { font-size: 20px; color: #2c3e50; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+.form-header h2 { font-size: 14px; color: #7f8c8d; margin: 4px 0; font-weight: normal; }
+.form-header .form-no { font-size: 13px; color: #e74c3c; font-weight: bold; margin-top: 8px; }
+.form-header .act-ref { font-size: 12px; color: #555; margin-top: 4px; }
+.section-title { font-size: 15px; font-weight: 700; color: #2c3e50; margin: 24px 0 16px; padding-bottom: 6px; border-bottom: 1px solid #ddd; }
+.section-title:first-of-type { margin-top: 0; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #2c3e50; box-shadow: 0 0 0 3px rgba(44,62,80,0.1); }
+.form-group textarea { min-height: 60px; resize: vertical; }
+.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; margin: 8px 0; }
+.checkbox-grid label { font-weight: normal; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.checkbox-grid label input { width: auto; }
+.radio-group { display: flex; gap: 20px; align-items: center; padding: 6px 0; flex-wrap: wrap; }
+.radio-group label { font-weight: normal; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.radio-group input[type="radio"] { width: auto; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.evidence-table th { background: #2c3e50; color: #fff; font-size: 12px; padding: 8px 10px; text-align: left; }
+.evidence-table td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+.evidence-table input, .evidence-table textarea { width: 100%; border: none; border-bottom: 1px dotted #999; padding: 4px 0; font-size: 13px; background: transparent; }
+.evidence-table input:focus, .evidence-table textarea:focus { border-bottom-color: #2c3e50; outline: none; }
+.btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+.btn { padding: 10px 28px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #2c3e50; color: #fff; }
+.btn-primary:hover { background: #34495e; transform: translateY(-1px); }
+.btn-secondary { background: #ecf0f1; color: #2c3e50; }
+.btn-secondary:hover { background: #dfe6e9; }
+@media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-row-3, .form-row-4 { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="navbar">
+    <h1>OHS Form 19 - Accident Investigation Report</h1>
+    <div class="user-info">
+        <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-department" id="userDepartment"></div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
+<div class="page-container">
+<div class="container">
+<div class="form-card">
+<div class="form-header">
+<div class="crest">🔍</div>
+<h1>OHS FORM 19</h1>
+<h2>ACCIDENT INVESTIGATION REPORT</h2>
+<div class="form-no">Factories Act (Cap. 44:01), Section 57</div>
+<div class="act-ref">Department of Occupational Health and Safety &middot; Ministry of Labour and Home Affairs</div>
+</div>
+<form id="form19">
+<h3 class="section-title">1. Investigation Administration</h3>
+<div class="form-row">
+<div class="form-group"><label>Investigation Reference Number</label><input type="text" name="inv_ref_no" placeholder="e.g. INV-2024-001"></div>
+<div class="form-group"><label>Case Number</label><input type="text" name="case_no" placeholder="Linked accident case number"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>District</label><input type="text" name="inv_district" placeholder="District where investigation is conducted"></div>
+<div class="form-group"><label>Lead Investigator</label><input type="text" name="lead_investigator" placeholder="Name of lead investigator"></div>
+</div>
+<div class="form-row form-row-3">
+<div class="form-group"><label>Date Assigned</label><input type="date" name="date_assigned"></div>
+<div class="form-group"><label>Date Opened</label><input type="date" name="date_opened"></div>
+<div class="form-group"><label>Date Closed</label><input type="date" name="date_closed"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Investigation Status</label>
+<select name="inv_status">
+<option value="">Select...</option>
+<option value="open">Open</option>
+<option value="in-progress">In Progress</option>
+<option value="closed">Closed</option>
+<option value="reopened">Reopened</option>
+</select>
+</div>
+</div>
+<div class="form-group full">
+<label>Investigation Team Members</label>
+<textarea name="inv_team" placeholder="List all team members involved in the investigation"></textarea>
+</div>
+<h3 class="section-title">2. Employer Information</h3>
+<div class="form-row">
+<div class="form-group"><label>Name of Employer / Enterprise</label><input type="text" name="employer_name" placeholder="Registered name"></div>
+<div class="form-group"><label>Company Registration No.</label><input type="text" name="company_reg_no" placeholder="Company/business registration number"></div>
+</div>
+<div class="form-row form-row-4">
+<div class="form-group"><label>District</label><input type="text" name="employer_district" placeholder="District where employer is located"></div>
+<div class="form-group"><label>City/Town/Village</label><input type="text" name="employer_city" placeholder="City, town or village"></div>
+<div class="form-group"><label>Plot No.</label><input type="text" name="employer_plot" placeholder="Plot number"></div>
+<div class="form-group"><label>Street/Ward</label><input type="text" name="employer_street" placeholder="Street or ward name"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Postal Address</label><input type="text" name="employer_postal" placeholder="P.O. Box..."></div>
+<div class="form-group"><label>Telephone</label><input type="text" name="employer_phone" placeholder="Contact number"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Sector</label>
+<select name="employer_sector"><option value="">Select...</option><option value="agriculture">Agriculture</option><option value="construction">Construction</option><option value="manufacturing">Manufacturing</option><option value="mining">Mining</option><option value="retail">Retail</option><option value="services">Services</option><option value="transport">Transport</option><option value="hospitality">Hospitality</option><option value="healthcare">Healthcare</option><option value="other">Other</option></select>
+</div>
+<div class="form-group"><label>Nature of Work</label><input type="text" name="nature_of_work" placeholder="Brief description of business activity"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Contact Person</label><input type="text" name="contact_person" placeholder="Full name of employer representative"></div>
+<div class="form-group"><label>Position</label><input type="text" name="contact_position" placeholder="Job title of contact person"></div>
+</div>
+
+<h3 class="section-title">3. Injured/Deceased Person(s) Information</h3>
+<div class="form-row">
+<div class="form-group"><label>Full Name</label><input type="text" name="injured_name" placeholder="Full name of injured or deceased person"></div>
+<div class="form-group"><label>Omang/Passport No.</label><input type="text" name="injured_id" placeholder="Omang or passport number"></div>
+</div>
+<div class="form-row form-row-3">
+<div class="form-group"><label>Date of Birth</label><input type="date" name="injured_dob"></div>
+<div class="form-group"><label>Nationality</label><input type="text" name="injured_nationality" placeholder="e.g. Motswana"></div>
+<div class="form-group"><label>Telephone</label><input type="text" name="injured_phone" placeholder="Contact telephone number"></div>
+</div>
+<p style="font-size:13px;font-weight:600;color:#444;margin:12px 0 4px">Age Group</p>
+<div class="checkbox-grid">
+<label><input type="radio" name="age_group" value="under-25"> Under 25</label>
+<label><input type="radio" name="age_group" value="25-34"> 25-34</label>
+<label><input type="radio" name="age_group" value="35-44"> 35-44</label>
+<label><input type="radio" name="age_group" value="45-54"> 45-54</label>
+<label><input type="radio" name="age_group" value="55-64"> 55-64</label>
+<label><input type="radio" name="age_group" value="65-plus"> 65 and above</label>
+</div>
+<p style="font-size:13px;font-weight:600;color:#444;margin:12px 0 4px">Sex</p>
+<div class="radio-group"><label><input type="radio" name="sex" value="male"> Male</label><label><input type="radio" name="sex" value="female"> Female</label></div>
+<p style="font-size:13px;font-weight:600;color:#444;margin:12px 0 4px">Marital Status</p>
+<div class="radio-group"><label><input type="radio" name="marital_status" value="married"> Married</label><label><input type="radio" name="marital_status" value="single"> Single</label><label><input type="radio" name="marital_status" value="divorced"> Divorced</label><label><input type="radio" name="marital_status" value="widowed"> Widowed</label></div>
+<p style="font-size:13px;font-weight:600;color:#444;margin:12px 0 4px">Type of Employment</p>
+<div class="radio-group"><label><input type="radio" name="employment_type" value="full-time"> Full-time</label><label><input type="radio" name="employment_type" value="part-time"> Part-time</label><label><input type="radio" name="employment_type" value="temporary"> Temporary</label><label><input type="radio" name="employment_type" value="seasonal"> Seasonal</label><label><input type="radio" name="employment_type" value="other"> Other</label></div>
+<div class="form-row">
+<div class="form-group"><label>Occupation</label><input type="text" name="injured_occupation" placeholder="Job title or occupation classification"></div>
+<div class="form-group"><label>Relationship to Employer</label><input type="text" name="injured_relationship" placeholder="Employee, Contractor, Visitor"></div>
+</div>
+<div class="form-group full"><label>Home Address</label><textarea name="injured_address" placeholder="Full home address including district, village, plot and street"></textarea></div>
+<div class="form-row">
+<div class="form-group"><label>Next of Kin</label><input type="text" name="next_of_kin" placeholder="Full name of next of kin or contact person"></div>
+<div class="form-group"><label>Relationship</label><input type="text" name="next_of_kin_relationship" placeholder="Spouse, Parent, etc."></div>
+</div>
+
+<h3 class="section-title">4. Incident Information</h3>
+<div class="form-row form-row-3">
+<div class="form-group"><label>Location of Accident</label><input type="text" name="incident_location" placeholder="Specific location where incident occurred within premises"></div>
+<div class="form-group"><label>Date of Accident/Diagnosis</label><input type="date" name="incident_date"></div>
+<div class="form-group"><label>Time Incident Occurred</label><input type="time" name="incident_time"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Date Incident Reported</label><input type="date" name="incident_reported_date"></div>
+<div class="form-group"><label>Work Experience</label><input type="text" name="work_experience" placeholder="e.g. 2 years, 6 months"></div>
+</div>
+<div class="form-group full"><label>Specific Job/Task Being Performed</label><textarea name="job_task_performed" placeholder="Describe the specific task being performed when the incident occurred"></textarea></div>
+<div class="form-row">
+<div class="form-group"><label>Equipment/Machinery Used</label><input type="text" name="equipment_used" placeholder="Name and model of equipment or machinery being used"></div>
+<div class="form-group"><label>Other Employees Injured</label><input type="number" name="other_injured_count" placeholder="Number of other employees injured">min="0"></div>
+</div>
+<p style="font-size:13px;font-weight:600;color:#444;margin:12px 0 4px">Was First Aid Given?</p>
+<div class="radio-group"><label><input type="radio" name="first_aid_given" value="yes"> Yes</label><label><input type="radio" name="first_aid_given" value="no"> No</label></div>
+<p style="font-size:13px;font-weight:600;color:#444;margin:12px 0 4px">Injury Result</p>
+<div class="checkbox-grid">
+<label><input type="checkbox" name="injury_result_fatal" value="fatal"> Fatal</label>
+<label><input type="checkbox" name="injury_result_non_fatal" value="non-fatal"> Non-Fatal</label>
+<label><input type="checkbox" name="injury_result_occ_disease" value="occupational-disease"> Occupational Disease</label>
+<label><input type="checkbox" name="injury_result_absent" value="absent-from-work"> Absent From Work</label>
+<label><input type="checkbox" name="injury_result_light_duty" value="light-duty"> Light Duty</label>
+<label><input type="checkbox" name="injury_result_sick_leave" value="sick-leave"> Sick Leave</label>
+<label><input type="checkbox" name="injury_result_dangerous" value="dangerous-occurrence"> Dangerous Occurrence</label>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Days Absent</label><select name="days_absent"><option value="">Select...</option><option value="0-3">0-3 days</option><option value="4-plus">4+ days</option></select></div>
+<div class="form-group"><label>Number of Days</label><input type="number" name="days_absent_count" placeholder="Number of days absent from work"></div>
+</div>
+<div class="form-group full"><label>Incident Description</label><textarea name="incident_description" style="min-height:100px" placeholder="Describe how, what, where, when the accident occurred and the extent of injuries sustained, including the part of the body affected"></textarea></div>
+<div class="form-group full"><label>Incident Summary</label><textarea name="incident_summary" style="min-height:80px" placeholder="Brief summary of the incident"></textarea></div>
+
+<h3 class="section-title">5. Incident Type (Cause)</h3>
+<div class="checkbox-grid">
+<label><input type="checkbox" name="cause_violence" value="violence"> Violence</label>
+<label><input type="checkbox" name="cause_assault" value="assault"> Assault</label>
+<label><input type="checkbox" name="cause_bites" value="bites"> Animal/Insect/Human Bites</label>
+<label><input type="checkbox" name="cause_slips_trips" value="slips-trips"> Slips, Trips, Falls</label>
+<label><input type="checkbox" name="cause_slippery" value="slippery"> Slippery Surface</label>
+<label><input type="checkbox" name="cause_fall_same" value="fall-same"> Fall (Same Level)</label>
+<label><input type="checkbox" name="cause_fall_height" value="fall-height"> Fall (From Height)</label>
+<label><input type="checkbox" name="cause_physical_exertion" value="physical-exertion"> Physical Exertions/Strains</label>
+<label><input type="checkbox" name="cause_lifting" value="lifting"> Lifting</label>
+<label><input type="checkbox" name="cause_overexertion" value="overexertion"> Overexertion/Bodily Motion</label>
+<label><input type="checkbox" name="cause_jumping" value="jumping"> Jumping/Climbing</label>
+<label><input type="checkbox" name="cause_exposure" value="exposure"> Exposure to Harmful Substances</label>
+<label><input type="checkbox" name="cause_asbestos" value="asbestos"> Asbestos</label>
+<label><input type="checkbox" name="cause_biological" value="biological"> Biological/Infectious</label>
+<label><input type="checkbox" name="cause_chemical" value="chemical"> Chemical/Fumes</label>
+<label><input type="checkbox" name="cause_electric_shock" value="electric-shock"> Electric Shock</label>
+<label><input type="checkbox" name="cause_road_traffic" value="road-traffic"> Road Traffic Accident</label>
+<label><input type="checkbox" name="cause_fire" value="fire"> Fire/Explosion</label>
+<label><input type="checkbox" name="cause_stress" value="stress"> Work-related Stress</label>
+<label><input type="checkbox" name="cause_aggression" value="aggression"> Aggression</label>
+<label><input type="checkbox" name="cause_drowning" value="drowning"> Water (Drowning)</label>
+<label><input type="checkbox" name="cause_other" value="other"> Other</label>
+</div>
+<div class="form-group full"><label>If Other, specify</label><input type="text" name="cause_other_detail" placeholder="Specify other cause of incident"></div>
+<h3 class="section-title">6. Nature of Injury</h3>
+<div class="checkbox-grid">
+<label><input type="checkbox" name="injury_fracture" value="fracture"> Fracture</label>
+<label><input type="checkbox" name="injury_cut" value="cut"> Cut/Puncture</label>
+<label><input type="checkbox" name="injury_abrasion" value="abrasion"> Abrasion/Scratches</label>
+<label><input type="checkbox" name="injury_bruise" value="bruise"> Bruise/Contusion</label>
+<label><input type="checkbox" name="injury_sprain" value="sprain"> Sprain/Strain</label>
+<label><input type="checkbox" name="injury_burn" value="burn"> Burn</label>
+<label><input type="checkbox" name="injury_elec" value="electric-shock"> Electric Shock</label>
+<label><input type="checkbox" name="injury_amputation" value="amputation"> Amputation</label>
+<label><input type="checkbox" name="injury_blindness" value="blindness"> Blindness</label>
+<label><input type="checkbox" name="injury_death" value="death"> Death</label>
+<label><input type="checkbox" name="injury_multiple" value="multiple"> Multiple Injuries</label>
+<label><input type="checkbox" name="injury_other" value="other"> Other</label>
+</div>
+<div class="form-group full"><label>If Other, specify</label><input type="text" name="injury_other_detail" placeholder="Specify other nature of injury"></div>
+<h3 class="section-title">7. Part of Body Affected</h3>
+<div class="checkbox-grid">
+<label><input type="checkbox" name="body_head" value="head-neck-face"> Head/Neck/Face</label>
+<label><input type="checkbox" name="body_eye" value="eye"> Eye</label>
+<label><input type="checkbox" name="body_ear" value="ear"> Ear</label>
+<label><input type="checkbox" name="body_shoulder" value="shoulder"> Shoulder</label>
+<label><input type="checkbox" name="body_arm" value="arm"> Arm</label>
+<label><input type="checkbox" name="body_wrist" value="wrist"> Wrist</label>
+<label><input type="checkbox" name="body_hand" value="hand"> Hand</label>
+<label><input type="checkbox" name="body_fingers" value="fingers"> Fingers</label>
+<label><input type="checkbox" name="body_back" value="back"> Back</label>
+<label><input type="checkbox" name="body_chest" value="chest-abdomen"> Chest/Abdomen</label>
+<label><input type="checkbox" name="body_pelvis" value="pelvis"> Pelvis/Groin</label>
+<label><input type="checkbox" name="body_knee" value="knee"> Knee</label>
+<label><input type="checkbox" name="body_ankle" value="ankle"> Ankle</label>
+<label><input type="checkbox" name="body_foot" value="foot"> Foot</label>
+<label><input type="checkbox" name="body_toes" value="toes"> Toes</label>
+<label><input type="checkbox" name="body_respiratory" value="respiratory"> Respiratory</label>
+<label><input type="checkbox" name="body_no_injury" value="no-injury"> No Physical Injury</label>
+</div>
+<div class="form-group full"><label>Description of Injury/Illness</label><textarea name="injury_description" placeholder="Detailed description of the injury or illness sustained"></textarea></div>
+<h3 class="section-title">8. Immediate Cause of Incident</h3>
+<div class="form-group full"><label>Substandard Practices / Unsafe Acts</label><textarea name="immediate_unsafe_acts" placeholder="Describe the unsafe acts or substandard practices that contributed to the incident"></textarea></div>
+<div class="form-group full"><label>Substandard Conditions / Unsafe Conditions</label><textarea name="immediate_unsafe_conditions" placeholder="Describe the unsafe conditions present at the time of the incident"></textarea></div>
+<h3 class="section-title">9. Basic / Root Cause of Incident</h3>
+<div class="form-group full"><label>Personal Factors</label><textarea name="root_personal_factors" placeholder="Personal factors that contributed (e.g. lack of knowledge, fatigue, improper motivation)"></textarea></div>
+<div class="form-group full"><label>Job Factors</label><textarea name="root_job_factors" placeholder="Job or system factors that contributed (e.g. inadequate procedures, poor equipment design)"></textarea></div>
+<h3 class="section-title">10. Factual Report (5Ws and 1H Framework)</h3>
+<div class="form-group full"><label>5Ws and 1H Investigation Notes</label><textarea name="factual_5w1h" style="min-height:120px" placeholder="WHO was involved? WHAT happened? WHEN did it occur? WHERE? WHY? HOW?"></textarea></div>
+<div class="form-group full"><label>Preventive Measures Before Incident</label><textarea name="factual_preventive_measures" placeholder="What safety measures were already in place before the incident"></textarea></div>
+<div class="form-group full"><label>Pre-Incident OSH Management Systems</label><textarea name="factual_osh_systems" placeholder="OSH management systems that were in place before the incident"></textarea></div>
+<div class="form-group full"><label>Remedial Actions Taken After Incident</label><textarea name="factual_remedial_actions" placeholder="Corrective actions taken immediately after the incident"></textarea></div>
+<div class="form-group full"><label>OSH System Adjustments Post-Incident</label><textarea name="factual_osh_adjustments" placeholder="Changes made to OSH systems following the incident"></textarea></div>
+<h3 class="section-title">11. Analysis and Legal Compliance</h3>
+<div class="form-group full"><label>Immediate Cause(s)</label><textarea name="analysis_immediate_causes" placeholder="List the immediate causes identified"></textarea></div>
+<div class="form-group full"><label>Underlying Cause(s)</label><textarea name="analysis_underlying_causes" placeholder="List the underlying causes identified"></textarea></div>
+<div class="form-group full"><label>Root Cause(s)</label><textarea name="analysis_root_causes" placeholder="List the root causes identified"></textarea></div>
+<div class="form-group full"><label>Action Taken or Proposed</label><textarea name="analysis_action_proposed" placeholder="Actions taken or proposed to address the identified causes"></textarea></div>
+<h3 class="section-title">12. Enforcement Actions</h3>
+<div class="checkbox-grid">
+<label><input type="checkbox" name="enforcement_verbal" value="verbal-advice"> Verbal Advice</label>
+<label><input type="checkbox" name="enforcement_written" value="written-advice"> Written Advice</label>
+<label><input type="checkbox" name="enforcement_improvement" value="improvement-notice"> Improvement Notice</label>
+<label><input type="checkbox" name="enforcement_prohibition" value="prohibition-order"> Prohibition / Stop Order</label>
+<label><input type="checkbox" name="enforcement_prosecution" value="recommended-prosecution"> Recommended Prosecution</label>
+</div>
+<div class="form-group full"><label>Enforcement Details</label><textarea name="enforcement_details" placeholder="Provide details of any enforcement actions taken"></textarea></div>
+<h3 class="section-title">13. Preventative Action Recommended</h3>
+<div class="form-group full"><label>Addressing Personal Factors</label><textarea name="prevent_personal" placeholder="Recommended actions to address personal factors (e.g. training, supervision)"></textarea></div>
+<div class="form-group full"><label>Addressing Job Factors</label><textarea name="prevent_job" placeholder="Recommended actions to address job factors (e.g. engineering controls, procedure updates)"></textarea></div>
+<h3 class="section-title">14. Incident Details and Remedial Action Plan</h3>
+<table class="evidence-table">
+<thead>
+<tr><th style="width:50%">Remedial / Corrective Action Plan</th><th style="width:25%">Accountability</th><th style="width:25%">Date Completed</th></tr></thead>
+<tbody>
+<tr><td><input type="text" name="action_plan_1" placeholder="First corrective action"></td><td><input type="text" name="action_owner_1" placeholder="Person responsible"></td><td><input type="date" name="action_date_1"></td></tr>
+<tr><td><input type="text" name="action_plan_2" placeholder="Second corrective action"></td><td><input type="text" name="action_owner_2" placeholder="Person responsible"></td><td><input type="date" name="action_date_2"></td></tr>
+<tr><td><input type="text" name="action_plan_3" placeholder="Third corrective action"></td><td><input type="text" name="action_owner_3" placeholder="Person responsible"></td><td><input type="date" name="action_date_3"></td></tr>
+<tr><td><input type="text" name="action_plan_4" placeholder="Fourth corrective action"></td><td><input type="text" name="action_owner_4" placeholder="Person responsible"></td><td><input type="date" name="action_date_4"></td></tr>
+<tr><td><input type="text" name="action_plan_5" placeholder="Fifth corrective action"></td><td><input type="text" name="action_owner_5" placeholder="Person responsible"></td><td><input type="date" name="action_date_5"></td></tr>
+</tbody>
+</table>
+<h3 class="section-title">15. Appendices &mdash; Evidence Logs</h3>
+<h4 style="font-size:14px;font-weight:600;color:#2c3e50;margin:16px 0 10px">Appendix 1: Witness Statement Register</h4>
+<table class="evidence-table">
+<thead>
+<tr><th style="width:8%">No.</th><th style="width:20%">Date Obtained</th><th style="width:30%">Witness Full Name</th><th style="width:26%">Role/Occupation</th><th style="width:16%">Attachment</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><input type="date" name="witness_date_1"></td><td><input type="text" name="witness_name_1" placeholder="Full name of witness"></td><td><input type="text" name="witness_role_1" placeholder="Role or occupation"></td><td><input type="text" name="witness_attach_1" placeholder="Attachment reference"></td></tr>
+<tr><td>2</td><td><input type="date" name="witness_date_2"></td><td><input type="text" name="witness_name_2" placeholder="Full name of witness"></td><td><input type="text" name="witness_role_2" placeholder="Role or occupation"></td><td><input type="text" name="witness_attach_2" placeholder="Attachment reference"></td></tr>
+<tr><td>3</td><td><input type="date" name="witness_date_3"></td><td><input type="text" name="witness_name_3" placeholder="Full name of witness"></td><td><input type="text" name="witness_role_3" placeholder="Role or occupation"></td><td><input type="text" name="witness_attach_3" placeholder="Attachment reference"></td></tr>
+</tbody>
+</table>
+<h4 style="font-size:14px;font-weight:600;color:#2c3e50;margin:16px 0 10px">Appendix 2: Photos &amp; Documentary Exhibits Log</h4>
+<table class="evidence-table">
+<thead>
+<tr><th style="width:8%">No.</th><th style="width:15%">Ref No.</th><th style="width:27%">Description of Exhibit</th><th style="width:30%">Obtained From (Person/Place/Date)</th><th style="width:20%">Attachment</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><input type="text" name="exhibit_ref_1" placeholder="Reference number"></td><td><input type="text" name="exhibit_desc_1" placeholder="Description of exhibit"></td><td><input type="text" name="exhibit_source_1" placeholder="Person, place or date obtained from"></td><td><input type="text" name="exhibit_attach_1" placeholder="Attachment reference"></td></tr>
+<tr><td>2</td><td><input type="text" name="exhibit_ref_2" placeholder="Reference number"></td><td><input type="text" name="exhibit_desc_2" placeholder="Description of exhibit"></td><td><input type="text" name="exhibit_source_2" placeholder="Person, place or date obtained from"></td><td><input type="text" name="exhibit_attach_2" placeholder="Attachment reference"></td></tr>
+<tr><td>3</td><td><input type="text" name="exhibit_ref_3" placeholder="Reference number"></td><td><input type="text" name="exhibit_desc_3" placeholder="Description of exhibit"></td><td><input type="text" name="exhibit_source_3" placeholder="Person, place or date obtained from"></td><td><input type="text" name="exhibit_attach_3" placeholder="Attachment reference"></td></tr>
+</tbody>
+</table>
+<h3 class="section-title">16. Investigators Checklist (5W1H)</h3>
+<p style="font-size:13px;color:#555;margin:0 0 12px">Investigators should ensure their investigation answers these questions:</p>
+<div class="form-group full"><label><strong>WHO?</strong></label><textarea name="checklist_who" style="min-height:80px" placeholder="Who was injured? Who saw it? Who was working with the employee? Who instructed them? Who else was involved?"></textarea></div>
+<div class="form-group full"><label><strong>WHAT?</strong></label><textarea name="checklist_what" style="min-height:120px" placeholder="What was the incident? What was the injury? What was the employee doing? What tools/equipment were used? What precautions were taken? What safety rules were violated?"></textarea></div>
+<div class="form-group full"><label><strong>WHEN?</strong></label><textarea name="checklist_when" style="min-height:80px" placeholder="When did it occur? When did the employee start that job? When were hazards pointed out? When did the supervisor last check?"></textarea></div>
+<div class="form-group full"><label><strong>WHERE?</strong></label><textarea name="checklist_where" style="min-height:80px" placeholder="Where did the incident occur? Where was the employee? Where was the supervisor? Where were witnesses?"></textarea></div>
+<div class="form-group full"><label><strong>WHY?</strong></label><textarea name="checklist_why" style="min-height:100px" placeholder="Why was the employee injured? Why was protective equipment not used? Why were instructions not given? Why was the employee in that position?"></textarea></div>
+<div class="form-group full"><label><strong>HOW?</strong></label><textarea name="checklist_how" style="min-height:80px" placeholder="How did the employee get injured? How could it have been avoided? How could fellow workers or the supervisor have prevented it?"></textarea></div>
+<h3 class="section-title">17. Investigator Declaration</h3>
+<div class="form-row"><div class="form-group"><label>Investigator Full Name</label><input type="text" name="investigator_name" placeholder="Full name of lead investigator">required></div><div class="form-group"><label>Designation</label><input type="text" name="investigator_designation" placeholder="Title or designation"></div></div>
+<div class="form-row"><div class="form-group"><label>Signature</label><input type="text" name="investigator_signature" placeholder="Electronic signature"></div><div class="form-group"><label>Date</label><input type="date" name="investigator_date"></div></div>
+<div class="btn-row">
+<button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
+<button type="submit" class="btn btn-primary">Submit Report</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script src="nav.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'form-19';</script>
+<script>
+window.addEventListener('load', async function() {
+    const authenticated = await isAuthenticated();
+    if (!authenticated) { window.location.href = 'index.html'; return; }
+    await initializeRoleSystem();
+    const userResult = await getCurrentUser();
+    if (!userResult.success || !userResult.user) return;
+    const profileResult = await getUserProfile(userResult.user.id);
+    const profile = profileResult.success ? profileResult.data : null;
+    if (profile) {
+        setUserNameSafely(profile.first_name + ' ' + profile.surname);
+        var deptEl = document.getElementById('userDepartment');
+        if (deptEl) deptEl.textContent = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(profile.role) : profile.role) || 'Department of Occupational Health & Safety';
+    } else {
+        setUserNameSafely(userResult.user.email.split('@')[0]);
+    }
+var formEl = document.getElementById('form19');
+if (formEl) {
+    formEl.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var btn = formEl.querySelector('button[type="submit"]');
+        btn.textContent = 'Submitting...';
+        btn.disabled = true;
+        try {
+            var payload = {};
+            var inputs = formEl.querySelectorAll('[name]');
+            inputs.forEach(function(inp) {
+                var val = inp.type === 'checkbox' ? inp.checked : inp.value;
+                if (inp.type === 'number' && val) val = parseFloat(val);
+                if (inp.type === 'radio') {
+                    if (!inp.checked) return;
+                    val = inp.value;
+                }
+                if (val !== '' && val !== false) payload[inp.name] = val;
+            });
+            var user = await getCurrentUser();
+            if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit Report'; btn.disabled = false; return; }
+            payload.submitted_by = user.id;
+            var result = await supabaseClient.from('ohs_form_19').insert([payload]).select();
+            if (result.error) throw result.error;
+            alert('Form 19 submitted successfully!');
+            formEl.reset();
+        } catch(err) {
+            alert('Error: ' + err.message);
+            console.error('Form submit error:', err);
+        } finally {
+            btn.textContent = 'Submit Report';
+            btn.disabled = false;
+        }
+    });
+}
+});
+</script>
+</body>
+</html>

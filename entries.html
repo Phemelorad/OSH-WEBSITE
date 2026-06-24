@@ -442,12 +442,17 @@
 
             // Initialize role system
             await initializeRoleSystem();
-
             await loadClaims();
             await populateIndustryFilter();
             
             // Enforce permissions
             enforcePermissions();
+            
+            // Dismiss new-claims badge with actual count
+            try {
+                const { count } = await SB.from('injury_claims').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
+                sessionStorage.setItem('new-claims_seen', String(count || 0));
+            } catch(e) {}
         });
 
         async function loadClaims() {

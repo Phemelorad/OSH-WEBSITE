@@ -669,8 +669,10 @@
       submitBtn.textContent = 'Submitting...';
 
       try {
+        window.showLoading('Submitting Inspection Report...');
         const userResult = await getCurrentUser();
         if (!userResult.success || !userResult.user) {
+          window.hideLoading();
           await showAlert('You must be logged in to submit an inspection.', { type:'warning', title:'Not Authenticated', btnText:'Go to Login' });
           window.location.href = 'index.html';
           return;
@@ -732,9 +734,8 @@
 
         if (error) throw error;
 
-        await showAlert('Inspection report submitted successfully!', {
-          type:'success', title:'Report Submitted', btnText:'OK'
-        });
+        window.hideLoading();
+        window.showSuccess('Inspection Report submitted successfully!');
         document.getElementById('inspectionForm').reset();
         document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
         updateCompliance();
@@ -743,7 +744,8 @@
       } catch(err) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Inspection Report';
-        await showAlert(err.message, { type:'error', title:'Submission Failed' });
+        window.hideLoading();
+        window.showError(err.message);
       }
     });
 

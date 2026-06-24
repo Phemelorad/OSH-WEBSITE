@@ -77,13 +77,16 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>My Cases - DOSH</h1>
-        <div class="user-info">
+    <div class="navbar" style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+            <span style="font-size:22px;font-weight:800;color:#222;">🏛️ DOSH</span>
+            <span id="userDepartment" style="font-size:13px;color:#666;font-weight:500;"></span>
+        </div>
+        <div class="user-info" style="display:flex;align-items:center;gap:14px;">
+            <span id="userName" style="font-size:14px;color:#333;font-weight:600;"></span>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
     </div>
-    <div id="navbar"></div>
 
     <div class="container">
         <div class="page-header">
@@ -153,17 +156,26 @@
 <script src="nav.js"></script>
 
 <script src="claim-service.js"></script>
-<script>initializeRoleSystem();</script>
 <script>
     const SB = window.supabaseClient;
     let allCases = [];
     let currentUserId = null;
     let searchedIdNumber = '';
 
-    document.addEventListener('DOMContentLoaded', async function() {
-        const { data: { user } } = await SB.auth.getUser();
-        if (!user) { showError('Please log in first.'); return; }
-        currentUserId = user.id;
+    window.addEventListener('load', async function() {
+        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+        await initializeRoleSystem();
+        
+        const ur = await getCurrentUser();
+        if (ur.success && ur.user) {
+            currentUserId = ur.user.id;
+            const p = await getUserProfile(ur.user.id);
+            if (p.success) {
+                setUserNameSafely(p.data.first_name + ' ' + p.data.surname);
+                document.getElementById('userDepartment').textContent = getRoleDisplayName(p.data.role) || 'Case Tracking';
+            }
+        }
+        
         // Auto-try submitted cases for company/officer users
         await loadSubmittedCases();
     });
