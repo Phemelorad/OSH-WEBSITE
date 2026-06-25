@@ -1,0 +1,226 @@
+================================================================================
+      DATA ARCHITECTURE ANALYSIS — OSH WEBSITE
+      Database Tables, Linkages, Redundancies & Gaps
+================================================================================
+
+
+1. COMPLETE TABLE INVENTORY (22 tables)
+================================================================================
+
+  Core Business Tables:
+    accident_reports               — Workplace/road/mine accident reports
+    accident_injured_persons       — Multiple injured persons per accident
+    injury_disease_reports         — Injury/disease notifications
+    injury_claims                  — Worker compensation claims
+    workplace_inspections          — Factory/workplace inspection reports
+    medical_examination_reports    — Medical examination reports
+    permanent_impairment_reports   — Permanent impairment evaluations
+    ohs_form_19                    — Investigation reports (Form 19)
+    inspection_bookings            — Inspection scheduling
+    company_book_inspection        — Company book inspection records
+
+  BL Form Tables (standalone — no FKs):
+    bl_form_43_02_wages            — Wages of Worker
+    bl_form_43_04_incapacity       — Compensation in Cases of Incapacity
+    certificate_of_insurance       — Certificate of Insurance
+    medical_attendance_notifications — Medical Attendance Notifications
+
+  Supporting Tables:
+    companies                      — Registered companies
+    workers_registry               — Central worker database
+    user_profiles                  — System users (officers, admins, etc.)
+    departments                    — Government departments
+    notifications                  — System notifications
+    claim_documents                — Uploaded claim documents
+    login_history                  — User login tracking
+    user_activity_log              — Activity audit trail
+    role_change_log                — Role change history
+    user_roles_info                — Role definitions
+    practitioner_clients           — Medical practitioner clients
+
+
+2. THE INCIDENT CHAIN (How Things SHOULD Link)
+================================================================================
+
+  An incident flows through 5 stages. The DB has foreign keys for this chain
+  but the FORMS do NOT pre-fill data from one stage to the next.
+
+    ACCIDENT (accident_reports)
+       |
+       |  accident_id FK
+       |
+       +-- INJURY/DISEASE REPORT (injury_disease_reports)
+       |      |
+       |      |  injury_report_id FK
+       |      |
+       |      +-- CLAIM (injury_claims)
+       |             |
+       |             |  claim_id FK
+       |             |
+       |             +-- MEDICAL EXAM (medical_examination_reports)
+       |             |      |
+       |             |      +-- PERMANENT IMPAIRMENT (permanent_impairment_reports)
+       |             |
+       |             |  claim_id FK
+       |             |
+       |             +-- BL Forms (wages, insurance, etc.)
+       |                    |
+       |                    |  BUT: BL Forms have NO FKs!
+       |                    |
+       |  worker_registry_id FK
+       |                    |
+       +-------------------+-- WORKERS REGISTRY (workers_registry)
+
+    INSPECTIONS (workplace_inspections) -- STANDALONE (no company link)
+    OHS FORM 19 (ohs_form_19)           -- STANDALONE (no accident link)
+
+
+3. KEY LINKING COLUMNS (Existing FKs in Database)
+================================================================================
+
+  Table A                        Column                   Table B
+  ------------------------------ ----------------------- ----------------------------
+  accident_reports               worker_registry_id  ---  workers_registry
+  injury_disease_reports         accident_id         ---  accident_reports
+  injury_disease_reports         worker_registry_id  ---  workers_registry
+  injury_claims                  injury_report_id    ---  injury_disease_reports
+  injury_claims                  worker_registry_id  ---  workers_registry
+  injury_claims                  source_id           ---  accident_reports or injury_disease_reports (polymorphic)
+  medical_examination_reports    claim_id            ---  injury_claims
+  medical_examination_reports    accident_id         ---  accident_reports
+  user_profiles                  company_id          ---  companies
+
+
+4. VIOLATIONS & REDUNDANCIES
+================================================================================
+
+  ISSUE 1: Worker data entered 9+ times instead of looked up
+  ----------------------------------------------------------
+  Every form makes you type the worker's name, ID number, and address manually.
+  The workers_registry table exists but is only used by case-tracking.html and
+  claim-tracker.html for LOOKUP — never pre-populated from form submissions.
+
+  Affected forms:
+    accident-report.html            — injured_name, injured_id_number
+    injury-disease-report.html      — worker_name, worker_id_number
+    form.html (claims)              — name_of_claimant, claimant_id_number
+    medical-examination.html        — worker_name, worker_id_number
+    all 5 BL Forms                  — worker_name (each one)
+    permanent-impairment.html       — (worker fields)
+    worker-claims.html              — (worker fields)
+
+
+  ISSUE 2: Employer/company data duplicated 10+ times
+  ----------------------------------------------------------
+  Different column names across tables for the same concept:
+    accident_reports:       occupier_name
+    injury_disease_reports: employer_name
+    injury_claims:          name_of_employer
+    workplace_inspections:  factory_name
+    companies table:        company_name
+
+  The companies table exists but none of the forms look it up or link to it.
+
+
+  ISSUE 3: Accident/location details duplicated
+  ----------------------------------------------------------
+    accident_reports:       accident_place, premises_address
+    injury_disease_reports: place_of_accident
+    injury_claims:          location
+
+
+  ISSUE 4: Injury descriptions duplicated
+  ----------------------------------------------------------
+    injury_disease_reports: nature_of_injuries
+    injury_claims:          nature, cause
+    medical_examination:    nature_of_injury_or_disease
+
+
+  ISSUE 5: File numbers are manual, not auto-generated
+  ----------------------------------------------------------
+    accident_reports:       accident_case_number (typed)
+    workplace_inspections:  file_number (typed)
+    injury_claims:          file_number (typed)
+    medical_examination:    claim_file_number (typed)
+
+  These should be auto-generated sequentially (e.g. ACC-2025-0001,
+  INSP-2025-0001, CLM-2025-0001) to prevent duplicates and typos.
+
+
+5. GAPS: FORMS WITH NO LINKAGES (ORPHANED DATA)
+================================================================================
+
+  GAP A: All BL Form tables are completely orphaned
+  ----------------------------------------------------------
+  The 5 BL Form tables have NO foreign keys to any other table:
+    1. bl_form_43_02_wages              — no worker_id, no claim_id
+    2. bl_form_43_04_incapacity         — no worker_id, no claim_id
+    3. certificate_of_insurance         — no worker_id, no claim_id
+    4. medical_attendance_notifications — no worker_id, no claim_id
+    5. medical_examination_reports      — has claim_id FK but form doesn't use it
+
+    Fix: Add worker_registry_id + claim_id (or accident_id) to all BL forms.
+
+
+  GAP B: Inspections have no company link
+  ----------------------------------------------------------
+  workplace_inspections stores factory_name as plain text but has NO
+  company_id FK to the companies table.
+  Result: Company profile can't show its inspection history.
+
+    Fix: Add company_id FK to workplace_inspections.
+
+
+  GAP C: OHS Form 19 (Investigation) doesn't link to accident
+  ----------------------------------------------------------
+  ohs_form_19 saves investigation data but has no accident_id FK.
+  The accident viewRecord has an Investigation Status field but can't
+  pull the actual investigation report because they're in separate tables.
+
+    Fix: Add accident_id FK to ohs_form_19.
+
+
+  GAP D: Workers Registry not auto-populated
+  ----------------------------------------------------------
+  workers_registry exists and stores worker profiles. It's queried by
+  case-tracking and claim-tracker to find a worker's full history. BUT
+  when a form is submitted, it does NOT check/link to workers_registry.
+
+    Fix: On form submit, look up worker by ID number in workers_registry.
+    If found, use worker_registry_id. If not, prompt to create entry.
+
+
+6. SUMMARY OF ALL RECOMMENDED FIXES
+================================================================================
+
+  Priority 1 — Pre-fill data between linked forms (uses existing FKs):
+    - Injury report should pull employer/worker data from selected accident
+    - Claim should pull worker/employer/injury data from selected injury report
+    - Medical exam should pull worker/claim data from selected claim
+    - BL Forms should pull worker data from workers registry or claim
+
+  Priority 2 — Add missing Foreign Keys:
+    - All 5 BL Form tables: add claim_id + worker_registry_id
+    - workplace_inspections: add company_id
+    - ohs_form_19: add accident_id
+    - permanent_impairment_reports: check if linked to claims
+
+  Priority 3 — Workers Registry as central hub:
+    - Auto-populate workers_registry from form submissions
+    - At minimum, store worker_registry_id on every form submission
+
+  Priority 4 — Auto-generate file/case numbers:
+    - ACC-YYYY-NNNN for accidents
+    - INSP-YYYY-NNNN for inspections
+    - CLM-YYYY-NNNN for claims
+    - MED-YYYY-NNNN for medical exams
+
+  Priority 5 — Eliminate data duplication:
+    - Standardize column names across tables
+    - Use lookup/popup selectors instead of manual text entry
+    - One source of truth for worker and company data
+
+
+================================================================================
+END OF ANALYSIS
+================================================================================

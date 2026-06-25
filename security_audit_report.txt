@@ -1,0 +1,363 @@
+================================================================================
+   SECURITY AUDIT REPORT — OSH WEBSITE
+   Role: Hacker / Security Auditor
+   Date: June 25, 2026
+================================================================================
+
+TABLE OF CONTENTS
+  1. Executive Summary
+  2. Critical Vulnerabilities
+  3. High-Risk Findings
+  4. Medium-Risk Findings
+  5. Low-Risk Findings
+  6. Configuration Weaknesses
+  7. Recommendations
+
+
+1. EXECUTIVE SUMMARY
+================================================================================
+
+  Overall Security Rating:   POOR (2/10)
+
+  The application has several critical security gaps that could lead to data
+  breaches, privilege escalation, and account takeover. The most severe issues
+  are the complete lack of Content Security Policy (CSP) combined with rampant
+  innerHTML usage — making XSS attacks trivially easy — and overly permissive
+  Row Level Security policies that allow any authenticated user to read ALL
+  records in accident_reports and injury_claims tables.
+
+  The Supabase anon key is hardcoded in client-side JavaScript (expected for
+  Supabase) but the RLS policies don't properly restrict data access, meaning
+  the anon key effectively provides broad read access to sensitive data.
+
+
+2. CRITICAL VULNERABILITIES
+================================================================================
+
+
+  VULN-01: RLS — All authenticated users can read ALL accident reports
+  ------------------------------------------------------------------------
+  Severity: CRITICAL
+  Location: master-setup.sql (accident_reports policy)
+  Policy:   "All users can view accident reports" → USING (true)
+
+  Any authenticated user — including a worker, viewer, or medical practitioner
+  who logged in — can query ALL accident reports in the database, including
+  those submitted by other companies and officers. There is no filter based on
+  company_id, submitted_by, or any ownership check.
+
+  Proof:
+    CREATE POLICY "All users can view accident reports"
+      ON accident_reports FOR SELECT TO authenticated USING (true);
+
+  Impact: A worker logging in can see accident reports from every company
+          in Botswana. Complete data breach of personal injury data.
+
+
+  VULN-02: RLS — All authenticated users can read ALL injury claims
+  ------------------------------------------------------------------------
+  Severity: CRITICAL
+  Location: master-setup.sql (injury_claims policy)
+  Policy:   "All users can view claims" → USING (true)
+
+  Same issue as VULN-01. Every authenticated user can see all claims,
+  including claimant names, ID numbers, incapacity percentages, etc.
+
+  Impact: Massive privacy violation. Competitors could mine claim data.
+
+
+  VULN-03: XSS via innerHTML — NO input sanitization on user data
+  ------------------------------------------------------------------------
+  Severity: CRITICAL
+  Location: Throughout ALL *.html files
+  Pattern:  element.innerHTML = `...${r.field_name}...`
+
+  The codebase heavily uses innerHTML with template literals to render
+  database records. While there IS an esc() function defined in common.js
+  (line 24), it is NOT consistently used. Many viewRecord functions,
+  table rendering loops, and popup builders inject raw data directly
+  into innerHTML without escaping.
+
+  Example vulnerable patterns found in every entry page:
+    - accident-entries.html: viewRecord() builds HTML with ${r.field_name}
+    - injury-disease-entries.html: same pattern
+    - company-accidents-view.html: same pattern
+    - investigation.html: viewAccident() builds HTML with ${data.field}
+
+  Since there is NO Content Security Policy (CSP) to mitigate XSS, an
+  attacker who manages to store malicious HTML/JS in any database field
+  will achieve full XSS when an officer views the record.
+
+  Impact: Stored XSS → session hijacking, data theft, account takeover.
+
+
+3. HIGH-RISK FINDINGS
+================================================================================
+
+
+  VULN-04: No Content Security Policy (CSP) headers
+  ------------------------------------------------------------------------
+  Severity: HIGH
+  Location: All HTML pages
+
+  No Content-Security-Policy meta tag or HTTP header exists in any file.
+  This means:
+    - XSS attacks cannot be mitigated at the browser level
+    - Inline scripts can execute freely
+    - Data can be exfiltrated to any external domain via fetch/Image/XMLHttpRequest
+    - Clickjacking attacks are possible (no X-Frame-Options either)
+
+
+  VULN-05: No X-Frame-Options header — Clickjacking risk
+  ------------------------------------------------------------------------
+  Severity: HIGH
+  Location: All HTML pages
+
+  No page sets X-Frame-Options: DENY or SAMEORIGIN. An attacker could
+  embed any page in an iframe and overlay it with invisible buttons
+  (clickjacking).
+
+
+  VULN-06: IDOR — Accident entries page exposes all records to any officer
+  ------------------------------------------------------------------------
+  Severity: HIGH
+  Location: accident-entries.html (line 284)
+  Query:    SB.from('accident_reports').select('*')
+
+  The accident entries page selects ALL accident_reports with no filter
+  based on the officer's company, region, or assignment. While RLS allows
+  this (see VULN-01), the front-end also does zero client-side filtering.
+
+
+  VULN-07: Weak password reset flow — no rate limiting visible
+  ------------------------------------------------------------------------
+  Severity: HIGH
+  Location: supabase-config.js (resetPassword function)
+
+  The resetPasswordForEmail function has no visible rate limiting or
+  CAPTCHA on the client side. While Supabase server-side may limit this,
+  there's no visible mechanism to prevent an attacker from triggering
+  hundreds of password reset emails to a target user.
+
+
+4. MEDIUM-RISK FINDINGS
+================================================================================
+
+
+  VULN-08: User profile cache in sessionStorage (10-min window)
+  ------------------------------------------------------------------------
+  Severity: MEDIUM
+  Location: supabase-config.js (CACHE_KEY = 'osh_user_profile')
+
+  The user profile (including role, which determines permissions) is cached
+  in sessionStorage for 10 minutes. While sessionStorage is cleared on tab
+  close, a same-origin XSS or browser extension could exfiltrate it.
+
+  Additionally, the CACHED profile is used to determine role for the first
+  10 minutes on every page load — if an admin's role was recently downgraded,
+  they still have 10 minutes of cached elevated permissions.
+
+
+  VULN-09: Dev role override in sessionStorage
+  ------------------------------------------------------------------------
+  Severity: MEDIUM
+  Location: role-permissions.js (DEV_ROLE_KEY)
+
+  The dev role override feature allows switching roles via sessionStorage:
+    sessionStorage.setItem('dev_role_override', 'super_admin')
+
+  This is a development/debugging tool left in production. Any user (or XSS
+  payload) can set this to escalate privileges. While Supabase RLS should
+  technically prevent this from working at the DB level, the client-side
+  code hides/shows UI features based on role — so a worker could see admin
+  UI elements (but not actually execute server-side admin actions).
+
+
+  VULN-10: Worker ID number stored in sessionStorage
+  ------------------------------------------------------------------------
+  Severity: MEDIUM
+  Location: index.html (line 902), claim-tracker.html (line 545)
+
+  The worker's ID number (national ID / Omang) is stored in sessionStorage
+  after login. While sessionStorage is per-tab, a malicious script on the
+  same origin can read it.
+
+  Key stored: 'worker_id_number'
+
+
+  VULN-11: No SQL injection protection reviews (Supabase ORM)
+  ------------------------------------------------------------------------
+  Severity: MEDIUM
+  Location: Throughout
+
+  Supabase client uses parameterized queries by default, which protects
+  against SQL injection. However, some .ilike() and .textSearch() queries
+  could potentially be vulnerable, and the use of raw SQL views could
+  introduce injection if not properly parameterized.
+
+  Observed patterns using ilike with user input:
+    case-tracking.html:  .ilike('worker_id_number', normId)
+    claim-tracker.html:  .ilike('id_number', normId)
+    clientele.html:      .ilike('id_number', normalizedId)
+
+
+  VULN-12: No HSTS / HTTPS enforcement in front-end code
+  ------------------------------------------------------------------------
+  Severity: MEDIUM
+  Location: All pages
+
+  No Strict-Transport-Security header is set. While Supabase enforces HTTPS,
+  the custom domain or any other pages served from the same origin may not.
+
+
+5. LOW-RISK FINDINGS
+================================================================================
+
+
+  VULN-13: Remember-me token in localStorage
+  ------------------------------------------------------------------------
+  Severity: LOW
+  Location: supabase-config.js ('rememberMe' key in localStorage)
+
+  The "remember me" feature stores a boolean flag in localStorage.
+  This is not a security token but could be used to infer user behavior.
+
+
+  VULN-14: Hardcoded Supabase URL exposing project infrastructure
+  ------------------------------------------------------------------------
+  Severity: LOW
+  Location: supabase-config.js
+
+  Supabase URL: https://qblogmmknnacaaircrlt.supabase.co
+  This is expected for client-side Supabase usage but exposes:
+    - Project ID: qblogmmknnacaaircrlt
+    - Region inference (from URL structure)
+    - Possible attack surface for Supabase-specific exploits
+
+
+  VULN-15: No audit logging on sensitive operations
+  ------------------------------------------------------------------------
+  Severity: LOW
+  Location: Throughout
+
+  While user_activity_log table exists, there is no visible code that logs
+  sensitive operations like viewing accident records, exporting data,
+  changing user roles, or accessing claims. This makes forensic analysis
+  difficult after a breach.
+
+
+6. CONFIGURATION WEAKNESSES
+================================================================================
+
+
+  WEAKNESS-01: Overly permissive RLS policies
+  ------------------------------------------------------------------------
+  Tables with "USING (true)" for SELECT:
+    - accident_reports      → ANY authenticated user reads ALL accidents
+    - injury_claims         → ANY authenticated user reads ALL claims
+    - departments           → ANY authenticated user reads all departments
+    - user_roles_info       → ANY authenticated user reads all role definitions
+
+  Tables that need row-level filtering by company_id or submitted_by:
+    - accident_reports      → should filter by user's company_id
+    - injury_claims         → should filter by claimant or officer's company
+    - injury_disease_reports → should filter similarly
+    - workplace_inspections → should filter by inspector's area or company
+
+
+  WEAKNESS-02: Missing RLS policies on some tables
+  ------------------------------------------------------------------------
+  Tables where RLS policies could not be confirmed:
+    - companies             → RLS enabled but policy may be missing
+    - workers_registry      → RLS enabled but policy may be missing
+    - inspection_bookings   → RLS enabled but policy may be missing
+
+  If these have no policies, ALL authenticated access is denied (Supabase
+  default). But if they have "USING (true)", they're wide open.
+
+
+  WEAKNESS-03: Self-update RLS on user_profiles too permissive
+  ------------------------------------------------------------------------
+  Policy: "Users can update based on role"
+  This policy allows users to update their own profile. But the policy
+  should explicitly forbid changing the "role" field to prevent
+  self-escalation to admin. Need to verify this in the policy definition.
+
+
+7. RECOMMENDATIONS (PRIORITY ORDER)
+================================================================================
+
+
+  P1 — Fix RLS policies IMMEDIATELY
+  ------------------------------------------------------------------------
+    - accident_reports:     Restrict SELECT to user's company/officer region
+    - injury_claims:        Restrict SELECT to claimant or assigned officer
+    - injury_disease_reports: Restrict similarly
+    - Remove "USING (true)" policies on all sensitive tables
+
+    Example fix for accident_reports:
+      CREATE POLICY "Users can view own company accidents"
+        ON accident_reports FOR SELECT
+        USING (
+          submitted_by = auth.uid() OR
+          EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE user_id = auth.uid()
+            AND (role IN ('admin','super_admin') OR company_id IS NOT NULL)
+          )
+        );
+
+
+  P2 — Add Content Security Policy (CSP) to every page
+  ------------------------------------------------------------------------
+    Add this <meta> tag to the <head> of EVERY page:
+      <meta http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self' https://*.supabase.co;
+                     style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+
+    Also add HTTP headers via server config:
+      Content-Security-Policy, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+
+
+  P3 — Sanitize ALL user data rendered to DOM
+  ------------------------------------------------------------------------
+    - Use element.textContent instead of element.innerHTML wherever possible
+    - When innerHTML is necessary, ALWAYS pass data through esc() function
+    - Create a safe template rendering function that auto-escapes
+    - Fix the 150+ innerHTML injection points found throughout the codebase
+
+
+  P4 — Remove dev role override from production
+  ------------------------------------------------------------------------
+    - Remove or comment out the DEV_ROLE_KEY feature in role-permissions.js
+    - Or gate it behind a server-side admin check
+
+
+  P5 — Add rate limiting and CAPTCHA to password reset
+  ------------------------------------------------------------------------
+    - Add client-side reCAPTCHA v3 to the reset password form
+    - Add exponential backoff on the server side
+
+
+  P6 — Add audit logging for sensitive operations
+  ------------------------------------------------------------------------
+    - Log all SELECT queries on accident_reports and injury_claims
+    - Log all role changes, profile updates, and data exports
+    - Use the existing user_activity_log table
+
+
+  P7 — Remove sensitive data from sessionStorage
+  ------------------------------------------------------------------------
+    - Avoid storing national ID numbers (Omang) in sessionStorage
+    - Use short-lived in-memory variables instead
+
+
+  P8 — Verify all other RLS policies
+  ------------------------------------------------------------------------
+    - Audit companies, workers_registry, inspection_bookings policies
+    - Ensure user_profiles update policy prevents role self-escalation
+
+
+================================================================================
+END OF SECURITY AUDIT REPORT
+================================================================================

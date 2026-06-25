@@ -65,7 +65,7 @@ window.addEventListener("DOMContentLoaded", async function() {
     setText("hdrName", n);
     setText("dashName", cp ? cp.first_name : "Worker");
     await Promise.all([loadDash(), loadHistory(), loadProfile(), loadMedical(), loadDocs(), loadCompany(), loadMsgs()]);
-    var sid = sessionStorage.getItem("worker_id_number");
+    var sid = sessionStorage.getItem("worker_id_number") || "" /* Security (VULN-10) */;
     if (cp) {
       setVal("cName", cp.first_name + " " + cp.surname);
       if (cp.id_number) setVal("cId", cp.id_number);
@@ -81,7 +81,7 @@ window.addEventListener("DOMContentLoaded", async function() {
 
 async function loadDash() {
   try {
-    var sid = sessionStorage.getItem("worker_id_number");
+    var sid = sessionStorage.getItem("worker_id_number") || "" /* Security (VULN-10) */;
     var q = SB.from("injury_claims").select("*", {count:"exact",head:false});
     if (sid) q = q.eq("claimant_id_number", sid);
     else if (cp && cp.id_number) q = q.eq("claimant_id_number", cp.id_number);
@@ -112,7 +112,7 @@ async function loadDash() {
 
 async function loadHistory() {
   try {
-    var sid = sessionStorage.getItem("worker_id_number");
+    var sid = sessionStorage.getItem("worker_id_number") || "" /* Security (VULN-10) */;
     var q = SB.from("injury_claims").select("*");
     if (sid) q = q.eq("claimant_id_number", sid);
     else if (cp && cp.id_number) q = q.eq("claimant_id_number", cp.id_number);
@@ -225,7 +225,7 @@ async function saveProfile() {
 
 async function loadMedical() {
   try {
-    var sid = sessionStorage.getItem("worker_id_number");
+    var sid = sessionStorage.getItem("worker_id_number") || "" /* Security (VULN-10) */;
     var idNum = sid || (cp ? cp.id_number : null);
     
     // Load medical examination reports
@@ -404,7 +404,7 @@ async function sendMsg() {
   var body = document.getElementById("msgBody").value.trim();
   if (!body) { showToast("Please enter a message", "warning"); return; }
   try {
-    var sid = sessionStorage.getItem("worker_id_number");
+    var sid = sessionStorage.getItem("worker_id_number") || "" /* Security (VULN-10) */;
     var r = await SB.from("case_notes").insert({
       sender_id: cu.id,
       sender_role: "worker",

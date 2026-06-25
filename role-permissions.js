@@ -22,18 +22,22 @@
   var currentUserRole = null;
   var currentUserId = null;
 
-  // ── Dev role override ────────────────────────────────────
+  // --- Dev role override (DISABLED in production) -------------------------
+  // Removed for security. See security audit VULN-09.
   var DEV_ROLE_KEY = 'dev_role_override';
 
   window.switchRole = function(role) {
-    if (!role) return;
-    sessionStorage.setItem(DEV_ROLE_KEY, role);
-    window.location.reload();
+    console.warn('Role switching is disabled in production');
   };
 
   window.clearRoleOverride = function() {
-    sessionStorage.removeItem(DEV_ROLE_KEY);
-    window.location.reload();
+    // No-op in production
+  };
+
+  window.hasRoleOverride = function() {
+    return false;
+  };
+
   };
 
   window.hasRoleOverride = function() {
@@ -43,12 +47,7 @@
   };
 
   function getEffectiveRole(realRole) {
-    try {
-      var override = sessionStorage.getItem(DEV_ROLE_KEY);
-      if (override && C.isValidRole(override)) {
-        return override;
-      }
-    } catch (e) {}
+    // Dev override disabled in production for security (VULN-09)
     return realRole;
   }
 
@@ -85,7 +84,8 @@
       var profileResult = await getUserProfile(currentUserId);
       if (profileResult.success && profileResult.data) {
         currentUserRole = getEffectiveRole(profileResult.data.role || 'viewer');
-        if (currentUserRole === 'super_admin') {
+        // Role container display now gated by DB role only
+        if (cached.role === 'super_admin') {
           var el = document.getElementById('userRoleContainer');
           if (el) el.style.display = '';
         }

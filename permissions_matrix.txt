@@ -1,0 +1,356 @@
+================================================================================
+   FORMS & PAGES — PERMISSIONS MATRIX
+   Role-Based View, Submit & Edit Rights
+   Roles: viewer | worker | company | medical_practitioner | officer | admin | super_admin
+================================================================================
+
+
+HOW TO READ THIS MATRIX
+  V = Can View (page is visible in navigation / data is accessible)
+  S = Can Submit (can insert new records via this form)
+  E = Can Edit (can modify existing records)
+  - = No access (page hidden or insert denied by RLS)
+
+  Submit rights are enforced by BOTH nav visibility AND database RLS policies.
+  Edit rights vary by record ownership (officers can edit own, admins edit all).
+
+
+================================================================================
+SECTION 1: OFFICER/ADMIN PAGES (Dashboard, Admin & BL Forms)
+================================================================================
+
+                                                            view  sub  edit
+  ──────────────────────────────────────────────────────────────────────────
+  Dashboard (dashboard.html)
+    viewer                              V (limited)  -     -
+    worker                              V (limited)  -     -
+    company                             V (limited)  -     -
+    medical_practitioner                V            -     -
+    officer                             V            -     -
+    admin                               V            -     -
+    super_admin                         V            -     -
+
+  Employers Register (company-register.html)
+    viewer                              V            -     -
+    worker                              V            -     -
+    company                             HIDDEN       -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            -     -
+    admin                               V            -     -
+    super_admin                         V            -     -
+
+  Admin Panel (admin.html)
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             HIDDEN       -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               V            S     E
+    super_admin                         V            S     E
+
+  Debug Console (debug-console.html)
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             HIDDEN       -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               V            -     -
+    super_admin                         V            -     -
+
+  BL Forms (form-43-02, 03, 04, 07, 11)
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             HIDDEN       -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               V            S     E
+    super_admin                         V            S     E
+
+    NOTE: BL Forms have NO RLS policies defined — only admins/super_admins
+    can see the nav items. But the forms submit to standalone tables
+    (bl_form_43_02_wages, etc.) with no INSERT policies. This means
+    insert will be DENIED by default for all roles!
+
+
+================================================================================
+SECTION 2: COMPANY PAGES (Employer/Company role only)
+================================================================================
+
+                                                            view  sub  edit
+  ──────────────────────────────────────────────────────────────────────────
+  Employer Details (company-view.html)
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             V            -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               HIDDEN       -     -
+    super_admin                         HIDDEN       -     -
+
+  Book Inspection (company-book-inspection.html)
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             V            S     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               HIDDEN       -     -
+    super_admin                         HIDDEN       -     -
+
+    RLS: INSERT allowed for company, officer, admin, super_admin
+         BUT page is hidden from officers/admins — can't reach it!
+
+  My Bookings (company-bookings.html)
+    Same as Book Inspection above
+
+  Report Accident (accident-report.html) [Company version]
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             V            S     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               HIDDEN       -     -
+    super_admin                         HIDDEN       -     -
+
+    RLS: INSERT allowed for company, officer, admin, super_admin
+         But page hidden from all except company!
+
+  My Accidents (company-accidents-view.html)
+    Same as Report Accident — company only
+
+  Report Injury/Disease (injury-disease-report.html) [Company version]
+    Same as Report Accident — company only
+
+  My Injuries (company-injuries-view.html)
+    Same as Report Accident — company only
+
+  Monitoring Dashboard (company-monitoring.html)
+    Same — company only
+
+
+================================================================================
+SECTION 3: OFFICER/ADMIN OPERATIONAL PAGES
+================================================================================
+
+                                                            view  sub  edit
+  ──────────────────────────────────────────────────────────────────────────
+  Inspections Section
+  ──────────────────────────────────────────────────────────────────────────
+  New Inspection (inspection.html)
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             V            S     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            S     E
+    admin                               V            S     E
+    super_admin                         V            S     E
+
+    RLS INSERT: company, officer, admin, super_admin
+    NOTE: worker can VIEW the page (nav visible) but RLS blocks insert!
+
+  Inspection Bookings (inspection-bookings.html)
+    Same as above — visible to worker, company, officer, admin, super_admin
+
+  Inspection Records (inspection-entries.html)
+    Same as above
+
+  ──────────────────────────────────────────────────────────────────────────
+  Accidents Section
+  ──────────────────────────────────────────────────────────────────────────
+  New Accident Report (accident-report.html) [Officer version]
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             V            S     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            S     E
+    admin                               V            S     E
+    super_admin                         V            S     E
+
+    RLS INSERT: company, officer, admin, super_admin
+    RLS UPDATE: officers edit own, admins edit all
+    NOTE: worker sees the page but RLS blocks insert!
+    NOTE: nav has TWO entries for accident-report — one for company (hidden
+          from officer/admin) and one for officer (hidden from viewer/med_prac).
+
+  View Reports (accident-entries.html)
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             V            -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            -     -
+    admin                               V            -     -
+    super_admin                         V            -     -
+
+    RLS SELECT: ALL authenticated users — ANY user can read ANY accident!
+    (This is the critical security finding from the audit)
+
+  ──────────────────────────────────────────────────────────────────────────
+  Injuries Section
+  ──────────────────────────────────────────────────────────────────────────
+  New Injury/Disease Report (injury-disease-report.html) [Officer version]
+    Same as New Accident Report above
+
+  View Injury/Disease Reports (injury-disease-entries.html)
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             V            -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            -     -
+    admin                               V            -     -
+    super_admin                         V            -     -
+
+  Worker Profile (worker-profile.html)
+    Same as above
+
+  ──────────────────────────────────────────────────────────────────────────
+  Investigations Section
+  ──────────────────────────────────────────────────────────────────────────
+  Conduct Investigation (OHS_Form19_Full.html)
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             V            -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            S     -
+    admin                               V            S     -
+    super_admin                         V            S     -
+
+    NO RLS policies confirmed for ohs_form_19 table!
+    Insert may be denied by default.
+
+  View Investigations (investigation.html)
+    Same as above
+
+  ──────────────────────────────────────────────────────────────────────────
+  Claims Section
+  ──────────────────────────────────────────────────────────────────────────
+  Submit Claim (form.html)
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             V            S     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             V            S     E
+    admin                               V            S     E
+    super_admin                         V            S     E
+
+    RLS INSERT: company, officer, admin, super_admin
+    RLS UPDATE: officers edit own pending/draft, admins edit all
+
+  View Entries (entries.html)
+    Same as Submit Claim above
+
+  Claim Checklist (checklist.html)
+    Same as Submit Claim above
+
+
+================================================================================
+SECTION 4: WORKER PAGES
+================================================================================
+
+                                                            view  sub  edit
+  ──────────────────────────────────────────────────────────────────────────
+  My Cases (case-tracking.html)
+    viewer                              HIDDEN       -     -
+    worker                              V            -     -
+    company                             HIDDEN       -     -
+    medical_practitioner                HIDDEN       -     -
+    officer                             HIDDEN       -     -
+    admin                               HIDDEN       -     -
+    super_admin                         HIDDEN       -     -
+
+    Worker can view their own cases across accident, injury, claims tables
+    by searching with their ID number.
+
+  My Claims (worker-claims.html)
+    Same as My Cases — worker only
+
+
+================================================================================
+SECTION 5: MEDICAL PRACTITIONER PAGES
+================================================================================
+
+                                                            view  sub  edit
+  ──────────────────────────────────────────────────────────────────────────
+  Medical Exam (medical-examination.html)
+    viewer                              HIDDEN       -     -
+    worker                              HIDDEN       -     -
+    company                             HIDDEN       -     -
+    medical_practitioner                V            S     E
+    officer                             HIDDEN       -     -
+    admin                               HIDDEN       -     -
+    super_admin                         HIDDEN       -     -
+
+    RLS INSERT: all authenticated (no role check!)
+    RLS UPDATE: only own records
+
+  Permanent Impairment Eval (permanent-impairment.html)
+    Same — medical_practitioner only
+
+  Clientele (clientele.html)
+    Same — medical_practitioner only
+
+
+================================================================================
+SECTION 6: FORM SUBMISSION MATRIX (Database-Level RLS)
+================================================================================
+
+  Form                           Table                    Who Can INSERT
+  ────────────────────────────── ──────────────────────── ─────────────────────
+  Accident Report                accident_reports          company, officer, admin, super_admin
+  Injury/Disease Report          injury_disease_reports    company, officer, admin, super_admin
+  Claim (form.html)              injury_claims             company, officer, admin, super_admin
+  Inspection                     workplace_inspections     company, officer, admin, super_admin
+  OHS Form 19 (Investigation)    ohs_form_19               NO RLS DEFINED — likely denied
+  Medical Exam                   medical_examination_rep   ALL authenticated users (!)
+  Permanent Impairment           permanent_impairment_rep  medical_practitioner only
+  Practitioner Clients           practitioner_clients      medical_practitioner only
+  Company Registration           companies                 ANYONE (including anon!)
+  Inspection Booking             inspection_bookings       company, officer, admin, super_admin
+  BL Form 43-02 Wages            bl_form_43_02_wages       NO RLS — likely denied
+  BL Form 43-04 Incapacity       bl_form_43_04_incapacity  admin, super_admin only (by policy)
+  BL Form 43-07 Insurance        certificate_of_insurance  NO RLS — likely denied
+  BL Form 43-11 Medical Attend   medical_attendance_notif  NO RLS — likely denied
+  Workers Registry               workers_registry          company, officer, admin, super_admin
+
+
+================================================================================
+SECTION 7: KEY GAPS & ANOMALIES
+================================================================================
+
+  GAP-01: Medical exam insert is open to ALL authenticated users
+  ────────────────────────────────────────────────────────────────────────────
+  Policy: "Officers can insert medical reports" WITH CHECK (true)
+  This means ANY logged-in user (viewer, worker, company) can submit a
+  medical examination report. The nav hides the page from non-practitioners,
+  but anyone who knows the URL can POST directly to the API.
+
+
+  GAP-02: Company registration open to anyone (including unauthenticated)
+  ────────────────────────────────────────────────────────────────────────────
+  Policy: "Anyone can insert companies" WITH CHECK (true)
+  The anon role (unauthenticated users) can insert companies!
+
+
+  GAP-03: Multiple nav entries for same form with different visibility
+  ────────────────────────────────────────────────────────────────────────────
+  accident-report.html appears TWICE in nav.js:
+    - Once under "Report Accident" (hidden from all except company)
+    - Once under "Accidents > New Accident Report" (hidden from viewer, med_prac)
+  This is intentional for role-based navigation but creates confusion.
+
+
+  GAP-04: BL Forms have no RLS INSERT policies
+  ────────────────────────────────────────────────────────────────────────────
+  Only form-43-04 (incapacity) has INSERT policies defined. The other 4 BL
+  form tables will DENY all insert attempts, even from admins.
+  (bl_form_43_02_wages, certificate_of_insurance, medical_attendance_notifications)
+
+
+  GAP-05: OHS Form 19 (Investigation) has no RLS policies
+  ────────────────────────────────────────────────────────────────────────────
+  The ohs_form_19 table was created without any RLS policies. Supabase
+  blocks all operations by default when RLS is enabled but no policies exist.
+  Officers cannot submit investigations until policies are created.
+
+
+================================================================================
+END OF PERMISSIONS MATRIX
+================================================================================

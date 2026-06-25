@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employer - DOSH</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co;">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
     <style>
@@ -404,7 +407,7 @@
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
         } catch (err) {
-            document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:20px;text-align:center">Error loading company data: ' + err.message + '<br><br><button onclick="location.reload()" style="padding:10px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">Retry</button></p>';
+            document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:20px;text-align:center">Error loading company data: ' + esc(err.message) + '<br><br><button onclick="location.reload()" style="padding:10px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">Retry</button></p>';
         }
     }
 
