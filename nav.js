@@ -406,6 +406,7 @@ margin-right: 6px;
         label: '<img src="ICONS/INVESTIGATION.png" class="nav-icon"> Investigations',
         hideFor: ['viewer', 'medical_practitioner'],
         children: [
+          { id: 'conduct-investigation', icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'Conduct Investigation', href: 'OHS_Form19_Full.html' },
           { id: 'investigation-view', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'View Investigations', href: 'investigation.html' , notification:'new-investigations'},
         ]
       },
