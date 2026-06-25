@@ -7,43 +7,43 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
 <link rel="stylesheet" href="styles.css">
 <style>
-body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }}
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }
 .page-container { padding: 20px; }
-        .container {{ max-width: 900px; margin: 20px auto; padding: 0 16px; }}
-.form-card {{ background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; margin-bottom: 20px; }}
-.form-header {{ text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #2c3e50; }}
-.form-header .gov-logo {{ display: flex; justify-content: center; margin-bottom: 10px; }}
-        .form-header .gov-logo img {{ width: 70px; height: 54px; object-fit: contain; display: block; }}
-.form-header h1 {{ font-size: 20px; color: #2c3e50; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 1px; }}
-.form-header h2 {{ font-size: 14px; color: #7f8c8d; margin: 4px 0; font-weight: normal; }}
-.form-header .form-no {{ font-size: 13px; color: #e74c3c; font-weight: bold; margin-top: 8px; }}
-.form-header .act-ref {{ font-size: 12px; color: #555; margin-top: 4px; }}
-.section-title {{ font-size: 15px; font-weight: 700; color: #2c3e50; margin: 24px 0 16px; padding-bottom: 6px; border-bottom: 1px solid #ddd; }}
-.section-title:first-of-type {{ margin-top: 0; }}
-.form-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }}
-.form-row-3 {{ grid-template-columns: 1fr 1fr 1fr; }}
-.form-row-4 {{ grid-template-columns: 1fr 1fr 1fr 1fr; }}
-.form-group {{ display: flex; flex-direction: column; }}
-.form-group.full {{ grid-column: 1 / -1; }}
-.form-group label {{ font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }}
-.form-group input, .form-group select, .form-group textarea {{ padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }}
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {{ outline: none; border-color: #2c3e50; box-shadow: 0 0 0 3px rgba(44,62,80,0.1); }}
-.form-group textarea {{ min-height: 60px; resize: vertical; }}
-.wages-table {{ width: 100%; border-collapse: collapse; margin: 12px 0; }}
-.wages-table th {{ background: #2c3e50; color: #fff; font-size: 12px; padding: 8px 10px; text-align: left; }}
-.wages-table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; }}
-.wages-table input {{ width: 100%; border: none; border-bottom: 1px dotted #999; padding: 4px 0; font-size: 13px; background: transparent; }}
-.wages-table input:focus {{ border-bottom-color: #2c3e50; outline: none; }}
-.btn-row {{ display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }}
-.btn {{ padding: 10px 28px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }}
-.btn-primary {{ background: #2c3e50; color: #fff; }}
-.btn-primary:hover {{ background: #34495e; transform: translateY(-1px); }}
-.btn-secondary {{ background: #ecf0f1; color: #2c3e50; }}
-.btn-secondary:hover {{ background: #dfe6e9; }}
-.radio-group {{ display: flex; gap: 20px; align-items: center; padding: 6px 0; }}
-.radio-group label {{ font-weight: normal; font-size: 13px; cursor: pointer; }}
-.radio-group input[type="radio"] {{ margin-right: 4px; }}
-@media (max-width: 768px) {{ .form-row {{ grid-template-columns: 1fr; }} .form-row-3, .form-row-4 {{ grid-template-columns: 1fr 1fr; }} }}
+        .container { max-width: 900px; margin: 20px auto; padding: 0 16px; }
+.form-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; margin-bottom: 20px; }
+.form-header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #2c3e50; }
+.form-header .gov-logo { display: flex; justify-content: center; margin-bottom: 10px; }
+        .form-header .gov-logo img { width: 70px; height: 54px; object-fit: contain; display: block; }
+.form-header h1 { font-size: 20px; color: #2c3e50; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+.form-header h2 { font-size: 14px; color: #7f8c8d; margin: 4px 0; font-weight: normal; }
+.form-header .form-no { font-size: 13px; color: #e74c3c; font-weight: bold; margin-top: 8px; }
+.form-header .act-ref { font-size: 12px; color: #555; margin-top: 4px; }
+.section-title { font-size: 15px; font-weight: 700; color: #2c3e50; margin: 24px 0 16px; padding-bottom: 6px; border-bottom: 1px solid #ddd; }
+.section-title:first-of-type { margin-top: 0; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #2c3e50; box-shadow: 0 0 0 3px rgba(44,62,80,0.1); }
+.form-group textarea { min-height: 60px; resize: vertical; }
+.wages-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.wages-table th { background: #2c3e50; color: #fff; font-size: 12px; padding: 8px 10px; text-align: left; }
+.wages-table td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+.wages-table input { width: 100%; border: none; border-bottom: 1px dotted #999; padding: 4px 0; font-size: 13px; background: transparent; }
+.wages-table input:focus { border-bottom-color: #2c3e50; outline: none; }
+.btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+.btn { padding: 10px 28px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #2c3e50; color: #fff; }
+.btn-primary:hover { background: #34495e; transform: translateY(-1px); }
+.btn-secondary { background: #ecf0f1; color: #2c3e50; }
+.btn-secondary:hover { background: #dfe6e9; }
+.radio-group { display: flex; gap: 20px; align-items: center; padding: 6px 0; }
+.radio-group label { font-weight: normal; font-size: 13px; cursor: pointer; }
+.radio-group input[type="radio"] { margin-right: 4px; }
+@media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-row-3, .form-row-4 { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
 <body>

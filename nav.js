@@ -485,6 +485,7 @@ margin-right: 6px;
         children: [
           { id: 'form-43-02', icon: '<img src="ICONS/wages.png" class="dd-icon">', label: 'Form 43/02 - Wages', href: 'form-43-02-wages.html' },
           { id: 'form-43-03', icon: '<img src="ICONS/medical exams.png" class="dd-icon">', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
+          { id: 'form-43-04', icon: '<img src="ICONS/CLAIM.png" class="dd-icon">', label: 'Form 43/04 - Incapacity', href: 'form-43-04-incapacity.html' },
           { id: 'form-43-07', icon: '<img src="ICONS/insurance.png" class="dd-icon">', label: 'Form 43/07 - Insurance', href: 'form-43-07-insurance.html' },
           { id: 'form-43-11', icon: '<img src="ICONS/medical attendance.png" class="dd-icon">', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
         ]

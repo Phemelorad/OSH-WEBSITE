@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BL Form 43/04B – Compensation in Cases of Incapacity</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 11pt; background: #fff; color: #000; }
+
+  .page {
+    width: 210mm; min-height: 297mm;
+    margin: 0 auto;
+    padding: 20mm 24mm 20mm 24mm;
+    background: #fff; position: relative;
+  }
+
+  /* ── Form number ── */
+  .form-number {
+    text-align: right; font-weight: bold;
+    font-size: 11pt; margin-bottom: 14mm;
+  }
+
+  /* ── Header titles ── */
+  .header-titles {
+    text-align: center; line-height: 1.9;
+    margin-bottom: 8mm; font-size: 11pt;
+  }
+  .header-titles .main { font-weight: bold; letter-spacing: 0.04em; }
+  .header-titles .form-title { text-transform: uppercase; font-size: 11pt; }
+  .header-titles .italic-note { font-style: italic; }
+
+  /* ── Field lines ── */
+  .dline {
+    border-bottom: 1px dotted #000;
+    display: block; width: 100%;
+    min-height: 6mm; margin-bottom: 2mm;
+  }
+  .dline-inline {
+    border-bottom: 1px dotted #000;
+    display: inline-block; min-height: 5mm;
+  }
+
+  /* ── Top fields ── */
+  .top-fields { margin-bottom: 6mm; font-size: 11pt; line-height: 1; }
+  .top-fields .field-row {
+    display: flex; align-items: flex-end;
+    gap: 2mm; margin-bottom: 2mm;
+  }
+  .top-fields .field-row label { white-space: nowrap; }
+  .top-fields .field-row .stretch {
+    flex: 1; border-bottom: 1px dotted #000; min-height: 5.5mm;
+  }
+
+  /* ── Section label ── */
+  .comp-intro { font-size: 11pt; margin-bottom: 4mm; }
+
+  /* ── Incapacity section ── */
+  .incap-section { margin-bottom: 6mm; }
+  .incap-heading {
+    display: flex; gap: 4mm;
+    font-size: 11pt; margin-bottom: 3mm; align-items: baseline;
+  }
+  .incap-heading .letter { font-weight: normal; min-width: 6mm; }
+  .incap-heading .heading-text { font-size: 11pt; }
+
+  /* numbered sub-items */
+  .sub-items { margin-left: 14mm; font-size: 11pt; }
+  .sub-item {
+    display: flex; gap: 4mm;
+    align-items: baseline; margin-bottom: 2.5mm;
+    line-height: 1.6;
+  }
+  .sub-item .num { min-width: 8mm; white-space: nowrap; }
+  .sub-item .content { flex: 1; }
+  .sub-item .content .dline-inline { min-width: 55mm; }
+
+  /* formula line */
+  .formula {
+    display: flex; align-items: flex-end; gap: 1mm; flex-wrap: wrap;
+  }
+  .formula span { white-space: nowrap; }
+  .formula .dline-inline { min-width: 50mm; }
+
+  /* ── Signature block ── */
+  .sig-block {
+    margin-top: 8mm; font-size: 11pt; line-height: 1.8;
+  }
+  .sig-row {
+    display: flex; gap: 8mm; align-items: flex-end; margin-bottom: 2mm;
+  }
+  .sig-row .date-part { white-space: nowrap; }
+  .sig-row .sig-part  { flex: 1; display: flex; gap: 2mm; align-items: flex-end; }
+  .sig-row .sig-part label { white-space: nowrap; }
+  .sig-label {
+    text-align: center; font-weight: bold;
+    font-size: 11pt; margin-top: 1mm;
+  }
+
+  /* ── CC block ── */
+  .cc-block { margin-top: 5mm; font-size: 11pt; line-height: 1.8; }
+  .cc-indent { margin-left: 8mm; }
+
+  @media print { body { background:#fff; } .page { margin:0; width:100%; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Form number -->
+  <div class="form-number">BL FORM 43/04B</div>
+
+  <!-- Header -->
+  <div class="header-titles">
+    <div class="main">WORKERS COMPENSATION &nbsp; ACT</div>
+    <div>(Act No. 23 of 1997)</div>
+    <div>(Section 15, 16 and 17)</div>
+    <div class="form-title">Compensation in Cases of Incapacity</div>
+    <div class="italic-note">(to be completed in triplicate)</div>
+  </div>
+
+  <!-- Top fields -->
+  <div class="top-fields">
+    <div class="field-row">
+      <label>Name of Worker:</label><span class="stretch"></span>
+    </div>
+    <div class="field-row">
+      <label>Address of worker:</label><span class="stretch"></span>
+    </div>
+    <div class="field-row">
+      <label>Name of employer:</label><span class="stretch"></span>
+    </div>
+    <div class="field-row" style="margin-left:0;">
+      <span class="stretch"></span>
+    </div>
+    <div class="field-row">
+      <label>Date of accident:</label><span class="stretch"></span>
+    </div>
+  </div>
+
+  <!-- Intro -->
+  <p class="comp-intro">The compensation payable shall be—</p>
+
+  <!-- A. Permanent total incapacity -->
+  <div class="incap-section">
+    <div class="incap-heading">
+      <span class="letter">A.</span>
+      <span class="heading-text">In the case of permanent total incapacity_</span>
+    </div>
+    <div class="sub-items">
+      <div class="sub-item">
+        <span class="num">(1)</span>
+        <div class="content">
+          Monthly earnings: P<span class="dline-inline" style="min-width:60mm;"></span>
+        </div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(2)</span>
+        <div class="content">60 months</div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(3)</span>
+        <div class="content">
+          <div class="formula">
+            <span>Compensation Payable: (1) x (2) =</span>
+            <span class="dline-inline" style="min-width:55mm;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. Permanent partial incapacity -->
+  <div class="incap-section">
+    <div class="incap-heading">
+      <span class="letter">B</span>
+      <span class="heading-text">In the case of permanent partial incapacity_</span>
+    </div>
+    <div class="sub-items">
+      <div class="sub-item">
+        <span class="num">(1)</span>
+        <div class="content">
+          Monthly earnings: P<span class="dline-inline" style="min-width:60mm;"></span>
+        </div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(2)</span>
+        <div class="content">60 months</div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(3)</span>
+        <div class="content">
+          Percentage of incapacity:
+          <span class="dline-inline" style="min-width:80mm;"></span>
+        </div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(4)</span>
+        <div class="content">
+          <div class="formula">
+            <span>Compensation payable: (1) x (2) x (3) = P</span>
+            <span class="dline-inline" style="min-width:45mm;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. Temporary incapacity -->
+  <div class="incap-section">
+    <div class="incap-heading">
+      <span class="letter">C.</span>
+      <span class="heading-text">In the case of temporary incapacity (total or partial):</span>
+    </div>
+    <div class="sub-items">
+      <div class="sub-item">
+        <span class="num">(1)</span>
+        <div class="content">
+          Monthly earnings at the time of incapacitation:
+          P<span class="dline-inline" style="min-width:50mm;"></span>
+        </div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(2)</span>
+        <div class="content">
+          Monthly earnings (or capable of earning) while incapacitated:<br>
+          P<span class="dline-inline" style="min-width:55mm;"></span>
+        </div>
+      </div>
+      <div class="sub-item">
+        <span class="num">(3)</span>
+        <div class="content">
+          <div class="formula">
+            <span>Monthly Compensation ((1)-(2)) x2/3 = P</span>
+            <span class="dline-inline" style="min-width:45mm;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signature block -->
+  <div class="sig-block">
+    <div class="sig-row">
+      <span class="date-part">
+        Dated :
+        <span class="dline-inline" style="min-width:45mm;"></span>
+      </span>
+      <div class="sig-part">
+        <label>Signed:</label>
+        <span class="dline-inline" style="flex:1; min-width:70mm;"></span>
+      </div>
+    </div>
+    <div class="sig-label">For/Commissioner of Compensation</div>
+  </div>
+
+  <!-- CC block -->
+  <div class="cc-block">
+    <div>Cc To: Worker</div>
+    <div class="cc-indent">
+      <div class="top-fields" style="margin-bottom:0;">
+        <div class="field-row">
+          <label>Full Name:</label><span class="stretch"></span>
+        </div>
+        <div class="field-row">
+          <label>Address:</label><span class="stretch"></span>
+        </div>
+        <div class="field-row"><span class="stretch"></span></div>
+        <div class="field-row"><span class="stretch"></span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
