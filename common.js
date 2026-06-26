@@ -54,6 +54,12 @@ async function handleLogout() {
   window.fmtDate = fmtDate;
   window.esc = esc;
 
+  window.buildWordMatch = function(field, name) {
+    var words = name.split(' ').filter(function(w) { return w.length > 2; });
+    if (words.length === 0) words = [name];
+    return words.map(function(w) { return field + '.ilike.*' + w + '*'; }).join(',');
+  };
+
   window.autoFillCompanyFields = async function() {
     try {
       if (!window.supabaseClient) return;
@@ -70,7 +76,7 @@ async function handleLogout() {
       if (companyId) {
         var { data: company } = await window.supabaseClient
           .from('companies')
-          .select('company_name, physical_address, plot_number, street_name, location, industry_sector, town_city')
+          .select('company_name, physical_address, plot_number, street_name, location, industry_sector')
           .eq('id', companyId)
           .single();
         if (company) {
@@ -79,7 +85,7 @@ async function handleLogout() {
           if (occEl && !occEl.value) occEl.value = companyName;
           var addrEl = document.getElementById('premisesAddress');
           if (addrEl && !addrEl.value) {
-            var parts = [company.physical_address, company.plot_number, company.street_name, company.location, company.town_city].filter(Boolean);
+            var parts = [company.physical_address, company.plot_number, company.street_name, company.location].filter(Boolean);
             addrEl.value = parts.join(', ');
           }
           var indEl = document.getElementById('natureOfIndustry');
@@ -92,6 +98,9 @@ async function handleLogout() {
       }
     } catch (e) {
       console.warn('autoFillCompanyFields:', e);
+    }
+  };
+
   window.getUserCompanyName = async function(supabaseClient) {
     try {
       if (!supabaseClient) return null;

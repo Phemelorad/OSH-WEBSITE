@@ -375,7 +375,7 @@ margin-right: 6px;
       {
         id: 'inspection',
         label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Inspections',
-        hideFor: ['viewer', 'medical_practitioner'],
+        hideFor: ['viewer', 'company', 'medical_practitioner'],
         children: [
           { id: 'inspection-form',     icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'New Inspection',       href: 'inspection.html' },
           { id: 'inspection-bookings', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
@@ -385,7 +385,7 @@ margin-right: 6px;
       {
         id: 'accident',
         label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Accidents',
-        hideFor: ['viewer', 'medical_practitioner'],
+        hideFor: ['viewer', 'company', 'medical_practitioner'],
         children: [
           { id: 'accident',         icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Accident Report', href: 'accident-report.html' },
           { id: 'accident-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',        href: 'accident-entries.html' , notification:'new-accidents'},
@@ -394,7 +394,7 @@ margin-right: 6px;
       {
         id: 'injury',
         label: '<img src="ICONS/INJURY.png" class="nav-icon"> Injuries',
-        hideFor: ['viewer', 'medical_practitioner'],
+        hideFor: ['viewer', 'company', 'medical_practitioner'],
         children: [
           { id: 'injury-disease',         icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report',             href: 'injury-disease-report.html' },
           { id: 'injury-disease-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Reports',           href: 'injury-disease-entries.html' , notification:'new-injuries'},
@@ -413,7 +413,7 @@ margin-right: 6px;
       {
         id: 'claims',
         label: '<img src="ICONS/CLAIM.png" class="nav-icon"> Claims',
-        hideFor: ['viewer', 'medical_practitioner'],
+        hideFor: ['viewer', 'company', 'medical_practitioner'],
         children: [
           { id: 'claims-submit',  icon: '<img src="ICONS/SUBMIT_CLAIM.png" class="dd-icon">', label: 'Submit Claim',  href: 'form.html' },
           { id: 'claims-entries', icon: '<img src="ICONS/VIEW.png" class="dd-icon">', label: 'View Entries',  href: 'entries.html' , notification:'new-claims'},
