@@ -92,6 +92,30 @@ async function handleLogout() {
       }
     } catch (e) {
       console.warn('autoFillCompanyFields:', e);
+  window.getUserCompanyName = async function(supabaseClient) {
+    try {
+      if (!supabaseClient) return null;
+      var { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return null;
+      var { data: profile } = await supabaseClient
+        .from('user_profiles')
+        .select('company_id, company_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!profile) return null;
+      if (profile.company_name) return profile.company_name;
+      if (profile.company_id) {
+        var { data: company } = await supabaseClient
+          .from('companies')
+          .select('company_name')
+          .eq('id', profile.company_id)
+          .maybeSingle();
+        if (company) return company.company_name;
+      }
+      return null;
+    } catch (e) {
+      console.warn('getUserCompanyName:', e);
+      return null;
     }
   };
 

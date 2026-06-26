@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investigations - DOSH</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
@@ -324,84 +324,24 @@
     <div class="container">
         <div class="info-banner">
             <span style="font-size:24px">🔍</span>
-            <div>Each <strong>accident</strong> is listed with its affected workers below. An accident can have multiple injured workers — click <strong>👥 Workers</strong> to see the full list.</div>
+            <div>OHS Form 19 investigation entries are listed below. Search by employer, injured person, or case number and filter by investigation status.</div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card"><h3>Total Cases</h3><div class="stat-value" id="statTotal">—</div></div>
-            <div class="stat-card red"><h3>Accidents</h3><div class="stat-value" id="statAccidents">—</div></div>
-            <div class="stat-card blue"><h3>Injuries</h3><div class="stat-value" id="statInjuries">—</div></div>
+            <div class="stat-card red"><h3>Open</h3><div class="stat-value" id="statOpen">—</div></div>
+            <div class="stat-card blue"><h3>In Progress</h3><div class="stat-value" id="statInProgress">—</div></div>
             <div class="stat-card amber"><h3>Pending</h3><div class="stat-value" id="statPending">—</div></div>
-            <div class="stat-card purple"><h3>In Progress</h3><div class="stat-value" id="statInProgress">—</div></div>
             <div class="stat-card green"><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
         </div>
 
-        <div class="tab-bar">
-            <button class="tab-btn active" id="tabAccidents" onclick="switchTab('accidents')">📋 Accident Cases</button>
-            <button class="tab-btn" id="tabForm19" onclick="switchTab('form19')">📝 OHS Form 19</button>
-        </div>
 
         <div class="section-card">
-            <div id="tabContentAccidents">
-            <div class="section-header">
-                <h2>📋 Accident Cases</h2>
-                <div class="filters">
-                    <div class="filter-group">
-                        <label>Type</label>
-                        <select id="filterType" onchange="applyFilters()">
-                            <option value="">All Types</option>
-                            <option value="accident">Accident</option>
-                            <option value="injury">Injury</option>
-                            <option value="disease">Disease</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <select id="filterStatus" onchange="applyFilters()">
-                            <option value="">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Closed">Closed</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Search</label>
-                        <input type="text" id="filterSearch" placeholder="Employer / Worker…" oninput="applyFilters()" style="width:160px">
-                    </div>
-                    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
-                    <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
-                </div>
-            </div>
-
-            <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading investigation cases…</p></div>
-
-            <div id="tableWrap" style="display:none">
-                <div class="table-container">
-                    <table>
-                        <thead><tr>
-                            <th>Type</th>
-                            <th>Employer / Occupier</th>
-                            <th>Affected Person</th>
-                            <th>Incident Date</th>
-                            <th>Nature</th>
-                            <th>Fatal?</th>
-                            <th>Investigation Status</th>
-                            <th>Reported By</th>
-                            <th>Actions</th>
-                        </tr></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
-                <div id="emptyState" class="empty-state" style="display:none"><p>🔍 No investigation cases found</p></div>
-                <div class="row-count" id="rowCount"></div>
-            </div>
-            </div>
 
             <!-- ── Form 19 tab content ── -->
-            <div id="tabContentForm19" style="display:none">
+            <div id="tabContentForm19">
             <div class="section-header">
-                <h2>📝 OHS Form 19 Entries</h2>
+                <h2>📝 Investigation Entries</h2>
                 <div class="filters">
                     <div class="filter-group">
                         <label>Search</label>
@@ -460,462 +400,23 @@
 <script src="claim-service.js"></script>
 
 <script>
-    
     const SB = window.supabaseClient;
-    let allAccidents = [];
-    let allInjuries = [];
     let allForm19 = [];
 
     window.addEventListener('load', async () => {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         await window.autoFillCompanyFields();
-        await loadData();
-        // Dismiss new-investigations badge with actual count
-        try {
-            const { count } = await SB.from('accident_reports').select('id', { count: 'exact', head: true }).eq('investigation_status', 'Pending');
-            sessionStorage.setItem('new-investigations_seen', String(count || 0));
-        } catch(e) {}
+        // Load investigation entries on page load
+        document.getElementById('form19Loading').style.display = 'block';
+        await loadForm19Data();
     });
 
+    // Wrapper for refresh button
     async function loadData() {
-        document.getElementById('loadingState').style.display = 'block';
-        document.getElementById('tableWrap').style.display = 'none';
-
-        try {
-            // Fetch accident reports and their linked injury/disease reports
-            const [accRes, injRes] = await Promise.all([
-                SB.from('accident_reports').select('id, occupier_name, industry_sector, accident_date, accident_place, accident_description, injury_fatal, investigation_status, reporter_name, report_type').order('accident_date', { ascending: false }),
-                SB.from('injury_disease_reports').select('id, accident_id, worker_name, incident_type, nature_of_injuries, resulted_death, permanent_incapacity, temporary_incapacity, occupation, incident_date').order('incident_date', { ascending: false })
-            ]);
-
-            // Group injuries by accident_id
-            const injuriesByAccident = {};
-            (injRes.data || []).forEach(inj => {
-                const aid = inj.accident_id || 'orphaned';
-                if (!injuriesByAccident[aid]) injuriesByAccident[aid] = [];
-                injuriesByAccident[aid].push(inj);
-            });
-
-            // Build accident records with embedded injuries
-            allAccidents = (accRes.data || []).map(acc => {
-                const linked = injuriesByAccident[acc.id] || [];
-                const fatal = linked.some(i => i.resulted_death === 'Yes') || acc.injury_fatal === 'Fatal';
-                const workers = linked.length > 0 ? linked.map(i => i.worker_name).filter(Boolean) : (acc.injured_name ? [acc.injured_name] : []);
-                return {
-                    id: acc.id,
-                    employer: acc.occupier_name || '—',
-                    industry: acc.industry_sector || '—',
-                    date: acc.accident_date,
-                    place: acc.accident_place,
-                    description: acc.accident_description,
-                    fatal: fatal,
-                    status: acc.investigation_status || 'Pending',
-                    reporter: acc.reporter_name || '—',
-                    type: acc.report_type || 'accident',
-                    injuries: linked,
-                    workers: workers,
-                    workerCount: linked.length,
-                    injured_name: acc.injured_name
-                };
-            });
-
-            // Also include orphaned injuries (not yet linked to an accident)
-            const orphaned = injuriesByAccident['orphaned'] || [];
-            orphaned.forEach(inj => {
-                allAccidents.push({
-                    id: 'orphan-' + inj.id,
-                    employer: '—',
-                    industry: '—',
-                    date: inj.incident_date,
-                    place: '—',
-                    description: '',
-                    fatal: inj.resulted_death === 'Yes',
-                    status: 'Pending',
-                    reporter: '—',
-                    type: 'injury',
-                    injuries: [inj],
-                    workers: [inj.worker_name].filter(Boolean),
-                    workerCount: 1
-                });
-            });
-
-            // Sort by date descending
-            allAccidents.sort((a, b) => {
-                const da = a.date ? new Date(a.date) : new Date(0);
-                const db = b.date ? new Date(b.date) : new Date(0);
-                return db - da;
-            });
-
-            buildStats(allAccidents);
-            renderTable(allAccidents);
-            loadForm19Data();
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('tableWrap').style.display = 'block';
-        } catch (err) {
-            console.error('Load data error:', err);
-            document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error loading data. <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
-        }
+        document.getElementById('form19Loading').style.display = 'block';
+        await loadForm19Data();
     }
-
-    function buildStats(accidents) {
-        const total = accidents.length;
-        const workers = accidents.reduce((s, a) => s + a.workerCount, 0);
-        const pending = accidents.filter(a => a.status === 'Pending').length;
-        const inProgress = accidents.filter(a => a.status === 'In Progress').length;
-        const completed = accidents.filter(a => a.status === 'Completed' || a.status === 'Closed').length;
-
-        document.getElementById('statTotal').textContent = total;
-        document.getElementById('statAccidents').textContent = accidents.filter(a => a.type === 'accident' || a.type === 'both').length;
-        document.getElementById('statInjuries').textContent = workers;
-        document.getElementById('statPending').textContent = pending;
-        document.getElementById('statInProgress').textContent = inProgress;
-        document.getElementById('statCompleted').textContent = completed;
-    }
-
-    function applyFilters() {
-        const industry = document.getElementById('filterIndustry').value;
-        const status = document.getElementById('filterStatus').value;
-        const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-
-        renderTable(allAccidents.filter(a =>
-            (!industry || a.industry === industry) &&
-            (!status || a.status === status) &&
-            (!search || a.employer.toLowerCase().includes(search) || a.workers.some(w => w.toLowerCase().includes(search)))
-        ));
-    }
-
-    function renderTable(rows) {
-        const tbody = document.getElementById('tableBody');
-        const empty = document.getElementById('emptyState');
-        document.getElementById('rowCount').textContent = rows.length ? 'Showing ' + rows.length + ' accident' + (rows.length !== 1 ? 's' : '') : '';
-        if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-        empty.style.display = 'none';
-
-        // Use expanded states from the last render
-        const expandedIds = new Set();
-        document.querySelectorAll('.accident-row.expanded').forEach(tr => {
-            const id = tr.dataset.accidentId;
-            if (id) expandedIds.add(id);
-        });
-
-        tbody.innerHTML = rows.map((a, idx) => {
-            const isExpanded = expandedIds.has(a.id) || false;
-            const typeLabel = a.type === 'dangerous_occurrence' ? 'Dangerous Occurrence' : 'Accident';
-            const fatalBadge = a.fatal ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '';
-            const statusSlug = (a.status || 'pending').toLowerCase().replace(/\s+/g, '-');
-            const desc = a.description ? a.description.substring(0, 80) + (a.description.length > 80 ? '...' : '') : '';
-            const workersList = a.workers.length > 0 ? a.workers.join(', ') : a.injured_name || '—';
-            const hasInjuries = a.injuries && a.injuries.length > 0;
-
-            const mainRow = '<tr class="accident-row' + (isExpanded ? ' expanded' : '') + '" data-accident-id="' + a.id + '" onclick="toggleAccident(this)">' +
-                '<td><span class="expand-icon' + (isExpanded ? ' expanded' : '') + '">▶</span><strong>' + esc(typeLabel) + '</strong>' +
-                (desc ? '<br><span style="font-size:11px;color:#888">' + esc(desc) + '</span>' : '') +
-                (a.place ? '<br><span style="font-size:11px;color:#aaa">📍 ' + esc(a.place) + '</span>' : '') +
-                '</td>' +
-                '<td><strong>' + esc(a.employer) + '</strong><br><span style="font-size:11px;color:#888">' + esc(a.industry) + '</span></td>' +
-                '<td style="white-space:nowrap">' + (a.date ? fmtDate(a.date) : '—') + '</td>' +
-                '<td>' + esc(workersList) + ' ' + fatalBadge +
-                (a.workerCount > 1 ? ' <span class="injury-count-badge">' + a.workerCount + ' workers</span>' : '') +
-                '</td>' +
-                '<td><span class="badge badge-' + statusSlug + '">' + a.status + '</span></td>' +
-                '<td style="white-space:nowrap">' +
-                '<button class="action-btn" onclick="event.stopPropagation();viewAccident(\'' + a.id + '\')">📋 View</button> ' +
-                (hasInjuries ? '<button class="action-btn" onclick="event.stopPropagation();viewWorkers(\'' + a.id + '\')" style="background:#d1ecf1;color:#0c5460;border-color:#bee5eb">👥 Workers</button>' : '') +
-                '</td>' +
-                '</tr>';
-
-            // Sub-rows for each injured worker
-            let subRows = '';
-            if (hasInjuries && isExpanded) {
-                subRows = a.injuries.map(inj => {
-                    const typeCls = inj.incident_type === 'Disease' ? 'badge-disease' : 'badge-injury';
-                    const typeLbl = inj.incident_type === 'Disease' ? 'Disease' : 'Injury';
-                    const fatal = inj.resulted_death === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24">Fatal</span>' : '';
-                    const perm = inj.permanent_incapacity === 'Yes' ? '♿' : '';
-                    const temp = inj.temporary_incapacity === 'Yes' ? '🩹' : '';
-                    const nature = inj.nature_of_injuries ? inj.nature_of_injuries.substring(0, 60) + (inj.nature_of_injuries.length > 60 ? '...' : '') : '';
-                    return '<tr class="injury-subrow">' +
-                        '<td colspan="6">' +
-                        '<span class="badge ' + typeCls + '">' + typeLbl + '</span> ' +
-                        '<strong>' + esc(inj.worker_name || 'Unknown') + '</strong>' +
-                        (nature ? ' — ' + esc(nature) : '') +
-                        (inj.occupation ? ' <span style="color:#888">(' + esc(inj.occupation) + ')</span>' : '') +
-                        ' ' + fatal + ' ' + perm + ' ' + temp +
-                        ' <span style="color:#aaa;font-size:11px">' + (inj.incident_date ? fmtDate(inj.incident_date) : '') + '</span>' +
-                        '</td></tr>';
-                }).join('');
-            }
-
-            return mainRow + subRows;
-        }).join('');
-    }
-
-    window.toggleAccident = function(row) {
-        const isExpanded = row.classList.toggle('expanded');
-        const icon = row.querySelector('.expand-icon');
-        if (icon) icon.classList.toggle('expanded');
-        // Re-render to show/hide sub-rows
-        const search = document.getElementById('filterSearch').value;
-        const status = document.getElementById('filterStatus').value;
-        const industry = document.getElementById('filterIndustry').value;
-        renderTable(allAccidents.filter(a =>
-            (!industry || a.industry === industry) &&
-            (!status || a.status === status) &&
-            (!search || a.employer.toLowerCase().includes(search) || a.workers.some(w => w.toLowerCase().includes(search)))
-        ));
-    };
-
-    // ── View Accident Details Modal ──────────────────────────────
-    async function viewAccident(accidentId) {
-        if (accidentId && accidentId.startsWith('orphan-')) {
-            const realId = accidentId.replace('orphan-', '');
-            const { data: injData, error: injErr } = await SB.from('injury_disease_reports').select('*').eq('id', realId).single();
-            if (injErr || !injData) { showToast('Could not load injury details', 'error'); return; }
-            showInjuryDetails(injData);
-            return;
-        }
-
-        const { data, error } = await SB.from('accident_reports').select('*').eq('id', accidentId).single();
-        if (error || !data) { showToast('Could not load accident details', 'error'); return; }
-
-        // Also get linked injuries
-        const { data: injuries } = await SB.from('injury_disease_reports').select('*').eq('accident_id', accidentId);
-
-        function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + esc(val) + '</span></div>' : ''; }
-        
-        // ── Employer Details ─────────────────────────────
-        const employerSection = '<div class="rec-section">' +
-            '<div class="rec-section-header employer">🏢 Employer Details</div>' +
-            '<div class="rec-section-body">' +
-            f('Employer / Occupier', data.occupier_name) +
-            f('Industry', data.industry_sector || data.nature_of_industry) +
-            f('Reported By', data.reporter_name) +
-            f('Report Date', fmtDate(data.report_date)) +
-            '</div></div>';
-        
-        // ── Accident Details ──────────────────────────────
-        const accidentSection = '<div class="rec-section">' +
-            '<div class="rec-section-header accident">🚨 Accident Details</div>' +
-            '<div class="rec-section-body">' +
-            f('Report Type', (data.report_type||'').replace('_',' ').toUpperCase()) +
-            f('Date of Accident', fmtDate(data.accident_date)) +
-            f('Place', data.accident_place) +
-            f('Fatal?', data.injury_fatal) +
-            f('Description', data.accident_description) +
-            '</div></div>';
-        
-        // ── Investigation Details ───────────────────────────
-        const investSection = '<div class="rec-section">' +
-            '<div class="rec-section-header investigation">🔍 Investigation</div>' +
-            '<div class="rec-section-body">' +
-            f('Investigation Status', data.investigation_status || 'Pending') +
-            (data.assigned_investigator ? f('Assigned Investigator', data.assigned_investigator) : '') +
-            '</div></div>';
-        
-        let rowsHTML = employerSection + accidentSection + investSection;
-
-        // Show linked injured workers
-        if (injuries && injuries.length > 0) {
-            rowsHTML += '<div style="border-top:2px solid #f0f0f0;padding-top:12px;margin-top:8px">' +
-                '<div style="font-size:12px;font-weight:700;color:#333;margin-bottom:8px">👥 Injured Workers (' + injuries.length + ')</div>';
-            injuries.forEach(inj => {
-                const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '🏥';
-                rowsHTML += '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;align-items:center">' +
-                    '<span>' + typeIcon + '</span>' +
-                    '<div style="flex:1">' +
-                    '<strong style="font-size:13px">' + esc(inj.worker_name || 'Unknown') + '</strong>' +
-                    (inj.incident_type ? ' <span class="badge ' + (inj.incident_type === 'Disease' ? 'badge-disease' : 'badge-injury') + '" style="font-size:10px">' + inj.incident_type + '</span>' : '') +
-                    (inj.nature_of_injuries ? '<br><span style="font-size:11px;color:#888">' + esc(inj.nature_of_injuries) + '</span>' : '') +
-                    '</div>' +
-                    (inj.resulted_death === 'Yes' ? '<span class="badge badge-pending" style="background:#f8d7da;color:#721c24;font-size:10px">Fatal</span>' : '') +
-                    '</div>';
-            });
-            rowsHTML += '</div>';
-        }
-
-        const ov = document.createElement('div');
-        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-        ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
-            '<div style="font-size:32px;text-align:center;margin-bottom:8px">🔍</div>' +
-            '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Accident Investigation</h2>' +
-            rowsHTML +
-            '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div>' +
-            '</div>';
-        ov.querySelector('#closeBtn').addEventListener('click', () => { ov.remove(); });
-        ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-        document.body.appendChild(ov);
-    }
-
-    // ── View Injured Workers Modal ──────────────────────────────
-    async function viewWorkers(accidentId) {
-        if (accidentId && accidentId.startsWith('orphan-')) {
-            const realId = accidentId.replace('orphan-', '');
-            const { data: injData, error: injErr } = await SB.from('injury_disease_reports').select('*').eq('id', realId).single();
-            if (injErr || !injData) { showToast('Could not load injury details', 'error'); return; }
-            showInjuryDetails(injData);
-            return;
-        }
-
-        // Show loading state
-        const overlay = document.createElement('div');
-        overlay.className = 'workers-modal-overlay';
-        overlay.innerHTML = '<div class="workers-modal"><div class="workers-modal-body"><div class="workers-loading"><div class="spinner"></div><p>Loading workers...</p></div></div></div>';
-        document.body.appendChild(overlay);
-
-        try {
-            const [accRes, injRes] = await Promise.all([
-                SB.from('accident_reports').select('accident_case_number, occupier_name, industry_sector, accident_date, accident_place, injury_fatal').eq('id', accidentId).single(),
-                SB.from('injury_disease_reports').select('*, accident_id').eq('accident_id', accidentId)
-            ]);
-
-            if (accRes.error) throw accRes.error;
-            const acc = accRes.data;
-            const injuries = injRes.data || [];
-
-            // Fetch claims for these injuries
-            let claimsByInjury = {};
-            if (injuries.length > 0) {
-                const injuryIds = injuries.map(i => i.id);
-                const { data: claims } = await loadClaims({ selectCols: 'id, file_number, status, injury_report_id, incapacity_percentage', excludeDrafts: true, inField: 'injury_report_id', inValues: injuryIds });
-                if (claims) {
-                    claims.forEach(cl => {
-                        if (cl.injury_report_id) claimsByInjury[cl.injury_report_id] = cl;
-                    });
-                }
-            }
-
-            const fatal = injuries.some(i => i.resulted_death === 'Yes') || acc.injury_fatal === 'Fatal';
-            const totalWorkers = injuries.length || (acc.injured_name ? 1 : 0);
-            const fatalCount = injuries.filter(i => i.resulted_death === 'Yes').length;
-
-            let workersHTML = '';
-            if (injuries.length === 0) {
-                workersHTML = '<div class="workers-empty">👤 No injury/disease reports linked to this accident yet.</div>';
-            } else {
-                workersHTML = injuries.map(inj => {
-                    const isFatal = inj.resulted_death === 'Yes';
-                    const isPermanent = inj.permanent_incapacity === 'Yes';
-                    const isTemporary = inj.temporary_incapacity === 'Yes' && !isPermanent;
-                    const cardClass = isFatal ? 'fatal' : (inj.incident_type === 'Disease' ? 'disease' : 'injury');
-                    const typeIcon = inj.incident_type === 'Disease' ? '🦠' : '🏥';
-                    const typeLbl = inj.incident_type === 'Disease' ? 'Disease' : (inj.incident_type === 'Both' ? 'Injury & Disease' : 'Injury');
-                    const claim = claimsByInjury[inj.id];
-                    const badges = [
-                        isFatal ? '<span class="worker-badge fatal">⚰ Fatal</span>' : '',
-                        isPermanent ? '<span class="worker-badge permanent">♿ Permanent Incapacity</span>' : '',
-                        isTemporary ? '<span class="worker-badge temporary">🩹 Temporary</span>' : '',
-                        claim ? '<span class="worker-badge claim">📑 Claim Filed</span>' : '',
-                    ].filter(Boolean).join(' ');
-
-                    return '<div class="worker-card ' + cardClass + '">' +
-                        '<div class="worker-card-top">' +
-                        '<div class="worker-name-row">' +
-                        '<span style="font-size:20px">' + typeIcon + '</span>' +
-                        '<span class="name">' + esc(inj.worker_name || 'Unknown') + '</span>' +
-                        badges +
-                        '</div>' +
-                        '<span style="font-size:12px;color:#aaa;white-space:nowrap">' + (inj.incident_date ? fmtDate(inj.incident_date) : '') + '</span>' +
-                        '</div>' +
-                        '<div style="font-size:13px;color:#555;margin-bottom:4px">' +
-                        '<span class="worker-badge ' + (inj.incident_type === 'Disease' ? 'disease' : 'injury') + '">' + typeLbl + '</span>' +
-                        (inj.occupation ? ' <span style="color:#888">' + esc(inj.occupation) + '</span>' : '') +
-                        '</div>' +
-                        (inj.nature_of_injuries ? '<div style="font-size:13px;color:#444;line-height:1.5">' + esc(inj.nature_of_injuries) + '</div>' : '') +
-                        '<div class="worker-card-details">' +
-                        (claim ? '<div class="worker-detail-item"><span class="lbl">Claim:</span><span class="val">' + esc(claim.file_number || 'Draft') + ' (' + esc(claim.status) + ')' + (claim.incapacity_percentage ? ' - ' + claim.incapacity_percentage + '%' : '') + '</span></div>' : '') +
-                        (inj.nok_informed === 'Yes' ? '<div class="worker-detail-item"><span class="lbl">Next of Kin:</span><span class="val">Informed</span></div>' : '') +
-                        '</div>' +
-                        '</div>';
-                }).join('');
-            }
-
-            const caseNumber = acc.accident_case_number || '—';
-            const summaryBar = '<div class="workers-summary-bar">' +
-                '<div class="workers-summary-item">👥 <strong>' + totalWorkers + '</strong> Total Workers</div>' +
-                (fatalCount > 0 ? '<div class="workers-summary-item fatal-summary">⚰ <strong>' + fatalCount + '</strong> Fatal</div>' : '') +
-                '<div class="workers-summary-item">🏥 <strong>' + injuries.filter(i => i.incident_type === 'Injury' || i.incident_type === 'Both').length + '</strong> Injuries</div>' +
-                '<div class="workers-summary-item">🦠 <strong>' + injuries.filter(i => i.incident_type === 'Disease' || i.incident_type === 'Both').length + '</strong> Diseases</div>' +
-                '<div class="workers-summary-item">♿ <strong>' + injuries.filter(i => i.permanent_incapacity === 'Yes').length + '</strong> Permanent</div>' +
-                '<div class="workers-summary-item">📑 <strong>' + Object.keys(claimsByInjury).length + '</strong> Claims</div>' +
-                '</div>';
-
-            overlay.innerHTML = '<div class="workers-modal">' +
-                '<div class="workers-modal-header">' +
-                '<div>' +
-                '<h2>👥 Injured Workers</h2>' +
-                '<span style="font-size:12px;color:#888">' + esc(acc.occupier_name || '') +
-                (caseNumber !== '—' ? ' - 📋 ' + esc(caseNumber) : '') +
-                ' - ' + fmtDate(acc.accident_date) + '</span>' +
-                '</div>' +
-                '<button class="workers-modal-close" onclick="this.closest(\'.workers-modal-overlay\').remove()">✕</button>' +
-                '</div>' +
-                '<div class="workers-modal-body">' +
-                summaryBar +
-                workersHTML +
-                '</div>' +
-                '</div>';
-
-            overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-
-        } catch (err) {
-            overlay.innerHTML = '<div class="workers-modal"><div class="workers-modal-body"><div class="workers-empty">Error loading workers: ' + esc(err.message || 'Unknown error') + '</div></div></div>';
-        }
-    }
-
-    function showInjuryDetails(data) {
-        const fields = [
-            ['Report Type', data.incident_type || 'Injury'],
-            ['Worker Name', data.worker_name],
-            ['Occupation', data.occupation],
-            ['Date of Incident', fmtDate(data.incident_date)],
-            ['Nature of Injury', data.nature_of_injuries],
-            ['Resulted in Death?', data.resulted_death],
-            ['Permanent Incapacity', data.permanent_incapacity],
-            ['Temporary Incapacity', data.temporary_incapacity],
-            ['Employer', data.employer_name],
-            ['Report Date', fmtDate(data.created_at || data.report_date)],
-        ];
-
-        const rowsHTML = '<div style="margin-bottom:12px">' + fields.filter(([,v]) => v != null && v !== '').map(function(f) {
-            return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f8f8f8;gap:16px">' +
-                '<span style="color:#888;font-size:12px;min-width:130px;flex-shrink:0">' + f[0] + '</span>' +
-                '<span style="color:#333;font-size:12px;text-align:right">' + f[1] + '</span></div>';
-        }).join('') + '</div>';
-
-        const ov = document.createElement('div');
-        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-        ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
-            '<div style="font-size:32px;text-align:center;margin-bottom:8px">🏥</div>' +
-            '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">Injury/Disease Report</h2>' +
-            rowsHTML +
-            '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div>' +
-            '</div>';
-        ov.querySelector('#closeBtn').addEventListener('click', function() { ov.remove(); });
-        ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
-        document.body.appendChild(ov);
-    }
-
-    function exportCSV() {
-        const headers = ['Type','Employer','Industry','Date','Place','Injured Workers','Fatal','Status'];
-        const rows = allAccidents.map(a => [
-            a.type,
-            a.employer,
-            a.industry,
-            a.date,
-            a.place,
-            a.workers.join('; '),
-            a.fatal ? 'Yes' : 'No',
-            a.status
-        ]);
-        const csv = [headers, ...rows].map(r => r.map(c => '"' + (c||'') + '"').join(',')).join('\n');
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
-        a.download = 'accidents_' + new Date().toISOString().split('T')[0] + '.csv';
-        a.click();
-        URL.revokeObjectURL(a.href);
-    }
-
 </script>
 <script src="form19-investigation.js"></script>
 </body>
