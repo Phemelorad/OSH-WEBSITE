@@ -191,17 +191,35 @@
 
             if (profile.role === 'company' && !profile.company_id) {
                 const metadata = user.user_metadata;
-                const companyName = metadata.company_name || metadata.companyName;
+                let companyName = metadata.company_name || metadata.companyName;
+                let foundCompany = null;
+
+                // Try 1: Look up by company name from metadata
                 if (companyName) {
                     const { data: company } = await supabaseClient
                         .from('companies')
                         .select('id')
                         .ilike('company_name', companyName)
                         .maybeSingle();
+                    if (company) foundCompany = company;
+                }
 
-                    if (company) {
-                        updates.company_id = company.id;
+                // Try 2: Look up by user email domain
+                if (!foundCompany && user.email) {
+                    const domain = user.email.split('@')[1];
+                    if (domain) {
+                        const { data: companyByEmail } = await supabaseClient
+                            .from('companies')
+                            .select('id')
+                            .or('email.ilike.%' + domain + '%,owner_email.ilike.%' + domain + '%')
+                            .limit(1)
+                            .maybeSingle();
+                        if (companyByEmail) foundCompany = companyByEmail;
                     }
+                }
+
+                if (foundCompany) {
+                    updates.company_id = foundCompany.id;
                 }
             }
 

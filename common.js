@@ -106,21 +106,42 @@ async function handleLogout() {
       if (!supabaseClient) return null;
       var { data: { user } } = await supabaseClient.auth.getUser();
       if (!user) return null;
+
+      // Primary lookup: user_profiles table
       var { data: profile } = await supabaseClient
         .from('user_profiles')
-        .select('company_id, company_name')
+        .select('company_id')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (!profile) return null;
-      if (profile.company_name) return profile.company_name;
-      if (profile.company_id) {
+
+      if (profile && profile.company_id) {
         var { data: company } = await supabaseClient
           .from('companies')
           .select('company_name')
           .eq('id', profile.company_id)
           .maybeSingle();
-        if (company) return company.company_name;
+        if (company && company.company_name) return company.company_name;
       }
+
+      // Fallback 1: user_metadata (set during registration)
+      var meta = user.user_metadata || {};
+      var metaName = meta.company_name || meta.companyName;
+      if (metaName) return metaName;
+
+      // Fallback 2: try to find company by user's email domain
+      if (user.email) {
+        var emailDomain = user.email.split('@')[1];
+        if (emailDomain) {
+          var { data: companyByEmail } = await supabaseClient
+            .from('companies')
+            .select('company_name')
+            .or('email.ilike.%' + emailDomain + '%,owner_email.ilike.%' + emailDomain + '%')
+            .limit(1)
+            .maybeSingle();
+          if (companyByEmail && companyByEmail.company_name) return companyByEmail.company_name;
+        }
+      }
+
       return null;
     } catch (e) {
       console.warn('getUserCompanyName:', e);

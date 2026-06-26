@@ -471,7 +471,7 @@ function renderTable(rows) {
         <td style="white-space:nowrap">${reportDate}</td>
         <td style="white-space:nowrap">
             <button class="action-btn" onclick="viewRecord('${r.id}')">View</button>
-            ${isPerson ? '' : '<button class="action-btn" onclick="editStatus('' + r.id + '','' + (r.status||'submitted') + '','' + (r.submitted_by||'') + '')">Status</button>'}
+            ${isPerson ? '' : `<button class="action-btn" onclick="editStatus('${r.id}','${r.status||'submitted'}','${r.submitted_by||''}')">Status</button>`}
         </td>
         </tr>`;
     }).join('');
