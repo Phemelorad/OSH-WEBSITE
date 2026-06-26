@@ -234,6 +234,9 @@ ALTER TABLE workplace_inspections ADD COLUMN IF NOT EXISTS company_id UUID REFER
 ALTER TABLE permanent_impairment_reports ADD COLUMN IF NOT EXISTS claim_id UUID REFERENCES injury_claims(id) ON DELETE SET NULL;
 ALTER TABLE permanent_impairment_reports ADD COLUMN IF NOT EXISTS worker_registry_id UUID REFERENCES workers_registry(id) ON DELETE SET NULL;
 
+-- ADD accident_id TO injury_disease_reports
+ALTER TABLE injury_disease_reports ADD COLUMN IF NOT EXISTS accident_id UUID REFERENCES accident_reports(id) ON DELETE SET NULL;
+
 -- PART 3: AUTO-GENERATE FILE NUMBERS
 CREATE SEQUENCE IF NOT EXISTS accident_file_number_seq START 1;
 
@@ -298,4 +301,48 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_auto_register_worker ON accident_reports;
 CREATE TRIGGER trg_auto_register_worker AFTER INSERT ON accident_reports FOR EACH ROW EXECUTE FUNCTION auto_register_worker();
+
+
+
+-- PART 5: AUTO-GENERATE CAUSATION & INVESTIGATION REFERENCE NUMBERS
+
+-- 5a. causation_number: CAU-YYYY-NNNN on accident_reports
+CREATE SEQUENCE IF NOT EXISTS causation_number_seq START 1;
+
+CREATE OR REPLACE FUNCTION generate_causation_number()
+RETURNS TRIGGER AS $$
+DECLARE
+  year_prefix TEXT := to_char(NOW(), 'YYYY');
+  seq_num TEXT;
+BEGIN
+  IF NEW.causation_number IS NULL OR btrim(NEW.causation_number) = '' THEN
+    seq_num := LPAD(nextval('causation_number_seq')::TEXT, 4, '0');
+    NEW.causation_number := 'CAU-' || year_prefix || '-' || seq_num;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_causation_number ON accident_reports;
+CREATE TRIGGER trg_causation_number BEFORE INSERT ON accident_reports FOR EACH ROW EXECUTE FUNCTION generate_causation_number();
+
+-- 5b. inv_ref_no: INV-YYYY-NNNN on ohs_form_19
+CREATE SEQUENCE IF NOT EXISTS ohs_form_19_inv_seq START 1;
+
+CREATE OR REPLACE FUNCTION generate_ohs19_inv_ref_no()
+RETURNS TRIGGER AS $$
+DECLARE
+  year_prefix TEXT := to_char(NOW(), 'YYYY');
+  seq_num TEXT;
+BEGIN
+  IF NEW.inv_ref_no IS NULL OR btrim(NEW.inv_ref_no) = '' THEN
+    seq_num := LPAD(nextval('ohs_form_19_inv_seq')::TEXT, 4, '0');
+    NEW.inv_ref_no := 'INV-' || year_prefix || '-' || seq_num;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_ohs19_inv_ref_no ON ohs_form_19;
+CREATE TRIGGER trg_ohs19_inv_ref_no BEFORE INSERT ON ohs_form_19 FOR EACH ROW EXECUTE FUNCTION generate_ohs19_inv_ref_no();
 

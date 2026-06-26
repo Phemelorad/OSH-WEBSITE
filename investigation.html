@@ -497,6 +497,7 @@
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('tableWrap').style.display = 'block';
         } catch (err) {
+            console.error('Load data error:', err);
             document.getElementById('loadingState').innerHTML = '<p style="color:#e74c3c;padding:40px;text-align:center">Error loading data. <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer">Retry</button></p>';
         }
     }

@@ -76,7 +76,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <h3 class="section-title">1. Investigation Administration</h3>
 <div class="form-row">
 <div class="form-group"><label>Investigation Reference Number</label><input type="text" name="inv_ref_no" placeholder="e.g. INV-2024-001"></div>
-<div class="form-group"><label>Case Number</label><input type="text" name="case_no" placeholder="Linked accident case number"></div>
+<div class="form-group"><label>Company / Case Search</label><input type="text" name="case_no" placeholder="Type company name to search their accidents" style="width:100%"><div id="accidentLookupResults" style="position:relative"></div></div>
 </div>
 <div class="form-row">
 <div class="form-group"><label>District</label><input type="text" name="inv_district" placeholder="District where investigation is conducted"></div>
@@ -401,6 +401,120 @@ if (formEl) {
             btn.disabled = false;
         }
     });
+    // ── Company/accident search ─────────────────────────────
+    // Search by company name to find their accident cases
+    var caseNoEl = formEl.querySelector('[name="case_no"]');
+    var accidentIdEl = document.createElement('input');
+    accidentIdEl.type = 'hidden';
+    accidentIdEl.name = 'accident_id';
+    accidentIdEl.id = 'accident_id';
+    formEl.appendChild(accidentIdEl);
+
+    if (caseNoEl) {
+        var lookupTimer = null;
+        caseNoEl.addEventListener('input', function() {
+            if (lookupTimer) clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(async function() {
+                var val = caseNoEl.value.trim();
+                if (val.length < 2) {
+                    var rd = document.getElementById('accidentLookupResults');
+                    if (rd) rd.innerHTML = '';
+                    return;
+                }
+                try {
+                    var { data: accidents, error } = await supabaseClient
+                        .from('accident_reports')
+                        .select('id, accident_case_number, occupier_name, accident_date, status, investigation_status, accident_place, injured_name')
+                        .ilike('occupier_name', '%' + val + '%')
+                        .neq('status', 'draft')
+                        .order('accident_date', { ascending: false })
+                        .limit(10);
+                    if (error) throw error;
+                    var rd = document.getElementById('accidentLookupResults');
+                    if (!accidents || accidents.length === 0) {
+                        if (rd) rd.innerHTML = '<div style="padding:8px 14px;font-size:12px;color:#888">No accidents found</div>';
+                        return;
+                    }
+                    var h = '<div style="background:white;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:300px;overflow-y:auto">';
+                    h += '<div style="padding:8px 14px;font-size:11px;color:#888;background:#f8f8f8;border-bottom:1px solid #e0e0e0;font-weight:600">Select an accident to auto-fill:</div>';
+                    accidents.forEach(function(a) {
+                        var st = a.status || 'submitted';
+                        var inv = a.investigation_status || '';
+                        var bc = st === 'submitted' ? '#007bff' : st === 'under_review' ? '#ffc107' : st === 'investigated' ? '#28a745' : '#6c757d';
+                        h += '<div onclick="selectAccidentForForm19(\'' + a.id + '\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0" onmouseover="this.style.background=\'#f0f8ff\'" onmouseout="this.style.background=\'\'">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                                '<div><strong style="font-size:13px;color:#0c5460">📋 ' + esc(a.accident_case_number || 'N/A') + '</strong>' +
+                                '<span style="font-size:12px;color:#555;margin-left:8px">' + esc(a.occupier_name || '') + '</span></div>' +
+                                '<span style="font-size:11px;background:' + bc + ';color:white;padding:2px 8px;border-radius:10px;font-weight:600">' + esc(st) + '</span>' +
+                            '</div>' +
+                            '<div style="font-size:11px;color:#888;margin-top:4px">' +
+                                (a.accident_date ? esc(a.accident_date) + ' — ' : '') +
+                                (a.accident_place ? esc(a.accident_place) : '') +
+                                (inv ? ' | Investigation: ' + esc(inv) : '') +
+                            '</div>' +
+                            (a.injured_name ? '<div style="font-size:11px;color:#888;margin-top:2px">Injured: ' + esc(a.injured_name) + '</div>' : '') +
+                        '</div>';
+                    });
+                    h += '</div>';
+                    if (rd) rd.innerHTML = h;
+                } catch (e) {
+                    console.warn('Company search error:', e);
+                }
+            }, 400);
+        });
+    }
+
+    function fillFromAccident(acc) {
+        if (!acc) return;
+        var rd = document.getElementById('accidentLookupResults');
+        if (rd) rd.innerHTML = '';
+        document.getElementById('accident_id').value = acc.id || '';
+        if (caseNoEl) caseNoEl.value = acc.accident_case_number || '';
+        [
+            ['employer_name', acc.occupier_name],
+            ['employer_sector', acc.industry_sector],
+            ['incident_date', acc.accident_date],
+            ['incident_time', acc.accident_time],
+            ['incident_location', acc.accident_place],
+            ['incident_summary', acc.accident_description],
+            ['incident_description', acc.accident_description],
+            ['incident_reported_date', acc.report_date],
+            ['injured_name', acc.injured_name],
+            ['injured_id', acc.injured_id_number],
+            ['injured_occupation', acc.occupation_at_accident],
+            ['injured_address', acc.premises_address],
+            ['contact_person', acc.reporter_name],
+            ['nature_of_work', acc.nature_of_industry],
+        ].forEach(function(p) {
+            var el = formEl.querySelector('[name="' + p[0] + '"]');
+            if (el && p[1] && !el.value) el.value = p[1];
+        });
+        if (acc.injured_sex) {
+            var r = formEl.querySelector('[name="sex"][value="' + acc.injured_sex + '"]');
+            if (r) r.checked = true;
+        }
+        if (acc.injured_age) {
+            var a = parseInt(acc.injured_age);
+            var g = '';
+            if (a < 18) g = 'Under 18';
+            else if (a < 30) g = '18-29';
+            else if (a < 45) g = '30-44';
+            else if (a < 60) g = '45-59';
+            else g = '60+';
+            var el = formEl.querySelector('[name="age_group"]');
+            if (el && !el.value) el.value = g;
+        }
+        if (typeof showToast === 'function') {
+            showToast('Loaded: ' + (acc.accident_case_number || ''), 'success');
+        }
+    }
+
+    window.selectAccidentForForm19 = function(accidentId) {
+        supabaseClient.from('accident_reports').select('*').eq('id', accidentId).maybeSingle().then(function(res) {
+            if (res.data) fillFromAccident(res.data);
+        });
+    };
+
 }
 });
 </script>
