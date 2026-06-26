@@ -420,6 +420,7 @@ if (formEl) {
             payload.submitted_by = user.id;
             // Clear inv_ref_no so DB trigger assigns the real sequence number
             delete payload.inv_ref_no;
+            delete payload.accident_id;
             var result = await supabaseClient.from('ohs_form_19').insert([payload]).select();
             if (result.error) throw result.error;
             alert('Form 19 submitted successfully!');
