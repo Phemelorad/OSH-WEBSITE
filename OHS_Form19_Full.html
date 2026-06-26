@@ -76,7 +76,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <h3 class="section-title">1. Investigation Administration</h3>
 <div class="form-row">
 <div class="form-group"><label>Investigation Reference Number</label><input type="text" name="inv_ref_no" placeholder="e.g. INV-2024-001"></div>
-<div class="form-group"><label>Company / Case Search</label><input type="text" name="case_no" placeholder="Type company name to search their accidents" style="width:100%"><div id="accidentLookupResults" style="position:relative"></div></div>
+<div class="form-group"><label>Accident Case Number</label><input type="text" name="case_no" placeholder="Enter accident case number (e.g. ACC-2026-00007) or company name" style="width:100%"><div id="accidentLookupResults" style="position:relative"></div></div>
 </div>
 <div class="form-row">
 <div class="form-group"><label>District</label><input type="text" name="inv_district" placeholder="District where investigation is conducted"></div>
@@ -367,6 +367,35 @@ window.addEventListener('load', async function() {
     } else {
         setUserNameSafely(userResult.user.email.split('@')[0]);
     }
+
+    // ── Auto-fill Investigation Reference Number ──────────────
+    // Pre-fill INV-YYYY-NNNN based on max existing number
+    var invRefEl = document.querySelector('[name="inv_ref_no"]');
+    if (invRefEl) {
+        (async function() {
+            try {
+                var year = new Date().getFullYear();
+                var { data: maxRows } = await supabaseClient
+                    .from('ohs_form_19')
+                    .select('inv_ref_no')
+                    .like('inv_ref_no', 'INV-' + year + '-%')
+                    .order('inv_ref_no', { ascending: false })
+                    .limit(1);
+                var nextSeq = 1;
+                if (maxRows && maxRows.length > 0 && maxRows[0].inv_ref_no) {
+                    var parts = maxRows[0].inv_ref_no.split('-');
+                    if (parts.length >= 3) {
+                        var parsed = parseInt(parts[parts.length - 1]);
+                        if (!isNaN(parsed)) nextSeq = parsed + 1;
+                    }
+                }
+                invRefEl.value = 'INV-' + year + '-' + String(nextSeq).padStart(4, '0');
+            } catch(e) {
+                console.warn('Auto-fill inv_ref_no:', e);
+            }
+        })();
+    }
+
 var formEl = document.getElementById('form19');
 if (formEl) {
     formEl.addEventListener('submit', async function(e) {
@@ -389,6 +418,8 @@ if (formEl) {
             var user = await getCurrentUser();
             if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit Report'; btn.disabled = false; return; }
             payload.submitted_by = user.id;
+            // Clear inv_ref_no so DB trigger assigns the real sequence number
+            delete payload.inv_ref_no;
             var result = await supabaseClient.from('ohs_form_19').insert([payload]).select();
             if (result.error) throw result.error;
             alert('Form 19 submitted successfully!');
@@ -424,8 +455,8 @@ if (formEl) {
                 try {
                     var { data: accidents, error } = await supabaseClient
                         .from('accident_reports')
-                        .select('id, accident_case_number, occupier_name, accident_date, status, investigation_status, accident_place, injured_name')
-                        .ilike('occupier_name', '%' + val + '%')
+                        .select('*')
+                        .or('accident_case_number.ilike.%' + val + '%,occupier_name.ilike.%' + val + '%')
                         .neq('status', 'draft')
                         .order('accident_date', { ascending: false })
                         .limit(10);
@@ -473,37 +504,60 @@ if (formEl) {
         [
             ['employer_name', acc.occupier_name],
             ['employer_sector', acc.industry_sector],
-            ['incident_date', acc.accident_date],
-            ['incident_time', acc.accident_time],
-            ['incident_location', acc.accident_place],
-            ['incident_summary', acc.accident_description],
-            ['incident_description', acc.accident_description],
-            ['incident_reported_date', acc.report_date],
+            ['contact_person', acc.reporter_name],
+            ['contact_position', acc.reporter_designation],
+            ['nature_of_work', acc.nature_of_industry],
             ['injured_name', acc.injured_name],
             ['injured_id', acc.injured_id_number],
             ['injured_occupation', acc.occupation_at_accident],
             ['injured_address', acc.premises_address],
-            ['contact_person', acc.reporter_name],
-            ['nature_of_work', acc.nature_of_industry],
+            ['incident_location', acc.accident_place],
+            ['incident_date', acc.accident_date],
+            ['incident_time', acc.accident_time],
+            ['incident_reported_date', acc.report_date],
+            ['work_experience', acc.experience_level],
+            ['equipment_used', acc.machinery_involved],
+            ['incident_summary', acc.accident_description],
+            ['incident_description', acc.accident_description],
         ].forEach(function(p) {
             var el = formEl.querySelector('[name="' + p[0] + '"]');
             if (el && p[1] && !el.value) el.value = p[1];
         });
         if (acc.injured_sex) {
-            var r = formEl.querySelector('[name="sex"][value="' + acc.injured_sex + '"]');
+            var r = formEl.querySelector('[name="sex"][value="' + acc.injured_sex.toLowerCase() + '"]');
             if (r) r.checked = true;
         }
         if (acc.injured_age) {
             var a = parseInt(acc.injured_age);
             var g = '';
-            if (a < 18) g = 'Under 18';
-            else if (a < 30) g = '18-29';
-            else if (a < 45) g = '30-44';
-            else if (a < 60) g = '45-59';
-            else g = '60+';
-            var el = formEl.querySelector('[name="age_group"]');
-            if (el && !el.value) el.value = g;
+            if (a < 25) g = 'under-25';
+            else if (a < 35) g = '25-34';
+            else if (a < 45) g = '35-44';
+            else if (a < 55) g = '45-54';
+            else if (a < 65) g = '55-64';
+            else g = '65-plus';
+            var el = formEl.querySelector('[name="age_group"][value="" + g + ""]');
+            if (el) el.checked = true;
         }
+        // Injury result checkboxes
+        if (acc.injury_fatal) {
+            if (acc.injury_fatal === 'Fatal') {
+                var cb = formEl.querySelector('[name="injury_result_fatal"]');
+                if (cb) cb.checked = true;
+            } else if (acc.injury_fatal === 'Non-fatal') {
+                var cb = formEl.querySelector('[name="injury_result_non_fatal"]');
+                if (cb) cb.checked = true;
+            }
+        }
+
+        // Days absent dropdown
+        if (acc.disabled_three_days) {
+            var sel = formEl.querySelector('[name="days_absent"]');
+            if (sel) {
+                sel.value = acc.disabled_three_days === 'Yes' ? '4-plus' : '0-3';
+            }
+        }
+
         if (typeof showToast === 'function') {
             showToast('Loaded: ' + (acc.accident_case_number || ''), 'success');
         }
