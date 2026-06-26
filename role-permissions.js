@@ -38,18 +38,11 @@
     return false;
   };
 
-  };
-
-  window.hasRoleOverride = function() {
-    try {
-      return !!sessionStorage.getItem(DEV_ROLE_KEY);
-    } catch (e) { return false; }
-  };
-
   function getEffectiveRole(realRole) {
     // Dev override disabled in production for security (VULN-09)
     return realRole;
   }
+
 
   function clearLoadingFallback() {
     var el = document.getElementById('userName');
