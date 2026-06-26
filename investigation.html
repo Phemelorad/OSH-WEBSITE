@@ -336,7 +336,13 @@
             <div class="stat-card green"><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
         </div>
 
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tabAccidents" onclick="switchTab('accidents')">📋 Accident Cases</button>
+            <button class="tab-btn" id="tabForm19" onclick="switchTab('form19')">📝 OHS Form 19</button>
+        </div>
+
         <div class="section-card">
+            <div id="tabContentAccidents">
             <div class="section-header">
                 <h2>📋 Accident Cases</h2>
                 <div class="filters">
@@ -390,6 +396,53 @@
                 <div id="emptyState" class="empty-state" style="display:none"><p>🔍 No investigation cases found</p></div>
                 <div class="row-count" id="rowCount"></div>
             </div>
+            </div>
+
+            <!-- ── Form 19 tab content ── -->
+            <div id="tabContentForm19" style="display:none">
+            <div class="section-header">
+                <h2>📝 OHS Form 19 Entries</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" id="form19Search" placeholder="Employer / Injured / Case No…" oninput="applyForm19Filters()" style="width:160px">
+                    </div>
+                    <div class="filter-group">
+                        <label>Inv. Status</label>
+                        <select id="form19Status" onchange="applyForm19Filters()">
+                            <option value="">All Statuses</option>
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div id="form19Loading" class="loading" style="display:none"><div class="spinner"></div><p>Loading Form 19 entries…</p></div>
+
+            <div id="form19TableWrap" style="display:none">
+                <div class="table-container">
+                    <table>
+                        <thead><tr>
+                            <th>Inv. Ref No</th>
+                            <th>Employer</th>
+                            <th>Injured Person</th>
+                            <th>Incident Date</th>
+                            <th>Incident Location</th>
+                            <th>Inv. Status</th>
+                            <th>Lead Investigator</th>
+                            <th>Actions</th>
+                        </tr></thead>
+                        <tbody id="form19TableBody"></tbody>
+                    </table>
+                </div>
+                <div id="form19EmptyState" class="empty-state" style="display:none"><p>📝 No OHS Form 19 entries found</p></div>
+                <div class="row-count" id="form19RowCount"></div>
+            </div>
+            </div>
         </div>
     </div>
 
@@ -405,11 +458,14 @@
 <script src="nav.js"></script>
 
 <script src="claim-service.js"></script>
+
 <script>
     
     const SB = window.supabaseClient;
     let allAccidents = [];
     let allInjuries = [];
+    let allForm19 = [];
+    let allForm19 = [];
 
     window.addEventListener('load', async () => {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
@@ -494,6 +550,7 @@
 
             buildStats(allAccidents);
             renderTable(allAccidents);
+            loadForm19Data();
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('tableWrap').style.display = 'block';
         } catch (err) {
@@ -504,15 +561,14 @@
 
     function buildStats(accidents) {
         const total = accidents.length;
-        const fatal = accidents.filter(a => a.fatal).length;
         const workers = accidents.reduce((s, a) => s + a.workerCount, 0);
         const pending = accidents.filter(a => a.status === 'Pending').length;
         const inProgress = accidents.filter(a => a.status === 'In Progress').length;
         const completed = accidents.filter(a => a.status === 'Completed' || a.status === 'Closed').length;
 
         document.getElementById('statTotal').textContent = total;
-        document.getElementById('statFatal').textContent = fatal;
-        document.getElementById('statWorkers').textContent = workers;
+        document.getElementById('statAccidents').textContent = accidents.filter(a => a.type === 'accident' || a.type === 'both').length;
+        document.getElementById('statInjuries').textContent = workers;
         document.getElementById('statPending').textContent = pending;
         document.getElementById('statInProgress').textContent = inProgress;
         document.getElementById('statCompleted').textContent = completed;
@@ -862,5 +918,6 @@
     }
 
 </script>
+<script src="form19-investigation.js"></script>
 </body>
 </html>
