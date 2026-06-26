@@ -61,7 +61,7 @@ async function handleLogout() {
       if (!user) return;
       var { data: profile } = await window.supabaseClient
         .from('user_profiles')
-        .select('role, company_id, company_name')
+        .select('role, company_id')
         .eq('user_id', user.id)
         .single();
       if (!profile || profile.role !== 'company') return;

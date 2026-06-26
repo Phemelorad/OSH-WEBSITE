@@ -76,9 +76,9 @@
 
       var profileResult = await getUserProfile(currentUserId);
       if (profileResult.success && profileResult.data) {
-        currentUserRole = getEffectiveRole(profileResult.data.role || 'viewer');
+        currentUserRole = getEffectiveRole(profileResult.data ? (profileResult.data.role || 'viewer') : 'viewer');
         // Role container display now gated by DB role only
-        if (cached.role === 'super_admin') {
+        if (cached && cached.role === 'super_admin') {
           var el = document.getElementById('userRoleContainer');
           if (el) el.style.display = '';
         }
