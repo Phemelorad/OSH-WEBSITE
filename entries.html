@@ -294,6 +294,128 @@
                 align-items: stretch;
             }
         }
+    
+/* ── Modal / Form view styles ── */
+.rec-modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.35);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999; padding:20px;
+}
+.rec-modal {
+    background:white; border-radius:14px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.18);
+    width:100%; max-width:640px; max-height:85vh;
+    overflow-y:auto; padding:28px 26px;
+}
+.rec-modal-header {
+    display:flex; justify-content:space-between;
+    align-items:flex-start; margin-bottom:20px;
+    padding-bottom:16px; border-bottom:2px solid #f0f0f0;
+}
+.rec-modal-header h2 { margin:0; color:#222; font-size:17px; }
+.rec-modal-header .subtitle { font-size:12px; color:#888; margin-top:2px; }
+.rec-modal-close {
+    width:32px; height:32px; border-radius:50%;
+    border:none; background:#f5f5f5; cursor:pointer;
+    font-size:18px; display:flex; align-items:center;
+    justify-content:center; transition:all 0.2s; color:#555; flex-shrink:0;
+}
+.rec-modal-close:hover { background:#e0e0e0; }
+.rec-modal-body { }
+.rec-section {
+    margin-bottom:16px; border:1px solid #e8e8e8;
+    border-radius:12px; overflow:hidden;
+}
+.rec-section:last-child { margin-bottom:0; }
+.rec-section-header {
+    padding:12px 16px; font-size:12px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    border-bottom:1px solid #f0f0f0;
+}
+.rec-section-header.worker { background:#fff3cd; color:#856404; border-bottom-color:#ffeeba; }
+.rec-section-header.incident { background:#f8d7da; color:#721c24; border-bottom-color:#f5c6cb; }
+.rec-section-header.employer { background:#e8f4fd; color:#0c5460; border-bottom-color:#bee5eb; }
+.rec-section-header.report { background:#e2e3e5; color:#383d41; border-bottom-color:#d6d8db; }
+.rec-section-body { padding:8px 16px; }
+.rec-field {
+    display:flex; justify-content:space-between;
+    align-items:flex-start; padding:7px 0;
+    border-bottom:1px solid #f8f8f8; gap:16px;
+}
+.rec-field:last-child { border-bottom:none; }
+.rec-field .lbl { font-size:12px; color:#888; min-width:130px; flex-shrink:0; font-weight:500; }
+.rec-field .val { font-size:13px; color:#333; text-align:right; line-height:1.4; font-weight:500; }
+
+/* ── Form view modal styles ── */
+.rec-form-modal {
+    max-width: 1000px !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+}
+.form-view-body {
+    overflow-y: auto;
+    padding: 0 !important;
+    flex: 1;
+    background: #f5f5f5;
+}
+.form-view-body .form-card {
+    background: white; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 30px; margin: 20px;
+    border: 1px solid #e0e0e0;
+}
+.form-view-body .form-header {
+    text-align: center; margin-bottom: 24px;
+    padding-bottom: 20px; border-bottom: 2px solid #f0f0f0;
+}
+.form-view-body .form-header h1 { color: #333; font-size: 18px; margin-bottom: 4px; }
+.form-view-body .form-header .subtitle { color: #666; font-size: 12px; line-height: 1.5; }
+.form-view-body .section-title {
+    color: #333; font-size: 14px; font-weight: 700;
+    margin-bottom: 14px; padding: 8px 12px;
+    background: #f5f5f5; border-left: 4px solid #333;
+    border-radius: 0 6px 6px 0;
+}
+.form-view-body .section-title.claim { border-left-color: #6f42c1; }
+.form-view-body .section-title.employer-title { border-left-color: #17a2b8; background: #e8f4fd; color: #0c5460; }
+.form-view-body .section-title.injury-title { border-left-color: #dc3545; }
+.form-view-body .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin-bottom: 14px;
+}
+.form-view-body .form-row-2 { grid-template-columns: repeat(2,1fr); }
+.form-view-body .form-row-3 { grid-template-columns: repeat(3,1fr); }
+.form-view-body .form-group { margin-bottom: 2px; }
+.form-view-body .form-group label { display: block; color: #444; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+.form-view-body .form-group input,
+.form-view-body .form-group select,
+.form-view-body .form-group textarea { width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; box-sizing: border-box; }
+.form-view-body .form-group input:disabled,
+.form-view-body .form-group select:disabled,
+.form-view-body .form-group textarea:disabled { background: #f9f9f9; color: #333; border-color: #e8e8e8; cursor: default; opacity: 1; -webkit-text-fill-color: #333; }
+.form-view-body .gov-logo { display: flex; justify-content: center; margin-bottom: 8px; }
+.form-view-body .gov-logo img { width: 60px; height: 46px; object-fit: contain; }
+.form-view-body .rec-modal-actions { display: flex; gap: 8px; align-items: center; }
+.form-view-body .rec-modal-btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #ddd; font-family: inherit; background: white; transition: all 0.2s; }
+.form-view-body .rec-modal-btn:hover { background: #f0f0f0; }
+.form-view-body .rec-modal-btn.print { background: #333; color: white; border-color: #333; }
+.form-view-body .rec-modal-btn.print:hover { background: #555; }
+@media print {
+    body * { visibility: hidden; }
+    .rec-modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: white !important; z-index: 999999 !important; display: block !important; visibility: visible !important; }
+    .rec-modal-overlay * { visibility: visible; }
+    .rec-modal-header { display: none !important; }
+    .rec-form-modal { max-width: 100% !important; width: 100% !important; max-height: none !important; box-shadow: none !important; border-radius: 0 !important; overflow: visible !important; }
+    .form-view-body { overflow: visible !important; }
+    .form-view-body .form-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #ddd !important; margin: 12px !important; }
+    .form-view-body .form-group input:disabled, .form-view-body .form-group select:disabled, .form-view-body .form-group textarea:disabled { background: #fff !important; border-color: #ccc !important; }
+}
+
     </style>
 </head>
 <body>
@@ -594,7 +716,52 @@
 
         function viewClaim(claimId) {
             const claim = allClaims.find(c => c.id === claimId);
-            if (claim) showClaimDetails(claim);
+            if (!claim) return;
+            
+            function esc(s) { return s != null ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+            function inp(type, val) { return '<input type="' + type + '" value="' + esc(val != null ? val : '') + '" disabled>'; }
+            function ta(val) { return '<textarea disabled style="min-height:50px">' + esc(val != null ? val : '') + '</textarea>'; }
+            function sel(val, opts) { var h = '<select disabled>'; opts.forEach(function(o) { h += '<option' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }); h += '</select>'; return h; }
+            function fg(label, inputHtml) { return '<div class="form-group"><label>' + label + '</label>' + inputHtml + '</div>'; }
+            function section_(title, extraCls) { return '<div class="section-title' + (extraCls ? ' ' + extraCls : '') + '">' + title + '</div>'; }
+            
+            var statusDisplay = claim.status ? claim.status.replace('_',' ').toUpperCase() : 'Unknown';
+            var genderDisplay = claim.gender === 'M' ? 'Male' : (claim.gender === 'F' ? 'Female' : (claim.gender || ''));
+            
+            var html = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh">';
+            html += '<div class="rec-modal-header" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;background:white">';
+            html += '<div><h2 style="margin:0;font-size:18px">Compensation Claim Details</h2><div class="subtitle" style="font-size:12px;color:#888">' + esc(claim.file_number || '') + '</div></div>';
+            html += '<div class="rec-modal-actions"><button class="rec-modal-btn print" onclick="window.print()">🖨️ Print</button>';
+            html += '<button class="rec-modal-close" id="recFormCloseBtn" style="width:32px;height:32px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px">✕</button></div></div>';
+            html += '<div class="form-view-body" style="flex:1;overflow-y:auto;background:#f5f5f5">';
+            html += '<div class="form-card"><div class="form-header"><h1>Injury Compensation Claim</h1><div class="subtitle">BL Form 43 — Workers Compensation</div></div>';
+            
+            html += section_('Claimant Details', 'claim');
+            html += '<div class="form-row form-row-2">' + fg('Claimant Name', inp('text', claim.name_of_claimant)) + fg('Gender', inp('text', genderDisplay)) + '</div>';
+            html += '<div class="form-row form-row-2">' + fg('Location', inp('text', claim.location)) + fg('Nationality', inp('text', claim.nationality)) + '</div>';
+            
+            html += section_('Injury Details', 'injury-title');
+            html += '<div class="form-row">' + fg('File Number', inp('text', claim.file_number)) + '</div>';
+            html += '<div class="form-row form-row-2">' + fg('Date of Injury', inp('date', claim.date_of_injury)) + fg('Cause', inp('text', claim.cause)) + '</div>';
+            html += '<div class="form-row form-row-2">' + fg('Nature of Injury', inp('text', claim.nature)) + fg('Incapacity %', inp('text', claim.incapacity_percentage != null ? claim.incapacity_percentage + '%' : '')) + '</div>';
+            
+            html += section_('Employer Details', 'employer-title');
+            html += '<div class="form-row form-row-2">' + fg('Employer Name', inp('text', claim.name_of_employer)) + fg('Industry', inp('text', claim.industry)) + '</div>';
+            
+            html += section_('Status', 'claim');
+            html += '<div class="form-row">' + fg('Status', inp('text', statusDisplay)) + '</div>';
+            
+            html += '</div></div></div>';
+            
+            return new Promise(function(resolve) {
+                var overlay = document.createElement('div');
+                overlay.className = 'rec-modal-overlay';
+                overlay.innerHTML = html;
+                var closeBtn = overlay.querySelector('#recFormCloseBtn');
+                if (closeBtn) closeBtn.addEventListener('click', function() { overlay.remove(); resolve(); });
+                overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); resolve(); } });
+                document.body.appendChild(overlay);
+            });
         }
 
         async function editStatus(claimId, currentStatus, claimOwnerId) {
