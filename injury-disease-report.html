@@ -748,7 +748,13 @@
             });
         }
         attachCompanyAutofill();
-    });
+    
+        // -- View mode --
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === '1') {
+            await window.initViewMode('injury_disease_reports');
+        }
+});
     
     // ── Accident Search & Link ────────────────────────
     let accidentSearchTimer = null;

@@ -715,54 +715,11 @@
         }
 
         function viewClaim(claimId) {
-            const claim = allClaims.find(c => c.id === claimId);
+            var claim = allClaims.find(function(c) { return c.id === claimId; });
             if (!claim) return;
-            
-            function esc(s) { return s != null ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
-            function inp(type, val) { return '<input type="' + type + '" value="' + esc(val != null ? val : '') + '" disabled>'; }
-            function ta(val) { return '<textarea disabled style="min-height:50px">' + esc(val != null ? val : '') + '</textarea>'; }
-            function sel(val, opts) { var h = '<select disabled>'; opts.forEach(function(o) { h += '<option' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }); h += '</select>'; return h; }
-            function fg(label, inputHtml) { return '<div class="form-group"><label>' + label + '</label>' + inputHtml + '</div>'; }
-            function section_(title, extraCls) { return '<div class="section-title' + (extraCls ? ' ' + extraCls : '') + '">' + title + '</div>'; }
-            
-            var statusDisplay = claim.status ? claim.status.replace('_',' ').toUpperCase() : 'Unknown';
-            var genderDisplay = claim.gender === 'M' ? 'Male' : (claim.gender === 'F' ? 'Female' : (claim.gender || ''));
-            
-            var html = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh">';
-            html += '<div class="rec-modal-header" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;background:white">';
-            html += '<div><h2 style="margin:0;font-size:18px">Compensation Claim Details</h2><div class="subtitle" style="font-size:12px;color:#888">' + esc(claim.file_number || '') + '</div></div>';
-            html += '<div class="rec-modal-actions"><button class="rec-modal-btn print" onclick="window.print()">🖨️ Print</button>';
-            html += '<button class="rec-modal-close" id="recFormCloseBtn" style="width:32px;height:32px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px">✕</button></div></div>';
-            html += '<div class="form-view-body" style="flex:1;overflow-y:auto;background:#f5f5f5">';
-            html += '<div class="form-card"><div class="form-header"><h1>Injury Compensation Claim</h1><div class="subtitle">BL Form 43 — Workers Compensation</div></div>';
-            
-            html += section_('Claimant Details', 'claim');
-            html += '<div class="form-row form-row-2">' + fg('Claimant Name', inp('text', claim.name_of_claimant)) + fg('Gender', inp('text', genderDisplay)) + '</div>';
-            html += '<div class="form-row form-row-2">' + fg('Location', inp('text', claim.location)) + fg('Nationality', inp('text', claim.nationality)) + '</div>';
-            
-            html += section_('Injury Details', 'injury-title');
-            html += '<div class="form-row">' + fg('File Number', inp('text', claim.file_number)) + '</div>';
-            html += '<div class="form-row form-row-2">' + fg('Date of Injury', inp('date', claim.date_of_injury)) + fg('Cause', inp('text', claim.cause)) + '</div>';
-            html += '<div class="form-row form-row-2">' + fg('Nature of Injury', inp('text', claim.nature)) + fg('Incapacity %', inp('text', claim.incapacity_percentage != null ? claim.incapacity_percentage + '%' : '')) + '</div>';
-            
-            html += section_('Employer Details', 'employer-title');
-            html += '<div class="form-row form-row-2">' + fg('Employer Name', inp('text', claim.name_of_employer)) + fg('Industry', inp('text', claim.industry)) + '</div>';
-            
-            html += section_('Status', 'claim');
-            html += '<div class="form-row">' + fg('Status', inp('text', statusDisplay)) + '</div>';
-            
-            html += '</div></div></div>';
-            
-            return new Promise(function(resolve) {
-                var overlay = document.createElement('div');
-                overlay.className = 'rec-modal-overlay';
-                overlay.innerHTML = html;
-                var closeBtn = overlay.querySelector('#recFormCloseBtn');
-                if (closeBtn) closeBtn.addEventListener('click', function() { overlay.remove(); resolve(); });
-                overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); resolve(); } });
-                document.body.appendChild(overlay);
-            });
+            window.location.href = 'form-43-02-wages.html?id=' + claimId + '&view=1';
         }
+
 
         async function editStatus(claimId, currentStatus, claimOwnerId) {
             if (!canEditClaims(claimOwnerId)) {

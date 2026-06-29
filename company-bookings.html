@@ -397,67 +397,6 @@
 
     // ── View booking details modal ────────────────────────────
     
-    async function viewBooking(id) {
-        try {
-            const r = allBookings.find(x => x.id === id);
-            if (!r) { console.warn('Booking not found', id); return; }
-            
-            function esc(s) { return s != null ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
-            function fmtDate(d) { if (!d) return ''; try { var dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toISOString().split('T')[0]; } catch(e) { return d; } }
-            function inp(type, val) { return '<input type="' + type + '" value="' + esc(val != null ? val : '') + '" disabled>'; }
-            function ta(val) { return '<textarea disabled style="min-height:50px">' + esc(val != null ? val : '') + '</textarea>'; }
-            function sel(val, opts) { var h = '<select disabled>'; opts.forEach(function(o) { h += '<option' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }); h += '</select>'; return h; }
-            function fg(label, inputHtml) { return '<div class="form-group"><label>' + label + '</label>' + inputHtml + '</div>'; }
-            function section_(title) { return '<div class="section-title">' + title + '</div>'; }
-            
-            var statusDisplay = r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : 'Unknown';
-            
-            var html = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh">';
-            html += '<div class="rec-modal-header" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;background:white">';
-            html += '<div><h2 style="margin:0;font-size:18px">Inspection Booking</h2><div class="subtitle" style="font-size:12px;color:#888">Status: ' + statusDisplay + '</div></div>';
-            html += '<div class="rec-modal-actions"><button class="rec-modal-btn print" onclick="window.print()">🖨️ Print</button>';
-            html += '<button class="rec-modal-close" id="recFormCloseBtn" style="width:32px;height:32px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px">✕</button></div></div>';
-            html += '<div class="form-view-body" style="flex:1;overflow-y:auto;background:#f5f5f5">';
-            html += '<div class="form-card"><div class="form-header"><h1>Request an Inspection</h1><div class="subtitle">Department of Occupational Health and Safety</div></div>';
-            html += section_('Company Information') + '<div class="form-row">' + fg('Company Name', inp('text', r.company_name)) + '</div>';
-            html += '<div class="form-row form-row-3">' + fg('Contact Name', inp('text', r.contact_name)) + fg('Contact Email', inp('email', r.contact_email)) + fg('Contact Phone', inp('tel', r.contact_phone)) + '</div>';
-            html += section_('Inspection Details') + '<div class="form-row form-row-2">' + fg('Preferred Date', inp('date', r.preferred_date)) + fg('Preferred Time', sel(r.preferred_time||'', ['Morning','Afternoon','Flexible'])) + '</div>';
-            html += '<div class="form-row">' + fg('Location / Premises Address', inp('text', r.location)) + '</div>';
-            html += '<div class="form-row form-row-2">' + fg('Nature of Work', inp('text', r.nature_of_work)) + fg('Industry Type', sel(r.industry_type||'', ['Manufacturing','Services','Construction','Agriculture','Transport','Retail','Government','Parastatal'])) + '</div>';
-            html += section_('Additional Information') + '<div class="form-row form-row-2">' + fg('Notes / Reason for Request', ta(r.notes)) + fg('Special Requirements', ta(r.special_requirements)) + '</div>';
-            
-            // Officer response section
-            html += section_('Officer Response', 'official');
-                html += '<div class="form-row form-row-3">' + fg('Assigned Inspector', inp('text', r.assigned_inspector));
-                html += fg('Scheduled Date', inp('date', r.scheduled_date)) + fg('Scheduled Time', inp('text', r.scheduled_time)) + '</div>';
-                html += fg('Admin Notes', ta(r.admin_notes));
-            
-            html += '</div></div></div>';
-            
-            return new Promise(function(resolve) {
-                var ov = document.createElement('div');
-                ov.className = 'rec-modal-overlay';
-                ov.innerHTML = html;
-                var closeBtn = ov.querySelector('#recFormCloseBtn');
-                if (closeBtn) closeBtn.addEventListener('click', function() { ov.remove(); resolve(); });
-                ov.addEventListener('click', function(e) { if (e.target === ov) { ov.remove(); resolve(); } });
-                document.body.appendChild(ov);
-            });
-        } catch(e) {
-            console.error('viewBooking error:', e);
-            await showAlert('Failed to open booking details: ' + e.message, { type: 'error', title: 'View Error' });
-        }
+        async function viewBooking(id) {
+        window.location.href = 'company-book-inspection.html?id=' + id + '&view=1';
     }
-);
-        }
-    }
-
-    // ── Helper: format date ──────────────────────────────────
-    function fmtDate(d) {
-        if (!d) return '—';
-        const dt = new Date(d);
-        return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-    }
-    </script>
-</body>
-</html>

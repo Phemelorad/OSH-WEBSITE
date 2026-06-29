@@ -571,6 +571,12 @@ if (formEl) {
     };
 
 }
+
+        // -- View mode --
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === '1') {
+            await window.initViewMode('ohs_form_19');
+        }
 });
 </script>
 </body>

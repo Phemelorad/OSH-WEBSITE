@@ -395,7 +395,13 @@
     async function resetForm() {
         const ok = await showConfirm('All entered data will be cleared.', {
             title: 'Reset Form', icon: '🔄', confirmText: 'Reset', danger: true
-        });
+        
+        // -- View mode --
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === '1') {
+            await window.initViewMode('inspection_bookings');
+        }
+});
         if (ok) {
             document.getElementById('bookingForm').reset();
             await reFillCompanyData();

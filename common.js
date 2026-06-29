@@ -346,4 +346,125 @@ async function handleLogout() {
   };
 
 
+
+  // ============================================
+  // VIEW MODE — Load record data into a form and make it read-only
+  // Call from form pages:  window.initViewMode('table_name', { fieldOverrides: {...} })
+  // ============================================
+  
+  window.snakeToCamel = function(str) {
+    return str.replace(/_([a-z])/g, function(_, c) { return c.toUpperCase(); });
+  };
+  
+  window.initViewMode = async function(tableName, opts) {
+    opts = opts || {};
+    var urlParams = new URLSearchParams(window.location.search);
+    var id = urlParams.get('id');
+    var view = urlParams.get('view');
+    
+    if (!id || view !== '1') return;
+    
+    try {
+      var { data, error } = await window.supabaseClient
+        .from(tableName)
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (error || !data) {
+        console.error('initViewMode: Failed to load record', error || 'Not found');
+        return;
+      }
+      
+      // Populate standard form fields by ID or name attribute
+      Object.keys(data).forEach(function(key) {
+        var fieldId = window.snakeToCamel(key);
+        var value = data[key];
+        var el = document.getElementById(fieldId);
+        // Fallback: match by name attribute (snake_case matches DB column)
+        if (!el) {
+          el = document.getElementsByName(key)[0];
+        }
+        if (el) {
+          if (el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+            el.value = value != null ? value : '';
+          } else if (el.tagName === 'INPUT') {
+            if (el.type === 'radio') {
+              var radio = document.querySelector('input[name="' + el.name + '"][value="' + (value || '') + '"]');
+              if (radio) radio.checked = true;
+            } else if (el.type === 'checkbox') {
+              el.checked = value === true || value === 'yes' || value === 'Yes';
+            } else {
+              el.value = value != null ? value : '';
+            }
+          }
+        }
+      });
+      
+      // Apply field overrides for non-standard mappings
+      if (opts.fieldOverrides) {
+        Object.keys(opts.fieldOverrides).forEach(function(fieldId) {
+          var el = document.getElementById(fieldId);
+          if (el) {
+            var val = opts.fieldOverrides[fieldId];
+            if (typeof val === 'function') {
+              val(el, data);
+            } else if (el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+              el.value = val != null ? val : '';
+            } else if (el.tagName === 'INPUT' && el.type !== 'radio' && el.type !== 'checkbox') {
+              el.value = val != null ? val : '';
+            }
+          }
+        });
+      }
+      
+      // Custom callback after population
+      if (opts.afterPopulate) opts.afterPopulate(data);
+      
+      // Disable all form inputs (except hidden)
+      document.querySelectorAll('input, select, textarea').forEach(function(el) {
+        if (el.type !== 'hidden') el.disabled = true;
+      });
+      
+      // Hide submit/reset buttons
+      document.querySelectorAll('.form-actions, button[type="submit"], .btn-primary, .btn-secondary, #submitBtn, .reset-btn, [onclick*="resetForm"]').forEach(function(el) {
+        el.style.display = 'none';
+      });
+      
+      // Add view-mode header with back and print buttons
+      var existingHeader = document.querySelector('.view-mode-header');
+      if (!existingHeader) {
+        var header = document.createElement('div');
+        header.className = 'view-mode-header';
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#f8f9fa;border-bottom:2px solid #dee2e6;position:sticky;top:0;z-index:1000';
+        header.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:20px">\uD83D\uDCC4</span><span style="font-weight:600;color:#333;font-size:15px">Viewing Record</span><span style="font-size:12px;color:#888;background:#e9ecef;padding:2px 10px;border-radius:10px">Read Only</span></div><div style="display:flex;gap:8px"><button class="view-mode-print" style="padding:8px 18px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">\uD83D\uDDA8\uFE0F Print</button><button class="view-mode-back" style="padding:8px 18px;background:white;color:#333;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">\u2190 Back</button></div>';
+        
+        header.querySelector('.view-mode-print').addEventListener('click', function() { window.print(); });
+        header.querySelector('.view-mode-back').addEventListener('click', function() { window.history.back(); });
+        
+        var navbars = document.querySelectorAll('.navbar');
+        if (navbars.length > 0) {
+          navbars[0].parentNode.insertBefore(header, navbars[0]);
+        } else {
+          document.body.insertBefore(header, document.body.firstChild);
+        }
+      }
+      
+      // Add print CSS
+      if (!document.getElementById('view-mode-print-styles')) {
+        var ps = document.createElement('style');
+        ps.id = 'view-mode-print-styles';
+        ps.textContent = '@media print { .view-mode-header, .navbar, .logout-btn, .user-info, .form-actions { display:none !important; } body { background:white !important; } }';
+        document.head.appendChild(ps);
+      }
+      
+      // Hide navigation/header elements
+      var navbars = document.querySelectorAll('.navbar');
+      navbars.forEach(function(n) { n.style.display = 'none'; });
+      
+    } catch(e) {
+      console.error('initViewMode error:', e);
+    }
+  };
+
 })();

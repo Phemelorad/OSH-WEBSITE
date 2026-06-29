@@ -365,5 +365,115 @@
   <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
 </div>
 
+
+<!-- View-mode scripts -->
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script>
+window.addEventListener('load', async function() {
+  var form36Params = new URLSearchParams(window.location.search);
+  if (!form36Params.get('id') || form36Params.get('view') !== '1') return;
+
+  try {
+    var { data, error } = await window.supabaseClient
+      .from('workplace_inspections')
+      .select('*')
+      .eq('id', form36Params.get('id'))
+      .maybeSingle();
+
+    if (error || !data) {
+      console.error('View mode: Failed to load inspection record', error || 'Not found');
+      return;
+    }
+
+    // Populate the form fields - the form uses <span class="dline"> and stretch divs
+
+
+    // Set the data into the visible dline spans by finding label text
+
+    // Disable all dline spans (show as read-only)
+    document.querySelectorAll('.dline').forEach(function(el) {
+      el.style.borderBottom = '1px solid #999';
+    });
+
+    // Add view-mode header (same as initViewMode pattern)
+    var header = document.createElement('div');
+    header.className = 'view-mode-header';
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#f8f9fa;border-bottom:2px solid #dee2e6;position:sticky;top:0;z-index:1000';
+    header.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:20px">📄</span><span style="font-weight:600;color:#333;font-size:15px">Viewing Inspection Record</span><span style="font-size:12px;color:#888;background:#e9ecef;padding:2px 10px;border-radius:10px">Read Only</span></div><div style="display:flex;gap:8px"><button class="view-mode-print" style="padding:8px 18px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🖨️ Print</button><button class="view-mode-back" style="padding:8px 18px;background:white;color:#333;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">← Back</button></div>';
+    
+    header.querySelector('.view-mode-print').addEventListener('click', function() { window.print(); });
+    header.querySelector('.view-mode-back').addEventListener('click', function() { window.history.back(); });
+    document.body.insertBefore(header, document.body.firstChild);
+
+    // Add print CSS
+    var ps = document.createElement('style');
+    ps.textContent = '@media print { .view-mode-header, .navbar { display:none !important; } body { background:white !important; } }';
+    document.head.appendChild(ps);
+
+    // Set the data into the visible dline spans by finding label text
+    // Find spans by their associated labels text
+
+    // Render data into visible field lines
+    if (data.file_number) {
+      // Try to find a stretch after "Registration No." label
+      var regLabel = null;
+      document.querySelectorAll('.info-row > span').forEach(function(s) {
+        if (s.textContent.trim().indexOf('Registration') === 0) regLabel = s;
+      });
+      if (regLabel) {
+        var row = regLabel.closest('.info-row');
+        if (row) {
+          var stretch = row.querySelector('.stretch');
+          if (stretch && data.file_number) stretch.textContent = ' ' + data.file_number;
+        }
+      }
+    }
+
+    // Fill in the stretch elements by scanning label text
+    document.querySelectorAll('.info-row').forEach(function(row) {
+      var label = row.querySelector('span:first-child');
+      if (!label) return;
+      var text = label.textContent.trim();
+      var stretch = row.querySelector('.stretch');
+      if (!stretch) return;
+
+      if (text.indexOf('Name of Factory') === 0) {
+        stretch.textContent = ' ' + (data.factory_name || '');
+      } else if (text.indexOf('Nature of Work') === 0) {
+        stretch.textContent = ' ' + (data.nature_of_work || '');
+      } else if (text.indexOf('Date of Inspection') === 0) {
+        stretch.textContent = ' ' + (data.inspection_date ? new Date(data.inspection_date).toLocaleDateString('en-ZA') : '');
+      } else if (text.indexOf('Name of Person') === 0) {
+        stretch.textContent = ' ' + (data.inspector_name || '');
+      } else if (text.indexOf('Stand/Plot') === 0) {
+        stretch.textContent = ' ' + (data.location || '');
+      } else if (text.indexOf('Postal Address') === 0) {
+        // Not in the table - leave blank
+      }
+    });
+
+    // Fill persons row
+    document.querySelectorAll('.persons-row').forEach(function(row) {
+      var spans = row.querySelectorAll('span');
+      var plines = row.querySelectorAll('.pline');
+      if (plines.length >= 3) {
+        plines[0].textContent = ' ' + (data.employees_male || '');
+        plines[1].textContent = ' ' + (data.employees_female || '');
+        plines[2].textContent = ' ' + ((data.employees_male || 0) + (data.employees_female || 0));
+      }
+    });
+
+    console.log('View mode: Inspection record loaded successfully');
+  } catch(e) {
+    console.error('View mode error:', e);
+  }
+});
+</script>
+
 </body>
 </html>

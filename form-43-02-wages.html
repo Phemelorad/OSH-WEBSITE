@@ -198,6 +198,12 @@ if (formEl) {
         }
     });
 }
+    
+    // View-mode: if ?id=xxx&view=1, load and display record read-only
+    var wagesUrlParams = new URLSearchParams(window.location.search);
+    if (wagesUrlParams.get('id') && wagesUrlParams.get('view') === '1') {
+        await window.initViewMode('bl_form_43_02_wages');
+    }
 });
 </script></body>
 </html>

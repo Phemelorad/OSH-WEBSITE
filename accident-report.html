@@ -894,7 +894,34 @@
             var officialBox = document.querySelector('.official-box');
             if (officialBox) officialBox.appendChild(notice);
         }
-    });
+    
+        // -- View mode --
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === '1') {
+            await window.initViewMode('accident_reports', {
+                afterPopulate: async function(data) {
+                    var pRes = await window.supabaseClient
+                        .from('accident_injured_persons')
+                        .select('*')
+                        .eq('accident_report_id', data.id)
+                        .order('sort_order');
+                    if (pRes.data && pRes.data.length > 0) {
+                        var container = document.getElementById('injuredPersonsContainer');
+                        if (container) container.innerHTML = '';
+                        pRes.data.forEach(function(p) {
+                            if (typeof addPersonEntry === 'function') addPersonEntry(p);
+                        });
+                        document.querySelectorAll('.injured-field, .accident-field').forEach(function(f) { f.disabled = true; });
+                    }
+                    document.querySelectorAll('.btn-remove-person').forEach(function(b) { b.disabled = true; b.style.opacity = '0.3'; });
+                    var addBtn = document.getElementById('addInjuredPersonBtn');
+                    if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.3'; addBtn.style.cursor = 'not-allowed'; }
+                    document.getElementById('accidentSection').style.display = 'block';
+                    document.getElementById('dangerousSection').style.display = 'block';
+                }
+            });
+        }
+});
     </script>
 </body>
 </html>
