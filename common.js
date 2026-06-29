@@ -76,7 +76,7 @@ async function handleLogout() {
       if (companyId) {
         var { data: company } = await window.supabaseClient
           .from('companies')
-          .select('company_name, physical_address, plot_number, street_name, location, industry_sector')
+          .select('company_name, physical_address, plot_number, street_name, industry')
           .eq('id', companyId)
           .single();
         if (company) {
@@ -85,11 +85,11 @@ async function handleLogout() {
           if (occEl && !occEl.value) occEl.value = companyName;
           var addrEl = document.getElementById('premisesAddress');
           if (addrEl && !addrEl.value) {
-            var parts = [company.physical_address, company.plot_number, company.street_name, company.location].filter(Boolean);
+            var parts = [company.physical_address, company.plot_number, company.street_name].filter(Boolean);
             addrEl.value = parts.join(', ');
           }
           var indEl = document.getElementById('natureOfIndustry');
-          if (indEl && !indEl.value && company.industry_sector) indEl.value = company.industry_sector;
+          if (indEl && !indEl.value && company.industry) indEl.value = company.industry;
         }
       }
       if (companyName) {
