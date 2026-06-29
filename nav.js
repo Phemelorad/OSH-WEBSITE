@@ -350,7 +350,7 @@ margin-right: 6px;
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'accident-report', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Report', href: 'accident-report.html' },
-          { id: 'company-accidents-view', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'My Accidents', href: 'company-accidents-view.html' },
+          { id: 'company-accidents-view', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'My Accidents', href: 'company-accidents-view.html', notification:'company-accidents' },
         ]
       },
       {
@@ -359,7 +359,7 @@ margin-right: 6px;
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'injury-disease-report', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report', href: 'injury-disease-report.html' },
-          { id: 'company-injuries-view', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'My Injuries', href: 'company-injuries-view.html' },
+          { id: 'company-injuries-view', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'My Injuries', href: 'company-injuries-view.html', notification:'company-injuries' },
         ]
       },
       {
@@ -580,6 +580,13 @@ margin-right: 6px;
     }
   });
 
+  // ── Apply role-based visibility ─────────────────────────────────
+  function applyRoleVisibility() {
+    if (window.RolePermissions && typeof window.RolePermissions.updateUIForRole === "function") {
+      window.RolePermissions.updateUIForRole();
+    }
+  }
+
   // ── Inject the nav ───────────────────────────────────────
   function inject() {
     const nav = buildNav();
@@ -588,6 +595,7 @@ margin-right: 6px;
     const siteHeader = document.querySelector('.site-header');
     if (siteHeader) {
       siteHeader.appendChild(nav);
+      applyRoleVisibility();
       nav.classList.remove("osh-nav-loading");
       return;
     }
@@ -601,6 +609,9 @@ margin-right: 6px;
       if (navbar) navbar.insertAdjacentElement('afterend', nav);
       else document.body.prepend(nav);
     }
+
+    // Apply role-based visibility BEFORE showing the nav
+    applyRoleVisibility();
 
     // Remove loading state now that nav is in the DOM
     nav.classList.remove("osh-nav-loading");
@@ -659,6 +670,68 @@ margin-right: 6px;
       const sb = window.supabaseClient;
       if (!sb) return;
 
+      // ── Company-scoped notifications ─────────────────────
+      var companyName = null;
+      try {
+        if (window.currentUserRole === 'company' && typeof window.getUserCompanyName === 'function') {
+          companyName = await window.getUserCompanyName(sb);
+        }
+      } catch (e) {}
+
+      if (companyName) {
+        // Company: new accidents (My Accidents badge)
+        try {
+          var { count: accCount, error: accError } = await sb
+            .from('accident_reports')
+            .select('id', { count: 'exact', head: true })
+            .ilike('occupier_name', '%' + companyName + '%');
+          if (!accError && typeof accCount === 'number') {
+            var show = true;
+            try {
+              var seenRaw = sessionStorage.getItem('company-accidents_seen');
+              if (seenRaw !== null && accCount <= parseInt(seenRaw, 10)) show = false;
+            } catch (e) {}
+            var displayCount = show ? accCount : 0;
+            var badge = document.getElementById('notif-company-accidents');
+            if (badge) {
+              badge.textContent = displayCount;
+              badge.classList.toggle('zero', displayCount === 0);
+            }
+            var parentBadge = document.getElementById('parent-notif-company-accidents');
+            if (parentBadge) {
+              parentBadge.textContent = displayCount;
+              parentBadge.classList.toggle('zero', displayCount === 0);
+            }
+          }
+        } catch (e) {}
+
+        // Company: new injuries (My Injuries badge)
+        try {
+          var { count: injCount, error: injError } = await sb
+            .from('injury_disease_reports')
+            .select('id', { count: 'exact', head: true })
+            .ilike('employer_name', '%' + companyName + '%');
+          if (!injError && typeof injCount === 'number') {
+            var show = true;
+            try {
+              var seenRaw = sessionStorage.getItem('company-injuries_seen');
+              if (seenRaw !== null && injCount <= parseInt(seenRaw, 10)) show = false;
+            } catch (e) {}
+            var displayCount = show ? injCount : 0;
+            var badge = document.getElementById('notif-company-injuries');
+            if (badge) {
+              badge.textContent = displayCount;
+              badge.classList.toggle('zero', displayCount === 0);
+            }
+            var parentBadge = document.getElementById('parent-notif-company-injuries');
+            if (parentBadge) {
+              parentBadge.textContent = displayCount;
+              parentBadge.classList.toggle('zero', displayCount === 0);
+            }
+          }
+        } catch (e) {}
+      }
+
       // ── Officer-side: pending inspection bookings ──────
       const { count: pendingCount, error: pendingError } = await sb
         .from('inspection_bookings')
@@ -692,17 +765,21 @@ margin-right: 6px;
       // ── Company-side: responded bookings (read from sessionStorage) ─
       // The company-monitoring page stores this count after loading data.
       // Dismissed when the user opens company-bookings.html or company-monitoring.html.
+      // Uses _seen pattern: badge shows count only if > seen count.
       const respondedBadge = document.getElementById('notif-company-bookings-responded');
       if (respondedBadge) {
         try {
-          const cachedCount = sessionStorage.getItem('company_booking_responses');
-          const count = cachedCount ? parseInt(cachedCount, 10) : 0;
+          var cachedCount = sessionStorage.getItem('company_booking_responses');
+          var count = cachedCount ? parseInt(cachedCount, 10) : 0;
+          var seenRaw = sessionStorage.getItem('company-bookings-responded_seen');
+          // Show badge only if there are more responses since user last viewed
+          if (seenRaw !== null && count <= parseInt(seenRaw, 10)) count = 0;
           respondedBadge.textContent = count;
           respondedBadge.classList.toggle('zero', count === 0);
         } catch (e) {
           respondedBadge.classList.add('zero');
         }
-        const parentBadge = document.getElementById('parent-notif-company-bookings-responded');
+        var parentBadge = document.getElementById('parent-notif-company-bookings-responded');
         if (parentBadge) {
           parentBadge.textContent = respondedBadge?.textContent || '0';
           parentBadge.classList.toggle('zero', respondedBadge?.classList.contains('zero'));

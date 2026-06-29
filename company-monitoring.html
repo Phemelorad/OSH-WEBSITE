@@ -403,7 +403,10 @@
             document.getElementById('statPending').textContent = pending;
 
             // Clear responded badge — user is viewing updates now
-            try { sessionStorage.removeItem('company_booking_responses'); } catch (e) {}
+            try {
+                var seenCount = bookings.filter(function(b) { return b.status !== 'pending'; }).length;
+                sessionStorage.setItem('company-bookings-responded_seen', String(seenCount || 0));
+            } catch(e) {}
 
             // Show notification banner if there are responded bookings
             const respondedCount = bookings.filter(b => b.status !== 'pending').length;

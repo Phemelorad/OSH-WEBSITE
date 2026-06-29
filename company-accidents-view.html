@@ -394,6 +394,11 @@ window.addEventListener('load', async () => {
         }
     }
     document.getElementById('userCompanyName').textContent = companyName;
+    // Dismiss company-accidents badge with actual count
+    try {
+        const { count: cnt } = await SB.from('accident_reports').select('id', { count: 'exact', head: true }).ilike('occupier_name', '%' + companyName + '%');
+        sessionStorage.setItem('company-accidents_seen', String(cnt || 0));
+    } catch(e) {}
     await loadData();
   } catch (loadError) {
     console.error('Page load error:', loadError);

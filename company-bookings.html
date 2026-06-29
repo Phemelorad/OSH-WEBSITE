@@ -335,7 +335,10 @@
             updateNotification(allBookings);
 
             // Clear responded badge — user has seen the updates now
-            try { sessionStorage.removeItem('company_booking_responses'); } catch (e) {}
+            try {
+                var seenCount = allBookings.filter(function(b) { return b.status !== 'pending'; }).length;
+                sessionStorage.setItem('company-bookings-responded_seen', String(seenCount || 0));
+            } catch(e) {}
 
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';

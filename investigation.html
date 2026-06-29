@@ -410,6 +410,11 @@
         // Load investigation entries on page load
         document.getElementById('form19Loading').style.display = 'block';
         await loadForm19Data();
+        // Dismiss new-investigations badge
+        try {
+            const { count: cnt } = await SB.from('accident_reports').select('id', { count: 'exact', head: true }).eq('investigation_status', 'Pending');
+            sessionStorage.setItem('new-investigations_seen', String(cnt || 0));
+        } catch(e) {}
     });
 
     // Wrapper for refresh button
