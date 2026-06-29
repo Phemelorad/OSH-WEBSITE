@@ -280,6 +280,7 @@
 
     // ── Auth & init ───────────────────────────────────────────
     window.addEventListener('load', async () => {
+    try {
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         if (currentUserRole !== 'company') { window.location.href = 'dashboard.html'; return; }
@@ -300,6 +301,18 @@
         document.getElementById('userCompanyName').textContent = companyName;
 
         await loadBookings();
+  } catch (loadError) {
+    console.error('Page load error:', loadError);
+    var ldEl = document.getElementById('loadingState');
+    if (ldEl) {
+      ldEl.innerHTML = '<p style="color:#e74c3c;padding:30px;text-align:center">'
+        + '<strong>Error loading page</strong><br><br>'
+        + '<span style="font-size:13px;color:#555">' + (loadError.message || 'Unknown error') + '</span><br><br>'
+        + '<button onclick="location.reload()" style="padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">Retry</button>'
+        + '</p>';
+      ldEl.style.display = 'block';
+    }
+  }}
     });
 
     // ── Load bookings ─────────────────────────────────────────

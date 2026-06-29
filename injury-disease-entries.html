@@ -397,6 +397,9 @@
                     <div class="filter-group">
                         <label>Search</label>
                         <input type="text" id="filterSearch" placeholder="Worker / Employer…" oninput="applyFilters()" style="width:160px">
+                        <select id="filterCompany" onchange="applyFilters()" style="max-width:180px">
+                            <option value="">All Companies</option>
+                        </select>
                     </div>
                     <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
                     <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
@@ -469,6 +472,19 @@
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         await loadData();
+        // Load company list for filter dropdown
+        try {
+            var { data: companies } = await SB.from('companies').select('company_name').order('company_name');
+            if (companies && companies.length > 0) {
+                var sel = document.getElementById('filterCompany');
+                companies.forEach(function(c) {
+                    var opt = document.createElement('option');
+                    opt.value = c.company_name;
+                    opt.textContent = c.company_name;
+                    sel.appendChild(opt);
+                });
+            }
+        } catch(e) { console.warn('Could not load companies:', e); }
         // Dismiss new-injuries badge with actual count
         try {
             const { count } = await SB.from('injury_disease_reports').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
@@ -507,10 +523,12 @@
         const death  = document.getElementById('filterDeath').value;
         const status = document.getElementById('filterStatus').value;
         const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const company = document.getElementById('filterCompany').value;
         renderTable(allRecords.filter(r =>
             (!type   || r.incident_type === type) &&
             (!death  || r.resulted_death === death) &&
             (!status || r.status === status) &&
+            (!company || (r.employer_name||'').toLowerCase().indexOf(company.toLowerCase()) >= 0) &&
             (!search || (r.worker_name||'').toLowerCase().includes(search) || (r.employer_name||'').toLowerCase().includes(search))
         ));
     }

@@ -470,6 +470,9 @@
                     </div>
                     <div class="filter-group">
                         <label>Industry</label>
+                        <select id="filterCompany" onchange="loadClaims()" style="max-width:180px">
+                            <option value="">All Companies</option>
+                        </select>
                         <select id="filterIndustry" onchange="loadClaims()">
                             <option value="">All Industries</option>
                         </select>
@@ -589,9 +592,11 @@
                 // Apply filters
                 const statusFilter = document.getElementById('filterStatus').value;
                 const industryFilter = document.getElementById('filterIndustry').value;
+                const companyFilter = document.getElementById('filterCompany').value;
 
                 if (statusFilter) query.status = statusFilter;
                 if (industryFilter) query.industry = industryFilter;
+                if (companyFilter) query.employer_name = companyFilter;
 
                 var claims = await window.loadClaims(query);
 
@@ -617,6 +622,21 @@
         }
 
         async function populateIndustryFilter() {
+            // Load company list for filter dropdown
+            try {
+                var companiesRes = await supabaseClient.from('companies').select('company_name').order('company_name');
+                if (companiesRes.data && companiesRes.data.length > 0) {
+                    var comSel = document.getElementById('filterCompany');
+                    if (comSel) {
+                        companiesRes.data.forEach(function(c) {
+                            var opt = document.createElement('option');
+                            opt.value = c.company_name;
+                            opt.textContent = c.company_name;
+                            comSel.appendChild(opt);
+                        });
+                    }
+                }
+            } catch(e) { console.warn('Could not load companies:', e); }
             try {
                 var industries = await loadUniqueIndustries();
                 industries = industries.map(function(i) { return {industry: i}; });
@@ -860,8 +880,10 @@
                 let query = supabaseClient.from("injury_claims_view").select("*").neq("status", "draft").order("created_at", { ascending: false });
                 const statusFilter = document.getElementById("filterStatus").value;
                 const industryFilter = document.getElementById("filterIndustry").value;
+                const companyFilter = document.getElementById("filterCompany").value;
                 if (statusFilter) query = query.eq("status", statusFilter);
                 if (industryFilter) query = query.eq("industry", industryFilter);
+                if (companyFilter) query = query.ilike("employer_name", "%" + companyFilter + "%");
                 const { data: claims, error } = await query;
                 
                 allClaims = claims;

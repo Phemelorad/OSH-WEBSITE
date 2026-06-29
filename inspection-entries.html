@@ -225,7 +225,10 @@
                     </div>
                     <div class="filter-group">
                         <label>Search</label>
-                        <input type="text" id="filterSearch" placeholder="Factory / File No…"
+                        <select id="filterCompany" onchange="applyFilters()" style="max-width:180px">
+                    <option value="">All Companies</option>
+                </select>
+                <input type="text" id="filterSearch" placeholder="Factory / File No…"
                                oninput="applyFilters()" style="width:170px">
                     </div>
                     <div class="btn-bar">
@@ -335,6 +338,21 @@
         allRecords = data || [];
         buildStats(allRecords);
         populateInspectorFilter(allRecords);
+        // Load company list for filter dropdown
+        try {
+            var companiesRes = await SB.from('companies').select('company_name').order('company_name');
+            if (companiesRes.data && companiesRes.data.length > 0) {
+                var comSel = document.getElementById('filterCompany');
+                if (comSel) {
+                    companiesRes.data.forEach(function(c) {
+                        var opt = document.createElement('option');
+                        opt.value = c.company_name;
+                        opt.textContent = c.company_name;
+                        comSel.appendChild(opt);
+                    });
+                }
+            }
+        } catch(e) { console.warn('Could not load companies:', e); }
         renderTable(allRecords);
 
         document.getElementById('loadingState').style.display = 'none';
@@ -378,12 +396,14 @@
         const reg       = document.getElementById('filterReg').value;
         const inspector = document.getElementById('filterInspector').value;
         const search    = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const company   = document.getElementById('filterCompany').value;
 
         const filtered = allRecords.filter(r => {
             if (industry  && r.industry_type        !== industry)  return false;
             if (type      && r.inspection_type      !== type)      return false;
             if (reg       && r.registration_status  !== reg)       return false;
             if (inspector && r.inspector_name        !== inspector) return false;
+            if (company && (r.factory_name||'').toLowerCase().indexOf(company.toLowerCase()) < 0) return false;
             if (search && !(
                 (r.factory_name || '').toLowerCase().includes(search) ||
                 (r.file_number  || '').toLowerCase().includes(search) ||

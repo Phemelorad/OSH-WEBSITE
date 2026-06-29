@@ -284,6 +284,12 @@
                         <label>Search</label>
                         <input type="text" id="filterSearch" placeholder="Name / Occupier…" oninput="applyFilters()" style="width:160px">
                     </div>
+                    <div class="filter-group">
+                        <label>Company</label>
+                        <select id="filterCompany" onchange="applyFilters()" style="max-width:180px">
+                            <option value="">All Companies</option>
+                        </select>
+                    </div>
                     <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
                     <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
                     <button class="export-btn" onclick="backfillPersons()" title="Migrate existing records' injured persons into accident_injured_persons table">👥 Backfill Persons</button>
@@ -356,6 +362,21 @@
         if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         await loadData();
+        // Load company list for filter dropdown
+        try {
+            var { data: companies } = await SB.from('companies').select('company_name').order('company_name');
+            if (companies && companies.length > 0) {
+                var sel = document.getElementById('filterCompany');
+                if (sel) {
+                    companies.forEach(function(c) {
+                        var opt = document.createElement('option');
+                        opt.value = c.company_name;
+                        opt.textContent = c.company_name;
+                        sel.appendChild(opt);
+                    });
+                }
+            }
+        } catch(e) { console.warn('Could not load companies:', e); }
         // Dismiss new-accidents badge with actual count
         try {
             const { count } = await SB.from('accident_reports').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
@@ -552,10 +573,12 @@
         const fatal  = document.getElementById('filterFatal').value;
         const inv    = document.getElementById('filterInv').value;
         const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        const company = document.getElementById('filterCompany').value;
         renderTable(allRecords.filter(r =>
             (!type   || r.report_type === type) &&
             (!fatal  || r.injury_fatal === fatal) &&
             (!inv    || r.investigation_status === inv) &&
+            (!company || (r.occupier_name||'').toLowerCase().indexOf(company.toLowerCase()) >= 0) &&
             (!search || (r.injured_name||'').toLowerCase().includes(search) || (r.occupier_name||'').toLowerCase().includes(search) || (r._persons||[]).some(function(p){return (p.full_name||'').toLowerCase().includes(search)}))
         ));
     }
