@@ -141,16 +141,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <script src="modal.js"></script>
 <script src="common.js"></script>
 <script src="header.js"></script>
-    <script>
-  (function() {
-    try {
-      var raw = localStorage.getItem('supabase.auth.token');
-      if (!raw) { window.location.href = 'index.html'; return; }
-      var parsed = JSON.parse(raw);
-      if (!parsed.access_token) { window.location.href = 'index.html'; }
-    } catch(e) { window.location.href = 'index.html'; }
-  })();
-</script>
+    
 <script src="nav.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-02';</script>
 <script>

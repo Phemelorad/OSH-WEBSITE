@@ -306,16 +306,7 @@ function exportLog() {
 <script src="modal.js"></script>
 <script src="common.js"></script>
 <script src="header.js"></script>
-    <script>
-  (function() {
-    try {
-      var raw = localStorage.getItem('supabase.auth.token');
-      if (!raw) { window.location.href = 'index.html'; return; }
-      var parsed = JSON.parse(raw);
-      if (!parsed.access_token) { window.location.href = 'index.html'; }
-    } catch(e) { window.location.href = 'index.html'; }
-  })();
-</script>
+    
 <script src="nav.js"></script>
 
 <script>

@@ -393,16 +393,7 @@ font-weight: 500;
 <script src="common.js"></script>
 <script src="header.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'company-injuries-view';</script>
-    <script>
-  (function() {
-    try {
-      var raw = localStorage.getItem('supabase.auth.token');
-      if (!raw) { window.location.href = 'index.html'; return; }
-      var parsed = JSON.parse(raw);
-      if (!parsed.access_token) { window.location.href = 'index.html'; }
-    } catch(e) { window.location.href = 'index.html'; }
-  })();
-</script>
+    
 <script src="nav.js"></script>
 
 <script>
