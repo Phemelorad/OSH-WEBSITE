@@ -297,10 +297,10 @@
     <script>
   (function() {
     try {
-      var found = Object.keys(localStorage).some(function(k) {
-        return k.startsWith('sb-') && k.endsWith('-auth-token');
-      });
-      if (!found) window.location.href = 'index.html';
+      var raw = localStorage.getItem('supabase.auth.token');
+      if (!raw) { window.location.href = 'index.html'; return; }
+      var parsed = JSON.parse(raw);
+      if (!parsed.access_token) { window.location.href = 'index.html'; }
     } catch(e) { window.location.href = 'index.html'; }
   })();
 </script>
