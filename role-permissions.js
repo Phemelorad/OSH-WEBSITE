@@ -62,6 +62,7 @@
         }
         updateHeaderDisplay(cached);
         updateUIForRole();
+        if (typeof window.onRoleReady === 'function') window.onRoleReady(currentUserRole);
         setTimeout(function() { refreshUserProfileInBackground(); }, 100);
         return true;
       }
@@ -69,6 +70,7 @@
       var userResult = await getCurrentUser();
       if (!userResult.success || !userResult.user) {
         clearLoadingFallback();
+        if (typeof window.onRoleReady === 'function') window.onRoleReady(null);
         return false;
       }
 
@@ -91,13 +93,16 @@
 
         updateHeaderDisplay(profileResult.data);
         updateUIForRole();
+        if (typeof window.onRoleReady === 'function') window.onRoleReady(currentUserRole);
         return true;
       }
       clearLoadingFallback();
+      if (typeof window.onRoleReady === 'function') window.onRoleReady(null);
       return false;
     } catch (error) {
       console.error('Error initializing role system:', error);
       clearLoadingFallback();
+      if (typeof window.onRoleReady === 'function') window.onRoleReady(null);
       return false;
     }
   }

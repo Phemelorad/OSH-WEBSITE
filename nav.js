@@ -333,12 +333,12 @@ margin-right: 6px;
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employer Details',
         href: 'company-view.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'book-inspection',
         label: '<img src="ICONS/BOOKINGS.png" class="nav-icon"> Book Inspection',
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'company-book-inspection', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'New Booking',       href: 'company-book-inspection.html' },
           { id: 'company-bookings',        icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
@@ -347,7 +347,7 @@ margin-right: 6px;
       {
         id: 'accident',
         label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Report Accident',
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'accident-report', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Report', href: 'accident-report.html' },
           { id: 'company-accidents-view', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'My Accidents', href: 'company-accidents-view.html', notification:'company-accidents' },
@@ -356,7 +356,7 @@ margin-right: 6px;
       {
         id: 'injury-disease',
         label: '<img src="ICONS/INJURY.png" class="nav-icon"> Report Injury / Disease',
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'injury-disease-report', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report', href: 'injury-disease-report.html' },
           { id: 'company-injuries-view', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'My Injuries', href: 'company-injuries-view.html', notification:'company-injuries' },
@@ -367,7 +367,7 @@ margin-right: 6px;
         label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Monitoring Dashboard',
         href: 'company-monitoring.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
         notification: 'company-bookings-responded'
       },
 
@@ -425,19 +425,19 @@ margin-right: 6px;
         label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> My Cases',
         href: 'case-tracking.html',
         single: true,
-        hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
+        hideFor: ['viewer', 'dosh_officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'worker-claims',
         label: '<img src="ICONS/CLAIM.png" class="nav-icon"> My Claims',
         href: 'worker-claims.html',
         single: true,
-        hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
+        hideFor: ['viewer', 'dosh_officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'medical-practitioner',
         label: 'Medical Exams',
-        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
+        hideFor: ['viewer', 'worker', 'company', 'dosh_officer', 'admin', 'super_admin'],
         children: [
           { id: 'medical-examination', icon: '', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
         ]
@@ -448,14 +448,14 @@ margin-right: 6px;
         href: 'permanent-impairment.html',
         single: true,
         icon: '',
-        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
+        hideFor: ['viewer', 'worker', 'company', 'dosh_officer', 'admin', 'super_admin']
       },
       {
         id: 'clientele',
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Clientele',
         href: 'clientele.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
+        hideFor: ['viewer', 'worker', 'company', 'dosh_officer', 'admin', 'super_admin']
       },
       {
         id: 'company-register',
@@ -467,21 +467,21 @@ margin-right: 6px;
       {
         id: 'admin',
         label: '<img src="ICONS/ADMIN.png" class="nav-icon"> Admin',
-        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
+        hideFor: ['company', 'viewer', 'worker', 'dosh_officer', 'medical_practitioner'],
         href: 'admin.html',
         single: true
       },
       {
         id: 'debug',
         label: '🛠️ Debug Console',
-        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
+        hideFor: ['company', 'viewer', 'worker', 'dosh_officer', 'medical_practitioner'],
         href: 'debug-console.html',
         single: true
       },
       {
         id: 'bl-forms',
         label: '📋 BL Forms',
-        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
+        hideFor: ['company', 'viewer', 'worker', 'dosh_officer', 'medical_practitioner'],
         children: [
           { id: 'form-43-02', icon: '<img src="ICONS/wages.png" class="dd-icon">', label: 'Form 43/02 - Wages', href: 'form-43-02-wages.html' },
           { id: 'form-43-03', icon: '<img src="ICONS/medical exams.png" class="dd-icon">', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
@@ -595,26 +595,37 @@ margin-right: 6px;
     const siteHeader = document.querySelector('.site-header');
     if (siteHeader) {
       siteHeader.appendChild(nav);
-      applyRoleVisibility();
-      nav.classList.remove("osh-nav-loading");
-      return;
-    }
-
-    // Fallback: replace existing .site-nav or insert after .navbar
-    const existing = document.querySelector('.site-nav');
-    if (existing) {
-      existing.replaceWith(nav);
     } else {
-      const navbar = document.querySelector('.navbar');
-      if (navbar) navbar.insertAdjacentElement('afterend', nav);
-      else document.body.prepend(nav);
+      // Fallback: replace existing .site-nav or insert after .navbar
+      const existing = document.querySelector('.site-nav');
+      if (existing) {
+        existing.replaceWith(nav);
+      } else {
+        const navbar = document.querySelector('.navbar');
+        if (navbar) navbar.insertAdjacentElement('afterend', nav);
+        else document.body.prepend(nav);
+      }
     }
 
-    // Apply role-based visibility BEFORE showing the nav
-    applyRoleVisibility();
+    // ── Wait for role before revealing nav ──────────────
+    // If role is already known (e.g. cached path), reveal immediately.
+    // Otherwise register a one-time callback — role-permissions.js
+    // calls window.onRoleReady(role) at every exit of initializeRoleSystem.
+    // 4 s safety fallback so nav never stays hidden forever.
+    function revealNav() {
+      applyRoleVisibility();
+      nav.classList.remove('osh-nav-loading');
+    }
 
-    // Remove loading state now that nav is in the DOM
-    nav.classList.remove("osh-nav-loading");
+    if (window.currentUserRole) {
+      revealNav();
+    } else {
+      const timeout = setTimeout(revealNav, 4000);
+      window.onRoleReady = function (role) {
+        clearTimeout(timeout);
+        revealNav();
+      };
+    }
   }
 
   if (document.readyState === 'loading') {
