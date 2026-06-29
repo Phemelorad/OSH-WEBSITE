@@ -282,7 +282,14 @@
     // ── Auth & init ───────────────────────────────────────────
     window.addEventListener('load', async () => {
     try {
-        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+                // Retry to let Supabase client initialize
+        let authenticated = false;
+        for (let i = 0; i < 5; i++) {
+            authenticated = await isAuthenticated();
+            if (authenticated) break;
+            if (i < 4) await new Promise(r => setTimeout(r, 400));
+        }
+        if (!authenticated) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         if (currentUserRole !== 'company') { window.location.href = 'dashboard.html'; return; }
 

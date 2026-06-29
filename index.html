@@ -1172,6 +1172,8 @@
         // Since signIn() doesn't execute in this flow, we must create
         // the profile/company record here if it doesn't exist yet.
         window.addEventListener('load', async function() {
+            // Small delay to let Supabase client initialize
+            await new Promise(r => setTimeout(r, 300));
             if (await isAuthenticated()) {
                 const userResult = await getCurrentUser();
                 if (userResult.success && userResult.user) {

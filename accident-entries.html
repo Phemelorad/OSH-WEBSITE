@@ -360,7 +360,14 @@
     let allRecords = [];
 
     window.addEventListener('load', async () => {
-        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+                // Retry to let Supabase client initialize
+        let authenticated = false;
+        for (let i = 0; i < 5; i++) {
+            authenticated = await isAuthenticated();
+            if (authenticated) break;
+            if (i < 4) await new Promise(r => setTimeout(r, 400));
+        }
+        if (!authenticated) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         await loadData();
         // Load company list for filter dropdown

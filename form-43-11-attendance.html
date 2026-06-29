@@ -123,7 +123,13 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-11';</script>
 <script>
 window.addEventListener('load', async function() {
-    const authenticated = await isAuthenticated();
+    // Retry to let Supabase client initialize
+    let authenticated = false;
+    for (let i = 0; i < 5; i++) {
+        authenticated = await isAuthenticated();
+        if (authenticated) break;
+        if (i < 4) await new Promise(r => setTimeout(r, 400));
+    }
     if (!authenticated) { window.location.href = 'index.html'; return; }
     await initializeRoleSystem();
     const userResult = await getCurrentUser();

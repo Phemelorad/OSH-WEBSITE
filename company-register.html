@@ -297,7 +297,14 @@
 <script>
     // Redirect workers away from company register
     window.addEventListener('load', async function() {
-        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+                // Retry to let Supabase client initialize
+        let authenticated = false;
+        for (let i = 0; i < 5; i++) {
+            authenticated = await isAuthenticated();
+            if (authenticated) break;
+            if (i < 4) await new Promise(r => setTimeout(r, 400));
+        }
+        if (!authenticated) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
         if (currentUserRole === 'worker') {
             window.location.href = 'worker-portal.html';
@@ -315,7 +322,14 @@
 
     // ── Init ─────────────────────────────────────────────────
     window.addEventListener('load', async () => {
-        if (!await isAuthenticated()) { window.location.href = 'index.html'; return; }
+                // Retry to let Supabase client initialize
+        let authenticated = false;
+        for (let i = 0; i < 5; i++) {
+            authenticated = await isAuthenticated();
+            if (authenticated) break;
+            if (i < 4) await new Promise(r => setTimeout(r, 400));
+        }
+        if (!authenticated) { window.location.href = 'index.html'; return; }
         await initializeRoleSystem();
 
         // Company users should only see My Company page, not the full register
