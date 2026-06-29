@@ -638,6 +638,50 @@ function fmtDate(d) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 }
+
+// Pagination
+var currentPage = 1;
+var pageSize = 50;
+var paginatedRecords = [];
+var totalPages = 1;
+
+function applyPagination(records) {
+    currentPage = 1;
+    paginatedRecords = records;
+    totalPages = Math.ceil(records.length / pageSize) || 1;
+    renderPage();
+}
+
+function renderPage() {
+    const start = (currentPage - 1) * pageSize;
+    const end = Math.min(start + pageSize, paginatedRecords.length);
+    renderTable(paginatedRecords.slice(start, end));
+    updatePaginationControls();
+}
+
+function updatePaginationControls() {
+    const pi = document.getElementById('paginationInfo');
+    if (pi) {
+        pi.textContent = paginatedRecords.length > 0
+            ? 'Showing ' + ((currentPage-1)*pageSize+1) + '-' + Math.min(currentPage*pageSize, paginatedRecords.length) + ' of ' + paginatedRecords.length + ' records'
+            : 'No records';
+    }
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPage();
+    var tc = document.querySelector('.table-container');
+    if (tc) tc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function changePageSize() {
+    pageSize = parseInt(document.getElementById('pageSizeSelect').value) || 50;
+    totalPages = Math.ceil(paginatedRecords.length / pageSize) || 1;
+    currentPage = 1;
+    renderPage();
+}
 </script>
 </body>
 </html>
