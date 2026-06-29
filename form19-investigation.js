@@ -71,94 +71,81 @@ function renderForm19Table(entries) {
 function viewForm19(id) {
   var entry = allForm19.find(function(e) { return e.id === id; });
   if (!entry) { showToast('Form 19 entry not found', 'error'); return; }
-  function f(label, val) { return val != null && val !== '' ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + esc(val) + '</span></div>' : ''; }
-
-  // Section 5: Accident Details (per injured person)
-  var sec5 = '<div style="border:1px solid #e8e8e8;border-radius:10px;padding:16px;margin-top:12px;background:#fafafa">' +
-    '<div style="font-size:14px;font-weight:700;color:#c0392b;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #c0392b">5. Accident Details (Per Injured Person)</div>';
-
-  var datePlace = entry.incident_date ? fmtDate(entry.incident_date) : '\u2014';
-  if (entry.incident_time) datePlace += ' at ' + esc(entry.incident_time);
-  if (entry.incident_location) datePlace += ' \u2014 ' + esc(entry.incident_location);
-  sec5 += '<div style="margin-bottom:10px">' +
-    '<div style="font-size:12px;font-weight:600;color:#555">5a) Date, Time &amp; Exact Place of Accident in the Workplace</div>' +
-    '<div style="font-size:13px;color:#333;margin-top:2px">' + datePlace + '</div></div>';
-
-  var desc = entry.incident_description || '\u2014';
-  if (entry.incident_summary) desc += '<br><span style="color:#888;font-size:12px">Summary: ' + esc(entry.incident_summary) + '</span>';
-  if (entry.equipment_used) desc += '<br><span style="color:#888;font-size:12px">(If machinery is involved: ' + esc(entry.equipment_used) + ')</span>';
-  sec5 += '<div style="margin-bottom:10px">' +
-    '<div style="font-size:12px;font-weight:600;color:#555">5b) Description of How Accident Occurred &amp; Extent of Injuries (Including Body Part Affected)</div>' +
-    '<div style="font-size:13px;color:#333;margin-top:2px">' + desc + '</div></div>';
-
-  sec5 += '<div style="margin-bottom:10px">' +
-    '<div style="font-size:12px;font-weight:600;color:#555">5c) Occupation of Injured at Time of Accident</div>' +
-    '<div style="font-size:13px;color:#333;margin-top:2px">' + esc(entry.injured_occupation || '\u2014') +
-    (entry.job_task_performed ? '<br><span style="color:#888;font-size:12px">Task being performed: ' + esc(entry.job_task_performed) + '</span>' : '') +
-    '</div></div>';
-
-  sec5 += '<div style="margin-bottom:10px">' +
-    '<div style="font-size:12px;font-weight:600;color:#555">5d) Level of Experience of Injured Person on the Job at Time of Injury</div>' +
-    '<div style="font-size:13px;color:#333;margin-top:2px">' + esc(entry.work_experience || '\u2014') +
-    (entry.employment_type ? '<br><span style="color:#888;font-size:12px">Employment type: ' + esc(entry.employment_type) + '</span>' : '') +
-    '</div></div>';
-
-  sec5 += '<div style="margin-bottom:4px">' +
-    '<div style="font-size:12px;font-weight:600;color:#555">5e) Usual/Normal Occupation of Injured Person</div>' +
-    '<div style="font-size:13px;color:#333;margin-top:2px">' + esc(entry.injured_occupation || entry.nature_of_work || '\u2014') + '</div></div>';
-
-  sec5 += '</div>';
-
-  var sections = '';
-
-  sections += '<div class="rec-section"><div class="rec-section-header investigation">\U0001f4dd Investigation Details</div><div class="rec-section-body">' +
-    f('Inv. Reference No', entry.inv_ref_no) + f('Case No', entry.case_no) + f('District', entry.inv_district) +
-    f('Lead Investigator', entry.lead_investigator || entry.investigator_name) + f('Inv. Status', entry.inv_status) +
-    f('Date Opened', fmtDate(entry.date_opened)) + f('Date Closed', fmtDate(entry.date_closed)) + '</div></div>';
-
-  sections += '<div class="rec-section"><div class="rec-section-header employer">\U0001f3e2 Employer Information</div><div class="rec-section-body">' +
-    f('Employer Name', entry.employer_name) + f('Sector', entry.employer_sector) + f('Contact Person', entry.contact_person) +
-    f('Contact Position', entry.contact_position) + f('Plot', entry.employer_plot) + f('Street', entry.employer_street) +
-    f('City', entry.employer_city) + f('District', entry.employer_district) + f('Postal', entry.employer_postal) +
-    f('Phone', entry.employer_phone) + '</div></div>';
-
-  sections += '<div class="rec-section"><div class="rec-section-header accident">\U0001f9d1 Injured Person Details &amp; Accident (Section 5)</div><div class="rec-section-body">' +
-    f('Full Name', entry.injured_name) + f('Omang/Passport No.', entry.injured_id) + f('Date of Birth', fmtDate(entry.injured_dob)) +
-    f('Phone', entry.injured_phone) + f('Home Address', entry.injured_address) +
-    f('Nationality', entry.injured_nationality) + f('Sex', entry.sex) + f('Age Group', entry.age_group) +
-    f('Marital Status', entry.marital_status) + f('Relationship to Employer', entry.injured_relationship) +
-    sec5 + '</div></div>';
-
-  sections += '<div class="rec-section"><div class="rec-section-header accident">\U0001f6a8 Incident Information</div><div class="rec-section-body">' +
-    f('Date of Incident', fmtDate(entry.incident_date)) + f('Time', entry.incident_time) +
-    f('Reported Date', fmtDate(entry.incident_reported_date)) + f('Location', entry.incident_location) +
-    f('First Aid Given?', entry.first_aid_given) +
-    f('Other Employees Injured', entry.other_injured_count) +
-    f('Days Absent', entry.days_absent) +
-    (entry.days_absent_count ? f('Number of Days', entry.days_absent_count) : '') +
-    f('Description', entry.incident_description) +
-    f('Summary', entry.incident_summary) + '</div></div>';
-
-  sections += '<div class="rec-section"><div class="rec-section-header investigation">\U0001fa7a Injury Result</div><div class="rec-section-body">' +
-    f('Fatal', entry.injury_result_fatal) +
-    f('Non-Fatal', entry.injury_result_non_fatal) +
-    f('Occupational Disease', entry.injury_result_occ_disease) +
-    f('Absent From Work', entry.injury_result_absent) +
-    f('Light Duty', entry.injury_result_light_duty) +
-    f('Sick Leave', entry.injury_result_sick_leave) +
-    f('Dangerous Occurrence', entry.injury_result_dangerous) + '</div></div>';
-
+  
+  function esc(s) { return s != null ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+  function fmtDate(d) { if (!d) return ''; try { var dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toISOString().split('T')[0]; } catch(e) { return d; } }
+  function inp(type, val) { return '<input type="' + type + '" value="' + esc(val != null ? val : '') + '" disabled>'; }
+  function ta(val) { return '<textarea disabled style="min-height:50px">' + esc(val != null ? val : '') + '</textarea>'; }
+  function sel(val, opts) { var h = '<select disabled>'; opts.forEach(function(o) { h += '<option' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }); h += '</select>'; return h; }
+  function fg(label, inputHtml) { return '<div class="form-group"><label>' + label + '</label>' + inputHtml + '</div>'; }
+  function section_(title) { return '<div class="section-title">' + title + '</div>'; }
+  
+  // Build form-like content
+  var html = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh;width:95%;max-width:1000px">';
+  html += '<div class="rec-modal-header" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;background:white">';
+  html += '<div><h2 style="margin:0;font-size:18px">OHS Form 19 — Investigation Report</h2><div class="subtitle" style="font-size:12px;color:#888">' + esc(entry.inv_ref_no || entry.case_no || '') + '</div></div>';
+  html += '<div class="rec-modal-actions"><button class="rec-modal-btn print" onclick="window.print()">\🖨️ Print</button>';
+  html += '<button class="rec-modal-close" id="recFormCloseBtn" style="width:32px;height:32px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px">\u2715</button></div></div>';
+  html += '<div class="form-view-body" style="flex:1;overflow-y:auto;background:#f5f5f5">';
+  html += '<div class="form-card"><div class="form-header"><h1>Investigation Report</h1><div class="subtitle">OHS Form 19 — Occupational Health and Safety</div></div>';
+  
+  // Section 1: Investigation Administration
+  html += section_('1. Investigation Administration');
+  html += '<div class="form-row form-row-2">' + fg('Investigation Ref No.', inp('text', entry.inv_ref_no)) + fg('Case No.', inp('text', entry.case_no)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('District', inp('text', entry.inv_district)) + fg('Lead Investigator', inp('text', entry.lead_investigator || entry.investigator_name)) + '</div>';
+  html += '<div class="form-row form-row-3">' + fg('Date Assigned', inp('date', entry.date_assigned)) + fg('Date Opened', inp('date', entry.date_opened)) + fg('Date Closed', inp('date', entry.date_closed)) + '</div>';
+  html += '<div class="form-row">' + fg('Investigation Status', sel(entry.inv_status || '', ['open', 'in-progress', 'closed', 'reopened'])) + '</div>';
+  html += fg('Investigation Team', ta(entry.inv_team));
+  
+  // Section 2: Employer Information
+  html += section_('2. Employer Information');
+  html += '<div class="form-row form-row-2">' + fg('Name of Employer', inp('text', entry.employer_name)) + fg('Company Registration', inp('text', entry.company_reg_no)) + '</div>';
+  html += '<div class="form-row form-row-4" style="grid-template-columns:repeat(4,1fr)">' + fg('District', inp('text', entry.employer_district)) + fg('City/Town', inp('text', entry.employer_city)) + fg('Plot No.', inp('text', entry.employer_plot)) + fg('Street', inp('text', entry.employer_street)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Postal Address', inp('text', entry.employer_postal)) + fg('Telephone', inp('text', entry.employer_phone)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Sector', sel(entry.employer_sector || '', ['agriculture','construction','manufacturing','mining','retail','services','transport','hospitality','healthcare','other'])) + fg('Nature of Work', inp('text', entry.nature_of_work)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Contact Person', inp('text', entry.contact_person)) + fg('Position', inp('text', entry.contact_position)) + '</div>';
+  
+  // Section 3: Injured Person
+  html += section_('3. Injured/Deceased Person(s) Information');
+  html += '<div class="form-row form-row-2">' + fg('Full Name', inp('text', entry.injured_name)) + fg('Omang/Passport', inp('text', entry.injured_id)) + '</div>';
+  html += '<div class="form-row form-row-3">' + fg('Date of Birth', inp('date', entry.injured_dob)) + fg('Nationality', inp('text', entry.injured_nationality)) + fg('Telephone', inp('text', entry.injured_phone)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Sex', sel(entry.sex || '', ['male','female'])) + fg('Age Group', sel(entry.age_group || '', ['under-25','25-34','35-44','45-54','55-64','65-plus'])) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Marital Status', sel(entry.marital_status || '', ['married','single','divorced','widowed'])) + fg('Employment Type', sel(entry.employment_type || '', ['full-time','part-time','temporary','seasonal','other'])) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Occupation', inp('text', entry.injured_occupation)) + fg('Relationship to Employer', inp('text', entry.injured_relationship)) + '</div>';
+  html += fg('Home Address', ta(entry.injured_address));
+  
+  // Section 4: Incident / Accident Information
+  html += section_('4. Incident/Accident Information');
+  html += '<div class="form-row form-row-3">' + fg('Date of Incident', inp('date', entry.incident_date)) + fg('Time', inp('time', entry.incident_time)) + fg('Reported Date', inp('date', entry.incident_reported_date)) + '</div>';
+  html += '<div class="form-row">' + fg('Location', inp('text', entry.incident_location)) + '</div>';
+  html += fg('Description of Incident', ta(entry.incident_description));
+  html += fg('Summary', ta(entry.incident_summary));
+  
+  // Section 5: Accident Details
+  html += section_('5. Accident Details (Per Injured Person)');
+  html += '<div class="form-row form-row-2">' + fg('Occupation at Time', inp('text', entry.injured_occupation)) + fg('Task Being Performed', inp('text', entry.job_task_performed)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Work Experience', inp('text', entry.work_experience)) + fg('Employment Type', inp('text', entry.employment_type)) + '</div>';
+  html += fg('Equipment Used / Machinery Involved', ta(entry.equipment_used));
+  
+  // Section 6: Injury Result
+  html += section_('6. Injury Result');
+  html += '<div class="form-row form-row-3">' + fg('Fatal', sel(entry.injury_result_fatal||'', ['Yes','No'])) + fg('Non-Fatal', sel(entry.injury_result_non_fatal||'', ['Yes','No'])) + fg('Occupational Disease', sel(entry.injury_result_occ_disease||'', ['Yes','No'])) + '</div>';
+  html += '<div class="form-row form-row-3">' + fg('Absent From Work', sel(entry.injury_result_absent||'', ['Yes','No'])) + fg('Light Duty', sel(entry.injury_result_light_duty||'', ['Yes','No'])) + fg('Sick Leave', sel(entry.injury_result_sick_leave||'', ['Yes','No'])) + '</div>';
+  html += '<div class="form-row">' + fg('Dangerous Occurrence', sel(entry.injury_result_dangerous||'', ['Yes','No'])) + '</div>';
+  
+  html += '<div class="form-row form-row-2">' + fg('First Aid Given?', inp('text', entry.first_aid_given)) + fg('Other Employees Injured', inp('number', entry.other_injured_count)) + '</div>';
+  html += '<div class="form-row form-row-2">' + fg('Days Absent', inp('text', entry.days_absent)) + fg('Days Absent Count', inp('number', entry.days_absent_count)) + '</div>';
+  
+  html += '</div></div></div>';
+  
   var ov = document.createElement('div');
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
-  ov.innerHTML = '<div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.18);width:100%;max-width:640px;max-height:85vh;overflow-y:auto;padding:28px 26px;font-family:inherit">' +
-    '<div style="font-size:32px;text-align:center;margin-bottom:8px">\U0001f4dd</div>' +
-    '<h2 style="text-align:center;color:#222;font-size:17px;margin-bottom:16px">OHS Form 19 - Investigation Report</h2>' +
-    sections +
-    '<div style="margin-top:20px;text-align:center"><button id="closeBtn" style="padding:10px 28px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Close</button></div></div>';
-  ov.querySelector('#closeBtn').addEventListener('click', function() { ov.remove(); });
+  ov.innerHTML = html;
+  ov.querySelector('#recFormCloseBtn').addEventListener('click', function() { ov.remove(); });
   ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
   document.body.appendChild(ov);
 }
+
 
 function applyForm19Filters() {
   var search = (document.getElementById('form19Search')?.value || '').toLowerCase().trim();

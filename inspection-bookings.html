@@ -107,6 +107,91 @@
             .section-header { flex-direction: column; align-items: flex-start; }
             .filters { width: 100%; }
         }
+
+/* ── Form view modal styles ── */
+.rec-form-modal {
+    max-width: 1000px !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+}
+.form-view-body {
+    overflow-y: auto;
+    padding: 0 !important;
+    flex: 1;
+    background: #f5f5f5;
+}
+.form-view-body .form-card {
+    background: white; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 30px;
+    margin: 20px;
+    border: 1px solid #e0e0e0;
+}
+.form-view-body .form-header {
+    text-align: center; margin-bottom: 24px;
+    padding-bottom: 20px; border-bottom: 2px solid #f0f0f0;
+}
+.form-view-body .form-header h1 { color: #333; font-size: 18px; margin-bottom: 4px; }
+.form-view-body .form-header .subtitle { color: #666; font-size: 12px; line-height: 1.5; }
+.form-view-body .section-title {
+    color: #333; font-size: 14px; font-weight: 700;
+    margin-bottom: 14px; padding: 8px 12px;
+    background: #f5f5f5; border-left: 4px solid #333;
+    border-radius: 0 6px 6px 0;
+}
+.form-view-body .section-title.accident { border-left-color: #dc3545; }
+.form-view-body .section-title.worker-section { border-left-color: #856404; background: #fff3cd; color: #856404; }
+.form-view-body .section-title.incident-title { border-left-color: #fd7e14; }
+.form-view-body .section-title.employer-title { border-left-color: #17a2b8; background: #e8f4fd; color: #0c5460; }
+.form-view-body .section-title.official { border-left-color: #856404; background: #fffbeb; color: #856404; }
+.form-view-body .form-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin-bottom: 14px;
+}
+.form-view-body .form-row-2 { grid-template-columns: repeat(2,1fr); }
+.form-view-body .form-row-3 { grid-template-columns: repeat(3,1fr); }
+.form-view-body .col-span-2 { grid-column: span 2; }
+.form-view-body .form-group { margin-bottom: 2px; }
+.form-view-body .form-group label { display: block; color: #444; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+.form-view-body .form-group input,
+.form-view-body .form-group select,
+.form-view-body .form-group textarea { width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; box-sizing: border-box; }
+.form-view-body .form-group input:disabled,
+.form-view-body .form-group select:disabled,
+.form-view-body .form-group textarea:disabled { background: #f9f9f9; color: #333; border-color: #e8e8e8; cursor: default; opacity: 1; -webkit-text-fill-color: #333; }
+.form-view-body .form-group textarea { resize: none; min-height: 60px; }
+.form-view-body .official-box { background: #fffbeb; border: 2px dashed #ffc107; border-radius: 10px; padding: 16px; margin-top: 4px; }
+.form-view-body .person-entry { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.form-view-body .person-number { font-weight: 700; font-size: 13px; color: #333; }
+.form-view-body .yn-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.form-view-body .yn-label { font-weight: 500; font-size: 13px; color: #444; }
+.form-view-body .yn-value { font-size: 13px; color: #333; font-weight: 600; }
+.form-view-body hr.section-divider { border: none; border-top: 1px solid #f0f0f0; margin: 16px 0; }
+.form-view-body .hint { font-size: 12px; color: #888; margin-top: 4px; font-style: italic; }
+.form-view-body .gov-logo { display: flex; justify-content: center; margin-bottom: 8px; }
+.form-view-body .gov-logo img { width: 60px; height: 46px; object-fit: contain; }
+.form-view-body .rec-modal-header { flex-shrink: 0; }
+.form-view-body .rec-modal-actions { display: flex; gap: 8px; align-items: center; }
+.form-view-body .rec-modal-btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #ddd; font-family: inherit; background: white; transition: all 0.2s; }
+.form-view-body .rec-modal-btn:hover { background: #f0f0f0; }
+.form-view-body .rec-modal-btn.print { background: #333; color: white; border-color: #333; }
+.form-view-body .rec-modal-btn.print:hover { background: #555; }
+@media print {
+    body * { visibility: hidden; }
+    .rec-modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: white !important; z-index: 999999 !important; display: block !important; visibility: visible !important; }
+    .rec-modal-overlay * { visibility: visible; }
+    .rec-modal-header { display: none !important; }
+    .rec-form-modal { max-width: 100% !important; width: 100% !important; max-height: none !important; box-shadow: none !important; border-radius: 0 !important; overflow: visible !important; }
+    .form-view-body { overflow: visible !important; }
+    .form-view-body .form-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #ddd !important; margin: 12px !important; }
+    .form-view-body .person-entry { break-inside: avoid; }
+    .form-view-body .form-group input:disabled, .form-view-body .form-group select:disabled, .form-view-body .form-group textarea:disabled { background: #fff !important; border-color: #ccc !important; }
+}
+
 </style>
 </head>
 <body>
@@ -360,183 +445,61 @@
 
     // ── View full booking details ────────────────────────────
     // Shows ALL fields in a comprehensive modal with email notification
+    
     async function viewBooking(id) {
         try {
             const r = allBookings.find(x => x.id === id);
-            if (!r) {
-                console.warn('viewBooking: booking not found', id);
-                return;
+            if (!r) { console.warn('Booking not found', id); return; }
+            
+            function esc(s) { return s != null ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+            function fmtDate(d) { if (!d) return ''; try { var dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toISOString().split('T')[0]; } catch(e) { return d; } }
+            function inp(type, val) { return '<input type="' + type + '" value="' + esc(val != null ? val : '') + '" disabled>'; }
+            function ta(val) { return '<textarea disabled style="min-height:50px">' + esc(val != null ? val : '') + '</textarea>'; }
+            function sel(val, opts) { var h = '<select disabled>'; opts.forEach(function(o) { h += '<option' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }); h += '</select>'; return h; }
+            function fg(label, inputHtml) { return '<div class="form-group"><label>' + label + '</label>' + inputHtml + '</div>'; }
+            function section_(title) { return '<div class="section-title">' + title + '</div>'; }
+            
+            var statusDisplay = r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : 'Unknown';
+            
+            var html = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh">';
+            html += '<div class="rec-modal-header" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e0e0e0;background:white">';
+            html += '<div><h2 style="margin:0;font-size:18px">Inspection Booking</h2><div class="subtitle" style="font-size:12px;color:#888">Status: ' + statusDisplay + '</div></div>';
+            html += '<div class="rec-modal-actions"><button class="rec-modal-btn print" onclick="window.print()">🖨️ Print</button>';
+            html += '<button class="rec-modal-close" id="recFormCloseBtn" style="width:32px;height:32px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px">✕</button></div></div>';
+            html += '<div class="form-view-body" style="flex:1;overflow-y:auto;background:#f5f5f5">';
+            html += '<div class="form-card"><div class="form-header"><h1>Request an Inspection</h1><div class="subtitle">Department of Occupational Health and Safety</div></div>';
+            html += section_('Company Information') + '<div class="form-row">' + fg('Company Name', inp('text', r.company_name)) + '</div>';
+            html += '<div class="form-row form-row-3">' + fg('Contact Name', inp('text', r.contact_name)) + fg('Contact Email', inp('email', r.contact_email)) + fg('Contact Phone', inp('tel', r.contact_phone)) + '</div>';
+            html += section_('Inspection Details') + '<div class="form-row form-row-2">' + fg('Preferred Date', inp('date', r.preferred_date)) + fg('Preferred Time', sel(r.preferred_time||'', ['Morning','Afternoon','Flexible'])) + '</div>';
+            html += '<div class="form-row">' + fg('Location / Premises Address', inp('text', r.location)) + '</div>';
+            html += '<div class="form-row form-row-2">' + fg('Nature of Work', inp('text', r.nature_of_work)) + fg('Industry Type', sel(r.industry_type||'', ['Manufacturing','Services','Construction','Agriculture','Transport','Retail','Government','Parastatal'])) + '</div>';
+            html += section_('Additional Information') + '<div class="form-row form-row-2">' + fg('Notes / Reason for Request', ta(r.notes)) + fg('Special Requirements', ta(r.special_requirements)) + '</div>';
+            
+            // Officer response section
+            if (r.assigned_inspector || r.scheduled_date || r.admin_notes) {
+                html += section_('Officer Response', 'official');
+                html += '<div class="form-row form-row-3">' + fg('Assigned Inspector', inp('text', r.assigned_inspector));
+                html += fg('Scheduled Date', inp('date', r.scheduled_date)) + fg('Scheduled Time', inp('text', r.scheduled_time)) + '</div>';
+                html += fg('Admin Notes', ta(r.admin_notes));
             }
-
-            const statusBadge = `<span class="badge badge-${r.status}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>`;
-
-            // Group fields into sections
-            const section = (title, fields) => `
-                <div style="margin-bottom:16px">
-                    <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee">${title}</div>
-                    ${fields.map(([label, value]) => `
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;gap:12px;">
-                            <span style="color:#888;font-size:12px;min-width:110px;flex-shrink:0">${label}</span>
-                            <span style="color:#333;font-size:13px;text-align:right;font-weight:${value.includes('<') ? '400' : '500'}">${value || '—'}</span>
-                        </div>
-                    `).join('')}
-                </div>`;
-
-            const companyInfo = section('Company Information', [
-                ['Company Name',  esc(r.company_name)],
-                ['Industry',      esc(r.industry_type || '—')],
-                ['Location',      esc(r.location)],
-                ['Nature of Work',esc(r.nature_of_work || '—')],
-            ]);
-
-            const contactInfo = section('Contact Person', [
-                ['Name',          esc(r.contact_name)],
-                ['Email',         esc(r.contact_email)],
-                ['Phone',         esc(r.contact_phone || '—')],
-            ]);
-
-            const bookingInfo = section('Booking Details', [
-                ['Status',         statusBadge],
-                ['Inspection Type', esc(r.inspection_type || 'Routine')],
-                ['Submitted',      r.created_at ? fmtDate(r.created_at) : '—'],
-                ['Preferred Date', r.preferred_date ? fmtDate(r.preferred_date) : 'Not specified'],
-                ['Preferred Time', r.preferred_time || 'Not specified'],
-            ]);
-
-            const officerInfo = section('Officer Actions', [
-                ['Assigned Inspector', esc(r.assigned_inspector || '<span style="color:#bbb">Not assigned</span>')],
-                ['Scheduled Date',     r.scheduled_date ? fmtDate(r.scheduled_date) : '<span style="color:#bbb">Not scheduled</span>'],
-                ['Scheduled Time',      r.scheduled_time || '<span style="color:#bbb">—</span>'],
-                ['Last Updated',       r.updated_at ? fmtDate(r.updated_at) : '—'],
-            ]);
-
-            // Notes sections
-            const notesBlocks = [];
-            if (r.notes) notesBlocks.push(`
-                <div style="margin-bottom:12px">
-                    <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Company Notes / Reason</div>
-                    <div style="background:#f9f9f9;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">${esc(r.notes)}</div>
-                </div>`);
-            if (r.special_requirements) notesBlocks.push(`
-                <div style="margin-bottom:12px">
-                    <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Special Requirements</div>
-                    <div style="background:#f9f9f9;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">${esc(r.special_requirements)}</div>
-                </div>`);
-            if (r.admin_notes) notesBlocks.push(`
-                <div style="margin-bottom:12px">
-                    <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Officer Admin Notes</div>
-                    <div style="background:#f0f8ff;padding:12px;border-radius:6px;font-size:13px;color:#333;line-height:1.5">${esc(r.admin_notes)}</div>
-                </div>`);
-
-            const notesHTML = notesBlocks.length ? `<div style="margin-top:4px">${notesBlocks.join('')}</div>` : '';
-
-            // Schedule confirmation
-            const scheduleHTML = r.scheduled_date ? `
-                <div style="margin-top:12px;padding:14px;background:#e8f5e9;border-radius:8px;text-align:center;border:1px solid #c8e6c9">
-                    <div style="font-size:20px;margin-bottom:4px">📅</div>
-                    <strong style="color:#155724">Inspection Scheduled</strong>
-                    <div style="font-size:13px;color:#155724;margin-top:4px">${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' at ' + r.scheduled_time : ''}</div>
-                    ${r.assigned_inspector ? `<div style="font-size:12px;color:#388e3c;margin-top:2px">Inspector: ${esc(r.assigned_inspector)}</div>` : ''}
-                </div>` : '';
-
-            // Build email body (using \n for actual newlines in template literals)
-            const emailSubject = encodeURIComponent(`Inspection Booking Update - ${r.company_name}`);
-            const emailBody = encodeURIComponent(
-                `INSPECTION BOOKING UPDATE\n\n` +
-                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-                `COMPANY: ${r.company_name}\n` +
-                `STATUS: ${r.status.toUpperCase()}\n` +
-                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                `Company Information\n` +
-                `  Location: ${r.location || '—'}\n` +
-                `  Industry: ${r.industry_type || '—'}\n` +
-                `  Nature of Work: ${r.nature_of_work || '—'}\n\n` +
-                `Contact Person\n` +
-                `  Name: ${r.contact_name}\n` +
-                `  Email: ${r.contact_email}\n` +
-                `  Phone: ${r.contact_phone || '—'}\n\n` +
-                `Booking\n` +
-                `  Requested: ${r.created_at ? fmtDate(r.created_at) : '—'}\n` +
-                `  Preferred: ${r.preferred_date ? fmtDate(r.preferred_date) : '—'} ${r.preferred_time ? '('+r.preferred_time+')' : ''}\n` +
-                `  Status: ${r.status}\n\n` +
-                `Officer Response\n` +
-                `  Inspector: ${r.assigned_inspector || 'Not assigned'}\n` +
-                `  Scheduled: ${r.scheduled_date ? fmtDate(r.scheduled_date) : 'Not scheduled'}${r.scheduled_time ? ' ' + r.scheduled_time : ''}\n` +
-                `  Admin Notes: ${r.admin_notes || 'None'}\n\n` +
-                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-                `Occupational Health & Safety\n` +
-                `Ministry of Labour & Home Affairs\n`
-            );
-            const mailtoLink = `mailto:${r.contact_email}?subject=${emailSubject}&body=${emailBody}`;
-
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
-            overlay.innerHTML = `
-                <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);
-                            width:100%;max-width:580px;max-height:90vh;overflow-y:auto;
-                            padding:32px 30px;font-family:'Segoe UI',sans-serif;position:relative;">
-
-                    <!-- Header -->
-                    <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f0f0f0">
-                        <div style="font-size:32px;margin-bottom:6px">📅</div>
-                        <h2 style="color:#222;font-size:20px;margin-bottom:2px">Inspection Booking Details</h2>
-                        <p style="color:#888;font-size:13px">${esc(r.company_name)} · ${statusBadge}</p>
-                    </div>
-
-                    <!-- All sections -->
-                    ${companyInfo}
-                    ${contactInfo}
-                    ${bookingInfo}
-                    ${officerInfo}
-                    ${notesHTML}
-                    ${scheduleHTML}
-
-                    <!-- Action buttons -->
-                    <div style="margin-top:20px;padding-top:16px;border-top:2px solid #f0f0f0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-                        <button id="notifyBtn" style="display:inline-flex;align-items:center;gap:6px;padding:10px 22px;
-                            background:#17a2b8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;
-                            cursor:pointer;font-family:inherit;transition:all 0.2s;">
-                            📧 Notify Company
-                        </button>
-                        <button id="closeBtn" style="padding:10px 22px;background:#333;color:#fff;border:none;
-                            border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
-                            transition:all 0.2s;"
-                            onmouseover="this.style.background='#555'" onmouseout="this.style.background='#333'">
-                            Close
-                        </button>
-                    </div>
-                </div>`;
-
-            // Notify Company button: show confirmation dialog before opening email
-            overlay.querySelector('#notifyBtn').addEventListener('click', async () => {
-                const confirmed = await showConfirm(
-                    `Send an email notification to <strong>${esc(r.contact_email)}</strong>?<br><br>` +
-                    `<div style="text-align:left;font-size:12px;color:#555;background:#f9f9f9;padding:10px;border-radius:6px;">` +
-                    `<strong>Subject:</strong> Inspection Booking Update - ${esc(r.company_name)}<br><br>` +
-                    `<strong>Summary:</strong><br>` +
-                    `Status: ${r.status.charAt(0).toUpperCase() + r.status.slice(1)}<br>` +
-                    `Inspector: ${esc(r.assigned_inspector || 'Not assigned')}<br>` +
-                    (r.scheduled_date ? `Scheduled: ${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' ' + r.scheduled_time : ''}<br>` : '') +
-                    (r.admin_notes ? `Admin Notes: ${esc(r.admin_notes)}<br>` : '') +
-                    `</div>`,
-                    {
-                        title: 'Send Email Notification',
-                        icon: '📧',
-                        confirmText: 'Send Email',
-                        cancelText: 'Cancel'
-                    }
-                );
-                if (confirmed) {
-                    window.open(mailtoLink, '_blank');
-                }
+            
+            html += '</div></div></div>';
+            
+            return new Promise(function(resolve) {
+                var ov = document.createElement('div');
+                ov.className = 'rec-modal-overlay';
+                ov.innerHTML = html;
+                var closeBtn = ov.querySelector('#recFormCloseBtn');
+                if (closeBtn) closeBtn.addEventListener('click', function() { ov.remove(); resolve(); });
+                ov.addEventListener('click', function(e) { if (e.target === ov) { ov.remove(); resolve(); } });
+                document.body.appendChild(ov);
             });
-
-            overlay.querySelector('#closeBtn').addEventListener('click', () => { overlay.remove(); });
-            overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); } });
-            document.body.appendChild(overlay);
-        } catch (e) {
+        } catch(e) {
             console.error('viewBooking error:', e);
             await showAlert('Failed to open booking details: ' + e.message, { type: 'error', title: 'View Error' });
+        }
+    }
+);
         }
     }
 
