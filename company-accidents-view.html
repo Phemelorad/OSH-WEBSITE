@@ -92,6 +92,147 @@ tr:hover { background:#fafafa; }
 .export-btn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.1); }
 
 @media (max-width:768px) { .stats-grid { grid-template-columns:1fr 1fr; } .filters { flex-direction:column; } .section-header { flex-direction:column; } }
+
+/* ── Form view modal styles ── */
+.rec-form-modal {
+    max-width: 1000px !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+}
+.form-view-body {
+    overflow-y: auto;
+    padding: 0 !important;
+    flex: 1;
+    background: #f5f5f5;
+}
+.form-view-body .form-card {
+    background: white; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 30px;
+    margin: 20px;
+    border: 1px solid #e0e0e0;
+}
+.form-view-body .form-header {
+    text-align: center; margin-bottom: 24px;
+    padding-bottom: 20px; border-bottom: 2px solid #f0f0f0;
+}
+.form-view-body .form-header h1 {
+    color: #333; font-size: 18px; margin-bottom: 4px;
+}
+.form-view-body .form-header .subtitle {
+    color: #666; font-size: 12px; line-height: 1.5;
+}
+.form-view-body .form-header .act-ref {
+    margin-top: 8px; font-size: 11px; color: #888; font-style: italic;
+}
+.form-number-badge {
+    position: absolute; top: 16px; right: 20px;
+    font-size: 11px; font-weight: 700; color: #888;
+    text-transform: uppercase; letter-spacing: 2px;
+    background: #f5f5f5; padding: 4px 12px; border-radius: 6px;
+}
+.form-view-body .section-title {
+    color: #333; font-size: 14px; font-weight: 700;
+    margin-bottom: 14px; padding: 8px 12px;
+    background: #f5f5f5; border-left: 4px solid #333;
+    border-radius: 0 6px 6px 0;
+}
+.form-view-body .section-title.danger { border-left-color: #dc3545; }
+.form-view-body .section-title.official { border-left-color: #856404; background: #fffbeb; color: #856404; }
+.form-view-body .section-title.worker-section { border-left-color: #17a2b8; }
+.form-view-body .section-title.accident-section { border-left-color: #fd7e14; }
+.form-view-body .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin-bottom: 14px;
+}
+.form-view-body .form-row-2 { grid-template-columns: repeat(2,1fr); }
+.form-view-body .form-row-3 { grid-template-columns: repeat(3,1fr); }
+.form-view-body .col-span-2 { grid-column: span 2; }
+.form-view-body .col-span-3 { grid-column: span 3; }
+.form-view-body .form-group { margin-bottom: 2px; }
+.form-view-body .form-group label {
+    display: block; color: #444; font-weight: 600;
+    margin-bottom: 4px; font-size: 12px;
+}
+.form-view-body .form-group input,
+.form-view-body .form-group select,
+.form-view-body .form-group textarea {
+    width: 100%; padding: 8px 12px;
+    border: 2px solid #e0e0e0; border-radius: 8px;
+    font-size: 13px; font-family: inherit;
+    background: #fff;
+    box-sizing: border-box;
+}
+.form-view-body .form-group input:disabled,
+.form-view-body .form-group select:disabled,
+.form-view-body .form-group textarea:disabled {
+    background: #f9f9f9;
+    color: #333;
+    border-color: #e8e8e8;
+    cursor: default;
+    opacity: 1;
+    -webkit-text-fill-color: #333;
+}
+.form-view-body .form-group textarea { resize: none; min-height: 60px; }
+.form-view-body .official-box {
+    background: #fffbeb; border: 2px dashed #ffc107;
+    border-radius: 10px; padding: 16px; margin-top: 4px;
+}
+.form-view-body .person-entry {
+    background: #fafafa; border: 1px solid #e0e0e0;
+    border-radius: 10px; padding: 16px; margin-bottom: 14px;
+}
+.form-view-body .person-number {
+    font-weight: 700; font-size: 13px; color: #333;
+}
+.form-view-body hr.section-divider {
+    border: none; border-top: 1px solid #f0f0f0; margin: 16px 0;
+}
+.form-view-body .hint {
+    font-size: 12px; color: #888; margin-top: 4px; font-style: italic;
+}
+.form-view-body .gov-logo {
+    display: flex; justify-content: center; margin-bottom: 8px;
+}
+.form-view-body .gov-logo img {
+    width: 60px; height: 46px; object-fit: contain;
+}
+.form-view-body .rec-modal-actions {
+    display: flex; gap: 8px; align-items: center;
+}
+.form-view-body .rec-modal-btn {
+    padding: 8px 16px; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid #ddd; font-family: inherit;
+    background: white; transition: all 0.2s;
+}
+.form-view-body .rec-modal-btn:hover { background: #f0f0f0; }
+.form-view-body .rec-modal-btn.print { background: #333; color: white; border-color: #333; }
+.form-view-body .rec-modal-btn.print:hover { background: #555; }
+
+/* Print styles */
+@media print {
+    body * { visibility: hidden; }
+    .rec-modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: white !important; z-index: 999999 !important; display: block !important; visibility: visible !important; }
+    .rec-modal-overlay * { visibility: visible; }
+    .rec-modal-header { display: none !important; }
+    .rec-form-modal { max-width: 100% !important; width: 100% !important; max-height: none !important; box-shadow: none !important; border-radius: 0 !important; overflow: visible !important; }
+    .form-view-body { overflow: visible !important; }
+    .form-view-body .form-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #ddd !important; margin: 12px !important; }
+    .form-view-body .person-entry { break-inside: avoid; }
+    .form-view-body .form-group input:disabled,
+    .form-view-body .form-group select:disabled,
+    .form-view-body .form-group textarea:disabled {
+        background: #fff !important;
+        border-color: #ccc !important;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -405,62 +546,189 @@ function renderTable(rows) {
 async function viewRecord(id) {
     const r = allRecords.find(x => x.id === id);
     if (!r) return;
-    function f(label, val) { return val ? '<div class="rec-field"><span class="lbl">' + label + '</span><span class="val">' + esc(val) + '</span></div>' : ''; }
     
-    const accidentBody = f('Case Number', r.accident_case_number) +
-        f('Occupier', r.occupier_name) +
-        f('Accident Date', fmtDate(r.accident_date)) +
-        f('Accident Time', r.accident_time) +
-        f('Place of Accident', r.accident_place) +
-        f('Premises Address', r.premises_address) +
-        f('Nature of Industry', r.nature_of_industry) +
-        f('How Accident Happened', r.how_accident_happened) +
-        f('Report Type', r.report_type ? r.report_type.replace('_',' ').toUpperCase() : '') +
-        f('Disabled 3+ Days', r.disabled_three_days) +
-        f('Reporter', r.reporter_name + (r.reporter_designation ? ' (' + r.reporter_designation + ')' : '')) +
-        f('Report Date', fmtDate(r.report_date));
-    
-    var workerHtml = '';
-    var persons = r._persons || [];
-    if (persons.length > 0) {
-        persons.forEach(function(p, idx) {
-            workerHtml += '<div class="person-section"' + (idx > 0 ? ' style="margin-top:16px;padding-top:16px;border-top:2px solid #eee"' : '') + '>';
-            workerHtml += '<h4 style="margin:0 0 8px 0;font-size:14px;color:#333">' + (idx + 1) + '. ' + (p.full_name || 'Unknown') + '</h4>';
-            workerHtml += f('Age', p.age_years) + f('Sex', p.sex) + f('ID / Passport', p.id_number);
-            workerHtml += f('Occupation at Accident', p.occupation_at_accident) + f('Usual Occupation', p.usual_occupation);
-            workerHtml += f('Experience Level', p.experience_level) + f('Fatal?', p.injury_fatal);
-            workerHtml += f('Disabled 3+ Days', p.disabled_three_days) + f('Hourly Pay', p.hourly_pay);
-            workerHtml += '</div>';
-        });
-    } else if (r.injured_name) {
-        workerHtml = '<div class="person-section">';
-        workerHtml += f('Worker Name', r.injured_name) + f('Age', r.injured_age) + f('Sex', r.injured_sex);
-        workerHtml += f('ID / Passport', r.injured_id_number) + f('Occupation', r.occupation_at_accident) + f('Fatal?', r.injury_fatal);
-        workerHtml += '</div>';
-    } else {
-        workerHtml = 'No worker details recorded.';
+    function esc(s) { return s != null ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+    function fmtDate(d) { if (!d) return ''; try { return new Date(d).toISOString().split('T')[0]; } catch(e) { return d; } }
+    function inp(type, val, extra) { return '<input type="' + type + '" value="' + esc(val != null ? val : '') + '" disabled' + (extra || '') + '>'; }
+    function ta(val) { return '<textarea disabled style="min-height:50px">' + esc(val != null ? val : '') + '</textarea>'; }
+    function sel(val, opts) {
+        var h = '<select disabled>';
+        opts.forEach(function(o) { h += '<option' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>'; });
+        h += '</select>';
+        return h;
+    }
+    function fg(label, inputHtml) {
+        return '<div class="form-group"><label>' + label + '</label>' + inputHtml + '</div>';
+    }
+    function section(title, extraCls) {
+        return '<div class="section-title' + (extraCls ? ' ' + extraCls : '') + '">' + title + '</div>';
     }
     
-    const investHtml = (r.causation_number || r.investigation_status) ? f('Causation No.', r.causation_number) + f('Investigation Status', r.investigation_status) + f('Official Action', r.official_action) : '';
+    var persons = r._persons || [];
+    if (persons.length === 0 && r.injured_name) {
+        persons = [{
+            full_name: r.injured_name,
+            age_years: r.injured_age,
+            sex: r.injured_sex,
+            id_number: r.injured_id_number,
+            occupation_at_accident: r.occupation_at_accident,
+            usual_occupation: r.usual_occupation,
+            experience_level: r.experience_level,
+            injury_fatal: r.injury_fatal,
+            disabled_three_days: r.disabled_three_days,
+            hourly_pay: r.hourly_pay,
+            medical_practitioner: r.medical_practitioner,
+            email: r.email
+        }];
+    }
     
-    const modalHtml = `<div class="rec-modal">
-        <div class="rec-modal-header">
-            <div><h2>🚨 Accident Report</h2><div class="subtitle">${r.accident_case_number || ''}</div></div>
-            <button class="rec-modal-close" id="recCloseBtn">✕</button>
-        </div>
-        <div class="rec-modal-body">
-            <div class="rec-section"><div class="rec-section-header accident">🚨 Accident Details</div><div class="rec-section-body">${accidentBody}</div></div>
-            <div class="rec-section"><div class="rec-section-header worker">👤 Injured Worker</div><div class="rec-section-body">${workerHtml}</div></div>
-            ${investHtml ? '<div class="rec-section"><div class="rec-section-header investigation">🔍 Investigation</div><div class="rec-section-body">' + investHtml + '</div></div>' : ''}
-        </div>
-    </div>`;
+    // Build injured persons HTML
+    var injuredHtml = '';
+    persons.forEach(function(p, idx) {
+        var fatalVal = p.injury_fatal || '';
+        injuredHtml += '<div class="person-entry">';
+        injuredHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+        injuredHtml += '<span class="person-number">Injured Person #' + (idx + 1) + '</span></div>';
+        injuredHtml += '<div class="form-row form-row-3">';
+        injuredHtml += fg('Full Name', inp('text', p.full_name));
+        injuredHtml += fg('Age', inp('number', p.age_years));
+        injuredHtml += fg('Gender', sel(p.sex, ['Male', 'Female']));
+        injuredHtml += '</div><div class="form-row form-row-3">';
+        injuredHtml += fg('Omang/Passport', inp('text', p.id_number));
+        injuredHtml += fg('Occupation at Accident', inp('text', p.occupation_at_accident));
+        injuredHtml += fg('Usual Occupation', inp('text', p.usual_occupation));
+        injuredHtml += '</div><div class="form-row form-row-3">';
+        injuredHtml += fg('Experience', inp('text', p.experience_level));
+        injuredHtml += fg('Email', inp('email', p.email));
+        injuredHtml += fg('Fatal?', sel(fatalVal, ['Fatal', 'Non-fatal']));
+        injuredHtml += '</div>';
+        if (fatalVal !== 'Fatal') {
+            injuredHtml += '<div class="form-row form-row-2">';
+            injuredHtml += fg('Disabled 3+ Days?', sel(p.disabled_three_days || '', ['Yes', 'No']));
+            injuredHtml += fg('Hourly Pay (BWP)', inp('number', p.hourly_pay));
+            injuredHtml += '</div><div class="form-row">';
+            injuredHtml += fg('Medical Practitioner', ta(p.medical_practitioner));
+            injuredHtml += '</div>';
+        }
+        // Accident details per person (shared fields)
+        injuredHtml += '<hr class="section-divider">';
+        injuredHtml += '<div style="font-weight:600;font-size:12px;color:#555;margin-bottom:10px">Accident Details (shared across all persons)</div>';
+        injuredHtml += '<div class="form-row form-row-3">';
+        injuredHtml += fg('Date of Accident', inp('date', r.accident_date));
+        injuredHtml += fg('Time of Accident', inp('time', r.accident_time));
+        injuredHtml += fg('Exact Place', inp('text', r.accident_place));
+        injuredHtml += '</div>';
+        injuredHtml += fg('Description', ta(r.accident_description));
+        injuredHtml += fg('Machinery Involved', inp('text', r.machinery_involved));
+        injuredHtml += '</div>';
+    });
     
-    return new Promise(resolve => {
-        const ov = document.createElement('div');
+    if (injuredHtml === '' && persons.length === 0) {
+        injuredHtml = '<p style="color:#888;font-style:italic;padding:12px">No injured persons recorded.</p>';
+    }
+    
+    // Dangerous occurrence section
+    var dangerousHtml = '';
+    if (r.dangerous_date || r.dangerous_description) {
+        dangerousHtml = '<div class="form-card">';
+        dangerousHtml += section('Dangerous Occurrence', 'danger');
+        dangerousHtml += '<div class="form-row form-row-3">';
+        dangerousHtml += fg('Date', inp('date', r.dangerous_date));
+        dangerousHtml += fg('Time', inp('time', r.dangerous_time));
+        dangerousHtml += fg('Place in Factory', inp('text', r.dangerous_place));
+        dangerousHtml += '</div>';
+        dangerousHtml += fg('How Did It Happen?', ta(r.dangerous_description));
+        dangerousHtml += fg('Damage & Estimated Loss', ta(r.dangerous_damage));
+        dangerousHtml += '<div class="form-row form-row-2">';
+        dangerousHtml += fg('Employees Injured?', sel(r.employees_injured || '', ['Yes', 'No']));
+        dangerousHtml += fg('Notification Submitted?', sel(r.notification_submitted || '', ['Yes', 'No']));
+        dangerousHtml += '</div>';
+        dangerousHtml += fg('Outside Persons Injured', ta(r.outside_persons_injured));
+        dangerousHtml += '</div>';
+    }
+    
+    // Report details
+    var reportHtml = '<div class="form-row form-row-3">';
+    reportHtml += fg('Date of Report', inp('date', r.report_date));
+    reportHtml += fg('Reporter Name', inp('text', r.reporter_name));
+    reportHtml += fg('Designation', inp('text', r.reporter_designation));
+    reportHtml += '</div>';
+    
+    // Official use
+    var officialHtml = '';
+    if (r.causation_number || r.date_received || r.investigation_status || r.official_action) {
+        officialHtml = '<div class="official-box">';
+        officialHtml += '<div class="form-row form-row-3">';
+        officialHtml += fg('Causation Number', inp('text', r.causation_number));
+        officialHtml += fg('Date Received', inp('date', r.date_received));
+        officialHtml += fg('Investigation Status', sel(r.investigation_status || '', ['Pending', 'In Progress', 'Completed', 'Closed']));
+        officialHtml += '</div>';
+        officialHtml += fg('Official Action', ta(r.official_action));
+        officialHtml += '</div>';
+    }
+    
+    var modalHtml = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh">';
+    modalHtml += '<div class="rec-modal-header" style="flex-shrink:0">';
+    modalHtml += '<div><h2>Accident / Dangerous Occurrence Report</h2><div class="subtitle">' + esc(r.accident_case_number || 'OHS Form 60') + '</div></div>';
+    modalHtml += '<div class="rec-modal-actions">';
+    modalHtml += '<button class="rec-modal-btn print" onclick="window.print()">🖨️ Print</button>';
+    modalHtml += '<button class="rec-modal-close" id="recFormCloseBtn">✕</button></div></div>';
+    modalHtml += '<div class="form-view-body" style="flex:1;overflow-y:auto;padding:0;background:#f5f5f5">';
+    
+    // Header card
+    modalHtml += '<div class="form-card"><div class="form-header">';
+    modalHtml += '<div class="gov-logo"><img src="Code-of-Arms-colour.png" alt="Coat of Arms" style="width:60px;height:46px;object-fit:contain"></div>';
+    modalHtml += '<h1>Notification of Accident and/or a<br>Dangerous Occurrence in a Factory</h1>';
+    modalHtml += '<div class="form-number-badge">OHS Form 60</div>';
+    modalHtml += '<div class="subtitle">Department of Occupational Health and Safety<br>Ministry of Employment, Labour Productivity and Skills Development</div>';
+    modalHtml += '<div class="act-ref">The Factories Act, 1973 — Section 57</div></div>';
+    
+    // Section 1: Occupier
+    modalHtml += section('1. Name of Occupier (Legal Person)');
+    modalHtml += '<div class="form-row form-row-2">';
+    modalHtml += fg('Name of Occupier / Employer', inp('text', r.occupier_name));
+    modalHtml += '</div>';
+    
+    // Section 2: Address
+    modalHtml += section('2. Address of Premises');
+    modalHtml += fg('Address where accident / dangerous occurrence occurred', ta(r.premises_address));
+    
+    // Section 3: Nature of Industry
+    modalHtml += section('3. Nature of Industry');
+    modalHtml += '<div class="form-row form-row-3">';
+    modalHtml += fg('Nature of Industry / Business', inp('text', r.nature_of_industry));
+    modalHtml += fg('Industry Sector', sel(r.industry_sector || '', ['Manufacturing', 'Services', 'Construction', 'Agriculture', 'Transport', 'Retail', 'Government', 'Parastatal']));
+    modalHtml += fg('Type of Report', sel(r.report_type || '', ['accident', 'dangerous_occurrence', 'both']));
+    modalHtml += '</div></div>';
+    
+    // Section 4-6: Injured Persons
+    modalHtml += '<div class="form-card">';
+    modalHtml += section('4. Injured or Deceased Persons');
+    modalHtml += '<p class="hint" style="margin-bottom:12px">Persons injured or killed in this accident/dangerous occurrence.</p>';
+    modalHtml += injuredHtml;
+    modalHtml += '</div>';
+    
+    // Dangerous occurrence section
+    modalHtml += dangerousHtml;
+    
+    // Report details
+    modalHtml += '<div class="form-card">';
+    modalHtml += section('Report Submission Details');
+    modalHtml += reportHtml;
+    modalHtml += '<hr class="section-divider">';
+    modalHtml += section('For Official Use Only', 'official');
+    modalHtml += officialHtml || '<p style="color:#888;font-style:italic;padding:8px">No official use data recorded.</p>';
+    modalHtml += '</div>';
+    
+    modalHtml += '</div></div>';
+    
+    return new Promise(function(resolve) {
+        var ov = document.createElement('div');
         ov.className = 'rec-modal-overlay';
         ov.innerHTML = modalHtml;
-        ov.querySelector('#recCloseBtn').addEventListener('click', () => { ov.remove(); resolve(); });
-        ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); resolve(); } });
+        var closeBtn = ov.querySelector('#recFormCloseBtn');
+        if (closeBtn) closeBtn.addEventListener('click', function() { ov.remove(); resolve(); });
+        ov.addEventListener('click', function(e) { if (e.target === ov) { ov.remove(); resolve(); } });
         document.body.appendChild(ov);
     });
 }
