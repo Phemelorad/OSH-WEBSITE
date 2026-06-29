@@ -427,12 +427,10 @@
             html += section_('Additional Information') + '<div class="form-row form-row-2">' + fg('Notes / Reason for Request', ta(r.notes)) + fg('Special Requirements', ta(r.special_requirements)) + '</div>';
             
             // Officer response section
-            if (r.assigned_inspector || r.scheduled_date || r.admin_notes) {
-                html += section_('Officer Response', 'official');
+            html += section_('Officer Response', 'official');
                 html += '<div class="form-row form-row-3">' + fg('Assigned Inspector', inp('text', r.assigned_inspector));
                 html += fg('Scheduled Date', inp('date', r.scheduled_date)) + fg('Scheduled Time', inp('text', r.scheduled_time)) + '</div>';
                 html += fg('Admin Notes', ta(r.admin_notes));
-            }
             
             html += '</div></div></div>';
             

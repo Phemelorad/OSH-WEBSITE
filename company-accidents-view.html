@@ -628,24 +628,21 @@ async function viewRecord(id) {
     }
     
     // Dangerous occurrence section
-    var dangerousHtml = '';
-    if (r.dangerous_date || r.dangerous_description) {
-        dangerousHtml = '<div class="form-card">';
-        dangerousHtml += section('Dangerous Occurrence', 'danger');
-        dangerousHtml += '<div class="form-row form-row-3">';
-        dangerousHtml += fg('Date', inp('date', r.dangerous_date));
-        dangerousHtml += fg('Time', inp('time', r.dangerous_time));
-        dangerousHtml += fg('Place in Factory', inp('text', r.dangerous_place));
-        dangerousHtml += '</div>';
-        dangerousHtml += fg('How Did It Happen?', ta(r.dangerous_description));
-        dangerousHtml += fg('Damage & Estimated Loss', ta(r.dangerous_damage));
-        dangerousHtml += '<div class="form-row form-row-2">';
-        dangerousHtml += fg('Employees Injured?', sel(r.employees_injured || '', ['Yes', 'No']));
-        dangerousHtml += fg('Notification Submitted?', sel(r.notification_submitted || '', ['Yes', 'No']));
-        dangerousHtml += '</div>';
-        dangerousHtml += fg('Outside Persons Injured', ta(r.outside_persons_injured));
-        dangerousHtml += '</div>';
-    }
+    var dangerousHtml = '<div class="form-card">';
+    dangerousHtml += section('Dangerous Occurrence', 'danger');
+    dangerousHtml += '<div class="form-row form-row-3">';
+    dangerousHtml += fg('Date', inp('date', r.dangerous_date));
+    dangerousHtml += fg('Time', inp('time', r.dangerous_time));
+    dangerousHtml += fg('Place in Factory', inp('text', r.dangerous_place));
+    dangerousHtml += '</div>';
+    dangerousHtml += fg('How Did It Happen?', ta(r.dangerous_description));
+    dangerousHtml += fg('Damage & Estimated Loss', ta(r.dangerous_damage));
+    dangerousHtml += '<div class="form-row form-row-2">';
+    dangerousHtml += fg('Employees Injured?', sel(r.employees_injured || '', ['Yes', 'No']));
+    dangerousHtml += fg('Notification Submitted?', sel(r.notification_submitted || '', ['Yes', 'No']));
+    dangerousHtml += '</div>';
+    dangerousHtml += fg('Outside Persons Injured', ta(r.outside_persons_injured));
+    dangerousHtml += '</div>';
     
     // Report details
     var reportHtml = '<div class="form-row form-row-3">';
@@ -655,17 +652,14 @@ async function viewRecord(id) {
     reportHtml += '</div>';
     
     // Official use
-    var officialHtml = '';
-    if (r.causation_number || r.date_received || r.investigation_status || r.official_action) {
-        officialHtml = '<div class="official-box">';
-        officialHtml += '<div class="form-row form-row-3">';
-        officialHtml += fg('Causation Number', inp('text', r.causation_number));
-        officialHtml += fg('Date Received', inp('date', r.date_received));
-        officialHtml += fg('Investigation Status', sel(r.investigation_status || '', ['Pending', 'In Progress', 'Completed', 'Closed']));
-        officialHtml += '</div>';
-        officialHtml += fg('Official Action', ta(r.official_action));
-        officialHtml += '</div>';
-    }
+    var officialHtml = '<div class="official-box">';
+    officialHtml += '<div class="form-row form-row-3">';
+    officialHtml += fg('Causation Number', inp('text', r.causation_number));
+    officialHtml += fg('Date Received', inp('date', r.date_received));
+    officialHtml += fg('Investigation Status', sel(r.investigation_status || '', ['Pending', 'In Progress', 'Completed', 'Closed']));
+    officialHtml += '</div>';
+    officialHtml += fg('Official Action', ta(r.official_action));
+    officialHtml += '</div>';
     
     var modalHtml = '<div class="rec-form-modal" style="background:white;border-radius:12px;display:flex;flex-direction:column;max-height:90vh">';
     modalHtml += '<div class="rec-modal-header" style="flex-shrink:0">';

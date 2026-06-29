@@ -716,13 +716,10 @@ function viewRecord(id) {
     incidentHtml += '</div>';
     
     // Linked accident info
-    var linkedHtml = '';
-    if (r.linked_accident_id || r._accident_case) {
-        linkedHtml = '<div class="linked-accident-box">';
+    var linkedHtml = '<div class="linked-accident-box">';
         linkedHtml += '<div style="font-weight:600;font-size:13px;color:#0c5460;margin-bottom:6px">🔗 Linked to Accident Report</div>';
-        linkedHtml += '<div style="font-size:13px;color:#333">Case: <strong>' + esc(r._accident_case || r.linked_accident_id || '') + '</strong></div>';
+        linkedHtml += '<div style="font-size:13px;color:#333">Case: <strong>' + esc(r._accident_case || r.linked_accident_id || 'Not linked') + '</strong></div>';
         linkedHtml += '</div>';
-    }
     
     var outcomeHtml = '<div class="form-card">';
     outcomeHtml += section('Outcome — Resulting In', 'outcome-title');
