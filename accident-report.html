@@ -283,23 +283,55 @@
                     <label>Omang/Passport<span class="req">*</span></label>
                     <input type="text" class="injured-field injured-id" data-person-field="id_number" required maxlength="9" style="text-transform:uppercase">
                   </div>
-                  <div class="form-group">
-                    <label>Occupation at Accident</label>
-                    <input type="text" class="injured-field" data-person-field="occupation_at_accident">
-                  </div>
                 </div>
-                <div class="form-row form-row-3">
+                <div class="form-row form-row-2">
                   <div class="form-group">
                     <label>Usual Occupation</label>
                     <input type="text" class="injured-field" data-person-field="usual_occupation">
                   </div>
                   <div class="form-group">
-                    <label>Experience</label>
-                    <input type="text" class="injured-field" data-person-field="experience_level">
-                  </div>
-                  <div class="form-group">
                     <label>Email</label>
                     <input type="email" class="injured-field" data-person-field="email">
+                  </div>
+                </div>
+                <hr class="section-divider">
+                <div style="font-weight:600;font-size:14px;color:#333;margin-bottom:12px">5. Accident</div>
+                <div class="form-row form-row-2">
+                  <div class="form-group">
+                    <label>(a) Date of Accident<span class="req">*</span></label>
+                    <input type="date" class="injured-field" data-person-field="accident_date" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Time of Accident<span class="req">*</span></label>
+                    <input type="time" class="injured-field" data-person-field="accident_time" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Exact Place of Accident<span class="req">*</span></label>
+                    <input type="text" class="injured-field" data-person-field="accident_place" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>(b) Description of how accident occurred and extent of injuries sustained (including the part of the body affected)<span class="req">*</span></label>
+                    <textarea class="injured-field" data-person-field="accident_description" style="min-height:100px" required></textarea>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Machinery Involved (if applicable)</label>
+                    <input type="text" class="injured-field" data-person-field="machinery_involved">
+                  </div>
+                </div>
+                <div class="form-row form-row-2" style="margin-top:12px">
+                  <div class="form-group">
+                    <label>(c) Occupation at Time of Accident</label>
+                    <input type="text" class="injured-field" data-person-field="occupation_at_accident">
+                  </div>
+                  <div class="form-group">
+                    <label>(d) Level of Experience</label>
+                    <input type="text" class="injured-field" data-person-field="experience_level">
                   </div>
                 </div>
                 <hr class="section-divider">
@@ -313,7 +345,7 @@
                       <option value="Non-fatal">No Non-fatal</option>
                     </select>
                   </div>
-                  <div class="form-group per-person-disabled" style="display:none">
+                  <div class="form-group per-person-disabled">
                     <label>Disabled 3+ days?</label>
                     <select class="injured-field" data-person-field="disabled_three_days">
                       <option value="">Select</option>
@@ -322,7 +354,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="form-row form-row-2 per-person-non-fatal" style="display:none">
+                <div class="form-row form-row-2 per-person-non-fatal">
                   <div class="form-group">
                     <label>Hourly Pay (BWP)</label>
                     <input type="number" class="injured-field" data-person-field="hourly_pay" step="0.01">
@@ -334,26 +366,13 @@
                 </div>
               </div>
               <hr class="section-divider">
-              <div style="font-weight:600;font-size:13px;color:#555;margin-bottom:12px">Accident Details (shared across all persons)</div>
-              <div class="form-row form-row-3">
-                <div class="form-group"><label>Date of Accident<span class="req">*</span></label><input type="date" class="accident-field" data-accident-field="accident_date" required oninput="syncAccidentFields(this)"><span class="err-msg">Required</span></div>
-                <div class="form-group"><label>Time of Accident<span class="req">*</span></label><input type="time" class="accident-field" data-accident-field="accident_time" required oninput="syncAccidentFields(this)"><span class="err-msg">Required</span></div>
-                <div class="form-group"><label>Exact Place<span class="req">*</span></label><input type="text" class="accident-field" data-accident-field="accident_place" required oninput="syncAccidentFields(this)"><span class="err-msg">Required</span></div>
+                                        <div style="text-align:center;margin:20px 0">
+                <button type="button" id="addInjuredPersonBtn" onclick="addPersonEntry()" style="background:#007bff;color:white;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer">
+                  + Add Another Injured Person
+                </button>
               </div>
-              <div class="form-group" style="margin-bottom:12px">
-                <label>Description<span class="req">*</span></label>
-                <textarea class="accident-field" data-accident-field="accident_description" required oninput="syncAccidentFields(this)"></textarea>
-                <span class="err-msg">Required</span>
-              </div>
-              <div class="form-group" style="margin-bottom:0px">
-                <label>Machinery Involved</label>
-                <input type="text" class="accident-field" data-accident-field="machinery_involved" oninput="syncAccidentFields(this)">
-              </div>
-            </template>
-            <button type="button" id="addInjuredPersonBtn" style="width:100%;padding:14px;background:#f0f8ff;border:2px dashed #4a90d9;border-radius:10px;color:#4a90d9;font-size:14px;font-weight:600;cursor:pointer" onclick="addPersonEntry()">+ Add Another Injured Person</button>
-          </div>
-          <div class="form-card" id="dangerousSection">
-            <div class="section-title danger">7. Dangerous Occurrence</div>
+
+<div class="section-title danger">7. Dangerous Occurrence</div>
 
             <div class="form-row form-row-3">
               <div class="form-group">
@@ -592,16 +611,11 @@
     function togglePerPersonFatalFields(selectEl) {
         const entry = selectEl.closest('.person-entry');
         if (!entry) return;
-        const fatal = selectEl.value;
+        // Non-fatal fields are now always visible regardless of fatal/non-fatal selection
         const nfFields = entry.querySelector('.per-person-non-fatal');
         const disField = entry.querySelector('.per-person-disabled');
-        if (fatal === 'Non-fatal') {
-            if (nfFields) nfFields.style.display = 'grid';
-            if (disField) disField.style.display = 'block';
-        } else {
-            if (nfFields) nfFields.style.display = 'none';
-            if (disField) disField.style.display = 'none';
-        }
+        if (nfFields) nfFields.style.display = 'grid';
+        if (disField) disField.style.display = 'block';
     }
 
     // ---- Multi-person management ----
@@ -642,16 +656,7 @@
     }
 
     // ── Sync accident fields across all person entries ─────
-    function syncAccidentFields(changedEl) {
-        if (!changedEl) return;
-        var fieldName = changedEl.getAttribute('data-accident-field');
-        if (!fieldName) return;
-        var newVal = changedEl.value;
-        document.querySelectorAll('#injuredPersonsContainer .person-entry').forEach(function(entry) {
-            var field = entry.querySelector('[data-accident-field="' + fieldName + '"]');
-            if (field && field !== changedEl) field.value = newVal;
-        });
-    }
+    // Accident fields are now per-person (no sync needed)
 
     function renumberPersons() {
         const container = document.getElementById('injuredPersonsContainer');
@@ -756,11 +761,11 @@
                 usual_occupation:        (persons[0] || {}).usual_occupation || null,
                 experience_level:        (persons[0] || {}).experience_level || null,
             // Accident (from first person entry - synced across all)
-                accident_date:           firstEntryQuery('[data-accident-field="accident_date"]')?.value?.trim() || null,
-                accident_time:           firstEntryQuery('[data-accident-field="accident_time"]')?.value?.trim() || null,
-                accident_place:          firstEntryQuery('[data-accident-field="accident_place"]')?.value?.trim() || null,
-                accident_description:    firstEntryQuery('[data-accident-field="accident_description"]')?.value?.trim() || null,
-                machinery_involved:      firstEntryQuery('[data-accident-field="machinery_involved"]')?.value?.trim() || null,
+                accident_date:           persons[0]?.accident_date || null,
+                accident_time:           persons[0]?.accident_time || null,
+                accident_place:          persons[0]?.accident_place || null,
+                accident_description:    persons[0]?.accident_description || null,
+                machinery_involved:      persons[0]?.machinery_involved || null,
                 // Injury
                 injury_fatal:            (persons[0] || {}).injury_fatal || null,
                 disabled_three_days:     (persons[0] || {}).disabled_three_days || null,
