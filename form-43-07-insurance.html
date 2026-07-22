@@ -70,7 +70,17 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 
 <form id="insuranceForm">
-<h3 class="section-title">Insurance Details</h3>
+<!-- ── Employer always first — links this certificate to a company ── -->
+<h3 class="section-title">1. Employer Details</h3>
+<div id="bl-lookup-container"></div>
+<div class="form-row">
+<div class="form-group full"><label>Full Name of Employer <span style="color:#e74c3c">*</span></label><input type="text" id="employer_name" name="employer_name" placeholder="Search above or enter manually" required></div>
+</div>
+<div class="form-row">
+<div class="form-group full"><label>Full Address of Employer</label><textarea id="employer_address" name="employer_address" rows="2" placeholder="Full address of employer"></textarea></div>
+</div>
+
+<h3 class="section-title">2. Insurance Details</h3>
 <div class="form-row">
 <div class="form-group full"><label>Name of Insurer</label><input type="text" name="insurer_name" placeholder="Full name of insurer/insurance company" required></div>
 </div>
@@ -82,15 +92,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <div class="form-group"><label>Coverage Period End</label><input type="date" name="coverage_period_end"></div>
 </div>
 
-<h3 class="section-title">Employer Details</h3>
-<div class="form-row">
-<div class="form-group full"><label>Full Name of Employer</label><input type="text" name="employer_name" placeholder="Full name of employer" required></div>
-</div>
-<div class="form-row">
-<div class="form-group full"><label>Full Address of Employer</label><textarea name="employer_address" rows="3" placeholder="Full address"></textarea></div>
-</div>
-
-<h3 class="section-title">Certification</h3>
+<h3 class="section-title">3. Certification</h3>
 <p style="font-size:13px;color:#555;margin-bottom:16px;">This is to certify that the above-named employer holds a policy of insurance as required by the Worker's Compensation Act.</p>
 <div class="form-row form-row-3">
 <div class="form-group"><label>Date</label><input type="date" name="certificate_date"></div>
@@ -165,8 +167,8 @@ if (formEl) {
             });
 
             var user = await getCurrentUser();
-            if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit'; btn.disabled = false; return; }
-            payload.submitted_by = user.id;
+            if (!user.success || !user.user) { await showAlert('You must be logged in.', {type:'warning'}); btn.textContent = 'Submit'; btn.disabled = false; return; }
+            payload.submitted_by = user.user.id;
 
             var result = await supabaseClient
                 .from('certificate_of_insurance')
@@ -174,10 +176,10 @@ if (formEl) {
                 .select();
 
             if (result.error) throw result.error;
-            alert('Form submitted successfully!');
+            showToast('Form submitted successfully!', 'success');
             formEl.reset();
         } catch(err) {
-            alert('Error: ' + err.message);
+            await showAlert(err.message, {type:'error', title:'Submission Failed'});
             console.error('Form submit error:', err);
         } finally {
             btn.textContent = 'Submit';

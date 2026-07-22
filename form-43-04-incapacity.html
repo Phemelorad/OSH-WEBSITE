@@ -72,23 +72,29 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 
 <form id="incapacityForm">
-<h3 class="section-title">Worker & Employer Details</h3>
+<!-- ── Worker always first — unique identifier links this record to the individual ── -->
+<h3 class="section-title">1. Worker & Employer Details</h3>
+<div id="bl-lookup-container"></div>
 <div class="form-row">
-<div class="form-group full">
+<div class="form-group">
+<label>Omang / Passport No. <span class="req">*</span></label>
+<input type="text" id="worker_id_number" name="worker_id_number" placeholder="Search above or enter manually" required style="text-transform:uppercase">
+</div>
+<div class="form-group">
 <label>Name of Worker <span class="req">*</span></label>
-<input type="text" name="worker_name" placeholder="Full name of worker" required>
+<input type="text" id="worker_name" name="worker_name" placeholder="Full name of worker" required>
 </div>
 </div>
 <div class="form-row">
 <div class="form-group full">
 <label>Address of Worker</label>
-<textarea name="worker_address" placeholder="Postal / residential address of worker" rows="2"></textarea>
+<textarea id="worker_address" name="worker_address" placeholder="Postal / residential address of worker" rows="2"></textarea>
 </div>
 </div>
 <div class="form-row">
 <div class="form-group full">
 <label>Name of Employer <span class="req">*</span></label>
-<input type="text" name="employer_name" placeholder="Full name of employer / occupier" required>
+<input type="text" id="employer_name" name="employer_name" placeholder="Full name of employer / occupier" required>
 </div>
 </div>
 <div class="form-row">
@@ -97,6 +103,9 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <input type="date" name="accident_date" required>
 </div>
 </div>
+<!-- Hidden CC fields — auto-synced from worker fields above -->
+<input type="hidden" id="cc_worker_name"    name="cc_worker_name">
+<input type="hidden" id="cc_worker_address" name="cc_worker_address">
 
 <h3 class="section-title">A. Permanent Total Incapacity</h3>
 <p style="font-size:13px;color:#666;margin-bottom:12px;">The compensation payable shall be:</p>
@@ -182,16 +191,7 @@ For / Commissioner of Compensation
 </div>
 
 <h3 class="section-title">CC: Worker</h3>
-<div class="form-row">
-<div class="form-group">
-<label>Full Name of Worker</label>
-<input type="text" name="cc_worker_name" placeholder="Full name">
-</div>
-<div class="form-group">
-<label>Address of Worker</label>
-<textarea name="cc_worker_address" placeholder="Postal address" rows="2"></textarea>
-</div>
-</div>
+<p style="font-size:12px;color:#888;margin-bottom:8px;font-style:italic;">Auto-filled from Worker Details above.</p>
 
 <div class="btn-row">
 <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
@@ -259,12 +259,26 @@ window.addEventListener('load', async function() {
     // Attach lookup — pulls worker name/address AND employer name from DB
     BLLookup.init({
         workerFields: {
+            id_number: 'worker_id_number',
             full_name: 'worker_name',
             address:   'worker_address',
         },
         employerFields: {
             employer_name: 'employer_name',
-        }
+        },
+        onWorkerFound: syncCCFields
+    });
+
+    // Auto-sync CC hidden fields whenever worker fields change
+    function syncCCFields() {
+        var nm = document.getElementById('worker_name');
+        var ad = document.getElementById('worker_address');
+        if (nm) document.getElementById('cc_worker_name').value    = nm.value;
+        if (ad) document.getElementById('cc_worker_address').value = ad.value;
+    }
+    ['worker_name','worker_address'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', syncCCFields);
     });
 
     var formEl = document.getElementById('incapacityForm');
@@ -285,8 +299,8 @@ window.addEventListener('load', async function() {
                 });
 
                 var user = await getCurrentUser();
-                if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit'; btn.disabled = false; return; }
-                payload.submitted_by = user.id;
+                if (!user.success || !user.user) { await showAlert('You must be logged in.', {type:'warning'}); btn.textContent = 'Submit'; btn.disabled = false; return; }
+                payload.submitted_by = user.user.id;
 
                 var result = await supabaseClient
                     .from('bl_form_43_04_incapacity')
@@ -294,10 +308,10 @@ window.addEventListener('load', async function() {
                     .select();
 
                 if (result.error) throw result.error;
-                alert('Form submitted successfully!');
+                showToast('Form submitted successfully!', 'success');
                 formEl.reset();
             } catch(err) {
-                alert('Error: ' + err.message);
+                await showAlert(err.message, {type:'error', title:'Submission Failed'});
                 console.error('Form submit error:', err);
             } finally {
                 btn.textContent = 'Submit';

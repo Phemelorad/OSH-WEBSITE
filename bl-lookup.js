@@ -260,12 +260,11 @@
     const wFields = config.workerFields   || null;
     const eFields = config.employerFields || null;
 
-    // Find or create container
+    // Find or create container — if already in HTML, use it; otherwise inject before first section
     let container = document.getElementById('bl-lookup-container');
     if (!container) {
       container = document.createElement('div');
       container.id = 'bl-lookup-container';
-      // Insert before first section-title or at top of form
       const form = document.querySelector('form');
       const firstSection = form && form.querySelector('h3');
       if (firstSection) {

@@ -70,7 +70,19 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 
 <form id="wagesForm">
-<h3 class="section-title">1. Basic Pay</h3>
+
+<!-- ── SECTION 1: WORKER DETAILS (always first — links this record to an individual) ── -->
+<h3 class="section-title">1. Worker Details</h3>
+<div id="bl-lookup-container"></div>
+<div class="form-row">
+<div class="form-group"><label>Omang / Passport No. <span style="color:#e74c3c">*</span></label><input type="text" id="worker_id_number" name="worker_id_number" placeholder="Search above or enter manually" required style="text-transform:uppercase"></div>
+<div class="form-group"><label>Full Name of Worker <span style="color:#e74c3c">*</span></label><input type="text" id="worker_name" name="worker_name" placeholder="Full name" required></div>
+</div>
+<div class="form-row">
+<div class="form-group full"><label>Postal Address</label><textarea id="worker_address" name="worker_address" placeholder="Postal address of worker" rows="2"></textarea></div>
+</div>
+
+<h3 class="section-title">2. Basic Pay</h3>
 <div class="form-row">
 <div class="form-group">
 <label>Frequency</label>
@@ -87,14 +99,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 </div>
 
-<h3 class="section-title">2. Wages Paid in Last 12 Months</h3>
+<h3 class="section-title">3. Wages Paid in Last 12 Months</h3>
 <table class="wages-table">
 <thead><tr><th>Month</th><th>Basic Pay (P)</th><th>Voucher No.</th></tr></thead>
 <tbody><tr><td><input type="text" name="month_1_name" placeholder="Month 1"></td><td><input type="number" step="0.01" name="month_1_pay" placeholder="0.00"></td><td><input type="text" name="month_1_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_2_name" placeholder="Month 2"></td><td><input type="number" step="0.01" name="month_2_pay" placeholder="0.00"></td><td><input type="text" name="month_2_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_3_name" placeholder="Month 3"></td><td><input type="number" step="0.01" name="month_3_pay" placeholder="0.00"></td><td><input type="text" name="month_3_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_4_name" placeholder="Month 4"></td><td><input type="number" step="0.01" name="month_4_pay" placeholder="0.00"></td><td><input type="text" name="month_4_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_5_name" placeholder="Month 5"></td><td><input type="number" step="0.01" name="month_5_pay" placeholder="0.00"></td><td><input type="text" name="month_5_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_6_name" placeholder="Month 6"></td><td><input type="number" step="0.01" name="month_6_pay" placeholder="0.00"></td><td><input type="text" name="month_6_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_7_name" placeholder="Month 7"></td><td><input type="number" step="0.01" name="month_7_pay" placeholder="0.00"></td><td><input type="text" name="month_7_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_8_name" placeholder="Month 8"></td><td><input type="number" step="0.01" name="month_8_pay" placeholder="0.00"></td><td><input type="text" name="month_8_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_9_name" placeholder="Month 9"></td><td><input type="number" step="0.01" name="month_9_pay" placeholder="0.00"></td><td><input type="text" name="month_9_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_10_name" placeholder="Month 10"></td><td><input type="number" step="0.01" name="month_10_pay" placeholder="0.00"></td><td><input type="text" name="month_10_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_11_name" placeholder="Month 11"></td><td><input type="number" step="0.01" name="month_11_pay" placeholder="0.00"></td><td><input type="text" name="month_11_voucher" placeholder="Voucher"></td></tr><tr><td><input type="text" name="month_12_name" placeholder="Month 12"></td><td><input type="number" step="0.01" name="month_12_pay" placeholder="0.00"></td><td><input type="text" name="month_12_voucher" placeholder="Voucher"></td></tr>
 </tbody>
 </table>
 
-<h3 class="section-title">3. Other Remuneration</h3>
+<h3 class="section-title">4. Other Remuneration</h3>
 <div class="form-row">
 <div class="form-group full">
 <label>All Other Remuneration (including overtime, bonuses, etc. provided on a regular basis)</label>
@@ -102,7 +114,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 </div>
 
-<h3 class="section-title">4. Average Monthly Wage</h3>
+<h3 class="section-title">5. Average Monthly Wage</h3>
 <div class="form-row">
 <div class="form-group">
 <label>Average Monthly Wage (P)</label>
@@ -110,20 +122,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 </div>
 
-<h3 class="section-title">5. Employer / Representative Declaration</h3>
+<h3 class="section-title">6. Employer / Representative Declaration</h3>
 <div class="form-row form-row-2">
 <div class="form-group"><label>Date</label><input type="date" name="employer_date"></div>
 <div class="form-group"><label>Signature</label><input type="text" name="employer_signature" placeholder="Signature"></div>
 </div>
 <div class="form-row">
-<div class="form-group"><label>Full Name</label><input type="text" name="employer_name" placeholder="Full name of employer/representative"></div>
+<div class="form-group"><label>Full Name</label><input type="text" id="employer_name" name="employer_name" placeholder="Full name of employer/representative"></div>
 <div class="form-group"><label>Title / Designation</label><input type="text" name="employer_designation" placeholder="Title/designation"></div>
-</div>
-
-<h3 class="section-title">6. Worker Details (CC)</h3>
-<div class="form-row">
-<div class="form-group"><label>Full Name</label><input type="text" name="worker_name" placeholder="Full name of worker" required></div>
-<div class="form-group"><label>Postal Address</label><textarea name="worker_address" placeholder="Postal address of worker"></textarea></div>
 </div>
 
 <div class="btn-row">
@@ -171,12 +177,12 @@ window.addEventListener('load', async function() {
     // Attach worker + employer lookup
     BLLookup.init({
         workerFields: {
+            id_number:    'worker_id_number',
             full_name:    'worker_name',
             address:      'worker_address',
         },
         employerFields: {
-            employer_name:      'employer_name',
-            employer_address:   'worker_address',  // wages form CC section
+            employer_name: 'employer_name',
         }
     });
 
@@ -198,8 +204,8 @@ if (formEl) {
             });
 
             var user = await getCurrentUser();
-            if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit'; btn.disabled = false; return; }
-            payload.submitted_by = user.id;
+            if (!user.success || !user.user) { await showAlert('You must be logged in.', {type:'warning'}); btn.textContent = 'Submit'; btn.disabled = false; return; }
+            payload.submitted_by = user.user.id;
 
             var result = await supabaseClient
                 .from('bl_form_43_02_wages')
@@ -207,10 +213,10 @@ if (formEl) {
                 .select();
 
             if (result.error) throw result.error;
-            alert('Form submitted successfully!');
+            showToast('Form submitted successfully!', 'success');
             formEl.reset();
         } catch(err) {
-            alert('Error: ' + err.message);
+            await showAlert(err.message, {type:'error', title:'Submission Failed'});
             console.error('Form submit error:', err);
         } finally {
             btn.textContent = 'Submit';

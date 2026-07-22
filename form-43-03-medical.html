@@ -71,9 +71,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 
 <form id="medicalExamForm">
 <h3 class="section-title">1. Worker Details</h3>
+<div id="bl-lookup-container"></div>
 <div class="form-row">
-<div class="form-group"><label>Name of Worker</label><input type="text" name="worker_name" placeholder="Full name of worker" required></div>
-<div class="form-group"><label>ID Number</label><input type="text" name="worker_id_number" placeholder="Omang/Passport"></div>
+<div class="form-group"><label>Omang / Passport No. <span style="color:#e74c3c">*</span></label><input type="text" id="worker_id_number" name="worker_id_number" placeholder="Search above or enter manually" required style="text-transform:uppercase"></div>
+<div class="form-group"><label>Name of Worker <span style="color:#e74c3c">*</span></label><input type="text" id="worker_name" name="worker_name" placeholder="Full name of worker" required></div>
 </div>
 
 <h3 class="section-title">2. Nature of Injury or Disease</h3>
@@ -179,12 +180,10 @@ window.addEventListener('load', async function() {
     // Attach worker lookup — practitioner name pre-filled from logged-in user
     BLLookup.init({
         workerFields: {
-            full_name:  'worker_name',
             id_number:  'worker_id_number',
+            full_name:  'worker_name',
         },
-        onWorkerFound: function(w) {
-            // Pre-fill claim file number if coming from a claim context
-        }
+        onWorkerFound: function(w) {}
     });
 
 var formEl = document.getElementById('medicalExamForm');
@@ -205,8 +204,8 @@ if (formEl) {
             });
 
             var user = await getCurrentUser();
-            if (!user) { alert('You must be logged in.'); btn.textContent = 'Submit'; btn.disabled = false; return; }
-            payload.submitted_by = user.id;
+            if (!user.success || !user.user) { await showAlert('You must be logged in.', {type:'warning'}); btn.textContent = 'Submit'; btn.disabled = false; return; }
+            payload.submitted_by = user.user.id;
 
             var result = await supabaseClient
                 .from('medical_examination_reports')
@@ -214,10 +213,10 @@ if (formEl) {
                 .select();
 
             if (result.error) throw result.error;
-            alert('Form submitted successfully!');
+            showToast('Form submitted successfully!', 'success');
             formEl.reset();
         } catch(err) {
-            alert('Error: ' + err.message);
+            await showAlert(err.message, {type:'error', title:'Submission Failed'});
             console.error('Form submit error:', err);
         } finally {
             btn.textContent = 'Submit';
