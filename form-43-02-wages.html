@@ -141,6 +141,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <script src="modal.js"></script>
 <script src="common.js"></script>
 <script src="header.js"></script>
+<script src="bl-lookup.js"></script>
     
 <script src="nav.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-02';</script>
@@ -166,6 +167,18 @@ window.addEventListener('load', async function() {
     } else {
         setUserNameSafely(userResult.user.email.split('@')[0]);
     }
+
+    // Attach worker + employer lookup
+    BLLookup.init({
+        workerFields: {
+            full_name:    'worker_name',
+            address:      'worker_address',
+        },
+        employerFields: {
+            employer_name:      'employer_name',
+            employer_address:   'worker_address',  // wages form CC section
+        }
+    });
 
 var formEl = document.getElementById('wagesForm');
 if (formEl) {

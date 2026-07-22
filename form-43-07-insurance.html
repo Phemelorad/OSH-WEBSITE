@@ -113,12 +113,12 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <script src="modal.js"></script>
 <script src="common.js"></script>
 <script src="header.js"></script>
+<script src="bl-lookup.js"></script>
     
 <script src="nav.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-07';</script>
 <script>
 window.addEventListener('load', async function() {
-    // Retry to let Supabase client initialize
     let authenticated = false;
     for (let i = 0; i < 5; i++) {
         authenticated = await isAuthenticated();
@@ -138,6 +138,14 @@ window.addEventListener('load', async function() {
     } else {
         setUserNameSafely(userResult.user.email.split('@')[0]);
     }
+
+    // Insurance form: look up employer/company — no worker fields needed
+    BLLookup.init({
+        employerFields: {
+            employer_name:    'employer_name',
+            employer_address: 'employer_address',
+        }
+    });
 
 var formEl = document.getElementById('insuranceForm');
 if (formEl) {
