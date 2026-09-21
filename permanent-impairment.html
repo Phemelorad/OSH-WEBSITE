@@ -492,7 +492,6 @@
             btn.disabled=true; btn.textContent='Submitting...';
             try{
                 const u=await window.getCurrentUser();
-                if(!u||!u.user){ window.hideLoading(); window.location.href='index.html'; return; }
                 if(!u||!u.user){window.location.href='index.html';return}
 
                 const mh={
@@ -537,12 +536,11 @@
 
                 const {error}=await SB.from('permanent_impairment_reports').insert([payload]);
                 if(error) throw error;
-                window.hideLoading();
-                window.showSuccess('Permanent Impairment Report submitted successfully!');
+                showToast('Permanent Impairment Report submitted successfully!', 'success');
                 resetForm();
             } catch(err){ 
-                window.hideLoading(); 
-                window.showError(err.message||'Unknown error');
+                showToast(err.message||'Submission failed. Please try again.', 'error');
+                console.error('Submit error:', err);
             }
             finally{ btn.disabled=false; btn.textContent='Submit Report'; }
         });
@@ -563,9 +561,8 @@
             const rd=document.getElementById('reportDate'); if(rd) rd.valueAsDate=new Date();
             const pd=document.getElementById('practitionerDate'); if(pd) pd.valueAsDate=new Date();
             try{
-                window.showLoading('Submitting Permanent Impairment Report...');
                 const u=await window.getCurrentUser();
-                if(!u||!u.user){ window.hideLoading(); window.location.href='index.html'; return; }
+                if(!u||!u.user){ window.location.href='index.html'; return; }
                 if(u&&u.user){
                     const p=await window.getUserProfile(u.user.id);
                     if(p&&p.data){
