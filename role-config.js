@@ -10,117 +10,117 @@ window.OSH_ROLE_CONFIG = (function () {
   var config = {
     dashboard: {
       label: 'Dashboard',
-      roles: ['company', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
+      roles: ['company', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
       company:     { canView: true, stats: 'company' },
       worker:      { canView: true, stats: 'worker' },
-      dosh_officer:{ canView: true, stats: 'all' },
+      officer:     { canView: true, stats: 'all' },
       admin:       { canView: true, stats: 'all' },
       super_admin: { canView: true, stats: 'all' },
       medical_practitioner: { canView: true, stats: 'medical' }
     },
     checklist: {
       label: 'Claim Checklist',
-      roles: ['company', 'worker', 'dosh_officer', 'admin', 'super_admin'],
+      roles: ['company', 'worker', 'officer', 'admin', 'super_admin'],
       company:  { canView: true, canSubmit: true, autoFillCompany: true },
       worker:   { canView: true, canSubmit: true },
-      dosh_officer: { canView: true, canSubmit: false, showReview: true },
+      officer:  { canView: true, canSubmit: false, showReview: true },
       admin:    { canView: true, canSubmit: true, showReview: true },
       super_admin: { canView: true, canSubmit: true, showReview: true }
     },
     'form': {
       label: 'Submit Claim',
-      roles: ['company', 'worker', 'dosh_officer', 'admin', 'super_admin'],
+      roles: ['company', 'worker', 'officer', 'admin', 'super_admin'],
       company:  { canEdit: true, canSubmit: true, showFields: ['occupierName', 'companyAddress', 'companyIndustry'] },
       worker:   { canEdit: true, canSubmit: true, showFields: ['workerName', 'workerId', 'workerContact'] },
-      dosh_officer: { canEdit: false, canSubmit: false, showReview: true },
+      officer:  { canEdit: true, canSubmit: true, showFields: 'all' },
       admin:    { canEdit: true, canSubmit: true, showFields: 'all' },
       super_admin: { canEdit: true, canSubmit: true, showFields: 'all' }
     },
     'accident-report': {
       label: 'Accident Report',
-      roles: ['company', 'worker', 'dosh_officer', 'admin', 'super_admin'],
+      roles: ['company', 'worker', 'officer', 'admin', 'super_admin'],
       company:  { canEdit: true, canSubmit: true, showFields: ['occupierName', 'companyInfo', 'accidentDetails'] },
       worker:   { canEdit: true, canSubmit: true, showFields: ['workerInfo', 'accidentDetails'] },
-      dosh_officer: { canEdit: false, canSubmit: false, showApproval: true, showInvestigation: true },
+      officer:  { canEdit: true, canSubmit: true, showFields: 'all', showApproval: true, showInvestigation: true },
       admin:    { canEdit: true, canSubmit: true, showFields: 'all', showApproval: true },
       super_admin: { canEdit: true, canSubmit: true, showFields: 'all', showApproval: true }
     },
     'injury-disease-report': {
       label: 'Injury/Disease Report',
-      roles: ['company', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
+      roles: ['company', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
       company:  { canView: true, canSubmit: true },
       worker:   { canView: true, canSubmit: true },
-      dosh_officer: { canView: true, canSubmit: false, showReview: true },
+      officer:  { canView: true, canSubmit: true, showReview: true },
       admin:    { canView: true, canSubmit: true },
       super_admin: { canView: true, canSubmit: true },
       medical_practitioner: { canView: true, canSubmit: true }
     },
     'claim-tracker': {
       label: 'Claim Tracker',
-      roles: ['company', 'worker', 'dosh_officer', 'admin', 'super_admin'],
+      roles: ['company', 'worker', 'officer', 'admin', 'super_admin'],
       company:  { canView: true, canTrack: 'own' },
       worker:   { canView: true, canTrack: 'own' },
-      dosh_officer: { canView: true, canTrack: 'all' },
+      officer:  { canView: true, canTrack: 'all' },
       admin:    { canView: true, canTrack: 'all' },
       super_admin: { canView: true, canTrack: 'all' }
     },
     'worker-claims': {
       label: 'My Claims',
-      roles: ['worker', 'dosh_officer', 'admin', 'super_admin'],
-      worker:{ canView: true, canSubmit: true },
-      dosh_officer:{ canView: true, canReview: true },
-      admin:{ canView: true, canReview: true },
-      super_admin:{ canView: true, canReview: true }
+      roles: ['worker', 'officer', 'admin', 'super_admin'],
+      worker:   { canView: true, canSubmit: true },
+      officer:  { canView: true, canReview: true },
+      admin:    { canView: true, canReview: true },
+      super_admin: { canView: true, canReview: true }
     },
     'company-view': {
       label: 'Company Profile',
-      roles: ['company', 'dosh_officer', 'admin', 'super_admin'],
-      company:{ canView: true, canEdit: true },
-      dosh_officer:{ canView: true, canEdit: false },
-      admin:{ canView: true, canEdit: true },
-      super_admin:{ canView: true, canEdit: true }
+      roles: ['company', 'officer', 'admin', 'super_admin'],
+      company:  { canView: true, canEdit: true },
+      officer:  { canView: true, canEdit: false },
+      admin:    { canView: true, canEdit: true },
+      super_admin: { canView: true, canEdit: true }
     },
     'company-accidents-view': {
       label: 'Company Accidents',
-      roles: ['company', 'dosh_officer', 'admin', 'super_admin'],
-      company:{ canView: true, canExport: true },
-      dosh_officer:{ canView: true, canExport: true, canInvestigate: true },
-      admin:{ canView: true, canExport: true, canInvestigate: true },
-      super_admin:{ canView: true, canExport: true, canInvestigate: true }
+      roles: ['company', 'officer', 'admin', 'super_admin'],
+      company:  { canView: true, canExport: true },
+      officer:  { canView: true, canExport: true, canInvestigate: true },
+      admin:    { canView: true, canExport: true, canInvestigate: true },
+      super_admin: { canView: true, canExport: true, canInvestigate: true }
     },
     'company-injuries-view': {
       label: 'Company Injuries',
-      roles: ['company', 'dosh_officer', 'admin', 'super_admin'],
-      company:{ canView: true },
-      dosh_officer:{ canView: true, canReview: true },
-      admin:{ canView: true, canReview: true },
-      super_admin:{ canView: true, canReview: true }
+      roles: ['company', 'officer', 'admin', 'super_admin'],
+      company:  { canView: true },
+      officer:  { canView: true, canReview: true },
+      admin:    { canView: true, canReview: true },
+      super_admin: { canView: true, canReview: true }
     },
     'company-monitoring': {
       label: 'Company Monitoring',
-      roles: ['company', 'dosh_officer', 'admin', 'super_admin'],
-      company:{ canView: true },
-      dosh_officer:{ canView: true, canSchedule: true },
-      admin:{ canView: true, canSchedule: true },
-      super_admin:{ canView: true, canSchedule: true }
+      roles: ['company', 'officer', 'admin', 'super_admin'],
+      company:  { canView: true },
+      officer:  { canView: true, canSchedule: true },
+      admin:    { canView: true, canSchedule: true },
+      super_admin: { canView: true, canSchedule: true }
     },
     'inspection-bookings': {
       label: 'Inspection Bookings',
-      roles: ['company', 'dosh_officer', 'admin', 'super_admin'],
-      company:{ canView: true, canBook: true },
-      dosh_officer:{ canView: true, canManage: true },
-      admin:{ canView: true, canManage: true },
-      super_admin:{ canView: true, canManage: true }
+      roles: ['company', 'officer', 'admin', 'super_admin'],
+      company:  { canView: true, canBook: true },
+      officer:  { canView: true, canManage: true },
+      admin:    { canView: true, canManage: true },
+      super_admin: { canView: true, canManage: true }
     },
     'medical-examination': {
       label: 'Medical Examination',
-      roles: ['company', 'worker', 'medical_practitioner', 'dosh_officer', 'admin', 'super_admin'],
-      company:{ canView: true },
-      worker:{ canView: true },
-      medical_practitioner:{ canView: true, canEdit: true, canSubmit: true },
-      dosh_officer:{ canView: true, canReview: true },
-      admin:{ canView: true, canReview: true },
-      super_admin:{ canView: true, canReview: true }
+      roles: ['company', 'worker', 'medical_practitioner', 'officer', 'admin', 'super_admin'],
+      company:              { canView: true },
+      worker:               { canView: true },
+      medical_practitioner: { canView: true, canEdit: true, canSubmit: true },
+      officer:              { canView: true, canReview: true },
+      admin:                { canView: true, canReview: true },
+      super_admin:          { canView: true, canReview: true }
     },
     'admin': {
       label: 'Admin',
@@ -130,39 +130,53 @@ window.OSH_ROLE_CONFIG = (function () {
     },
     'case-tracking': {
       label: 'Case Tracking',
-      roles: ['dosh_officer', 'admin', 'super_admin'],
-      dosh_officer:{ canView: true, canUpdate: true },
-      admin:{ canView: true, canUpdate: true },
-      super_admin:{ canView: true, canUpdate: true }
+      roles: ['officer', 'admin', 'super_admin'],
+      officer:     { canView: true, canUpdate: true },
+      admin:       { canView: true, canUpdate: true },
+      super_admin: { canView: true, canUpdate: true }
     },
     'clientele': {
       label: 'Clientele',
-      roles: ['dosh_officer', 'admin', 'super_admin'],
-      dosh_officer:{ canView: true },
-      admin:{ canView: true },
-      super_admin:{ canView: true }
+      roles: ['officer', 'admin', 'super_admin'],
+      officer:     { canView: true },
+      admin:       { canView: true },
+      super_admin: { canView: true }
     },
     'inspection-entries': {
       label: 'Inspection Entries',
-      roles: ['dosh_officer', 'admin', 'super_admin'],
-      dosh_officer:{ canView: true, canEdit: true },
-      admin:{ canView: true, canEdit: true, canDelete: true },
-      super_admin:{ canView: true, canEdit: true, canDelete: true }
+      roles: ['officer', 'admin', 'super_admin'],
+      officer:     { canView: true, canEdit: true },
+      admin:       { canView: true, canEdit: true, canDelete: true },
+      super_admin: { canView: true, canEdit: true, canDelete: true }
     },
     'permanent-impairment': {
       label: 'Permanent Impairment',
-      roles: ['medical_practitioner', 'dosh_officer', 'admin', 'super_admin'],
-      medical_practitioner:{ canView: true, canSubmit: true },
-      dosh_officer:{ canView: true, canReview: true },
-      admin:{ canView: true, canReview: true },
-      super_admin:{ canView: true, canReview: true }
+      roles: ['medical_practitioner', 'officer', 'admin', 'super_admin'],
+      medical_practitioner: { canView: true, canSubmit: true },
+      officer:     { canView: true, canReview: true },
+      admin:       { canView: true, canReview: true },
+      super_admin: { canView: true, canReview: true }
     },
     'investigation': {
       label: 'Investigation',
-      roles: ['dosh_officer', 'admin', 'super_admin'],
-      dosh_officer:{ canView: true, canConduct: true },
-      admin:{ canView: true, canConduct: true, canAssign: true },
-      super_admin:{ canView: true, canConduct: true, canAssign: true }
+      roles: ['officer', 'admin', 'super_admin'],
+      officer:     { canView: true, canConduct: true },
+      admin:       { canView: true, canConduct: true, canAssign: true },
+      super_admin: { canView: true, canConduct: true, canAssign: true }
+    },
+    'form-43-03-medical': {
+      label: 'Form 43/03 - Medical Exam',
+      roles: ['medical_practitioner', 'admin', 'super_admin'],
+      medical_practitioner: { canView: true, canSubmit: true, canEdit: true },
+      admin:       { canView: true, canSubmit: true, canEdit: true },
+      super_admin: { canView: true, canSubmit: true, canEdit: true }
+    },
+    'form-43-11-attendance': {
+      label: 'Form 43/11 - Medical Attendance',
+      roles: ['medical_practitioner', 'admin', 'super_admin'],
+      medical_practitioner: { canView: true, canSubmit: true, canEdit: true },
+      admin:       { canView: true, canSubmit: true, canEdit: true },
+      super_admin: { canView: true, canSubmit: true, canEdit: true }
     }
   };
 

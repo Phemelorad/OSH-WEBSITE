@@ -333,12 +333,12 @@ margin-right: 6px;
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employer Details',
         href: 'company-view.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner']
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
       },
       {
         id: 'book-inspection',
         label: '<img src="ICONS/BOOKINGS.png" class="nav-icon"> Book Inspection',
-        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'company-book-inspection', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'New Booking',       href: 'company-book-inspection.html' },
           { id: 'company-bookings',        icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
@@ -347,7 +347,7 @@ margin-right: 6px;
       {
         id: 'accident',
         label: '<img src="ICONS/ACCIDENT.png" class="nav-icon"> Report Accident',
-        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'accident-report', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'New Report', href: 'accident-report.html' },
           { id: 'company-accidents-view', icon: '<img src="ICONS/ACCIDENT.png" class="dd-icon">', label: 'My Accidents', href: 'company-accidents-view.html', notification:'company-accidents' },
@@ -356,7 +356,7 @@ margin-right: 6px;
       {
         id: 'injury-disease',
         label: '<img src="ICONS/INJURY.png" class="nav-icon"> Report Injury / Disease',
-        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
           { id: 'injury-disease-report', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'New Report', href: 'injury-disease-report.html' },
           { id: 'company-injuries-view', icon: '<img src="ICONS/INJURY.png" class="dd-icon">', label: 'My Injuries', href: 'company-injuries-view.html', notification:'company-injuries' },
@@ -367,7 +367,7 @@ margin-right: 6px;
         label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> Monitoring Dashboard',
         href: 'company-monitoring.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'dosh_officer', 'admin', 'super_admin', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         notification: 'company-bookings-responded'
       },
 
@@ -375,7 +375,7 @@ margin-right: 6px;
       {
         id: 'inspection',
         label: '<img src="ICONS/INSPECTION.png" class="nav-icon"> Inspections',
-        hideFor: ['viewer', 'company', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'company', 'medical_practitioner'],
         children: [
           { id: 'inspection-form',     icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'New Inspection',       href: 'inspection.html' },
           { id: 'inspection-bookings', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'Inspection Bookings',  href: 'inspection-bookings.html', notification:'inspection-bookings-pending' },
@@ -404,7 +404,7 @@ margin-right: 6px;
       {
         id: 'investigation',
         label: '<img src="ICONS/INVESTIGATION.png" class="nav-icon"> Investigations',
-        hideFor: ['viewer', 'medical_practitioner'],
+        hideFor: ['viewer', 'worker', 'company', 'medical_practitioner'],
         children: [
           { id: 'conduct-investigation', icon: '<img src="ICONS/INVESTIGATION.png" class="dd-icon">', label: 'Conduct Investigation', href: 'OHS_Form19_Full.html' },
           { id: 'investigation-view', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'View Investigations', href: 'investigation.html' , notification:'new-investigations'},
@@ -425,19 +425,19 @@ margin-right: 6px;
         label: '<img src="ICONS/DASHBOARD.png" class="nav-icon"> My Cases',
         href: 'case-tracking.html',
         single: true,
-        hideFor: ['viewer', 'dosh_officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
+        hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'worker-claims',
         label: '<img src="ICONS/CLAIM.png" class="nav-icon"> My Claims',
         href: 'worker-claims.html',
         single: true,
-        hideFor: ['viewer', 'dosh_officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
+        hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
         id: 'medical-practitioner',
         label: 'Medical Exams',
-        hideFor: ['viewer', 'worker', 'company', 'dosh_officer', 'admin', 'super_admin'],
+        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
         children: [
           { id: 'medical-examination', icon: '', label: 'Medical Exam (Form 43/03)', href: 'medical-examination.html' },
         ]
@@ -448,46 +448,55 @@ margin-right: 6px;
         href: 'permanent-impairment.html',
         single: true,
         icon: '',
-        hideFor: ['viewer', 'worker', 'company', 'dosh_officer', 'admin', 'super_admin']
+        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
       },
       {
         id: 'clientele',
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Clientele',
         href: 'clientele.html',
         single: true,
-        hideFor: ['viewer', 'worker', 'company', 'dosh_officer', 'admin', 'super_admin']
+        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
       },
       {
         id: 'company-register',
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employers',
         href: 'company-register.html',
         single: true,
-        hideFor: ['company', 'worker', 'medical_practitioner']
+        hideFor: ['viewer', 'company', 'worker', 'medical_practitioner']
       },
       {
         id: 'admin',
         label: '<img src="ICONS/ADMIN.png" class="nav-icon"> Admin',
-        hideFor: ['company', 'viewer', 'worker', 'dosh_officer', 'medical_practitioner'],
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         href: 'admin.html',
         single: true
       },
       {
         id: 'debug',
         label: '🛠️ Debug Console',
-        hideFor: ['company', 'viewer', 'worker', 'dosh_officer', 'medical_practitioner'],
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         href: 'debug-console.html',
         single: true
       },
       {
         id: 'bl-forms',
         label: '📋 BL Forms',
-        hideFor: ['company', 'viewer', 'worker', 'dosh_officer', 'medical_practitioner'],
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'medical_practitioner'],
         children: [
           { id: 'form-43-02', icon: '<img src="ICONS/wages.png" class="dd-icon">', label: 'Form 43/02 - Wages', href: 'form-43-02-wages.html' },
           { id: 'form-43-03', icon: '<img src="ICONS/medical exams.png" class="dd-icon">', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
           { id: 'form-43-04', icon: '<img src="ICONS/CLAIM.png" class="dd-icon">', label: 'Form 43/04 - Incapacity', href: 'form-43-04-incapacity.html' },
           { id: 'form-43-07', icon: '<img src="ICONS/insurance.png" class="dd-icon">', label: 'Form 43/07 - Insurance', href: 'form-43-07-insurance.html' },
           { id: 'form-43-11', icon: '<img src="ICONS/medical attendance.png" class="dd-icon">', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
+        ]
+      },
+      {
+        id: 'bl-forms-medical',
+        label: '📋 BL Forms',
+        hideFor: ['company', 'viewer', 'worker', 'officer', 'admin', 'super_admin'],
+        children: [
+          { id: 'form-43-03-med', icon: '<img src="ICONS/medical exams.png" class="dd-icon">', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
+          { id: 'form-43-11-med', icon: '<img src="ICONS/medical attendance.png" class="dd-icon">', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
         ]
       },
   ];
