@@ -43,6 +43,33 @@
     return realRole;
   }
 
+  // ── Background polling interval ────────────────────────
+  // Single instance — guard prevents stacking across initializeRoleSystem calls.
+  var _pollIntervalId = null;
+  var POLL_INTERVAL_MS = window.OSH_CACHE_TTL_MS || (5 * 60 * 1000); // match cache TTL
+
+  function startRolePolling() {
+    if (_pollIntervalId !== null) return; // already running
+    _pollIntervalId = setInterval(refreshUserProfileInBackground, POLL_INTERVAL_MS);
+  }
+
+  function stopRolePolling() {
+    if (_pollIntervalId !== null) {
+      clearInterval(_pollIntervalId);
+      _pollIntervalId = null;
+    }
+  }
+
+  // Stop polling and clear cache when the user signs out or session expires
+  if (window.supabaseClient && typeof window.supabaseClient.auth.onAuthStateChange === 'function') {
+    window.supabaseClient.auth.onAuthStateChange(function(event) {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !currentUserId) {
+        stopRolePolling();
+        if (window.clearCachedUserProfile) window.clearCachedUserProfile();
+      }
+    });
+  }
+
 
   function clearLoadingFallback() {
     var el = document.getElementById('userName');
@@ -63,7 +90,14 @@
         updateHeaderDisplay(cached);
         updateUIForRole();
         if (typeof window.onRoleReady === 'function') window.onRoleReady(currentUserRole);
-        setTimeout(function() { refreshUserProfileInBackground(); }, 100);
+        // Cache hit — schedule a background refresh to keep it warm,
+        // but only after the remaining TTL so we don't hammer the DB on every page load.
+        var age = Date.now() - (cached.cached_at || 0);
+        var remaining = Math.max(0, (window.OSH_CACHE_TTL_MS || 300000) - age);
+        setTimeout(function() {
+          refreshUserProfileInBackground();
+          startRolePolling();
+        }, remaining);
         return true;
       }
 
@@ -94,6 +128,8 @@
         updateHeaderDisplay(profileResult.data);
         updateUIForRole();
         if (typeof window.onRoleReady === 'function') window.onRoleReady(currentUserRole);
+        // Fresh DB fetch — start the polling interval from now
+        startRolePolling();
         return true;
       }
       clearLoadingFallback();
@@ -176,24 +212,37 @@
   async function refreshUserProfileInBackground() {
     try {
       var userResult = await getCurrentUser();
-      if (!userResult.success || !userResult.user) return;
+      if (!userResult.success || !userResult.user) {
+        // Session gone — stop polling and clear cache
+        stopRolePolling();
+        if (window.clearCachedUserProfile) window.clearCachedUserProfile();
+        return;
+      }
       var profileResult = await getUserProfile(userResult.user.id);
       if (profileResult.success && profileResult.data) {
         await enrichProfileWithCompanyName(profileResult.data);
         var effective = getEffectiveRole(profileResult.data.role);
-        if (effective !== currentUserRole) {
-          currentUserRole = effective;
-          updateUIForRole();
-        }
+
+        // Always refresh the cache timestamp to keep it warm
         if (window.cacheUserProfile) {
           window.cacheUserProfile(profileResult.data);
         }
+
+        if (effective !== currentUserRole) {
+          // Role changed — update in-memory state and re-render nav immediately
+          currentUserRole = effective;
+          updateUIForRole();
+          updateHeaderDisplay(profileResult.data);
+          console.info('[OSH] Role updated to:', effective);
+        }
+
+        // Refresh company name display if applicable
         if (effective === 'company' && profileResult.data.company_name) {
           updateHeaderDisplay(profileResult.data);
         }
       }
     } catch (e) {
-      // Silently fail
+      // Silently fail — polling should never break the page
     }
   }
 
@@ -317,7 +366,9 @@
     checkPageAccess: checkPageAccess,
     getCurrentUserRole: function() { return currentUserRole; },
     getCurrentUserId: function() { return currentUserId; },
-    ALL_ROLES: C.ALL_ROLES
+    ALL_ROLES: C.ALL_ROLES,
+    startRolePolling: startRolePolling,
+    stopRolePolling: stopRolePolling
   };
 
   // Expose critical functions globally for HTML pages
@@ -330,6 +381,7 @@
   window.setUserNameSafely = setUserNameSafely;
   window.getRoleDisplayName = C.getRoleDisplayName;
   window.ROLES = ROLES;
+  window.stopRolePolling = stopRolePolling;
 
   // Expose currentUserRole globally for inline scripts in HTML pages
   Object.defineProperty(window, "currentUserRole", {

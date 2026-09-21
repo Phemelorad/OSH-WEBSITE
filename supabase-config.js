@@ -352,6 +352,14 @@
                 .eq('user_id', userId);
 
             if (error) throw error;
+
+            // Invalidate cache so the next read fetches fresh data.
+            // If the updated user is the currently cached user, clear immediately.
+            const cached = getCachedUserProfile();
+            if (cached && cached.user_id === userId) {
+                clearCachedUserProfile();
+            }
+
             return { success: true, data: data };
         } catch (error) {
             return { success: false, error: handleError(error) };
@@ -398,27 +406,46 @@
     };
 
     // ── User profile cache ──────────────────────────────────────
+    // Uses localStorage so the cache persists across tabs and page navigations.
+    // Falls back to sessionStorage (e.g. private browsing), then in-memory.
     const CACHE_KEY = 'osh_user_profile';
+    const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+    // In-memory fallback when both storage APIs are unavailable
+    let _memoryCache = null;
+
+    function _getStorage() {
+        try {
+            localStorage.setItem('__osh_test__', '1');
+            localStorage.removeItem('__osh_test__');
+            return localStorage;
+        } catch (e) {}
+        try {
+            sessionStorage.setItem('__osh_test__', '1');
+            sessionStorage.removeItem('__osh_test__');
+            return sessionStorage;
+        } catch (e) {}
+        return null; // falls through to in-memory
+    }
 
     function cacheUserProfile(profile) {
-        try {
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-                ...profile,
-                cached_at: Date.now()
-            }));
-        } catch (e) {
-            // sessionStorage may be full or unavailable
+        const payload = JSON.stringify({ ...profile, cached_at: Date.now() });
+        const store = _getStorage();
+        if (store) {
+            try { store.setItem(CACHE_KEY, payload); return; } catch (e) {}
         }
+        // In-memory fallback
+        try { _memoryCache = JSON.parse(payload); } catch (e) {}
     }
 
     function getCachedUserProfile() {
         try {
-            const raw = sessionStorage.getItem(CACHE_KEY);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            // Cache valid for 10 minutes, then force refresh
-            if (Date.now() - (data.cached_at || 0) > 10 * 60 * 1000) {
-                sessionStorage.removeItem(CACHE_KEY);
+            const store = _getStorage();
+            const raw = store ? store.getItem(CACHE_KEY) : null;
+            const data = raw ? JSON.parse(raw) : _memoryCache;
+            if (!data) return null;
+            if (Date.now() - (data.cached_at || 0) > CACHE_TTL_MS) {
+                clearCachedUserProfile();
                 return null;
             }
             return data;
@@ -428,15 +455,16 @@
     }
 
     function clearCachedUserProfile() {
-        try {
-            sessionStorage.removeItem(CACHE_KEY);
-        } catch (e) {}
+        _memoryCache = null;
+        try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
+        try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {}
     }
 
-    // Expose cache functions globally so all pages can use them
+    // Expose cache helpers + TTL constant globally
     window.cacheUserProfile = cacheUserProfile;
     window.getCachedUserProfile = getCachedUserProfile;
     window.clearCachedUserProfile = clearCachedUserProfile;
+    window.OSH_CACHE_TTL_MS = CACHE_TTL_MS;
     // ── Company search ───────────────────────────────────────────
     window.searchCompany = async function(name) {
         if (!name || name.length < 3) return null;
