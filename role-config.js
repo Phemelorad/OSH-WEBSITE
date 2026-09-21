@@ -170,6 +170,11 @@ window.OSH_ROLE_CONFIG = (function () {
       medical_practitioner: { canView: true, canSubmit: true, canEdit: true },
       admin:       { canView: true, canSubmit: true, canEdit: true },
       super_admin: { canView: true, canSubmit: true, canEdit: true }
+    },
+    'med-practitioner-account': {
+      label: 'My Account',
+      roles: ['medical_practitioner'],
+      medical_practitioner: { canView: true, canEdit: true }
     }
   };
 

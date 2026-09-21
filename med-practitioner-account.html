@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account - Medical Practitioner</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕</text></svg>">
+<style>
+.container { max-width: 760px; margin: 32px auto; padding: 0 20px; }
+
+/* ── Tab bar ─────────────────────────────────────────────── */
+.tab-bar {
+    display: flex; gap: 0;
+    background: white; border-radius: 12px 12px 0 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    overflow: hidden; border-bottom: 2px solid #e8e8e8;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    flex: 1; min-width: 120px;
+    padding: 14px 20px; border: none; background: white;
+    font-size: 13px; font-weight: 600; color: #888;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s; border-bottom: 3px solid transparent;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.tab-btn:hover { background: #f7f7f7; color: #333; }
+.tab-btn.active { color: #0c5460; border-bottom-color: #0c5460; background: #f0fafc; }
+
+/* ── Panel cards ─────────────────────────────────────────── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.panel-card {
+    background: white; border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 32px; margin-bottom: 24px;
+}
+
+/* ── Section titles ──────────────────────────────────────── */
+.section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0c5460;
+    margin: 24px 0 14px; padding-bottom: 6px;
+    border-bottom: 1px solid #e0f0f4;
+}
+.section-label:first-child { margin-top: 0; }
+
+/* ── Form layout ─────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid.single { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+    font-size: 12px; font-weight: 700; color: #555;
+    margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.form-group input,
+.form-group select {
+    padding: 10px 13px; border: 1.5px solid #ddd;
+    border-radius: 8px; font-size: 14px; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s; background: white;
+}
+.form-group input:focus,
+.form-group select:focus {
+    outline: none; border-color: #0c5460;
+    box-shadow: 0 0 0 3px rgba(12,84,96,0.1);
+}
+.form-group input[readonly] {
+    background: #f8f9fa; color: #888; cursor: not-allowed;
+}
+.form-group .hint {
+    font-size: 11px; color: #aaa; margin-top: 4px; font-style: italic;
+}
+
+/* ── Info badge ──────────────────────────────────────────── */
+.info-banner {
+    background: #e8f4f8; border: 1px solid #b8dce8;
+    border-radius: 8px; padding: 12px 16px;
+    font-size: 13px; color: #0c5460; margin-bottom: 20px;
+    display: flex; align-items: flex-start; gap: 10px;
+}
+.info-banner .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Danger zone ─────────────────────────────────────────── */
+.danger-zone {
+    border: 1.5px solid #f5c6cb; border-radius: 10px;
+    padding: 20px; background: #fff8f8;
+}
+.danger-zone h4 { color: #721c24; font-size: 14px; margin-bottom: 6px; }
+.danger-zone p { font-size: 13px; color: #888; margin-bottom: 14px; }
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+.btn {
+    padding: 10px 26px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; cursor: pointer; border: 1.5px solid #ddd;
+    font-family: inherit; transition: all 0.2s;
+}
+.btn-primary { background: #0c5460; color: white; border-color: #0c5460; }
+.btn-primary:hover { background: #09404a; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-danger { background: white; color: #dc3545; border-color: #dc3545; }
+.btn-danger:hover { background: #dc3545; color: white; }
+.btn-ghost { background: white; color: #555; }
+.btn-ghost:hover { background: #f5f5f5; }
+
+/* ── Status messages ─────────────────────────────────────── */
+.status-msg {
+    display: none; padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; margin-top: 12px;
+}
+.status-msg.success { display: flex; align-items: center; gap: 8px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.status-msg.error   { display: flex; align-items: center; gap: 8px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+/* ── Avatar initial ──────────────────────────────────────── */
+.avatar-row {
+    display: flex; align-items: center; gap: 20px; margin-bottom: 24px;
+}
+.avatar-circle {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #0c5460, #1a8a9a);
+    color: white; font-size: 28px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: 0 4px 14px rgba(12,84,96,0.25);
+}
+.avatar-info .av-name { font-size: 18px; font-weight: 700; color: #222; }
+.avatar-info .av-role { font-size: 13px; color: #888; margin-top: 3px; }
+.avatar-info .av-reg  { font-size: 12px; color: #0c5460; font-weight: 600; margin-top: 2px; }
+
+/* ── Password strength ───────────────────────────────────── */
+.pw-strength-bar {
+    height: 4px; border-radius: 4px; background: #eee;
+    margin-top: 6px; overflow: hidden;
+}
+.pw-strength-fill {
+    height: 100%; border-radius: 4px; width: 0%;
+    transition: width 0.3s, background 0.3s;
+}
+
+@media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .tab-btn { font-size: 12px; padding: 12px 10px; }
+    .panel-card { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="navbar">
+    <h1>⚕ My Account</h1>
+    <div class="user-info">
+        <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-department" id="userDepartment">Medical Practitioner</div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'med-account';</script>
+<script src="nav.js"></script>
+
+<div class="container">
+
+    <!-- ── Avatar banner ───────────────────────────────── -->
+    <div class="avatar-row">
+        <div class="avatar-circle" id="avatarCircle">?</div>
+        <div class="avatar-info">
+            <div class="av-name" id="avName">Loading…</div>
+            <div class="av-role">Medical Practitioner</div>
+            <div class="av-reg" id="avReg"></div>
+        </div>
+    </div>
+
+    <!-- ── Tab bar ─────────────────────────────────────── -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="showTab('profile')"   id="tab-profile">👤 Profile</button>
+        <button class="tab-btn"        onclick="showTab('practice')"  id="tab-practice">🏥 Practice</button>
+        <button class="tab-btn"        onclick="showTab('email')"     id="tab-email">✉️ Email</button>
+        <button class="tab-btn"        onclick="showTab('password')"  id="tab-password">🔒 Password</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         TAB 1 — PROFILE
+    ═══════════════════════════════════════════════════ -->
+    <div class="tab-panel active" id="panel-profile">
+        <div class="panel-card">
+            <div class="section-label">Personal Details</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="pf-first-name" placeholder="First name">
+                </div>
+                <div class="form-group">
+                    <label>Surname</label>
+                    <input type="text" id="pf-surname" placeholder="Surname">
+                </div>
+                <div class="form-group">
+                    <label>Designation / Specialisation</label>
+                    <input type="text" id="pf-designation" placeholder="e.g. General Practitioner, Orthopaedic Surgeon">
+                </div>
+                <div class="form-group">
+                    <label>Location / City</label>
+                    <input type="text" id="pf-location" placeholder="e.g. Gaborone">
+                </div>
+            </div>
+
+            <div class="section-label">Role (read-only)</div>
+            <div class="form-grid single">
+                <div class="form-group">
+                    <input type="text" id="pf-role" readonly value="Medical Practitioner">
+                    <span class="hint">Role can only be changed by an administrator.</span>
+                </div>
+            </div>
+
+            <div id="profile-status" class="status-msg"></div>
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="loadProfile()">↩ Discard</button>
+                <button class="btn btn-primary" id="pf-save-btn" onclick="saveProfile()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         TAB 2 — PRACTICE
+    ═══════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-practice">
+        <div class="panel-card">
+            <div class="info-banner">
+                <span class="icon">ℹ️</span>
+                <span>These details are used to auto-fill Form 43/11 (place of examination) whenever you open it without selecting a client first.</span>
+            </div>
+
+            <div class="section-label">Practice / Hospital</div>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Practice / Hospital Name</label>
+                    <input type="text" id="pr-practice-name" placeholder="e.g. Gaborone Private Hospital">
+                </div>
+                <div class="form-group">
+                    <label>Branch / Ward</label>
+                    <input type="text" id="pr-branch" placeholder="e.g. Orthopaedics Wing, Branch B">
+                </div>
+                <div class="form-group">
+                    <label>Registration Number (BHPC)</label>
+                    <input type="text" id="pr-reg-number" placeholder="e.g. BHPC-12345">
+                </div>
+            </div>
+
+            <div id="practice-status" class="status-msg"></div>
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="loadProfile()">↩ Discard</button>
+                <button class="btn btn-primary" id="pr-save-btn" onclick="savePractice()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         TAB 3 — EMAIL
+    ═══════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-email">
+        <div class="panel-card">
+            <div class="info-banner">
+                <span class="icon">✉️</span>
+                <span>A confirmation link will be sent to your <strong>new</strong> email address. You must click it before the change takes effect. Your current email stays active until confirmed.</span>
+            </div>
+
+            <div class="section-label">Current Email</div>
+            <div class="form-grid single">
+                <div class="form-group">
+                    <input type="email" id="em-current" readonly>
+                </div>
+            </div>
+
+            <div class="section-label">New Email</div>
+            <div class="form-grid single">
+                <div class="form-group">
+                    <label>New Email Address</label>
+                    <input type="email" id="em-new" placeholder="new@example.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Email</label>
+                    <input type="email" id="em-confirm" placeholder="Repeat new email" autocomplete="email">
+                </div>
+            </div>
+
+            <div id="email-status" class="status-msg"></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="em-save-btn" onclick="changeEmail()">Send Confirmation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         TAB 4 — PASSWORD
+    ═══════════════════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-password">
+        <div class="panel-card">
+            <div class="section-label">Change Password</div>
+            <div class="form-grid single">
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="pw-new" placeholder="At least 8 characters" autocomplete="new-password"
+                           oninput="updatePwStrength(this.value)">
+                    <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+                    <span class="hint" id="pw-strength-label"></span>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="pw-confirm" placeholder="Repeat password" autocomplete="new-password">
+                </div>
+            </div>
+
+            <div id="password-status" class="status-msg"></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="pw-save-btn" onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<script>
+(function () {
+    'use strict';
+
+    var SB = window.supabaseClient;
+    var _userId  = null;
+    var _profile = null;
+
+    // ── Tab switching ─────────────────────────────────────────
+    window.showTab = function (name) {
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+        document.getElementById('tab-'   + name).classList.add('active');
+        document.getElementById('panel-' + name).classList.add('active');
+    };
+
+    // ── Status helpers ────────────────────────────────────────
+    function showStatus(id, msg, type) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+        el.className = 'status-msg ' + type;
+        setTimeout(function () { el.style.display = 'none'; el.className = 'status-msg'; }, 5000);
+    }
+
+    // ── Load profile from DB ──────────────────────────────────
+    window.loadProfile = async function () {
+        if (!_userId) return;
+        var res = await getUserProfile(_userId);
+        if (!res.success || !res.data) return;
+        _profile = res.data;
+
+        // Header
+        var fullName = (_profile.first_name + ' ' + _profile.surname).trim();
+        setUserNameSafely(fullName);
+        document.getElementById('avName').textContent   = fullName;
+        document.getElementById('avatarCircle').textContent = fullName.charAt(0).toUpperCase();
+        if (_profile.med_reg_number) {
+            document.getElementById('avReg').textContent = 'Reg: ' + _profile.med_reg_number;
+        }
+
+        // Tab 1 — Profile
+        document.getElementById('pf-first-name').value  = _profile.first_name   || '';
+        document.getElementById('pf-surname').value      = _profile.surname      || '';
+        document.getElementById('pf-designation').value  = _profile.designation  || '';
+        document.getElementById('pf-location').value     = _profile.location     || '';
+
+        // Tab 2 — Practice
+        document.getElementById('pr-practice-name').value = _profile.practice_name  || '';
+        document.getElementById('pr-branch').value         = _profile.branch         || '';
+        document.getElementById('pr-reg-number').value     = _profile.med_reg_number || '';
+
+        // Tab 3 — Email
+        document.getElementById('em-current').value = _profile.email || '';
+    };
+
+    // ── Save profile ──────────────────────────────────────────
+    window.saveProfile = async function () {
+        var btn = document.getElementById('pf-save-btn');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+            var updates = {
+                first_name:  document.getElementById('pf-first-name').value.trim(),
+                surname:     document.getElementById('pf-surname').value.trim(),
+                designation: document.getElementById('pf-designation').value.trim() || null,
+                location:    document.getElementById('pf-location').value.trim(),
+            };
+            if (!updates.first_name || !updates.surname) {
+                showStatus('profile-status', 'First name and surname are required.', 'error');
+                return;
+            }
+            var res = await updateUserProfile(_userId, updates);
+            if (!res.success) throw new Error(res.error);
+            // Refresh cache
+            if (window.cacheUserProfile) window.cacheUserProfile(Object.assign({}, _profile, updates));
+            showStatus('profile-status', 'Profile updated successfully.', 'success');
+            // Update avatar
+            var full = (updates.first_name + ' ' + updates.surname).trim();
+            document.getElementById('avName').textContent = full;
+            document.getElementById('avatarCircle').textContent = full.charAt(0).toUpperCase();
+            setUserNameSafely(full);
+        } catch (e) {
+            showStatus('profile-status', e.message || 'Save failed.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Save Changes';
+        }
+    };
+
+    // ── Save practice details ─────────────────────────────────
+    window.savePractice = async function () {
+        var btn = document.getElementById('pr-save-btn');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+            var updates = {
+                practice_name:  document.getElementById('pr-practice-name').value.trim() || null,
+                branch:         document.getElementById('pr-branch').value.trim()         || null,
+                med_reg_number: document.getElementById('pr-reg-number').value.trim()     || null,
+            };
+            var res = await updateUserProfile(_userId, updates);
+            if (!res.success) throw new Error(res.error);
+            if (window.cacheUserProfile) window.cacheUserProfile(Object.assign({}, _profile, updates));
+            // Update reg badge
+            if (updates.med_reg_number) {
+                document.getElementById('avReg').textContent = 'Reg: ' + updates.med_reg_number;
+            }
+            showStatus('practice-status', 'Practice details saved.', 'success');
+        } catch (e) {
+            showStatus('practice-status', e.message || 'Save failed.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Save Changes';
+        }
+    };
+
+    // ── Change email ──────────────────────────────────────────
+    window.changeEmail = async function () {
+        var newEmail  = document.getElementById('em-new').value.trim();
+        var confEmail = document.getElementById('em-confirm').value.trim();
+        if (!newEmail) { showStatus('email-status', 'Please enter a new email.', 'error'); return; }
+        if (newEmail !== confEmail) { showStatus('email-status', 'Email addresses do not match.', 'error'); return; }
+
+        var btn = document.getElementById('em-save-btn');
+        btn.disabled = true; btn.textContent = 'Sending…';
+        try {
+            var { error } = await SB.auth.updateUser({ email: newEmail });
+            if (error) throw error;
+            showStatus('email-status', 'Confirmation email sent to ' + newEmail + '. Click the link to confirm the change.', 'success');
+            document.getElementById('em-new').value     = '';
+            document.getElementById('em-confirm').value = '';
+        } catch (e) {
+            showStatus('email-status', e.message || 'Failed to send confirmation.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Send Confirmation';
+        }
+    };
+
+    // ── Change password ───────────────────────────────────────
+    window.changePassword = async function () {
+        var newPw  = document.getElementById('pw-new').value;
+        var confPw = document.getElementById('pw-confirm').value;
+        if (!newPw || newPw.length < 8) { showStatus('password-status', 'Password must be at least 8 characters.', 'error'); return; }
+        if (newPw !== confPw)           { showStatus('password-status', 'Passwords do not match.', 'error'); return; }
+
+        var btn = document.getElementById('pw-save-btn');
+        btn.disabled = true; btn.textContent = 'Updating…';
+        try {
+            var { error } = await SB.auth.updateUser({ password: newPw });
+            if (error) throw error;
+            showStatus('password-status', 'Password updated successfully.', 'success');
+            document.getElementById('pw-new').value     = '';
+            document.getElementById('pw-confirm').value = '';
+            document.getElementById('pw-strength-fill').style.width = '0%';
+            document.getElementById('pw-strength-label').textContent = '';
+        } catch (e) {
+            showStatus('password-status', e.message || 'Failed to update password.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Update Password';
+        }
+    };
+
+    // ── Password strength meter ───────────────────────────────
+    window.updatePwStrength = function (val) {
+        var fill  = document.getElementById('pw-strength-fill');
+        var label = document.getElementById('pw-strength-label');
+        if (!fill) return;
+        var score = 0;
+        if (val.length >= 8)  score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+        if (/\d/.test(val))   score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        var levels = [
+            { pct: '0%',   bg: '#eee',     txt: '' },
+            { pct: '25%',  bg: '#e74c3c',  txt: 'Weak' },
+            { pct: '50%',  bg: '#e67e22',  txt: 'Fair' },
+            { pct: '75%',  bg: '#f1c40f',  txt: 'Good' },
+            { pct: '90%',  bg: '#27ae60',  txt: 'Strong' },
+            { pct: '100%', bg: '#1a7a45',  txt: 'Very strong' },
+        ];
+        var l = levels[Math.min(score, 5)];
+        fill.style.width      = l.pct;
+        fill.style.background = l.bg;
+        if (label) label.textContent = l.txt;
+    };
+
+    // ── Page init ─────────────────────────────────────────────
+    window.addEventListener('load', async function () {
+        var authenticated = false;
+        for (var i = 0; i < 5; i++) {
+            authenticated = await isAuthenticated();
+            if (authenticated) break;
+            if (i < 4) await new Promise(function (r) { setTimeout(r, 400); });
+        }
+        if (!authenticated) { window.location.href = 'index.html'; return; }
+
+        await initializeRoleSystem();
+        var userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) { window.location.href = 'index.html'; return; }
+
+        _userId = userResult.user.id;
+
+        // Guard: only medical_practitioner (and admin/super_admin for testing) can access
+        var role = window.currentUserRole;
+        if (role && role !== 'medical_practitioner' && role !== 'admin' && role !== 'super_admin') {
+            window.location.href = 'dashboard.html'; return;
+        }
+
+        await loadProfile();
+    });
+
+})();
+</script>
+</body>
+</html>

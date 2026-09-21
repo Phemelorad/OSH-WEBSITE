@@ -123,8 +123,37 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
     
 <script src="nav.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'bl-form-43-11';</script>
+<style>
+/* ── Client picker panel ───────────────────────────── */
+.client-picker-panel {
+    background: #f0f4f8; border: 1px solid #d0dbe8; border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 22px;
+}
+.client-picker-panel h4 {
+    font-size: 13px; font-weight: 700; color: #2c3e50;
+    margin: 0 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.client-picker-row { display: flex; gap: 10px; align-items: center; }
+.client-picker-row select {
+    flex: 1; padding: 9px 12px; border: 1px solid #c8d6e5;
+    border-radius: 6px; font-size: 13px; font-family: inherit;
+    background: white; cursor: pointer;
+}
+.client-picker-row select:focus { outline: none; border-color: #2c3e50; }
+.client-pick-btn {
+    padding: 9px 18px; background: #2c3e50; color: white;
+    border: none; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; white-space: nowrap;
+    transition: background 0.15s;
+}
+.client-pick-btn:hover { background: #34495e; }
+.client-pick-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.client-pick-status { font-size: 12px; margin-top: 6px; color: #27ae60; min-height: 18px; }
+</style>
 <script>
 window.addEventListener('load', async function() {
+    var SB = window.supabaseClient;
+
     let authenticated = false;
     for (let i = 0; i < 5; i++) {
         authenticated = await isAuthenticated();
@@ -133,64 +162,180 @@ window.addEventListener('load', async function() {
     }
     if (!authenticated) { window.location.href = 'index.html'; return; }
     await initializeRoleSystem();
+
     const userResult = await getCurrentUser();
     if (!userResult.success || !userResult.user) return;
     const profileResult = await getUserProfile(userResult.user.id);
     const profile = profileResult.success ? profileResult.data : null;
+
     if (profile) {
         setUserNameSafely(profile.first_name + ' ' + profile.surname);
         var deptEl = document.getElementById('userDepartment');
-        if (deptEl) deptEl.textContent = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(profile.role) : profile.role) || 'Department of Occupational Health & Safety';
+        if (deptEl) deptEl.textContent = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(profile.role) : profile.role) || 'Medical Practitioner';
     } else {
         setUserNameSafely(userResult.user.email.split('@')[0]);
     }
 
-    // ── Check for pre-fill params from clientele ─────────────
+    // ── Derive practitioner details from profile ──────────────
+    var prefillPractitioner = '';
+    var prefillPlace = '';
+    if (profile) {
+        prefillPractitioner = (profile.first_name + ' ' + profile.surname).trim();
+        // Use practice_name + branch as place of examination if available
+        var parts = [profile.practice_name, profile.branch, profile.location].filter(Boolean);
+        prefillPlace = parts.join(', ');
+    }
+
+    // ── Flash-fill helper ─────────────────────────────────────
+    function setField(nameAttr, value) {
+        if (!value) return;
+        var el = document.getElementById(nameAttr) || document.querySelector('[name="' + nameAttr + '"]');
+        if (!el) return;
+        el.value = value;
+        el.style.transition = 'background 0.3s';
+        el.style.background = '#d4edda';
+        setTimeout(function() { el.style.background = ''; }, 2500);
+    }
+
+    // ── Always fill practitioner + place fields from profile ──
+    setField('practitioner_name',  prefillPractitioner);
+    setField('place_of_examination', prefillPlace);
+    setField('date_of_notice', new Date().toISOString().substring(0, 10));
+
+    // ── Check URL params (coming from clientele page) ─────────
     var params = new URLSearchParams(window.location.search);
     var prefillWorkerName    = params.get('worker_name')    || '';
     var prefillWorkerId      = params.get('worker_id')      || '';
     var prefillWorkerAddress = params.get('worker_address') || '';
-    var prefillPractitioner  = params.get('practitioner')   || '';
+    var paramPractitioner    = params.get('practitioner')   || '';
     var prefillNoticeDate    = params.get('date_of_notice') || '';
 
-    // Auto-fill practitioner name from logged-in profile if not in URL
-    if (!prefillPractitioner && profile) {
-        prefillPractitioner = (profile.first_name + ' ' + profile.surname).trim();
-    }
-
-    var hasPrefill = prefillWorkerName || prefillWorkerId;
+    if (paramPractitioner) prefillPractitioner = paramPractitioner;
+    var hasPrefill = !!(prefillWorkerName || prefillWorkerId);
 
     if (hasPrefill) {
-        // Fill worker fields immediately — no lookup needed
-        function setField(nameAttr, value) {
-            if (!value) return;
-            var el = document.getElementById(nameAttr) || document.querySelector('[name="' + nameAttr + '"]');
-            if (!el) return;
-            el.value = value;
-            el.style.transition = 'background 0.3s';
-            el.style.background = '#d4edda';
-            setTimeout(function() { el.style.background = ''; }, 2500);
+        // ── URL param path: came from clientele card ──────────
+        setField('worker_id_number',   prefillWorkerId);
+        setField('worker_name',        prefillWorkerName);
+        setField('worker_address',     prefillWorkerAddress);
+        setField('practitioner_name',  prefillPractitioner);
+        if (prefillNoticeDate) setField('date_of_notice', prefillNoticeDate);
+
+        // Try to enrich with full worker profile from registry
+        if (prefillWorkerId && SB) {
+            try {
+                var { data: wr } = await SB
+                    .from('workers_registry')
+                    .select('full_name, address, id_number, employer_name')
+                    .ilike('id_number', prefillWorkerId)
+                    .maybeSingle();
+                if (wr) {
+                    if (wr.full_name)  setField('worker_name',    wr.full_name);
+                    if (wr.address)    setField('worker_address',  wr.address);
+                }
+            } catch (e) { /* silent — URL data is already good enough */ }
         }
 
-        setField('worker_id_number',  prefillWorkerId);
-        setField('worker_name',       prefillWorkerName);
-        setField('worker_address',    prefillWorkerAddress);
-        setField('practitioner_name', prefillPractitioner);
-        setField('date_of_notice',    prefillNoticeDate);
-
-        // Show a banner so the user knows fields were auto-filled
         var banner = document.createElement('div');
         banner.style.cssText = 'background:#d4edda;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#155724;display:flex;align-items:center;gap:10px;';
         banner.innerHTML = '<span style="font-size:18px">✅</span><div><strong>Fields auto-filled from your clientele.</strong><br>Review the details below and fill in the appointment time before submitting.</div>';
         var formCard = document.querySelector('.form-card');
-        var formEl2 = document.getElementById('attendanceForm');
+        var formEl2  = document.getElementById('attendanceForm');
         if (formCard && formEl2) formCard.insertBefore(banner, formEl2);
 
-        // Hide the lookup panel — worker is already identified
         var lookupContainer = document.getElementById('bl-lookup-container');
         if (lookupContainer) lookupContainer.style.display = 'none';
+
     } else {
-        // No pre-fill — initialise the normal BLLookup search panel
+        // ── Manual path: show client picker + BLLookup ────────
+        // Inject client picker above the BLLookup panel
+        var pickerHtml = '<div class="client-picker-panel" id="clientPickerPanel">' +
+            '<h4>👥 Pick from My Clientele</h4>' +
+            '<div class="client-picker-row">' +
+            '<select id="clientPickerSelect"><option value="">— Loading clients… —</option></select>' +
+            '<button type="button" class="client-pick-btn" id="clientPickBtn" onclick="applyClientPick()">Fill Fields</button>' +
+            '</div>' +
+            '<div class="client-pick-status" id="clientPickStatus"></div>' +
+            '</div>';
+
+        var lookupContainer = document.getElementById('bl-lookup-container');
+        if (lookupContainer) {
+            lookupContainer.insertAdjacentHTML('beforebegin', pickerHtml);
+        }
+
+        // Load this practitioner's clientele into the dropdown
+        if (SB && userResult.user) {
+            try {
+                var { data: clients } = await SB
+                    .from('practitioner_clients')
+                    .select('id, worker_name, worker_id_number, worker_registry_id')
+                    .eq('practitioner_id', userResult.user.id)
+                    .order('worker_name', { ascending: true });
+
+                var sel = document.getElementById('clientPickerSelect');
+                if (sel) {
+                    if (clients && clients.length > 0) {
+                        sel.innerHTML = '<option value="">— Select a client —</option>' +
+                            clients.map(function(c) {
+                                return '<option value="' + c.id + '" ' +
+                                    'data-name="' + (c.worker_name || '').replace(/"/g, '&quot;') + '" ' +
+                                    'data-id="' + (c.worker_id_number || '') + '" ' +
+                                    'data-regid="' + (c.worker_registry_id || '') + '">' +
+                                    c.worker_name + (c.worker_id_number ? '  (' + c.worker_id_number + ')' : '') +
+                                    '</option>';
+                            }).join('');
+                    } else {
+                        sel.innerHTML = '<option value="">— No clients yet —</option>';
+                    }
+                }
+            } catch (e) {
+                console.warn('Client picker load error:', e);
+                var sel2 = document.getElementById('clientPickerSelect');
+                if (sel2) sel2.innerHTML = '<option value="">— Could not load clients —</option>';
+            }
+        }
+
+        // Wire up fill button
+        window.applyClientPick = async function() {
+            var sel = document.getElementById('clientPickerSelect');
+            var opt = sel && sel.options[sel.selectedIndex];
+            if (!opt || !opt.value) { return; }
+
+            var btn = document.getElementById('clientPickBtn');
+            btn.disabled = true; btn.textContent = 'Loading…';
+
+            var workerName  = opt.dataset.name || '';
+            var workerId    = opt.dataset.id   || '';
+            var registryId  = opt.dataset.regid || '';
+
+            // Fetch full profile from workers_registry for richer data
+            var address = '';
+            if (registryId && SB) {
+                try {
+                    var { data: wr } = await SB
+                        .from('workers_registry')
+                        .select('full_name, address, id_number')
+                        .eq('id', registryId)
+                        .maybeSingle();
+                    if (wr) {
+                        if (wr.full_name) workerName = wr.full_name;
+                        if (wr.id_number) workerId   = wr.id_number;
+                        if (wr.address)   address    = wr.address;
+                    }
+                } catch (e) { /* use clientele data as fallback */ }
+            }
+
+            setField('worker_id_number', workerId);
+            setField('worker_name',      workerName);
+            setField('worker_address',   address);
+
+            var statusEl = document.getElementById('clientPickStatus');
+            if (statusEl) statusEl.textContent = '✅ ' + workerName + ' filled in.';
+
+            btn.disabled = false; btn.textContent = 'Fill Fields';
+        };
+
+        // Initialise BLLookup for manual search as well
         BLLookup.init({
             workerFields: {
                 id_number: 'worker_id_number',
@@ -198,63 +343,59 @@ window.addEventListener('load', async function() {
                 address:   'worker_address',
             }
         });
-
-        // Auto-fill practitioner name from profile (always useful)
-        if (prefillPractitioner) {
-            var pEl = document.querySelector('[name="practitioner_name"]');
-            if (pEl) {
-                pEl.value = prefillPractitioner;
-                pEl.style.transition = 'background 0.3s';
-                pEl.style.background = '#d4edda';
-                setTimeout(function() { pEl.style.background = ''; }, 2500);
-            }
-        }
     }
 
-var formEl = document.getElementById('attendanceForm');
-if (formEl) {
-    formEl.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        var btn = formEl.querySelector('button[type="submit"]');
-        btn.textContent = 'Submitting...';
-        btn.disabled = true;
+    // ── Submit handler ────────────────────────────────────────
+    var formEl = document.getElementById('attendanceForm');
+    if (formEl) {
+        formEl.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btn = formEl.querySelector('button[type="submit"]');
+            btn.textContent = 'Submitting...';
+            btn.disabled = true;
 
-        try {
-            var payload = {};
-            var inputs = formEl.querySelectorAll('[name]');
-            inputs.forEach(function(inp) {
-                var val = inp.type === 'checkbox' ? inp.checked : inp.value;
-                if (inp.type === 'number' && val) val = parseFloat(val);
-                if (val !== '') payload[inp.name] = val;
-            });
+            try {
+                var payload = {};
+                formEl.querySelectorAll('[name]').forEach(function(inp) {
+                    var val = inp.type === 'checkbox' ? inp.checked : inp.value;
+                    if (inp.type === 'number' && val) val = parseFloat(val);
+                    if (val !== '') payload[inp.name] = val;
+                });
 
-            var user = await getCurrentUser();
-            if (!user.success || !user.user) { await showAlert('You must be logged in.', {type:'warning'}); btn.textContent = 'Submit'; btn.disabled = false; return; }
-            payload.submitted_by = user.user.id;
+                var user = await getCurrentUser();
+                if (!user.success || !user.user) {
+                    await showAlert('You must be logged in.', { type: 'warning' });
+                    btn.textContent = 'Submit'; btn.disabled = false; return;
+                }
+                payload.submitted_by = user.user.id;
 
-            var result = await supabaseClient
-                .from('medical_attendance_notifications')
-                .insert([payload])
-                .select();
+                var result = await supabaseClient
+                    .from('medical_attendance_notifications')
+                    .insert([payload])
+                    .select();
 
-            if (result.error) throw result.error;
-            showToast('Form submitted successfully!', 'success');
-            formEl.reset();
+                if (result.error) throw result.error;
+                showToast('Form submitted successfully!', 'success');
+                formEl.reset();
 
-            // Re-apply practitioner name after reset since it comes from profile
-            if (prefillPractitioner) {
-                var pEl2 = document.querySelector('[name="practitioner_name"]');
-                if (pEl2) pEl2.value = prefillPractitioner;
+                // Re-apply persistent practitioner fields after reset
+                setField('practitioner_name',    prefillPractitioner);
+                setField('place_of_examination', prefillPlace);
+                setField('date_of_notice', new Date().toISOString().substring(0, 10));
+
+                // Clear client picker status
+                var statusEl = document.getElementById('clientPickStatus');
+                if (statusEl) statusEl.textContent = '';
+
+            } catch (err) {
+                await showAlert(err.message, { type: 'error', title: 'Submission Failed' });
+                console.error('Form submit error:', err);
+            } finally {
+                btn.textContent = 'Submit';
+                btn.disabled = false;
             }
-        } catch(err) {
-            await showAlert(err.message, {type:'error', title:'Submission Failed'});
-            console.error('Form submit error:', err);
-        } finally {
-            btn.textContent = 'Submit';
-            btn.disabled = false;
-        }
-    });
-}
+        });
+    }
 });
 </script></body>
 </html>
