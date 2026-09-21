@@ -94,6 +94,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <div class="form-group"><label>Date of Examination</label><input type="date" name="date_of_examination"></div>
 </div>
 <div class="form-row">
+<div class="form-group"><label>Practitioner Address</label><input type="text" name="practitioner_address" placeholder="Physical address of practice"></div>
+<div class="form-group"><label>Practitioner Tel</label><input type="tel" name="practitioner_tel" placeholder="Contact number"></div>
+</div>
+<div class="form-row">
 <div class="form-group"><label>Time of Examination</label><input type="time" name="time_of_examination"></div>
 </div>
 
@@ -179,11 +183,15 @@ window.addEventListener('load', async function() {
     // ── Derive practitioner details from profile ──────────────
     var prefillPractitioner = '';
     var prefillPlace = '';
+    var prefillPractitionerAddress = '';
+    var prefillPractitionerTel = '';
     if (profile) {
         prefillPractitioner = (profile.first_name + ' ' + profile.surname).trim();
-        // Use practice_name + branch as place of examination if available
+        // Use practice_name + branch + location as place of examination
         var parts = [profile.practice_name, profile.branch, profile.location].filter(Boolean);
         prefillPlace = parts.join(', ');
+        prefillPractitionerAddress = profile.practitioner_address || '';
+        prefillPractitionerTel     = profile.practitioner_tel     || '';
     }
 
     // ── Flash-fill helper ─────────────────────────────────────
@@ -198,8 +206,10 @@ window.addEventListener('load', async function() {
     }
 
     // ── Always fill practitioner + place fields from profile ──
-    setField('practitioner_name',  prefillPractitioner);
+    setField('practitioner_name',    prefillPractitioner);
     setField('place_of_examination', prefillPlace);
+    setField('practitioner_address', prefillPractitionerAddress);
+    setField('practitioner_tel',     prefillPractitionerTel);
     setField('date_of_notice', new Date().toISOString().substring(0, 10));
 
     // ── Check URL params (coming from clientele page) ─────────
@@ -381,6 +391,8 @@ window.addEventListener('load', async function() {
                 // Re-apply persistent practitioner fields after reset
                 setField('practitioner_name',    prefillPractitioner);
                 setField('place_of_examination', prefillPlace);
+                setField('practitioner_address', prefillPractitionerAddress);
+                setField('practitioner_tel',     prefillPractitionerTel);
                 setField('date_of_notice', new Date().toISOString().substring(0, 10));
 
                 // Clear client picker status

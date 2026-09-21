@@ -435,13 +435,6 @@ margin-right: 6px;
         hideFor: ['viewer', 'officer', 'admin', 'super_admin', 'company', 'medical_practitioner']
       },
       {
-        id: 'med-account',
-        label: '⚕ My Account',
-        href: 'med-practitioner-account.html',
-        single: true,
-        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
-      },
-      {
         id: 'medical-practitioner',
         label: 'Medical Exams',
         hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin'],
@@ -504,6 +497,13 @@ margin-right: 6px;
         children: [
           { id: 'form-43-11-med', icon: '<img src="ICONS/medical attendance.png" class="dd-icon">', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
         ]
+      },
+      {
+        id: 'med-account',
+        label: '⚕ My Account',
+        href: 'med-practitioner-account.html',
+        single: true,
+        hideFor: ['viewer', 'worker', 'company', 'officer', 'admin', 'super_admin']
       },
   ];
 

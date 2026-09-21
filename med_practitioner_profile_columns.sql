@@ -4,9 +4,11 @@
 -- =============================================================================
 
 ALTER TABLE public.user_profiles
-    ADD COLUMN IF NOT EXISTS practice_name   TEXT,
-    ADD COLUMN IF NOT EXISTS med_reg_number  TEXT,
-    ADD COLUMN IF NOT EXISTS branch          TEXT;
+    ADD COLUMN IF NOT EXISTS practice_name      TEXT,
+    ADD COLUMN IF NOT EXISTS med_reg_number     TEXT,
+    ADD COLUMN IF NOT EXISTS branch             TEXT,
+    ADD COLUMN IF NOT EXISTS practitioner_address TEXT,
+    ADD COLUMN IF NOT EXISTS practitioner_tel   TEXT;
 
 -- Backfill practice_name and med_reg_number from auth metadata for existing
 -- medical_practitioner accounts (only sets them if the column is still NULL)
