@@ -485,6 +485,17 @@
         el.className = 'search-status ' + (cls || '');
     }
 
+    // ── Build Form 43/11 URL for a given worker + practitioner ──
+    function build4311Url(worker, practitionerName) {
+        const p = new URLSearchParams();
+        if (worker.full_name)    p.set('worker_name',    worker.full_name);
+        if (worker.id_number)    p.set('worker_id',      worker.id_number);
+        if (worker.address)      p.set('worker_address', worker.address);
+        if (practitionerName)    p.set('practitioner',   practitionerName);
+        p.set('date_of_notice',  new Date().toISOString().substring(0, 10));
+        return 'form-43-11-attendance.html?' + p.toString();
+    }
+
     // ── Add to Clientele ─────────────────────────────────
     async function addToClientele() {
         if (!_lastFoundWorker) return;
@@ -496,6 +507,13 @@
         try {
             const userResult = await getCurrentUser();
             if (!userResult.success || !userResult.user) throw new Error('Not authenticated');
+
+            // Get practitioner's own name to pre-fill the form
+            const profileResult = await getUserProfile(userResult.user.id);
+            const profile = profileResult.success ? profileResult.data : null;
+            const practitionerName = profile
+                ? (profile.first_name + ' ' + profile.surname).trim()
+                : '';
 
             const { error } = await SB
                 .from('practitioner_clients')
@@ -510,7 +528,14 @@
             if (error) throw error;
 
             btn.textContent = '✅ Added to Clientele';
-            showToast(`${worker.full_name} added to your clientele.`, 'success');
+
+            // Offer direct link to Form 43/11 pre-filled for this client
+            const formUrl = build4311Url(worker, practitionerName);
+            showToast(
+                `${worker.full_name} added. <a href="${formUrl}" style="color:#fff;font-weight:700;text-decoration:underline">📋 Fill Form 43/11 now</a>`,
+                'success',
+                8000
+            );
             await loadClientele();
 
         } catch (e) {
@@ -531,6 +556,13 @@
                 container.innerHTML = '<div class="empty-state">Please log in.</div>';
                 return;
             }
+
+            // Fetch practitioner's name once for use in Form 43/11 links
+            const profileResult = await getUserProfile(userResult.user.id);
+            const profile = profileResult.success ? profileResult.data : null;
+            const practitionerName = profile
+                ? (profile.first_name + ' ' + profile.surname).trim()
+                : '';
 
             // Get all clients for this practitioner, ordered by most recent first
             const { data: clients, error } = await SB
@@ -553,6 +585,14 @@
                 const colors = ['#333','#e67e22','#27ae60','#3498db','#8e44ad','#c0392b'];
                 const color = colors[Math.floor(Math.random() * colors.length)];
 
+                // Build Form 43/11 URL for this client
+                const workerForUrl = {
+                    full_name: client.worker_name,
+                    id_number: client.worker_id_number,
+                    address:   client.worker_address || ''
+                };
+                const formUrl = build4311Url(workerForUrl, practitionerName);
+
                 html += `<div class="client-card">
                     <div class="cc-header">
                         <div>
@@ -572,6 +612,7 @@
                     <div class="cc-reports-count">📋 Past reports available</div>
                     <div class="cc-actions">
                         ${client.worker_id_number ? `<button class="cc-view" onclick="window.location.href='worker-profile.html?id=${client.worker_id_number}'">👁 View</button>` : `<button class="cc-view" style="opacity:0.4;cursor:not-allowed" disabled>👁 View</button>`}
+                        <button class="btn-sm primary" title="Open Form 43/11 pre-filled for this client" onclick="window.location.href='${formUrl}'">📋 Form 43/11</button>
                         <button class="cc-remove" onclick="removeClient('${client.id}', '${client.worker_name.replace(/'/g, "\\'")}')">✕ Remove</button>
                     </div>
                 </div>`;

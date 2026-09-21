@@ -493,19 +493,19 @@ function renderMedPractDashboard(container, userId) {
           </div>
 
           <div class="stats-grid" id="mpStatsGrid">
-            ${buildStatCard('total',   'Total',   'dark',   'All medical reports')}
-            ${buildStatCard('drafts',  'Drafts',  'orange', 'Awaiting submission')}
-            ${buildStatCard('done',    'Done',    'green',  'Completed & submitted')}
-            ${buildStatCard('month',   'Month',   'blue',   'Reports this month')}
+            ${buildStatCard('mpClientele',  'Clientele',           'blue',   'Workers in your care')}
+            ${buildStatCard('mpPending',    'Pending Evaluations', 'orange', 'Awaiting your assessment')}
+            ${buildStatCard('mpInjury',     'Injury Clients',      'dark',   'Clients with injuries')}
+            ${buildStatCard('mpDisease',    'Disease Clients',     'green',  'Clients with occupational disease')}
           </div>
 
           <div class="actions-row">
             <a href="medical-examination.html" class="action-btn primary">📝 New Medical Exam (Form 43/03)</a>
             <a href="clientele.html" class="action-btn">👥 My Clientele</a>
+            <a href="form-43-11-attendance.html" class="action-btn">📋 Form 43/11</a>
           </div>
         `;
 
-        // Trigger ring entrance animation
         animateRings();
         loadMedPractStats(userId);
     }
@@ -513,52 +513,73 @@ function renderMedPractDashboard(container, userId) {
     // ── Fetch and display stats ───────────────────────────
     async function loadMedPractStats(userId) {
         try {
-            const now = new Date();
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-
-            const { count: total,   error: e1 } = await SB
-                .from('medical_examination_reports')
+            // 1. Total clientele count for this practitioner
+            const { count: clienteleCount, error: e1 } = await SB
+                .from('practitioner_clients')
                 .select('id', { count: 'exact', head: true })
-                .eq('submitted_by', userId);
+                .eq('practitioner_id', userId);
 
-            const { count: drafts,  error: e2 } = await SB
-                .from('medical_examination_reports')
-                .select('id', { count: 'exact', head: true })
-                .eq('submitted_by', userId)
-                .eq('status', 'draft');
-
-            const { count: done,    error: e3 } = await SB
-                .from('medical_examination_reports')
+            // 2. Pending permanent impairment evaluations submitted by this practitioner
+            const { count: pendingCount, error: e2 } = await SB
+                .from('permanent_impairment_reports')
                 .select('id', { count: 'exact', head: true })
                 .eq('submitted_by', userId)
-                .eq('status', 'submitted');
+                .in('status', ['draft', 'submitted', 'under_review']);
 
-            const { count: month,   error: e4 } = await SB
-                .from('medical_examination_reports')
-                .select('id', { count: 'exact', head: true })
-                .eq('submitted_by', userId)
-                .gte('created_at', monthStart);
+            // 3 & 4. Get all worker_registry_ids for this practitioner's clients,
+            //        then count injury vs disease reports linked to those workers.
+            const { data: clients, error: e3 } = await SB
+                .from('practitioner_clients')
+                .select('worker_registry_id')
+                .eq('practitioner_id', userId)
+                .not('worker_registry_id', 'is', null);
 
-            const t = total ?? 0;
-            document.getElementById('stat-total').textContent  = t;
-            document.getElementById('stat-drafts').textContent = drafts ?? 0;
-            document.getElementById('stat-done').textContent   = done ?? 0;
-            document.getElementById('stat-month').textContent  = month ?? 0;
+            let injuryCount = 0;
+            let diseaseCount = 0;
 
-            // Update SVG rings & progress bars
-            updateRing('drafts', drafts ?? 0, t);
-            updateRing('done',   done ?? 0,   t);
-            updateRing('month',  month ?? 0,  t);
+            if (clients && clients.length > 0) {
+                const registryIds = clients
+                    .map(c => c.worker_registry_id)
+                    .filter(Boolean);
 
-            if (e1) console.warn('Stats error (total):', e1);
-            if (e2) console.warn('Stats error (drafts):', e2);
-            if (e3) console.warn('Stats error (done):', e3);
-            if (e4) console.warn('Stats error (month):', e4);
+                const { count: inj, error: e4 } = await SB
+                    .from('injury_disease_reports')
+                    .select('id', { count: 'exact', head: true })
+                    .in('worker_registry_id', registryIds)
+                    .in('incident_type', ['Injury', 'Both']);
+
+                const { count: dis, error: e5 } = await SB
+                    .from('injury_disease_reports')
+                    .select('id', { count: 'exact', head: true })
+                    .in('worker_registry_id', registryIds)
+                    .in('incident_type', ['Disease', 'Both']);
+
+                if (!e4) injuryCount  = inj  ?? 0;
+                if (!e5) diseaseCount = dis  ?? 0;
+                if (e4) console.warn('Stats error (injury clients):', e4);
+                if (e5) console.warn('Stats error (disease clients):', e5);
+            }
+
+            const total = clienteleCount ?? 0;
+
+            document.getElementById('stat-mpClientele').textContent = total;
+            document.getElementById('stat-mpPending').textContent   = pendingCount  ?? 0;
+            document.getElementById('stat-mpInjury').textContent    = injuryCount;
+            document.getElementById('stat-mpDisease').textContent   = diseaseCount;
+
+            updateRing('mpPending', pendingCount  ?? 0, total);
+            updateRing('mpInjury',  injuryCount,         total);
+            updateRing('mpDisease', diseaseCount,         total);
+
+            if (e1) console.warn('Stats error (clientele):', e1);
+            if (e2) console.warn('Stats error (pending evals):', e2);
+            if (e3) console.warn('Stats error (client registry ids):', e3);
 
         } catch (e) {
             console.warn('Failed to load med pract stats:', e);
-            ['total','drafts','done','month'].forEach(id => {
-                document.getElementById(`stat-${id}`).textContent = '!';
+            ['mpClientele', 'mpPending', 'mpInjury', 'mpDisease'].forEach(id => {
+                const el = document.getElementById('stat-' + id);
+                if (el) el.textContent = '!';
             });
         }
     }

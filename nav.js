@@ -492,10 +492,9 @@ margin-right: 6px;
       },
       {
         id: 'bl-forms-medical',
-        label: '📋 BL Forms',
+        label: '🏥 Medical Attendance',
         hideFor: ['company', 'viewer', 'worker', 'officer', 'admin', 'super_admin'],
         children: [
-          { id: 'form-43-03-med', icon: '<img src="ICONS/medical exams.png" class="dd-icon">', label: 'Form 43/03 - Medical Exam', href: 'form-43-03-medical.html' },
           { id: 'form-43-11-med', icon: '<img src="ICONS/medical attendance.png" class="dd-icon">', label: 'Form 43/11 - Medical Attendance', href: 'form-43-11-attendance.html' }
         ]
       },

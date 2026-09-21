@@ -164,13 +164,6 @@ window.OSH_ROLE_CONFIG = (function () {
       admin:       { canView: true, canConduct: true, canAssign: true },
       super_admin: { canView: true, canConduct: true, canAssign: true }
     },
-    'form-43-03-medical': {
-      label: 'Form 43/03 - Medical Exam',
-      roles: ['medical_practitioner', 'admin', 'super_admin'],
-      medical_practitioner: { canView: true, canSubmit: true, canEdit: true },
-      admin:       { canView: true, canSubmit: true, canEdit: true },
-      super_admin: { canView: true, canSubmit: true, canEdit: true }
-    },
     'form-43-11-attendance': {
       label: 'Form 43/11 - Medical Attendance',
       roles: ['medical_practitioner', 'admin', 'super_admin'],

@@ -145,14 +145,71 @@ window.addEventListener('load', async function() {
         setUserNameSafely(userResult.user.email.split('@')[0]);
     }
 
-    // Medical attendance: look up worker name, address and ID
-    BLLookup.init({
-        workerFields: {
-            id_number: 'worker_id_number',
-            full_name: 'worker_name',
-            address:   'worker_address',
+    // ── Check for pre-fill params from clientele ─────────────
+    var params = new URLSearchParams(window.location.search);
+    var prefillWorkerName    = params.get('worker_name')    || '';
+    var prefillWorkerId      = params.get('worker_id')      || '';
+    var prefillWorkerAddress = params.get('worker_address') || '';
+    var prefillPractitioner  = params.get('practitioner')   || '';
+    var prefillNoticeDate    = params.get('date_of_notice') || '';
+
+    // Auto-fill practitioner name from logged-in profile if not in URL
+    if (!prefillPractitioner && profile) {
+        prefillPractitioner = (profile.first_name + ' ' + profile.surname).trim();
+    }
+
+    var hasPrefill = prefillWorkerName || prefillWorkerId;
+
+    if (hasPrefill) {
+        // Fill worker fields immediately — no lookup needed
+        function setField(nameAttr, value) {
+            if (!value) return;
+            var el = document.getElementById(nameAttr) || document.querySelector('[name="' + nameAttr + '"]');
+            if (!el) return;
+            el.value = value;
+            el.style.transition = 'background 0.3s';
+            el.style.background = '#d4edda';
+            setTimeout(function() { el.style.background = ''; }, 2500);
         }
-    });
+
+        setField('worker_id_number',  prefillWorkerId);
+        setField('worker_name',       prefillWorkerName);
+        setField('worker_address',    prefillWorkerAddress);
+        setField('practitioner_name', prefillPractitioner);
+        setField('date_of_notice',    prefillNoticeDate);
+
+        // Show a banner so the user knows fields were auto-filled
+        var banner = document.createElement('div');
+        banner.style.cssText = 'background:#d4edda;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#155724;display:flex;align-items:center;gap:10px;';
+        banner.innerHTML = '<span style="font-size:18px">✅</span><div><strong>Fields auto-filled from your clientele.</strong><br>Review the details below and fill in the appointment time before submitting.</div>';
+        var formCard = document.querySelector('.form-card');
+        var formEl2 = document.getElementById('attendanceForm');
+        if (formCard && formEl2) formCard.insertBefore(banner, formEl2);
+
+        // Hide the lookup panel — worker is already identified
+        var lookupContainer = document.getElementById('bl-lookup-container');
+        if (lookupContainer) lookupContainer.style.display = 'none';
+    } else {
+        // No pre-fill — initialise the normal BLLookup search panel
+        BLLookup.init({
+            workerFields: {
+                id_number: 'worker_id_number',
+                full_name: 'worker_name',
+                address:   'worker_address',
+            }
+        });
+
+        // Auto-fill practitioner name from profile (always useful)
+        if (prefillPractitioner) {
+            var pEl = document.querySelector('[name="practitioner_name"]');
+            if (pEl) {
+                pEl.value = prefillPractitioner;
+                pEl.style.transition = 'background 0.3s';
+                pEl.style.background = '#d4edda';
+                setTimeout(function() { pEl.style.background = ''; }, 2500);
+            }
+        }
+    }
 
 var formEl = document.getElementById('attendanceForm');
 if (formEl) {
@@ -183,6 +240,12 @@ if (formEl) {
             if (result.error) throw result.error;
             showToast('Form submitted successfully!', 'success');
             formEl.reset();
+
+            // Re-apply practitioner name after reset since it comes from profile
+            if (prefillPractitioner) {
+                var pEl2 = document.querySelector('[name="practitioner_name"]');
+                if (pEl2) pEl2.value = prefillPractitioner;
+            }
         } catch(err) {
             await showAlert(err.message, {type:'error', title:'Submission Failed'});
             console.error('Form submit error:', err);
