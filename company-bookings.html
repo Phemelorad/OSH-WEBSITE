@@ -76,6 +76,7 @@
         }
         .badge-pending   { background: #fff3cd; color: #856404; }
         .badge-approved  { background: #d4edda; color: #155724; }
+        .badge-assigned  { background: #e2d9f3; color: #4a2f9e; }
         .badge-scheduled { background: #d1ecf1; color: #0c5460; }
         .badge-completed { background: #cce5ff; color: #004085; }
         .badge-cancelled { background: #f8d7da; color: #721c24; }
@@ -226,7 +227,7 @@
 
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card amber"><div class="stat-icon">⏳</div><h3>Pending</h3><div class="stat-value" id="statPending">—</div></div>
-            <div class="stat-card blue"><div class="stat-icon">✅</div><h3>Approved</h3><div class="stat-value" id="statApproved">—</div></div>
+            <div class="stat-card blue"><div class="stat-icon">✅</div><h3>Assigned</h3><div class="stat-value" id="statAssigned">—</div></div>
             <div class="stat-card purple"><div class="stat-icon">📅</div><h3>Scheduled</h3><div class="stat-value" id="statScheduled">—</div></div>
             <div class="stat-card green"><div class="stat-icon">✔</div><h3>Completed</h3><div class="stat-value" id="statCompleted">—</div></div>
             <div class="stat-card red"><div class="stat-icon">✕</div><h3>Cancelled</h3><div class="stat-value" id="statCancelled">—</div></div>
@@ -242,6 +243,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Booking ID</th>
                             <th>Date Requested</th>
                             <th>Type</th>
                             <th>Location</th>
@@ -359,7 +361,7 @@
 
     function updateStats(rows) {
         document.getElementById('statPending').textContent   = rows.filter(r => r.status === 'pending').length;
-        document.getElementById('statApproved').textContent  = rows.filter(r => r.status === 'approved').length;
+        document.getElementById('statAssigned').textContent  = rows.filter(r => r.status === 'assigned').length;
         document.getElementById('statScheduled').textContent = rows.filter(r => r.status === 'scheduled').length;
         document.getElementById('statCompleted').textContent = rows.filter(r => r.status === 'completed').length;
         document.getElementById('statCancelled').textContent = rows.filter(r => r.status === 'cancelled').length;
@@ -372,12 +374,12 @@
         // Show banner (badge is dismissed separately after load)
         const banner = document.getElementById('notifBanner');
         if (respondedCount > 0) {
-            const approved  = rows.filter(r => r.status === 'approved').length;
+            const approved  = rows.filter(r => r.status === 'assigned').length;
             const scheduled = rows.filter(r => r.status === 'scheduled').length;
             const completed = rows.filter(r => r.status === 'completed').length;
             const cancelled = rows.filter(r => r.status === 'cancelled').length;
             const parts = [];
-            if (approved)  parts.push(approved + ' approved');
+            if (approved)  parts.push(approved + ' assigned');
             if (scheduled) parts.push(scheduled + ' scheduled');
             if (completed) parts.push(completed + ' completed');
             if (cancelled) parts.push(cancelled + ' cancelled');
@@ -408,6 +410,7 @@
             const prefStr = prefTime ? `${prefDate} (${prefTime})` : prefDate;
 
             return '<tr>'
+                + '<td style="white-space:nowrap;font-weight:600">' + esc(b.booking_number || '—') + '</td>'
                 + '<td style="white-space:nowrap">' + fmtDate(b.created_at) + '</td>'
                 + '<td>' + esc(b.inspection_type || '—') + '</td>'
                 + '<td>' + esc(b.location || '—') + '</td>'

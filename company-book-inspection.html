@@ -90,6 +90,7 @@
         }
         .status-pending   { background: #fff3cd; color: #856404; }
         .status-approved  { background: #d4edda; color: #155724; }
+        .status-assigned  { background: #e2d9f3; color: #4a2f9e; }
         .status-scheduled { background: #d1ecf1; color: #0c5460; }
         .status-completed { background: #cce5ff; color: #004085; }
         .status-cancelled { background: #f8d7da; color: #721c24; }
@@ -353,8 +354,8 @@
                 status:              'pending'
             };
 
-            const { error } = await window.supabaseClient
-                .from('inspection_bookings').insert([payload]);
+            const { data: inserted, error } = await window.supabaseClient
+                .from('inspection_bookings').insert([payload]).select('booking_number, id').single();
 
             btn.disabled = false;
             btn.textContent = 'Submit Booking Request';
@@ -362,7 +363,10 @@
             if (error) throw error;
 
             window.hideLoading();
-            window.showSuccess('Inspection Booking submitted successfully!');
+            const bkNo = inserted && inserted.booking_number ? inserted.booking_number : null;
+            window.showSuccess(
+                bkNo ? 'Booking submitted! Your booking ID: ' + bkNo : 'Inspection Booking submitted successfully!'
+            );
 
             document.getElementById('bookingForm').reset();
             await reFillCompanyData();
