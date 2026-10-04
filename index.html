@@ -149,9 +149,33 @@
         }
 
         .form-group input.error + .error-message,
-        .form-group select.error + .error-message {
+        .form-group select.error + .error-message,
+        .form-group.consent-group.error .error-message {
             display: block;
         }
+
+        /* Consent checkbox (Privacy Policy / T&C) */
+        .consent-group { margin-top: 4px; }
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13.5px;
+            color: #444;
+            cursor: pointer;
+            line-height: 1.5;
+            font-weight: 400 !important;
+        }
+        .consent-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            accent-color: #1a1a2e;
+            cursor: pointer;
+        }
+        .consent-label a { color: #2b5fd9; text-decoration: underline; }
+        .consent-label a:hover { color: #1a3fa0; }
 
         .role-selection {
             display: grid;
@@ -710,6 +734,15 @@
                 <span class="error-message">Location is required</span>
             </div>
 
+            <!-- Legal consent (all roles) -->
+            <div class="form-group consent-group" id="consentGroup">
+                <label class="consent-label" for="termsAccepted">
+                    <input type="checkbox" id="termsAccepted" name="termsAccepted">
+                    <span>I have read and accept the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and the <a href="terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span>
+                </label>
+                <span class="error-message" id="consentError">You must accept the Privacy Policy and Terms &amp; Conditions to create an account</span>
+            </div>
+
             <button type="submit" class="auth-button">Create Account</button>
         </form>
 
@@ -1020,6 +1053,14 @@
             }
         });
 
+        // ── Consent checkbox: clear error when accepted ──
+        const termsBox = document.getElementById('termsAccepted');
+        if (termsBox) {
+            termsBox.addEventListener('change', function() {
+                if (this.checked) document.getElementById('consentGroup').classList.remove('error');
+            });
+        }
+
         // ── Register form submit ───────────────────────
         registerForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1036,6 +1077,16 @@
             commonFields.forEach(id => {
                 if (!validateField(document.getElementById(id))) isValid = false;
             });
+
+            // Legal consent required for ALL roles before account creation
+            const consentBox = document.getElementById('termsAccepted');
+            const consentGroup = document.getElementById('consentGroup');
+            if (!consentBox.checked) {
+                consentGroup.classList.add('error');
+                isValid = false;
+            } else {
+                consentGroup.classList.remove('error');
+            }
 
             if (selectedRole.value === 'company') {
                 ['companyName', 'ownerName', 'ownerEmail', 'companyPhone', 'cipaNumber'].forEach(id => {
@@ -1067,7 +1118,9 @@
                 password: document.getElementById('registerPassword').value,
                 location: document.getElementById('location').value,
                 role: selectedRole.value,
-                department: selectedRole.value === 'osh_officer' ? 'osh' : 'general'
+                department: selectedRole.value === 'osh_officer' ? 'osh' : 'general',
+                termsAccepted: true,
+                termsAcceptedAt: new Date().toISOString()
             };
 
             if (selectedRole.value === 'company') {

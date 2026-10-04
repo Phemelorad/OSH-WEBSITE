@@ -57,7 +57,9 @@
                         company_street_name: userData.streetName || null,
                         company_physical_address: userData.physicalAddress || null,
                         practice_name: userData.practiceName || null,
-                        med_reg_number: userData.medRegNumber || null
+                        med_reg_number: userData.medRegNumber || null,
+                        terms_accepted: userData.termsAccepted === true,
+                        terms_accepted_at: userData.termsAcceptedAt || null
                     }
                 }
             });

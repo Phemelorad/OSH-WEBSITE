@@ -308,6 +308,11 @@
 <script>
     const SB = window.supabaseClient;
     let allRecords = [];
+    // Pagination state (used by applyPagination/renderPage/changePageSize)
+    let currentPage = 1;
+    let totalPages = 1;
+    let paginatedRecords = [];
+    let pageSize = 50;
 
     // ── Auth & init ───────────────────────────────────────────
     window.addEventListener('load', async () => {

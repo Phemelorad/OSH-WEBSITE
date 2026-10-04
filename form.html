@@ -570,6 +570,91 @@
                 }
             }
 
+        // ── Claim draft helpers (claim-draft.js was never created) ──
+        // Maps injury_claims columns → form field IDs (inverse of submit handler)
+        const DRAFT_FIELD_MAP = {
+            name_of_employer:   'nameOfEmployer',
+            industry:           'industry',
+            name_of_claimant:   'nameOfClaimant',
+            gender:             'gender',
+            location:           'location',
+            nationality:        'nationality',
+            claimant_id_number: 'claimantIdNumber',
+            source_type:        'sourceType',
+            source_id:          'sourceId',
+            date_of_injury:     'dateOfInjury',
+            date_reported:      'dateReported',
+            date_received:      'dateReceived',
+            cause:              'cause',
+            nature:             'nature',
+            incapacity_percentage: 'incapacity',
+            file_number:        'fileNumber',
+            worker_registry_id: 'workerRegistryId',
+        };
+
+        /** Load a draft claim (status='draft') into the form. Returns the row or null. */
+        async function loadClaimDraftIntoForm(draftId) {
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('injury_claims')
+                    .select('*')
+                    .eq('id', draftId)
+                    .eq('status', 'draft')
+                    .maybeSingle();
+                if (error) throw error;
+                if (!data) return null;
+
+                Object.keys(DRAFT_FIELD_MAP).forEach(function(col) {
+                    const el = document.getElementById(DRAFT_FIELD_MAP[col]);
+                    if (!el) return;
+                    let v = data[col];
+                    if (v == null) return;
+                    // date inputs need YYYY-MM-DD
+                    if (el.type === 'date') v = String(v).slice(0, 10);
+                    el.value = v;
+                });
+
+                document.getElementById('draftClaimId').value = data.id;
+
+                const banner = document.getElementById('draftBanner');
+                if (banner) {
+                    banner.style.display = 'block';
+                    banner.innerHTML = '📝 Completing draft claim'
+                        + (data.file_number ? ' <strong>' + esc(data.file_number) + '</strong>' : '')
+                        + ' — fill in the remaining details and submit to finalise it.';
+                }
+                return data;
+            } catch (e) {
+                console.warn('loadClaimDraftIntoForm:', e);
+                if (typeof showToast === 'function') showToast('Could not load the draft claim.', 'error');
+                return null;
+            }
+        }
+
+        /** Cancel (discard) a draft claim. Returns true on success. */
+        async function cancelClaimDraft(id) {
+            try {
+                const ok = await showConfirm('This draft claim will be cancelled and removed from your draft list.', {
+                    title: 'Cancel Draft', icon: '🗑️', confirmText: 'Cancel Draft', danger: true
+                });
+                if (!ok) return false;
+
+                const { error } = await window.supabaseClient
+                    .from('injury_claims')
+                    .update({ status: 'cancelled' })
+                    .eq('id', id)
+                    .eq('status', 'draft');
+                if (error) throw error;
+
+                if (typeof showToast === 'function') showToast('Draft cancelled.', 'success');
+                return true;
+            } catch (e) {
+                console.warn('cancelClaimDraft:', e);
+                if (typeof showAlert === 'function') await showAlert('Could not cancel the draft: ' + e.message, { type: 'error' });
+                return false;
+            }
+        }
+
         async function cancelDraftFromForm() {
             const id = document.getElementById('draftClaimId').value;
             if (!id) return;
