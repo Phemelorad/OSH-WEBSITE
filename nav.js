@@ -331,9 +331,11 @@ margin-right: 6px;
       {
         id: 'company-view',
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employer Details',
-        href: 'company-view.html',
-        single: true,
-        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner']
+        hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
+        children: [
+          { id: 'company-view',    icon: '<img src="ICONS/COMPANY.png" class="dd-icon">', label: 'My Company',         href: 'company-view.html' },
+          { id: 'company-inspections', icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'My Inspections',  href: 'company-inspections.html' },
+        ]
       },
       {
         id: 'book-inspection',
@@ -342,6 +344,7 @@ margin-right: 6px;
         children: [
           { id: 'company-book-inspection', icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'New Booking',       href: 'company-book-inspection.html' },
           { id: 'company-bookings',        icon: '<img src="ICONS/BOOKINGS.png" class="dd-icon">', label: 'My Bookings',       href: 'company-bookings.html', notification:'company-bookings-responded' },
+          { id: 'company-inspections',     icon: '<img src="ICONS/INSPECTION.png" class="dd-icon">', label: 'My Inspections',    href: 'company-inspections.html' },
         ]
       },
       {
