@@ -335,7 +335,7 @@
 
         const { data, error } = await SB
             .from('workplace_inspections')
-            .select('*')
+            .select('*, inspection_bookings(booking_number)')
             .order('inspection_date', { ascending: false });
 
         if (error) {
@@ -461,7 +461,11 @@
             const canEdit    = canEditClaims(r.submitted_by);
 
             return `<tr>
-                <td><strong>${r.file_number || '—'}</strong></td>
+                <td><strong>${r.file_number || '—'}</strong>
+                    ${r.inspection_bookings && r.inspection_bookings.booking_number
+                        ? `<br><span style="font-size:10.5px;color:#6f42c1;font-weight:600" title="Linked booking">🔗 ${r.inspection_bookings.booking_number}</span>`
+                        : ''}
+                </td>
                 <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
                     title="${r.factory_name || ''}">${r.factory_name || '—'}</td>
                 <td>${r.industry_type || '—'}</td>
@@ -563,7 +567,7 @@
     loadInspections = async function() {
         document.getElementById("loadingState").style.display = "block";
         document.getElementById("tableWrap").style.display = "none";
-        var resp = await SB.from("workplace_inspections").select("*").order("inspection_date", { ascending: false });
+        var resp = await SB.from("workplace_inspections").select("*, inspection_bookings(booking_number)").order("inspection_date", { ascending: false });
         if (resp.error) {
             var ls = document.getElementById("loadingState");
             if (ls) ls.innerHTML = "<p style='color:#e74c3c;padding:40px;text-align:center'>Error: " + esc(resp.error.message) + "<br><button onclick=\"loadInspections()\" style='margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer'>Retry</button></p>";

@@ -237,6 +237,11 @@
     <div class="page-container">
       <div class="container">
         <form id="inspectionForm">
+          <input type="hidden" id="bookingId" value="">
+          <div id="bookingLinkBanner" style="display:none;margin:12px 0;padding:12px 16px;background:#eef0ff;border:1px solid #b9c0f5;border-radius:8px;font-size:13.5px;color:#2c3370">
+            🔗 <strong>Linked booking:</strong> <span id="bookingLinkText"></span>
+            <a id="bookingLinkView" href="#" target="_blank" style="margin-left:8px;color:#2b5fd9">View booking →</a>
+          </div>
 
           <!-- ── SECTION 1: IDENTIFICATION ───────────────────────────── -->
           <div class="form-card">
@@ -732,6 +737,9 @@
           status:             'completed'
         };
 
+        const bookingId = document.getElementById('bookingId').value.trim();
+        if (bookingId) payload.booking_id = bookingId;
+
         const { error } = await window.supabaseClient
           .from('workplace_inspections').insert([payload]);
 
@@ -739,6 +747,19 @@
         submitBtn.textContent = 'Submit Inspection Report';
 
         if (error) throw error;
+
+        // Linked booking: mark it completed (only advances if currently
+        // 'scheduled' — the DB guard rejects any other state, and we ignore
+        // failures here so they never block the inspection itself).
+        if (bookingId) {
+          try {
+            await window.supabaseClient
+              .from('inspection_bookings')
+              .update({ status: 'completed' })
+              .eq('id', bookingId)
+              .eq('status', 'scheduled');
+          } catch (e) { console.warn('booking auto-complete:', e); }
+        }
 
         window.hideLoading();
         window.showSuccess('Inspection Report submitted successfully!');
@@ -814,6 +835,60 @@
       // Build contravention grids
       buildGrid(COMMON_SECTIONS, 'commonGrid');
       buildGrid(OTHER_SECTIONS,  'otherGrid');
+
+      // ── Booking link: inspection.html?booking=<id> ──────────────
+      try {
+        const bkId = new URLSearchParams(window.location.search).get('booking');
+        if (bkId) {
+          const { data: bk, error: bkErr } = await window.supabaseClient
+            .from('inspection_bookings')
+            .select('*')
+            .eq('id', bkId)
+            .maybeSingle();
+          if (bkErr) throw bkErr;
+          if (bk) {
+            document.getElementById('bookingId').value = bk.id;
+            const banner = document.getElementById('bookingLinkBanner');
+            document.getElementById('bookingLinkText').textContent =
+              (bk.booking_number || 'Booking') + ' — ' + (bk.company_name || '')
+              + (bk.scheduled_date ? ' (scheduled ' + bk.scheduled_date + ')' : '');
+            document.getElementById('bookingLinkView').href =
+              'company-book-inspection.html?id=' + bk.id + '&view=1';
+            banner.style.display = 'block';
+
+            // Prefill from booking (only fill empty fields)
+            const fill = (id, val) => {
+              const el = document.getElementById(id);
+              if (el && !el.value && val) el.value = val;
+            };
+            fill('factoryName', bk.company_name);
+            fill('location',    bk.location);
+            fill('natureOfWork', bk.nature_of_work);
+            if (bk.industry_type) {
+              const sel = document.getElementById('industryType');
+              if (sel && !sel.value) {
+                for (const o of sel.options) {
+                  if (o.value.toLowerCase() === bk.industry_type.toLowerCase()) { sel.value = o.value; break; }
+                }
+              }
+            }
+            if (bk.inspection_type) {
+              const sel = document.getElementById('inspType');
+              if (sel) {
+                for (const o of sel.options) {
+                  if (o.value.toLowerCase() === bk.inspection_type.toLowerCase()) { sel.value = o.value; break; }
+                }
+              }
+            }
+            if (bk.scheduled_date) document.getElementById('inspDate').value = bk.scheduled_date;
+            showToast('Booking ' + (bk.booking_number || '') + ' linked to this inspection.', 'success');
+          } else {
+            showToast('Booking not found for the supplied link.', 'warning');
+          }
+        }
+      } catch (e) {
+        console.warn('booking link load:', e);
+      }
     });
     </script>
 <script>

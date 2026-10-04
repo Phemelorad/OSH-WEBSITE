@@ -339,7 +339,7 @@
 
         const { data, error } = await SB
             .from('inspection_bookings')
-            .select('*')
+            .select('*, workplace_inspections(id, file_number, inspection_date)')
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -399,6 +399,12 @@
     }
 
     // ── Render table ──────────────────────────────────────────
+    /** First inspection generated from this booking (via workplace_inspections.booking_id) */
+    function linkedInspection(r) {
+        const list = r.workplace_inspections;
+        return (Array.isArray(list) && list.length) ? list[0] : null;
+    }
+
     function renderTable(rows) {
         const tbody  = document.getElementById('tableBody');
         const empty  = document.getElementById('emptyState');
@@ -441,6 +447,7 @@
                 <td style="white-space:nowrap">${prefStr}</td>
                 <td>${r.assigned_inspector || '<span style="color:#bbb">Unassigned</span>'}
                     ${r.scheduled_date ? `<br><span style="font-size:11px;color:#888">📅 ${fmtDate(r.scheduled_date)}${r.scheduled_time ? ' ' + r.scheduled_time : ''}</span>` : ''}
+                    ${linkedInspection(r) ? `<br><span style="font-size:11px;color:#155724;font-weight:600">📋 ${linkedInspection(r).file_number || 'Inspection done'}</span>` : ''}
                 </td>
                 <td><span class="badge badge-${r.status}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
                 <td style="white-space:nowrap;font-size:12px">${r.created_at ? fmtDate(r.created_at) : '—'}</td>
@@ -455,6 +462,12 @@
                         : ''}
                     ${canManage && isScheduled
                         ? `<button class="action-btn" onclick="updateStatus('${r.id}','completed')">✅ Complete</button>`
+                        : ''}
+                    ${canManage && (isAssigned || isScheduled)
+                        ? `<button class="action-btn" onclick="window.location.href='inspection.html?booking=${r.id}'" style="border-color:#0c5460;color:#0c5460">📝 Do Inspection</button>`
+                        : ''}
+                    ${(isAssigned || isScheduled || isCompleted) && linkedInspection(r)
+                        ? `<button class="action-btn" onclick="window.location.href='OHS_Form_36_Factories_Inspection.html?id=${linkedInspection(r).id}&view=1'" style="border-color:#155724;color:#155724">📋 View Report</button>`
                         : ''}
                     ${canManage && isOpen
                         ? `<button class="action-btn cancel" onclick="updateStatus('${r.id}','cancelled')">✕ Cancel</button>`
