@@ -443,7 +443,36 @@ async function handleLogout() {
   window.snakeToCamel = function(str) {
     return str.replace(/_([a-z])/g, function(_, c) { return c.toUpperCase(); });
   };
-  
+
+  /**
+   * Format a date value for <input type="date"> (always returns YYYY-MM-DD).
+   * Handles ISO strings, Date objects, and plain date strings.
+   */
+  window.fmtDateForInput = function(d) {
+    if (!d) return '';
+    if (typeof d === 'string') {
+      var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
+      if (m) return m[1] + '-' + m[2] + '-' + m[3];
+    }
+    var date = new Date(d);
+    if (isNaN(date.getTime())) return '';
+    var y = date.getFullYear();
+    var mo = String(date.getMonth() + 1).padStart(2, '0');
+    var da = String(date.getDate()).padStart(2, '0');
+    return y + '-' + mo + '-' + da;
+  };
+
+  /**
+   * Format a time value for <input type="time"> (always returns HH:MM).
+   * Handles "HH:MM:SS", "HH:MM:SS.fff", and "HH:MM:SS+TZ".
+   */
+  window.fmtTimeForInput = function(t) {
+    if (!t) return '';
+    var str = String(t);
+    var m = /^(\d{2}:\d{2})/.exec(str);
+    return m ? m[1] : str;
+  };
+
   window.initViewMode = async function(tableName, opts) {
     opts = opts || {};
     var urlParams = new URLSearchParams(window.location.search);
@@ -482,6 +511,10 @@ async function handleLogout() {
               if (radio) radio.checked = true;
             } else if (el.type === 'checkbox') {
               el.checked = value === true || value === 'yes' || value === 'Yes';
+            } else if (el.type === 'date') {
+              el.value = window.fmtDateForInput(value);
+            } else if (el.type === 'time') {
+              el.value = window.fmtTimeForInput(value);
             } else {
               el.value = value != null ? value : '';
             }
@@ -506,8 +539,13 @@ async function handleLogout() {
         });
       }
       
-      // Custom callback after population
-      if (opts.afterPopulate) opts.afterPopulate(data);
+      // Custom callback after population (supports async callbacks)
+      if (opts.afterPopulate) {
+        var _afterResult = opts.afterPopulate(data);
+        if (_afterResult && typeof _afterResult.then === 'function') {
+          await _afterResult;
+        }
+      }
       
       // Disable all form inputs (except hidden)
       document.querySelectorAll('input, select, textarea').forEach(function(el) {

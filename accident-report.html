@@ -563,32 +563,79 @@
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('view') === '1') {
         await window.initViewMode('accident_reports', {
-            afterPopulate: function(data) {
-                // Map accident_reports columns to person-template fields and
-                // populate the first (default) injured-person entry.
-                var personData = {
-                    full_name:             data.injured_name,
-                    age_years:             data.injured_age,
-                    sex:                   data.injured_sex,
-                    id_number:             data.injured_id_number,
-                    occupation_at_accident: data.occupation_at_accident,
-                    usual_occupation:       data.usual_occupation,
-                    experience_level:       data.experience_level,
-                    email:                 data.email || '',
-                    accident_date:         data.accident_date,
-                    accident_time:         data.accident_time,
-                    accident_place:        data.accident_place,
-                    accident_description:  data.accident_description,
-                    machinery_involved:    data.machinery_involved,
-                    injury_fatal:          data.injury_fatal,
-                    disabled_three_days:   data.disabled_three_days,
-                    hourly_pay:            data.hourly_pay,
-                    medical_practitioner: data.medical_practitioner
+            afterPopulate: async function(data) {
+                // Ensure report_type select is set, then show correct section
+                var rt = document.getElementById('reportType');
+                if (rt && data.report_type) rt.value = data.report_type;
+                toggleSections();
+
+                // Hide add/remove buttons in view mode
+                var addBtn = document.getElementById('addInjuredPersonBtn');
+                if (addBtn) addBtn.style.display = 'none';
+                document.querySelectorAll('.btn-remove-person').forEach(function(b) {
+                    b.style.display = 'none';
+                });
+
+                // Shared accident fields from accident_reports (apply to all persons)
+                var accidentFields = {
+                    accident_date:        data.accident_date,
+                    accident_time:        data.accident_time,
+                    accident_place:       data.accident_place,
+                    accident_description: data.accident_description,
+                    machinery_involved:   data.machinery_involved
                 };
-                addPersonEntry(personData);
-                // Trigger fatal-field visibility so non-fatal rows show in the printout
-                var fatalSelect = document.querySelector('[data-person-field="injury_fatal"]')
-                if (fatalSelect) togglePerPersonFatalFields(fatalSelect);
+
+                // Convert any record into personData, merging shared accident fields.
+                // Handles both accident_reports columns (injured_name, injured_age, ...)
+                // and accident_injured_persons columns (full_name, age_years, ...).
+                var buildPersonData = function(rec) {
+                    return Object.assign({}, accidentFields, {
+                        full_name:              rec.full_name || rec.injured_name,
+                        age_years:              rec.age_years || rec.injured_age,
+                        sex:                    rec.sex || rec.injured_sex,
+                        id_number:              rec.id_number || rec.injured_id_number,
+                        occupation_at_accident: rec.occupation_at_accident,
+                        usual_occupation:       rec.usual_occupation,
+                        experience_level:       rec.experience_level,
+                        email:                  rec.email || '',
+                        injury_fatal:           rec.injury_fatal,
+                        disabled_three_days:    rec.disabled_three_days,
+                        hourly_pay:             rec.hourly_pay,
+                        medical_practitioner:  rec.medical_practitioner
+                    });
+                };
+
+                // Trigger fatal-field visibility for an entry
+                var showFatalFields = function(entry) {
+                    var fs = entry.querySelector('[data-person-field="injury_fatal"]')
+                    if (fs) togglePerPersonFatalFields(fs);
+                };
+
+                // Load all injured persons from accident_injured_persons
+                var persons = [];
+                try {
+                    var { data: injuredPersons, error } = await window.supabaseClient
+                        .from('accident_injured_persons')
+                        .select('full_name, age_years, sex, id_number, occupation_at_accident, usual_occupation, experience_level, email, injury_fatal, disabled_three_days, hourly_pay, medical_practitioner, sort_order')
+                        .eq('accident_report_id', data.id)
+                        .order('sort_order', { ascending: true });
+                    if (!error && injuredPersons && injuredPersons.length > 0) {
+                        persons = injuredPersons;
+                    }
+                } catch(e) {
+                    console.warn('Failed to load injured persons:', e);
+                }
+
+                // First person: from accident_injured_persons if available, else from accident_reports
+                var source = persons.length > 0 ? persons[0] : data;
+                var entry = addPersonEntry(buildPersonData(source));
+                showFatalFields(entry);
+
+                // Remaining persons from accident_injured_persons
+                for (var i = 1; i < persons.length; i++) {
+                    var e = addPersonEntry(buildPersonData(persons[i]));
+                    showFatalFields(e);
+                }
             }
         });
     }
@@ -716,7 +763,19 @@ function addPersonEntry(data) {
     if (data) {
         Object.keys(data).forEach(function(field) {
             const input = entry.querySelector('[data-person-field="' + field + '"]');
-            if (input && data[field] != null) input.value = data[field];
+            if (!input || data[field] == null) return;
+            // Format date/time values for proper <input type="date|time"> population
+            if (input.tagName === 'INPUT') {
+                if (input.type === 'date') {
+                    input.value = window.fmtDateForInput(data[field]);
+                } else if (input.type === 'time') {
+                    input.value = window.fmtTimeForInput(data[field]);
+                } else {
+                    input.value = data[field];
+                }
+            } else {
+                input.value = data[field];
+            }
         });
         const fatalSelect = entry.querySelector('[data-person-field="injury_fatal"]');
         if (fatalSelect && fatalSelect.value) togglePerPersonFatalFields(fatalSelect);
@@ -806,6 +865,12 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
                 disabled_three_days:      entry.querySelector('[data-person-field="disabled_three_days"]')?.value || null,
                 hourly_pay:               entry.querySelector('[data-person-field="hourly_pay"]')?.value ? parseFloat(entry.querySelector('[data-person-field="hourly_pay"]').value) : null,
                 medical_practitioner:     entry.querySelector('[data-person-field="medical_practitioner"]')?.value?.trim() || null,
+                // Accident fields (per-person in template, but stored on accident_reports)
+                accident_date:            entry.querySelector('[data-person-field="accident_date"]')?.value || null,
+                accident_time:            entry.querySelector('[data-person-field="accident_time"]')?.value || null,
+                accident_place:           entry.querySelector('[data-person-field="accident_place"]')?.value?.trim() || null,
+                accident_description:     entry.querySelector('[data-person-field="accident_description"]')?.value?.trim() || null,
+                machinery_involved:       entry.querySelector('[data-person-field="machinery_involved"]')?.value?.trim() || null,
                 sort_order:               idx
             };
             persons.push(p);
@@ -883,7 +948,17 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
 
         // Insert all injured persons into their own table
         if (persons.length > 0) {
-            var personRecords = persons.map(function(p) { return {...p, accident_report_id: insertedReport.id}; });
+            var personRecords = persons.map(function(p) {
+                var rec = Object.assign({}, p);
+                // Strip accident fields — they belong on accident_reports, not accident_injured_persons
+                delete rec.accident_date;
+                delete rec.accident_time;
+                delete rec.accident_place;
+                delete rec.accident_description;
+                delete rec.machinery_involved;
+                rec.accident_report_id = insertedReport.id;
+                return rec;
+            });
             const { error: personsError } = await window.supabaseClient.from('accident_injured_persons').insert(personRecords);
             if (personsError) throw personsError;
         }
