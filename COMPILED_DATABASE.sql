@@ -764,17 +764,9 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.generate_accident_file_number()
-RETURNS TRIGGER LANGUAGE plpgsql SET search_path = 'public' AS $$
-DECLARE year_prefix TEXT := to_char(NOW(),'YYYY'); seq_num TEXT;
-BEGIN
-  IF NEW.accident_case_number IS NULL OR btrim(NEW.accident_case_number) = '' THEN
-    seq_num := LPAD(nextval('public.accident_file_number_seq')::TEXT,4,'0');
-    NEW.accident_case_number := 'ACC-' || year_prefix || '-' || seq_num;
-  END IF;
-  RETURN NEW;
-END;
-$$;
+-- DEPRECATED: generate_accident_file_number() previously produced 'ACC-{YYYY}-{XXXX}'.
+-- Removed — use generate_accident_case_number() and trigger trg_assign_accident_case
+-- which produce the standard 'OHS/ACC/{YY}/{XXXXX}' format (see accident-case-number-migration.sql).
 
 CREATE OR REPLACE FUNCTION public.generate_inspection_file_number()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = 'public' AS $$

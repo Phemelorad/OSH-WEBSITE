@@ -140,6 +140,26 @@
         .section-divider {
             border: none; border-top: 1px solid #f0f0f0; margin: 20px 0;
         }
+        /* View-mode (read-only) styling */
+        .view-mode-print {
+            display: none;
+        }
+        @media print {
+            .view-mode-print {
+                display: inline-block;
+            }
+            .view-mode-back {
+                display: none;
+            }
+            input:disabled,
+            select:disabled,
+            textarea:disabled {
+                background: #f8f9fa !important;
+                border-color: #dee2e6 !important;
+                opacity: 1 !important;
+                cursor: default !important;
+            }
+        }
         @media (max-width: 768px) {
             .form-card { padding: 20px; }
             .form-row-3, .form-row-2 { grid-template-columns: 1fr; }
@@ -536,6 +556,42 @@
     attachCompanyAutofill();
     // Auto-fill stored details (name, address, employer, industry) from profile
     await window.autoFillCompanyFields();
+
+    // ── View mode (read-only) ─────────────────────────────
+    // Opens with ?id=…&view=1 — loads the record, makes fields read-only,
+    // hides submit/reset buttons, and adds a Print / Back header.
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('view') === '1') {
+        await window.initViewMode('accident_reports', {
+            afterPopulate: function(data) {
+                // Map accident_reports columns to person-template fields and
+                // populate the first (default) injured-person entry.
+                var personData = {
+                    full_name:             data.injured_name,
+                    age_years:             data.injured_age,
+                    sex:                   data.injured_sex,
+                    id_number:             data.injured_id_number,
+                    occupation_at_accident: data.occupation_at_accident,
+                    usual_occupation:       data.usual_occupation,
+                    experience_level:       data.experience_level,
+                    email:                 data.email || '',
+                    accident_date:         data.accident_date,
+                    accident_time:         data.accident_time,
+                    accident_place:        data.accident_place,
+                    accident_description:  data.accident_description,
+                    machinery_involved:    data.machinery_involved,
+                    injury_fatal:          data.injury_fatal,
+                    disabled_three_days:   data.disabled_three_days,
+                    hourly_pay:            data.hourly_pay,
+                    medical_practitioner: data.medical_practitioner
+                };
+                addPersonEntry(personData);
+                // Trigger fatal-field visibility so non-fatal rows show in the printout
+                var fatalSelect = document.querySelector('[data-person-field="injury_fatal"]')
+                if (fatalSelect) togglePerPersonFatalFields(fatalSelect);
+            }
+        });
+    }
 });
 </script>
 <script>

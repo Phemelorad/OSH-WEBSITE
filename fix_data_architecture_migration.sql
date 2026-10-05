@@ -237,25 +237,14 @@ ALTER TABLE permanent_impairment_reports ADD COLUMN IF NOT EXISTS worker_registr
 -- ADD accident_id TO injury_disease_reports
 ALTER TABLE injury_disease_reports ADD COLUMN IF NOT EXISTS accident_id UUID REFERENCES accident_reports(id) ON DELETE SET NULL;
 
--- PART 3: AUTO-GENERATE FILE NUMBERS
-CREATE SEQUENCE IF NOT EXISTS accident_file_number_seq START 1;
-
-CREATE OR REPLACE FUNCTION generate_accident_file_number()
-RETURNS TRIGGER AS $$
-DECLARE
-  year_prefix TEXT := to_char(NOW(), 'YYYY');
-  seq_num TEXT;
-BEGIN
-  IF NEW.accident_case_number IS NULL OR btrim(NEW.accident_case_number) = '' THEN
-    seq_num := LPAD(nextval('accident_file_number_seq')::TEXT, 4, '0');
-    NEW.accident_case_number := 'ACC-' || year_prefix || '-' || seq_num;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
+-- PART 3: ENSURE OHS/ACC/YY/XXXXX CASE NUMBER FORMAT
+-- The correct trigger is trg_assign_accident_case (defined in COMPILED_DATABASE.sql
+-- and accident-case-number-migration.sql), which produces 'OHS/ACC/{YY}/{XXXXX}'.
+-- The old generate_accident_file_number() produced 'ACC-{YYYY}-{XXXX}' — drop it
+-- and its trigger so they no longer conflict on accident_reports.
 DROP TRIGGER IF EXISTS trg_accident_file_number ON accident_reports;
-CREATE TRIGGER trg_accident_file_number BEFORE INSERT ON accident_reports FOR EACH ROW EXECUTE FUNCTION generate_accident_file_number();
+DROP FUNCTION IF EXISTS generate_accident_file_number();
+DROP SEQUENCE IF EXISTS accident_file_number_seq;
 
 CREATE SEQUENCE IF NOT EXISTS inspection_file_number_seq START 1;
 

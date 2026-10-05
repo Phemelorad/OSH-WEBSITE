@@ -59,4 +59,30 @@ WITH CHECK (
 
 GRANT ALL ON ohs_form_19 TO authenticated;
 
+-- ── Fix workers_registry INSERT/UPDATE policies ──────────────
+-- Company users must be able to insert AND update worker records
+-- (upsert uses INSERT ... ON CONFLICT DO UPDATE, so both policies
+--  are checked).  Previously only officer/admin could upsert,
+--  causing: "new row violates row-level security policy (USING
+--  expression) for table workers_registry".
+DROP POLICY IF EXISTS "Companies can insert workers" ON workers_registry;
+CREATE POLICY "Companies can insert workers"
+  ON workers_registry FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM user_profiles
+            WHERE user_id = auth.uid()
+              AND role IN ('company','officer','admin','super_admin'))
+  );
+
+DROP POLICY IF EXISTS "Companies update own workers, admins update all"
+ON workers_registry;
+CREATE POLICY "Companies update own workers, admins update all"
+  ON workers_registry FOR UPDATE TO authenticated
+  USING (
+    created_by = auth.uid()
+    OR EXISTS (SELECT 1 FROM user_profiles
+               WHERE user_id = auth.uid()
+                 AND role IN ('company','officer','admin','super_admin'))
+  );
+
 COMMIT;
