@@ -86,8 +86,9 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus { outline: none; border-color: #999; }
-        /* Dropdown arrow indicator for company search */
-        #factoryName {
+        /* Dropdown arrow indicator for company search + booking link */
+        #factoryName,
+        #bookingLinkDropdown {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999' width='16' height='16'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 12px center;
@@ -305,17 +306,6 @@
               </div>
             </div>
 
-            <!-- ── Booking Link ── -->
-            <div class="form-row form-row-3" id="bookingLinkRow" style="display:none;">
-              <div class="form-group col-span-2">
-                <label>Booking Link</label>
-                <input type="text" id="bookingLinkField" name="booking_link" readonly class="booking-link-readonly" placeholder="Enter a company name to check for bookings">
-              </div>
-              <div class="form-group">
-                <button type="button" id="lookupBookingBtn" onclick="lookupBookingLink()" style="height:38px;padding:6px 14px;font-size:13px;border-radius:8px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;">Check Booking</button>
-              </div>
-            </div>
-
             <div class="form-row form-row-2">
               <div class="form-group col-span-2">
                 <label>Location / Address<span class="req">*</span></label>
@@ -323,6 +313,17 @@
                 <span class="err-msg">Required</span>
               </div>
             </div>
+
+            <!-- ── Booking Link (dropdown of pending bookings) ── -->
+            <div class="form-row form-row-2" id="bookingLinkRow">
+              <div class="form-group col-span-2">
+                <label>Booking Link</label>
+                <select id="bookingLinkDropdown" name="booking_link" onchange="selectBookingLink(this)">
+                  <option value="">— No booking linked —</option>
+                </select>
+              </div>
+            </div>
+
             <div class="form-row form-row-4">
               <div class="form-group">
                 <label>Nature of Work<span class="req">*</span></label>
@@ -799,6 +800,19 @@
         window.showSuccess('Inspection Report submitted successfully!');
         document.getElementById('inspectionForm').reset();
         document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
+        // Reset booking link dropdown
+        const bkDropdown = document.getElementById('bookingLinkDropdown');
+        if (bkDropdown) {
+          bkDropdown.innerHTML = '';
+          bkDropdown.insertAdjacentHTML('afterbegin', '<option value="">— Select a booking —</option>');
+          bkDropdown.classList.remove('booking-pulse');
+        }
+        const bkRow = document.getElementById('bookingLinkRow');
+        if (bkRow) bkRow.style.display = 'none';
+        const bkHidden = document.getElementById('bookingLinkId');
+        if (bkHidden) bkHidden.value = '';
+        const bkMain = document.getElementById('bookingId');
+        if (bkMain) bkMain.value = '';
         updateCompliance();
         updateEmpTotals();
 
@@ -817,6 +831,19 @@
       if (ok) {
         document.getElementById('inspectionForm').reset();
         document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
+        // Reset booking link dropdown
+        const bkDropdown = document.getElementById('bookingLinkDropdown');
+        if (bkDropdown) {
+          bkDropdown.innerHTML = '';
+          bkDropdown.insertAdjacentHTML('afterbegin', '<option value="">— Select a booking —</option>');
+          bkDropdown.classList.remove('booking-pulse');
+        }
+        const bkRow = document.getElementById('bookingLinkRow');
+        if (bkRow) bkRow.style.display = 'none';
+        const bkHidden = document.getElementById('bookingLinkId');
+        if (bkHidden) bkHidden.value = '';
+        const bkMain = document.getElementById('bookingId');
+        if (bkMain) bkMain.value = '';
         // Reset plant rows to one blank row
         document.getElementById('plantBody').innerHTML = `
           <tr>
@@ -1019,6 +1046,10 @@
             factoryInput.value = company.company_name;
             autocompleteList.style.display = 'none';
             factoryInput.classList.remove('error');
+            // Auto-search bookings for the selected company
+            if (typeof searchCompanyBookings === 'function') {
+              searchCompanyBookings();
+            }
           });
           autocompleteList.appendChild(div);
         });
@@ -1048,7 +1079,7 @@
       factoryInput.addEventListener('input', debounce(function() {
         searchCompanies(this.value.trim());
         if (bookingLookupTimer) clearTimeout(bookingLookupTimer);
-        bookingLookupTimer = setTimeout(lookupBookingLink, 500);
+        bookingLookupTimer = setTimeout(searchCompanyBookings, 500);
       }, 300));
 
       // Keyboard navigation (arrow keys + Enter)
@@ -1085,74 +1116,111 @@
     })();
     </script>
 
-    <!-- ── Booking Link lookup function ──────────────────────────── -->
+    <!-- ── Booking Link dropdown: search bookings by company ────────── -->
     <script>
-    async function lookupBookingLink() {
+    async function searchCompanyBookings() {
       const companyName = (document.getElementById('factoryName').value || '').trim();
-      const field  = document.getElementById('bookingLinkField');
-      const hidden = document.getElementById('bookingLinkId');
-      const banner = document.getElementById('bookingLinkBanner');
-      const row    = document.getElementById('bookingLinkRow');
+      const dropdown    = document.getElementById('bookingLinkDropdown');
+      const hidden      = document.getElementById('bookingLinkId');
+      const mainHidden  = document.getElementById('bookingId');
+      const row         = document.getElementById('bookingLinkRow');
 
       // Hide the row if no company name
       if (!companyName) {
         if (row) row.style.display = 'none';
-        if (field) field.value = '';
+        if (dropdown) {
+          dropdown.innerHTML = '';
+          dropdown.insertAdjacentHTML('afterbegin', '<option value="">— Select a booking —</option>');
+          dropdown.classList.remove('booking-pulse');
+          dropdown.disabled = true;
+        }
         if (hidden) hidden.value = '';
-        if (banner) banner.style.display = 'none';
+        if (mainHidden) mainHidden.value = '';
         return;
       }
 
-      // Show the row so the user can see the field
+      // Show the row so the user can see the dropdown
       if (row) row.style.display = 'flex';
+      if (dropdown) dropdown.disabled = true;
 
       try {
         const { data, error } = await window.supabaseClient
           .from('inspection_bookings')
           .select('id, booking_number, scheduled_date, company_name, status')
           .eq('company_name', companyName)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .in('status', ['pending', 'assigned', 'scheduled'])
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        if (data) {
-          // Display the booking number (or ID) and pulse
-          if (field) {
-            field.value = data.booking_number || data.id;
-            field.classList.add('booking-pulse');
-          }
-          if (hidden) hidden.value = data.id;
-          // Also populate bookingId so the submit handler links + completes it
-          const mainHidden = document.getElementById('bookingId');
-          if (mainHidden) mainHidden.value = data.id;
+        if (dropdown) {
+          dropdown.innerHTML = '';
+          if (data && data.length > 0) {
+            // Populate dropdown with bookings
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '— Select a booking —';
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            dropdown.appendChild(placeholder);
 
-          // Also update the existing banner for consistency
-          if (banner) {
-            document.getElementById('bookingLinkText').textContent = field.value;
-            document.getElementById('bookingLinkView').href = 'company-book-inspection.html?id=' + data.id + '&view=1';
-            banner.style.display = 'block';
+            for (const bk of data) {
+              const opt = document.createElement('option');
+              opt.value = bk.id;
+              let label = bk.booking_number || bk.id;
+              if (bk.scheduled_date) {
+                label += ' — ' + new Date(bk.scheduled_date).toLocaleDateString();
+              }
+              label += ' (' + bk.status + ')';
+              opt.textContent = label;
+              opt.dataset.status = bk.status;
+              dropdown.appendChild(opt);
+            }
+            // Add pulse class to indicate bookings are available
+            dropdown.classList.add('booking-pulse');
+          } else {
+            // No bookings found
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No inspection bookings found';
+            opt.disabled = true;
+            opt.selected = true;
+            dropdown.appendChild(opt);
+            dropdown.classList.remove('booking-pulse');
           }
-        } else {
-          // No booking found
-          if (field) {
-            field.value = '';
-            field.placeholder = 'No booking found for "' + companyName + '"';
-            field.classList.remove('booking-pulse');
-          }
-          if (hidden) hidden.value = '';
-          if (banner) banner.style.display = 'none';
+          dropdown.disabled = false;
         }
       } catch (e) {
-        console.warn('booking lookup:', e);
-        if (field) {
-          field.value = '';
-          field.classList.remove('booking-pulse');
+        console.warn('booking search:', e);
+        if (dropdown) {
+          dropdown.innerHTML = '';
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'No inspection bookings found';
+          opt.disabled = true;
+          opt.selected = true;
+          dropdown.appendChild(opt);
+          dropdown.disabled = false;
         }
-        if (hidden) hidden.value = '';
-        if (banner) banner.style.display = 'none';
       }
+
+      // Sync hidden inputs
+      if (hidden) hidden.value = '';
+      if (mainHidden) mainHidden.value = '';
+    }
+
+    // Called when user selects a booking from the dropdown
+    function selectBookingLink(selectEl) {
+      const hidden     = document.getElementById('bookingLinkId');
+      const mainHidden = document.getElementById('bookingId');
+      const dropdown   = selectEl || document.getElementById('bookingLinkDropdown');
+
+      // Remove pulse when user interacts
+      if (dropdown) dropdown.classList.remove('booking-pulse');
+
+      const selectedId = dropdown ? dropdown.value : '';
+      if (hidden) hidden.value = selectedId;
+      if (mainHidden) mainHidden.value = selectedId;
     }
     </script>
 </body>
