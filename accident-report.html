@@ -513,433 +513,330 @@
 <script src="common.js"></script>
 <script src="header.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'accident';
-        // ── Company autofill ────────────────────────────────
-        // When user types a company name, look up the companies table and auto-fill
-        async function searchCompany(name) {
-            if (!name || name.length < 3) return null;
-            try {
-                const { data, error } = await window.supabaseClient
-                    .from('companies')
-                    .select('*')
-                    .ilike('company_name', name + '%')
-                    .limit(1);
-                if (error) throw error;
-                return data && data.length > 0 ? data[0] : null;
-            } catch (e) {
-                console.warn('Company lookup failed:', e);
-                return null;
-            }
-        }
 
-        function attachCompanyAutofill() {
-            const el = document.getElementById('occupierName');
-            if (!el) return;
+// ── Company autofill ────────────────────────────────
+// When user types a company name, look up the companies table and auto-fill
+async function searchCompany(name) {
+    if (!name || name.length < 3) return null;
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('companies')
+            .select('*')
+            .ilike('company_name', name + '%')
+            .limit(1);
+        if (error) throw error;
+        return data && data.length > 0 ? data[0] : null;
+    } catch (e) {
+        console.warn('Company lookup failed:', e);
+        return null;
+    }
+}
 
-            let timer = null;
-            el.addEventListener('input', function () {
-                if (timer) clearTimeout(timer);
-                timer = setTimeout(async () => {
-                    const val = el.value.trim();
-                    if (val.length < 3) return;
-                    const company = await searchCompany(val);
-                    if (company) {
-                        const addr = [
-                            company.physical_address,
-                            company.plot_number ? 'Plot ' + company.plot_number : '',
-                            company.street_name,
-                            company.location
-                        ].filter(Boolean).join(', ');
-                        const pa = document.getElementById('premisesAddress');
-                        const ni = document.getElementById('natureOfIndustry');
-                        if (addr && pa && !pa.value) pa.value = addr;
-                        if (company.industry && ni && !ni.value) ni.value = company.industry;
-                        if ((addr && pa && !pa.value) || (company.industry && ni && !ni.value)) {
-                            if (typeof showToast === 'function') {
-                                showToast('Company info auto-filled', 'info');
-                            }
-                        }
+function attachCompanyAutofill() {
+    const el = document.getElementById('occupierName');
+    if (!el) return;
+
+    let timer = null;
+    el.addEventListener('input', function () {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(async () => {
+            const val = el.value.trim();
+            if (val.length < 3) return;
+            const company = await searchCompany(val);
+            if (company) {
+                const addr = [
+                    company.physical_address,
+                    company.plot_number ? 'Plot ' + company.plot_number : '',
+                    company.street_name,
+                    company.location
+                ].filter(Boolean).join(', ');
+                const pa = document.getElementById('premisesAddress');
+                const ni = document.getElementById('natureOfIndustry');
+                if (addr && pa && !pa.value) pa.value = addr;
+                if (company.industry && ni && !ni.value) ni.value = company.industry;
+                if ((addr && pa && !pa.value) || (company.industry && ni && !ni.value)) {
+                    if (typeof showToast === 'function') {
+                        showToast('Company info auto-filled', 'info');
                     }
-                }, 600);
-            });
-        }
-
-    </script>
-    
-<script src="nav.js"></script>
-
-<script src="worker-lookup.js"></script>
-<script>
-    // ── Toggle sections based on report type ──────────────────
-    function toggleSections() {
-        const type = document.getElementById('reportType').value;
-        const accSection  = document.getElementById('accidentSection');
-        const dangSection = document.getElementById('dangerousSection');
-
-        if (type === 'accident') {
-            accSection.style.display  = 'block';
-            dangSection.style.display = 'none';
-            setAccidentRequired(true);
-            setDangerousRequired(false);
-        } else if (type === 'dangerous_occurrence') {
-            accSection.style.display  = 'none';
-            dangSection.style.display = 'block';
-            setAccidentRequired(false);
-            setDangerousRequired(true);
-        } else if (type === 'both') {
-            accSection.style.display  = 'block';
-            dangSection.style.display = 'block';
-            setAccidentRequired(true);
-            setDangerousRequired(false); // dangerous fields optional when combined
-        } else {
-            accSection.style.display  = 'none';
-            dangSection.style.display = 'none';
-        }
-    }
-
-    function setAccidentRequired(req) {
-        document.querySelectorAll('#injuredPersonsContainer .injured-field[required]').forEach(el => {
-            req ? el.setAttribute('required','') : el.removeAttribute('required');
-        });
-        document.querySelectorAll('#injuredPersonsContainer .accident-field[required]').forEach(el => {
-            req ? el.setAttribute('required','') : el.removeAttribute('required');
-        });
-    }
-
-    function setDangerousRequired(req) {
-        ['dangerousDate','dangerousDescription'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) req ? el.setAttribute('required','') : el.removeAttribute('required');
-        });
-    }
-
-    // ── Show/hide non-fatal fields ────────────────────────────
-    function togglePerPersonFatalFields(selectEl) {
-        const entry = selectEl.closest('.person-entry');
-        if (!entry) return;
-        // Non-fatal fields are now always visible regardless of fatal/non-fatal selection
-        const nfFields = entry.querySelector('.per-person-non-fatal');
-        const disField = entry.querySelector('.per-person-disabled');
-        if (nfFields) nfFields.style.display = 'grid';
-        if (disField) disField.style.display = 'block';
-    }
-
-    // ---- Multi-person management ----
-    let personCounter = 0;
-
-    function addPersonEntry(data) {
-        const container = document.getElementById('injuredPersonsContainer');
-        const template = document.getElementById('injuredPersonTemplate');
-        if (!container || !template) return;
-        const idx = personCounter++;
-        const displayNum = container.children.length + 1;
-        let html = template.innerHTML.replace(/__INDEX__/g, idx).replace(/__INDEX_DISPLAY__/g, displayNum);
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = html;
-        const entry = wrapper.firstElementChild;
-        if (data) {
-            Object.keys(data).forEach(function(field) {
-                const input = entry.querySelector('[data-person-field="' + field + '"]');
-                if (input && data[field] != null) input.value = data[field];
-            });
-            const fatalSelect = entry.querySelector('[data-person-field="injury_fatal"]');
-            if (fatalSelect && fatalSelect.value) togglePerPersonFatalFields(fatalSelect);
-        }
-        container.appendChild(entry);
-        return entry;
-    }
-
-    function removePersonEntry(btn) {
-        const entry = btn.closest('.person-entry');
-        if (!entry) return;
-        const container = document.getElementById('injuredPersonsContainer');
-        if (container.children.length <= 1) {
-            showToast('At least one injured person is required.', 'warning');
-            return;
-        }
-        entry.remove();
-        renumberPersons();
-    }
-
-    // ── Sync accident fields across all person entries ─────
-    // Accident fields are now per-person (no sync needed)
-
-    function renumberPersons() {
-        const container = document.getElementById('injuredPersonsContainer');
-        if (!container) return;
-        Array.from(container.children).forEach(function(entry, i) {
-            const numSpan = entry.querySelector('.person-number .num');
-            if (numSpan) numSpan.textContent = i + 1;
-        });
-    } 
-
-    // ── Show notification field ───────────────────────────────
-    function toggleNotificationField() {
-        const val = document.getElementById('employeesInjured').value;
-        document.getElementById('notificationField').style.display =
-            val === 'Yes' ? 'block' : 'none';
-    }
-
-    // ── Validation ────────────────────────────────────────────
-    function validateForm() {
-        const required = document.querySelectorAll('#accidentForm [required]');
-        let ok = true;
-        required.forEach(f => {
-            if (!f.value.trim()) { f.classList.add('error'); ok = false; }
-            else f.classList.remove('error');
-        });
-        return ok;
-    }
-
-    // ── Form submit ───────────────────────────────────────────
-    document.getElementById('accidentForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        if (!validateForm()) {
-            await showAlert('Please fill in all required fields.', { type:'warning', title:'Incomplete Form' });
-            document.querySelector('#accidentForm .error')?.scrollIntoView({ behavior:'smooth', block:'center' });
-            return;
-        }
-
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true; btn.textContent = 'Submitting…';
-
-        try {
-            window.showLoading('Submitting Accident Report...');
-            const userResult = await getCurrentUser();
-            if (!userResult.success || !userResult.user) {
-                window.hideLoading();
-                await showAlert('You must be logged in.', { type:'warning', title:'Not Authenticated', btnText:'Go to Login' });
-                window.location.href = 'index.html'; return;
+                }
             }
+        }, 600);
+    });
+}
+</script>
+<script>
+// ── Toggle sections based on report type ──────────────────
+function toggleSections() {
+    const type = document.getElementById('reportType').value;
+    const accSection  = document.getElementById('accidentSection');
+    const dangSection = document.getElementById('dangerousSection');
 
-            const g = id => document.getElementById(id)?.value?.trim() || null;
+    if (type === 'accident') {
+        accSection.style.display  = 'block';
+        dangSection.style.display = 'none';
+        setAccidentRequired(true);
+        setDangerousRequired(false);
+    } else if (type === 'dangerous_occurrence') {
+        accSection.style.display  = 'none';
+        dangSection.style.display = 'block';
+        setAccidentRequired(false);
+        setDangerousRequired(true);
+    } else if (type === 'both') {
+        accSection.style.display  = 'block';
+        dangSection.style.display = 'block';
+        setAccidentRequired(true);
+        setDangerousRequired(false); // dangerous fields optional when combined
+    } else {
+        accSection.style.display  = 'none';
+        dangSection.style.display = 'none';
+    }
+}
 
-            // Collect all injured persons
-            const persons = [];
-            document.querySelectorAll('#injuredPersonsContainer .person-entry').forEach(function(entry, idx) {
-                var p = {
-                    full_name:                entry.querySelector('[data-person-field="full_name"]')?.value?.trim() || null,
-                    age_years:                entry.querySelector('[data-person-field="age_years"]')?.value ? parseInt(entry.querySelector('[data-person-field="age_years"]').value) : null,
-                    sex:                      entry.querySelector('[data-person-field="sex"]')?.value || null,
-                    id_number:                (entry.querySelector('[data-person-field="id_number"]')?.value || '').toUpperCase(),
-                    occupation_at_accident:   entry.querySelector('[data-person-field="occupation_at_accident"]')?.value?.trim() || null,
-                    usual_occupation:         entry.querySelector('[data-person-field="usual_occupation"]')?.value?.trim() || null,
-                    experience_level:         entry.querySelector('[data-person-field="experience_level"]')?.value?.trim() || null,
-                    email:                    entry.querySelector('[data-person-field="email"]')?.value?.trim() || null,
-                    injury_fatal:             entry.querySelector('[data-person-field="injury_fatal"]')?.value || null,
-                    disabled_three_days:      entry.querySelector('[data-person-field="disabled_three_days"]')?.value || null,
-                    hourly_pay:               entry.querySelector('[data-person-field="hourly_pay"]')?.value ? parseFloat(entry.querySelector('[data-person-field="hourly_pay"]').value) : null,
-                    medical_practitioner:     entry.querySelector('[data-person-field="medical_practitioner"]')?.value?.trim() || null,
-                    sort_order:               idx
-                };
-                persons.push(p);
-            });
+function setAccidentRequired(req) {
+    document.querySelectorAll('#injuredPersonsContainer .injured-field[required]').forEach(el => {
+        req ? el.setAttribute('required','') : el.removeAttribute('required');
+    });
+    document.querySelectorAll('#injuredPersonsContainer .accident-field[required]').forEach(el => {
+        req ? el.setAttribute('required','') : el.removeAttribute('required');
+    });
+}
 
-            // ── Duplicate check ──
-            const firstIdNumber = persons.length > 0 ? (persons[0].id_number || '').toUpperCase() : '';
-            if (firstIdNumber) {
-              const dupeCheck = await window.checkDuplicate('accident_reports', 'injured_id_number', firstIdNumber, 'accident report with this ID number');
-              if (dupeCheck.exists && !dupeCheck.confirmed) {
+function setDangerousRequired(req) {
+    ['dangerousDate','dangerousDescription'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) req ? el.setAttribute('required','') : el.removeAttribute('required');
+    });
+}
+
+// ── Show/hide non-fatal fields ────────────────────────────
+function togglePerPersonFatalFields(selectEl) {
+    const entry = selectEl.closest('.person-entry');
+    if (!entry) return;
+    // Non-fatal fields are now always visible regardless of fatal/non-fatal selection
+    const nfFields = entry.querySelector('.per-person-non-fatal');
+    const disField = entry.querySelector('.per-person-disabled');
+    if (nfFields) nfFields.style.display = 'grid';
+    if (disField) disField.style.display = 'block';
+}
+
+// ---- Multi-person management ----
+let personCounter = 0;
+
+function addPersonEntry(data) {
+    const container = document.getElementById('injuredPersonsContainer');
+    const template = document.getElementById('injuredPersonTemplate');
+    if (!container || !template) return;
+    const idx = personCounter++;
+    const displayNum = container.children.length + 1;
+    let html = template.innerHTML.replace(/__INDEX__/g, idx).replace(/__INDEX_DISPLAY__/g, displayNum);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const entry = wrapper.firstElementChild;
+    if (data) {
+        Object.keys(data).forEach(function(field) {
+            const input = entry.querySelector('[data-person-field="' + field + '"]');
+            if (input && data[field] != null) input.value = data[field];
+        });
+        const fatalSelect = entry.querySelector('[data-person-field="injury_fatal"]');
+        if (fatalSelect && fatalSelect.value) togglePerPersonFatalFields(fatalSelect);
+    }
+    container.appendChild(entry);
+    return entry;
+}
+
+function removePersonEntry(btn) {
+    const entry = btn.closest('.person-entry');
+    if (!entry) return;
+    const container = document.getElementById('injuredPersonsContainer');
+    if (container.children.length <= 1) {
+        showToast('At least one injured person is required.', 'warning');
+        return;
+    }
+    entry.remove();
+    renumberPersons();
+}
+
+// ── Sync accident fields across all person entries ─────
+// Accident fields are now per-person (no sync needed)
+
+function renumberPersons() {
+    const container = document.getElementById('injuredPersonsContainer');
+    if (!container) return;
+    Array.from(container.children).forEach(function(entry, i) {
+        const numSpan = entry.querySelector('.person-number .num');
+        if (numSpan) numSpan.textContent = i + 1;
+    });
+}
+
+// ── Show notification field ───────────────────────────────
+function toggleNotificationField() {
+    const val = document.getElementById('employeesInjured').value;
+    document.getElementById('notificationField').style.display =
+        val === 'Yes' ? 'block' : 'none';
+}
+
+// ── Validation ────────────────────────────────────────────
+function validateForm() {
+    const required = document.querySelectorAll('#accidentForm [required]');
+    let ok = true;
+    required.forEach(f => {
+        if (!f.value.trim()) { f.classList.add('error'); ok = false; }
+        else f.classList.remove('error');
+    });
+    return ok;
+}
+
+// ── Form submit ───────────────────────────────────────────
+document.getElementById('accidentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!validateForm()) {
+        await showAlert('Please fill in all required fields.', { type:'warning', title:'Incomplete Form' });
+        document.querySelector('#accidentForm .error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    try {
+        window.showLoading('Submitting Accident Report...');
+        const userResult = await getCurrentUser();
+        if (!userResult.success || !userResult.user) {
+            window.hideLoading();
+            await showAlert('You must be logged in.', { type:'warning', title:'Not Authenticated', btnText:'Go to Login' });
+            window.location.href = 'index.html'; return;
+        }
+
+        const g = id => document.getElementById(id)?.value?.trim() || null;
+
+        // Collect all injured persons
+        const persons = [];
+        document.querySelectorAll('#injuredPersonsContainer .person-entry').forEach(function(entry, idx) {
+            var p = {
+                full_name:                entry.querySelector('[data-person-field="full_name"]')?.value?.trim() || null,
+                age_years:                entry.querySelector('[data-person-field="age_years"]')?.value ? parseInt(entry.querySelector('[data-person-field="age_years"]').value) : null,
+                sex:                      entry.querySelector('[data-person-field="sex"]')?.value || null,
+                id_number:                (entry.querySelector('[data-person-field="id_number"]')?.value || '').toUpperCase(),
+                occupation_at_accident:   entry.querySelector('[data-person-field="occupation_at_accident"]')?.value?.trim() || null,
+                usual_occupation:         entry.querySelector('[data-person-field="usual_occupation"]')?.value?.trim() || null,
+                experience_level:         entry.querySelector('[data-person-field="experience_level"]')?.value?.trim() || null,
+                email:                    entry.querySelector('[data-person-field="email"]')?.value?.trim() || null,
+                injury_fatal:             entry.querySelector('[data-person-field="injury_fatal"]')?.value || null,
+                disabled_three_days:      entry.querySelector('[data-person-field="disabled_three_days"]')?.value || null,
+                hourly_pay:               entry.querySelector('[data-person-field="hourly_pay"]')?.value ? parseFloat(entry.querySelector('[data-person-field="hourly_pay"]').value) : null,
+                medical_practitioner:     entry.querySelector('[data-person-field="medical_practitioner"]')?.value?.trim() || null,
+                sort_order:               idx
+            };
+            persons.push(p);
+        });
+
+        // ── Duplicate check ──
+        const firstIdNumber = persons.length > 0 ? (persons[0].id_number || '').toUpperCase() : '';
+        if (firstIdNumber) {
+            const dupeCheck = await window.checkDuplicate('accident_reports', 'injured_id_number', firstIdNumber, 'accident report with this ID number');
+            if (dupeCheck.exists && !dupeCheck.confirmed) {
                 btn.disabled = false; btn.textContent = 'Submit Accident Report';
                 window.hideLoading();
                 return;
-              }
             }
+        }
 
-            const registryId = null;
-            var firstEntry = document.querySelector('#injuredPersonsContainer .person-entry');
-            var firstEntryQuery = function(sel) { return firstEntry ? firstEntry.querySelector(sel) : null; };
+        const registryId = null;
+        var firstEntry = document.querySelector('#injuredPersonsContainer .person-entry');
+        var firstEntryQuery = function(sel) { return firstEntry ? firstEntry.querySelector(sel) : null; };
 
-
-            const payload = {
-                report_type:             g('reportType'),
-                occupier_name:           g('occupierName'),
-                premises_address:        g('premisesAddress'),
-                nature_of_industry:      g('natureOfIndustry'),
-                industry_sector:         g('industrySector'),
-                // Injured person
-                injured_name:            (persons[0] || {}).full_name || null,
-                injured_age:             firstPerson?.age_years || null,
-                injured_sex:             (persons[0] || {}).sex || null,
-                injured_id_number:       ((persons[0] || {}).id_number || null || '').toUpperCase(),
-                worker_registry_id:      registryId,
-                occupation_at_accident:  (persons[0] || {}).occupation_at_accident || null,
-                usual_occupation:        (persons[0] || {}).usual_occupation || null,
-                experience_level:        (persons[0] || {}).experience_level || null,
+        const payload = {
+            report_type:             g('reportType'),
+            occupier_name:           g('occupierName'),
+            premises_address:        g('premisesAddress'),
+            nature_of_industry:      g('natureOfIndustry'),
+            industry_sector:         g('industrySector'),
+            // Injured person
+            injured_name:            (persons[0] || {}).full_name || null,
+            injured_age:             ((persons[0] || {}).age_years) || null,
+            injured_sex:             (persons[0] || {}).sex || null,
+            injured_id_number:       ((persons[0] || {}).id_number || null || '').toUpperCase(),
+            worker_registry_id:      registryId,
+            occupation_at_accident:  (persons[0] || {}).occupation_at_accident || null,
+            usual_occupation:        (persons[0] || {}).usual_occupation || null,
+            experience_level:        (persons[0] || {}).experience_level || null,
             // Accident (from first person entry - synced across all)
-                accident_date:           persons[0]?.accident_date || null,
-                accident_time:           persons[0]?.accident_time || null,
-                accident_place:          persons[0]?.accident_place || null,
-                accident_description:    persons[0]?.accident_description || null,
-                machinery_involved:      persons[0]?.machinery_involved || null,
-                // Injury
-                injury_fatal:            (persons[0] || {}).injury_fatal || null,
-                disabled_three_days:     (persons[0] || {}).disabled_three_days || null,
-                hourly_pay:              firstPerson?.hourly_pay || null,
-                medical_practitioner:    (persons[0] || {}).medical_practitioner || null,
-                // Dangerous occurrence
-                dangerous_date:          g('dangerousDate'),
-                dangerous_time:          g('dangerousTime'),
-                dangerous_place:         g('dangerousPlace'),
-                dangerous_description:   g('dangerousDescription'),
-                dangerous_damage:        g('dangerousDamage'),
-                employees_injured:       g('employeesInjured'),
-                notification_submitted:  g('notificationSubmitted'),
-                outside_persons_injured: g('outsidePersonsInjured'),
-                // Report details
-                report_date:             g('reportDate'),
-                reporter_name:           g('reporterName'),
-                reporter_designation:    g('reporterDesignation'),
-                // Official use
-                causation_number:        g('causationNumber'),
-                date_received:           g('dateReceived'),
-                investigation_status:    g('investigationStatus') || 'Pending',
-                official_action:         g('officialAction'),
-                submitted_by:            userResult.user.id,
-                status:                  'submitted'
-            };
+            accident_date:           persons[0]?.accident_date || null,
+            accident_time:           persons[0]?.accident_time || null,
+            accident_place:          persons[0]?.accident_place || null,
+            accident_description:    persons[0]?.accident_description || null,
+            machinery_involved:      persons[0]?.machinery_involved || null,
+            // Injury
+            injury_fatal:            (persons[0] || {}).injury_fatal || null,
+            disabled_three_days:     (persons[0] || {}).disabled_three_days || null,
+            hourly_pay:              (persons[0] || {}).hourly_pay || null,
+            medical_practitioner:    (persons[0] || {}).medical_practitioner || null,
+            // Dangerous occurrence
+            dangerous_date:          g('dangerousDate'),
+            dangerous_time:          g('dangerousTime'),
+            dangerous_place:         g('dangerousPlace'),
+            dangerous_description:   g('dangerousDescription'),
+            dangerous_damage:        g('dangerousDamage'),
+            employees_injured:       g('employeesInjured'),
+            notification_submitted:  g('notificationSubmitted'),
+            outside_persons_injured: g('outsidePersonsInjured'),
+            // Report details
+            report_date:             g('reportDate'),
+            reporter_name:           g('reporterName'),
+            reporter_designation:    g('reporterDesignation'),
+            // Official use
+            causation_number:        g('causationNumber'),
+            date_received:           g('dateReceived'),
+            investigation_status:    g('investigationStatus') || 'Pending',
+            official_action:         g('officialAction'),
+            submitted_by:            userResult.user.id,
+            status:                  'submitted'
+        };
 
-            const { data: insertedReport, error } = await window.supabaseClient.from('accident_reports')
-                .insert([payload])
-                .select('id')
-                .single();
+        const { data: insertedReport, error } = await window.supabaseClient.from('accident_reports')
+            .insert([payload])
+            .select('id')
+            .single();
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Insert all injured persons into their own table
-            if (persons.length > 0) {
-                var personRecords = persons.map(function(p) { return {...p, accident_report_id: insertedReport.id}; });
-                const { error: personsError } = await window.supabaseClient.from('accident_injured_persons').insert(personRecords);
-                if (personsError) throw personsError;
-            }
-            btn.disabled = false; btn.textContent = 'Submit Accident Report';
-
-            if (error) throw error;
-
-            // Use first injured person for claim draft
-            const firstPerson = persons.length > 0 ? persons[0] : null;
-            const draftPayload = firstPerson ? {
-                ...payload,
-                injured_name: firstPerson.full_name,
-                injured_age: firstPerson.age_years,
-                injured_sex: firstPerson.sex,
-                injured_id_number: firstPerson.id_number,
-                occupation_at_accident: firstPerson.occupation_at_accident,
-                usual_occupation: firstPerson.usual_occupation,
-                experience_level: firstPerson.experience_level,
-                injury_fatal: firstPerson.injury_fatal,
-                disabled_three_days: firstPerson.disabled_three_days,
-                hourly_pay: firstPerson.hourly_pay,
-                medical_practitioner: firstPerson.medical_practitioner
-            } : payload;
-            for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
-
-                        window.hideLoading();
-            window.showSuccess('Accident Report submitted successfully!');
-            document.getElementById('accidentForm').reset();
-            toggleSections();
-
-        } catch(err) {
-            btn.disabled = false; btn.textContent = 'Submit Accident Report';
-            window.hideLoading();
-            window.showError(err.message);
+        // Insert all injured persons into their own table
+        if (persons.length > 0) {
+            var personRecords = persons.map(function(p) { return {...p, accident_report_id: insertedReport.id}; });
+            const { error: personsError } = await window.supabaseClient.from('accident_injured_persons').insert(personRecords);
+            if (personsError) throw personsError;
         }
-    });
+        btn.disabled = false; btn.textContent = 'Submit Accident Report';
 
-    // ── Reset ─────────────────────────────────────────────────
-    async function resetForm() {
-        const ok = await showConfirm('All entered data will be cleared.', {
-            title:'Reset Form', icon:'🔄', confirmText:'Reset', danger:true
-        });
-        if (ok) {
-            document.getElementById('accidentForm').reset();
-            toggleSections();
-            showToast('Form has been reset.', 'info');
-        }
+        if (error) throw error;
+
+        // Use first injured person for claim draft
+        const firstPerson = persons.length > 0 ? persons[0] : null;
+        const draftPayload = firstPerson ? {
+            ...payload,
+            injured_name: firstPerson.full_name,
+            injured_age: firstPerson.age_years,
+            injured_sex: firstPerson.sex,
+            injured_id_number: firstPerson.id_number,
+            occupation_at_accident: firstPerson.occupation_at_accident,
+            usual_occupation: firstPerson.usual_occupation,
+            experience_level: firstPerson.experience_level,
+            injury_fatal: firstPerson.injury_fatal,
+            disabled_three_days: firstPerson.disabled_three_days,
+            hourly_pay: firstPerson.hourly_pay,
+            medical_practitioner: firstPerson.medical_practitioner
+        } : payload;
+        for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
+
+        window.hideLoading();
+        window.showSuccess('Accident Report submitted successfully!');
+        document.getElementById('accidentForm').reset();
+        toggleSections();
+
+    } catch(err) {
+        btn.disabled = false; btn.textContent = 'Submit Accident Report';
+        window.hideLoading();
+        window.showError(err.message);
     }
-
-    // ── Init ──────────────────────────────────────────────────
-    window.addEventListener('load', async function() {
-                // Retry to let Supabase client initialize
-        let authenticated = false;
-        for (let i = 0; i < 5; i++) {
-            authenticated = await isAuthenticated();
-            if (authenticated) break;
-            if (i < 4) await new Promise(r => setTimeout(r, 400));
-        }
-        if (!authenticated) { window.location.href = 'index.html'; return; }
-        await initializeRoleSystem();
-        checkPageAccess();
-
-        const userResult = await getCurrentUser();
-        if (userResult.success && userResult.user) {
-            const profile = await getUserProfile(userResult.user.id);
-            if (profile.success) {
-                const name = profile.data.first_name + ' ' + profile.data.surname;
-                setUserNameSafely(name);
-                document.getElementById('userDept').textContent   = 'DOSH Officer';
-                document.getElementById('reporterName').value     = name;
-                document.getElementById('reporterDesignation').value =
-                    profile.data.role ? getRoleDisplayName(profile.data.role) : 'Officer';
-            }
-        }
-
-        // Default report date to today
-        document.getElementById('reportDate').valueAsDate = new Date();
-
-        // Add initial injured person entry
-        personCounter = 0;
-        addPersonEntry();
-
-        // Start with sections hidden until type is chosen
-        document.getElementById('accidentSection').style.display  = 'none';
-        document.getElementById('dangerousSection').style.display = 'none';
-
-        // ── Auto-fill company details for company users ──
-        await window.autoFillCompanyFields();
-
-        // ── Company autofill call ─────────────────────
-        attachCompanyAutofill();
-
-        // ── Disable official-use fields for company users ──
-        if (typeof isCompanyUser === 'function' && isCompanyUser()) {
-            var officialFields = document.querySelectorAll('.official-box input, .official-box select, .official-box textarea');
-            officialFields.forEach(function(f) { f.disabled = true; f.title = 'OSH Officer will complete this'; });
-            // Add a notice
-            var notice = document.createElement('p');
-            notice.className = 'hint';
-            notice.style.cssText = 'margin-top:8px;font-style:italic;color:#856404;';
-            notice.textContent = 'These fields will be completed by an OSH Officer.';
-            var officialBox = document.querySelector('.official-box');
-            if (officialBox) officialBox.appendChild(notice);
-        }
-    
-        // -- View mode --
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('view') === '1') {
-            await window.initViewMode('accident_reports', {
-                afterPopulate: async function(data) {
-                    var pRes = await window.supabaseClient
-                        .from('accident_injured_persons')
-                        .select('*')
-                        .eq('accident_report_id', data.id)
-                        .order('sort_order');
-                    if (pRes.data && pRes.data.length > 0) {
-                        var container = document.getElementById('injuredPersonsContainer');
-                        if (container) container.innerHTML = '';
-                        pRes.data.forEach(function(p) {
-                            if (typeof addPersonEntry === 'function') addPersonEntry(p);
-                        });
-                        document.querySelectorAll('.injured-field, .accident-field').forEach(function(f) { f.disabled = true; });
-                    }
-                    document.querySelectorAll('.btn-remove-person').forEach(function(b) { b.disabled = true; b.style.opacity = '0.3'; });
-                    var addBtn = document.getElementById('addInjuredPersonBtn');
-                    if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.3'; addBtn.style.cursor = 'not-allowed'; }
-                    document.getElementById('accidentSection').style.display = 'block';
-                    document.getElementById('dangerousSection').style.display = 'block';
-                }
-            });
-        }
 });
-    </script>
-</body>
-</html>
+</script>
