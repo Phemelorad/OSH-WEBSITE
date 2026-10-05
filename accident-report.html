@@ -512,8 +512,30 @@
 <script src="modal.js"></script>
 <script src="common.js"></script>
 <script src="header.js"></script>
-<script>window.OSH_ACTIVE_PAGE = 'accident';
-
+<script>window.OSH_ACTIVE_PAGE = 'accident';</script>
+<script src="nav.js"></script>
+<script>window.addEventListener('load', async function() {
+    let authenticated = false;
+    for (let i = 0; i < 5; i++) {
+        authenticated = await isAuthenticated();
+        if (authenticated) break;
+        if (i < 4) await new Promise(r => setTimeout(r, 400));
+    }
+    if (!authenticated) { window.location.href = 'index.html'; return; }
+    await initializeRoleSystem();
+    const userResult = await getCurrentUser();
+    if (!userResult.success || !userResult.user) { window.location.href = 'index.html'; return; }
+    const profileResult = await getUserProfile(userResult.user.id);
+    const profile = profileResult.success ? profileResult.data : null;
+    if (profile) {
+        setUserNameSafely(profile.first_name + ' ' + profile.surname);
+        var deptEl = document.getElementById('userDepartment');
+        if (deptEl) deptEl.textContent = getRoleDisplayName(profile.role) || 'Department of Occupational Health & Safety';
+    }
+    attachCompanyAutofill();
+});
+</script>
+<script>
 // ── Company autofill ────────────────────────────────
 // When user types a company name, look up the companies table and auto-fill
 async function searchCompany(name) {
@@ -840,3 +862,6 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
     }
 });
 </script>
+
+</body>
+</html>

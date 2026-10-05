@@ -59,6 +59,10 @@ window.addEventListener("DOMContentLoaded", async function() {
     var user = r.data.user;
     if (!user) { window.location.href = "index.html"; return; }
     cu = user;
+
+    // Initialize role system so header, nav, and role-based UI render correctly
+    if (typeof initializeRoleSystem === 'function') await initializeRoleSystem();
+
     var p = await SB.from("user_profiles").select("*").eq("user_id", user.id).maybeSingle();
     cp = p.data;
     var n = cp ? (cp.first_name + " " + cp.surname) : user.email.split("@")[0];

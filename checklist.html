@@ -391,8 +391,6 @@
     <div class="toast" id="toast"></div>
 
 
-    <script src="bootstrap.js"></script>
-    <script src="role-config.js"></script>
     <script src="supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="constants.js"></script>
@@ -407,7 +405,7 @@
 <script src="claim-service.js"></script>
 <script>
     // ── Auth & Role Init (copied pattern from dashboard.html) ──
-    document.addEventListener('DOMContentLoaded', async function() {
+    window.addEventListener('load', async function() {
         // Retry to let Supabase client initialize
         let authenticated = false;
         for (let i = 0; i < 5; i++) {

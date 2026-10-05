@@ -1,6 +1,3 @@
-(function () {
-  "use strict";
-
 // ============================================================
 // ROLE-BASED PERMISSIONS HANDLER
 // Depends on: supabase-config.js, constants.js
@@ -390,7 +387,5 @@
     configurable: true,
     enumerable: true
   });
-
-  })();
 
 })();

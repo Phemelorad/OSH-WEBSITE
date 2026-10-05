@@ -334,8 +334,11 @@
     }
 
     // ── Open full read-only report (OHS Form 36) ──────────────
+    // Opens in a new tab so the company can print the official form
+    // without leaving their list of inspections.
     function viewReport(id) {
-        window.location.href = 'OHS_Form_36_Factories_Inspection.html?id=' + encodeURIComponent(id) + '&view=1';
+        sessionStorage.setItem('osh-inspection-back', 'company-inspections.html');
+        window.open('OHS_Form_36_Factories_Inspection.html?id=' + encodeURIComponent(id) + '&view=1', '_blank');
     }
 </script>
 </body>
