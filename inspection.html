@@ -220,6 +220,19 @@
         .autocomplete-items .no-results:hover {
             background: transparent;
         }
+        /* ── Booking Link pulse ── */
+        @keyframes bookingPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(46,100,230,0.40); }
+            50%  { box-shadow: 0 0 0 10px rgba(46,100,230,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,100,230,0); }
+        }
+        .booking-pulse {
+            animation: bookingPulse 1.5s ease-in-out infinite;
+        }
+        .booking-link-readonly {
+            background: #f0f7ff !important;
+            cursor: default;
+        }
 </style>
 </head>
 <body>
@@ -238,6 +251,7 @@
       <div class="container">
         <form id="inspectionForm">
           <input type="hidden" id="bookingId" value="">
+          <input type="hidden" id="bookingLinkId" value="">
           <div id="bookingLinkBanner" style="display:none;margin:12px 0;padding:12px 16px;background:#eef0ff;border:1px solid #b9c0f5;border-radius:8px;font-size:13.5px;color:#2c3370">
             🔗 <strong>Linked booking:</strong> <span id="bookingLinkText"></span>
             <a id="bookingLinkView" href="#" target="_blank" style="margin-left:8px;color:#2b5fd9">View booking →</a>
@@ -256,7 +270,7 @@
             <div class="form-row form-row-3">
               <div class="form-group">
                 <label>File Number<span class="req">*</span></label>
-                <input type="text" name="file_number" id="fileNumber" placeholder="e.g. DOSH-SPRO 4102 I" required>
+                <input type="text" name="file_number" id="fileNumber" placeholder="e.g. INSP-2026-0001" readonly required>
                 <span class="err-msg">Required</span>
               </div>
               <div class="form-group">
@@ -282,6 +296,18 @@
                 <span class="err-msg">Required</span>
               </div>
             </div>
+
+            <!-- ── Booking Link ── -->
+            <div class="form-row form-row-3" id="bookingLinkRow" style="display:none;">
+              <div class="form-group col-span-2">
+                <label>Booking Link</label>
+                <input type="text" id="bookingLinkField" name="booking_link" readonly class="booking-link-readonly" placeholder="Enter a company name to check for bookings">
+              </div>
+              <div class="form-group">
+                <button type="button" id="lookupBookingBtn" onclick="lookupBookingLink()" style="height:38px;padding:6px 14px;font-size:13px;border-radius:8px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;">Check Booking</button>
+              </div>
+            </div>
+
             <div class="form-row form-row-2">
               <div class="form-group col-span-2">
                 <label>Location / Address<span class="req">*</span></label>
@@ -832,6 +858,26 @@
       // Set today as default inspection date
       document.getElementById('inspDate').valueAsDate = new Date();
 
+      // Auto-generate file number
+      (async function() {
+        try {
+          const year = new Date().getFullYear();
+          const { data: lastFile, error: lastErr } = await window.supabaseClient
+            .from('workplace_inspections')
+            .select('file_number')
+            .like('file_number', 'INSP-' + year + '-%')
+            .order('file_number', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          let seq = 1;
+          if (lastFile && !lastErr) {
+            const m = lastFile.file_number && lastFile.file_number.match(/INSP-(\d{4})-(\d{4})/);
+            if (m) seq = parseInt(m[2]) + 1;
+          }
+          document.getElementById('fileNumber').value = 'INSP-' + year + '-' + String(seq).padStart(4, '0');
+        } catch (e) { console.warn('file number generation:', e); }
+      })();
+
       // Build contravention grids
       buildGrid(COMMON_SECTIONS, 'commonGrid');
       buildGrid(OTHER_SECTIONS,  'otherGrid');
@@ -968,6 +1014,14 @@
         }
       });
 
+      // Debounced booking lookup on company name change
+      let bookingLookupTimer = null;
+      factoryInput.addEventListener('input', debounce(function() {
+        searchCompanies(this.value.trim());
+        if (bookingLookupTimer) clearTimeout(bookingLookupTimer);
+        bookingLookupTimer = setTimeout(lookupBookingLink, 500);
+      }, 300));
+
       // Keyboard navigation (arrow keys + Enter)
       factoryInput.addEventListener('keydown', function(e) {
         const items = autocompleteList.querySelectorAll('div:not(.no-results)');
@@ -1000,6 +1054,77 @@
         }
       });
     })();
+    </script>
+
+    <!-- ── Booking Link lookup function ──────────────────────────── -->
+    <script>
+    async function lookupBookingLink() {
+      const companyName = (document.getElementById('factoryName').value || '').trim();
+      const field  = document.getElementById('bookingLinkField');
+      const hidden = document.getElementById('bookingLinkId');
+      const banner = document.getElementById('bookingLinkBanner');
+      const row    = document.getElementById('bookingLinkRow');
+
+      // Hide the row if no company name
+      if (!companyName) {
+        if (row) row.style.display = 'none';
+        if (field) field.value = '';
+        if (hidden) hidden.value = '';
+        if (banner) banner.style.display = 'none';
+        return;
+      }
+
+      // Show the row so the user can see the field
+      if (row) row.style.display = 'flex';
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('inspection_bookings')
+          .select('id, booking_number, scheduled_date, company_name, status')
+          .eq('company_name', companyName)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          // Display the booking number (or ID) and pulse
+          if (field) {
+            field.value = data.booking_number || data.id;
+            field.classList.add('booking-pulse');
+          }
+          if (hidden) hidden.value = data.id;
+          // Also populate bookingId so the submit handler links + completes it
+          const mainHidden = document.getElementById('bookingId');
+          if (mainHidden) mainHidden.value = data.id;
+
+          // Also update the existing banner for consistency
+          if (banner) {
+            document.getElementById('bookingLinkText').textContent = field.value;
+            document.getElementById('bookingLinkView').href = 'company-book-inspection.html?id=' + data.id + '&view=1';
+            banner.style.display = 'block';
+          }
+        } else {
+          // No booking found
+          if (field) {
+            field.value = '';
+            field.placeholder = 'No booking found for "' + companyName + '"';
+            field.classList.remove('booking-pulse');
+          }
+          if (hidden) hidden.value = '';
+          if (banner) banner.style.display = 'none';
+        }
+      } catch (e) {
+        console.warn('booking lookup:', e);
+        if (field) {
+          field.value = '';
+          field.classList.remove('booking-pulse');
+        }
+        if (hidden) hidden.value = '';
+        if (banner) banner.style.display = 'none';
+      }
+    }
     </script>
 </body>
 </html>
