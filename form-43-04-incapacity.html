@@ -269,6 +269,9 @@ window.addEventListener('load', async function() {
         onWorkerFound: syncCCFields
     });
 
+    // Auto-fill stored details from profile/company record
+    await window.autoFillCompanyFields();
+
     // Auto-sync CC hidden fields whenever worker fields change
     function syncCCFields() {
         var nm = document.getElementById('worker_name');

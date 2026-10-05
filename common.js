@@ -60,44 +60,132 @@ async function handleLogout() {
     return words.map(function(w) { return field + '.ilike.*' + w + '*'; }).join(',');
   };
 
+  // ─────────────────────────────────────────────────────────
+  // AUTO-FILL: populate any form field (name, address, employer,
+  // industry, email, designation) from the logged-in user's profile
+  // and company record — without overwriting existing values.
+  //
+  // Covers all data-entry forms across the app:
+  //   accident-report, form.html (claim), injury-disease-report,
+  //   inspection, form-43-02, form-43-03, form-43-04, form-43-07,
+  //   form-43-11, etc.
+  // ─────────────────────────────────────────────────────────
   window.autoFillCompanyFields = async function() {
     try {
-      if (!window.supabaseClient) return;
+      if (!window.supabaseClient) return false;
       var { data: { user } } = await window.supabaseClient.auth.getUser();
-      if (!user) return;
-      var { data: profile } = await window.supabaseClient
+      if (!user) return false;
+
+      // Fetch full profile (all columns) so we have name + company data
+      var { data: profile, error } = await window.supabaseClient
         .from('user_profiles')
-        .select('role, company_id')
+        .select('*')
         .eq('user_id', user.id)
-        .single();
-      if (!profile || profile.role !== 'company') return;
-      var companyId = profile.company_id;
-      var companyName = profile.company_name;
-      if (companyId) {
+        .maybeSingle();
+
+      if (!profile) return false;
+
+      // ── Build values from profile ──
+      var fullName  = ((profile.first_name || '') + ' ' + (profile.surname || '')).trim();
+      var userEmail = profile.email || user.email || '';
+      var designation = profile.designation || '';
+      var profileLocation = profile.location || '';
+
+      // Company data (for company-role users)
+      var companyName    = profile.company_name || '';
+      var companyAddress = '';
+      var companyIndustry = '';
+      var companyTelephone = '';
+
+      if (profile.role === 'company' && profile.company_id) {
         var { data: company } = await window.supabaseClient
           .from('companies')
-          .select('company_name, physical_address, plot_number, street_name, industry')
-          .eq('id', companyId)
-          .single();
+          .select('company_name, physical_address, plot_number, street_name, industry, telephone')
+          .eq('id', profile.company_id)
+          .maybeSingle();
         if (company) {
-          companyName = company.company_name || companyName;
-          var occEl = document.getElementById('occupierName');
-          if (occEl && !occEl.value) occEl.value = companyName;
-          var addrEl = document.getElementById('premisesAddress');
-          if (addrEl && !addrEl.value) {
-            var parts = [company.physical_address, company.plot_number, company.street_name].filter(Boolean);
-            addrEl.value = parts.join(', ');
-          }
-          var indEl = document.getElementById('natureOfIndustry');
-          if (indEl && !indEl.value && company.industry) indEl.value = company.industry;
+          if (!companyName) companyName = company.company_name || '';
+          var addrParts = [company.physical_address, company.plot_number, company.street_name, profileLocation].filter(Boolean);
+          companyAddress = addrParts.join(', ');
+          companyIndustry = company.industry || '';
+          companyTelephone = company.telephone || '';
         }
       }
-      if (companyName) {
-        var occEl = document.getElementById('occupierName');
-        if (occEl && !occEl.value) occEl.value = companyName;
+
+      // Resolve which name to use for which field
+      //  - employer/occupier fields → company name (company role) or user's name otherwise
+      //  - reporter/signatory/inspector fields → user's own name
+      //  - worker/claimant/injured fields → user's own name (worker role)
+      var isCompany = profile.role === 'company';
+      var isWorker  = profile.role === 'worker';
+      var employerNameValue = isCompany ? (companyName || fullName) : (companyName || fullName);
+      var personNameValue   = fullName || companyName || '';
+
+      // ── Helper: fill a field only if it's currently empty ──
+      function fillIfEmpty(el, value) {
+        if (!el || !value) return;
+        // Skip hidden, disabled, or read-only fields
+        if (el.type === 'hidden') return;
+        if (el.disabled || el.readOnly) return;
+        // Don't overwrite existing values
+        if (el.value) return;
+        el.value = value;
       }
+
+      // ── Helper: case-insensitive substring match ──
+      function matchesKeyword(str, keywords) {
+        str = (str || '').toLowerCase();
+        return keywords.some(function(kw) { return str.indexOf(kw) !== -1; });
+      }
+
+      // ── Scan every form control on the page ──
+      document.querySelectorAll('input, select, textarea').forEach(function(el) {
+        var id = el.id || '';
+        var name = el.name || '';
+        var combined = id.toLowerCase() + ' ' + name.toLowerCase();
+
+        // Company / employer name
+        if (matchesKeyword(combined, ['occupier','employer','nameofemployer'])) {
+          fillIfEmpty(el, employerNameValue);
+        }
+        // Premise / company / worker address
+        else if (matchesKeyword(combined, ['premises','companyaddress','employeraddress','workeraddress','company_address','employer_address'])) {
+          fillIfEmpty(el, companyAddress || profileLocation);
+        }
+        // Telephone (company telephone for company role)
+        else if (matchesKeyword(combined, ['telephone','phone','contact_number','contactnumber'])) {
+          if (isCompany) fillIfEmpty(el, companyTelephone || profile.telephone_number || '');
+        }
+        // Industry / nature of industry
+        else if (matchesKeyword(combined, ['natureofindustry','industrysector','industrytype','nature_of_industry','industry_sector'])) {
+          fillIfEmpty(el, companyIndustry);
+        }
+        // Person name: reporter, signatory, inspector (always user name)
+        else if (matchesKeyword(combined, ['reporter_name','signatory_name','inspector_name','nameofemployer'])) {
+          // employer name takes priority — handled above
+        }
+        // Person name for reporter / signatory / inspector
+        else if (matchesKeyword(combined, ['reportername','signatoryname','inspectorname'])) {
+          fillIfEmpty(el, personNameValue);
+        }
+        // Worker / claimant / injured name (user's own name for worker role)
+        else if (isWorker && matchesKeyword(combined, ['worker_name','workername','claimant_name','nameofclaimant','claimantname','injured_name','injuredname'])) {
+          fillIfEmpty(el, personNameValue);
+        }
+        // Email
+        else if (matchesKeyword(combined, ['email','e_mail','e-mail'])) {
+          fillIfEmpty(el, userEmail);
+        }
+        // Designation / occupation
+        else if (matchesKeyword(combined, ['designation','reporter_designation','signatory_designation','reporterdesignation','signatorydesignation'])) {
+          fillIfEmpty(el, designation);
+        }
+      });
+
+      return true;
     } catch (e) {
       console.warn('autoFillCompanyFields:', e);
+      return false;
     }
   };
 

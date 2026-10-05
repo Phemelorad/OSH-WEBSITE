@@ -212,6 +212,11 @@ window.addEventListener('load', async function() {
     setField('practitioner_tel',     prefillPractitionerTel);
     setField('date_of_notice', new Date().toISOString().substring(0, 10));
 
+    // ── Auto-fill any remaining empty fields (signatory name, etc.)
+    // Practitioner fields above are already locked in; autoFillCompanyFields
+    // respects existing values and will not overwrite them.
+    await window.autoFillCompanyFields();
+
     // ── Check URL params (coming from clientele page) ─────────
     var params = new URLSearchParams(window.location.search);
     var prefillWorkerName    = params.get('worker_name')    || '';

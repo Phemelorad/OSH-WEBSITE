@@ -149,6 +149,9 @@ window.addEventListener('load', async function() {
         }
     });
 
+    // Auto-fill stored details from profile/company record
+    await window.autoFillCompanyFields();
+
 var formEl = document.getElementById('insuranceForm');
 if (formEl) {
     formEl.addEventListener('submit', async function(e) {

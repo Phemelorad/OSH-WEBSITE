@@ -534,6 +534,8 @@
         if (deptEl) deptEl.textContent = getRoleDisplayName(profile.role) || 'Department of Occupational Health & Safety';
     }
     attachCompanyAutofill();
+    // Auto-fill stored details (name, address, employer, industry) from profile
+    await window.autoFillCompanyFields();
 });
 </script>
 <script>
