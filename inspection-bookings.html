@@ -467,7 +467,7 @@
                         ? `<button class="action-btn" onclick="window.location.href='inspection.html?booking=${r.id}'" style="border-color:#0c5460;color:#0c5460">📝 Do Inspection</button>`
                         : ''}
                     ${(isAssigned || isScheduled || isCompleted) && linkedInspection(r)
-                        ? `<button class="action-btn" onclick="window.location.href='OHS_Form_36_Factories_Inspection.html?id=${linkedInspection(r).id}&view=1'" style="border-color:#155724;color:#155724">📋 View Report</button>`
+                        ? `<button class="action-btn" onclick="window.location.href='OHS_Form_36_Factories_Inspection.html?id=${linkedInspection(r).id}&view=1'" style="border-color:#155724;color:#155724">View Report</button>`
                         : ''}
                     ${canManage && isOpen
                         ? `<button class="action-btn cancel" onclick="updateStatus('${r.id}','cancelled')">✕ Cancel</button>`

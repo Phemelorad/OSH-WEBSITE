@@ -502,10 +502,10 @@
         h += '</div>';
       }
       if (milestone.key === 'medical' && record.medical_exam_id) {
-        h += '<button class="view-report-btn" style="margin-top:6px;padding:4px 12px;background:#fff;border:1px solid #0d6efd;color:#0d6efd;border-radius:4px;font-size:12px;cursor:pointer" onclick="window.location.href=\'medical-examination.html?id=\'+encodeURIComponent(record.medical_exam_id)+\'&view=1\'">📋 View Full Report</button>';
+        h += '<button class="view-report-btn" style="margin-top:6px;padding:4px 12px;background:#fff;border:1px solid #0d6efd;color:#0d6efd;border-radius:4px;font-size:12px;cursor:pointer" onclick="window.location.href=\'medical-examination.html?id=\'+encodeURIComponent(record.medical_exam_id)+\'&view=1\'">View Full Report</button>';
       }
       if (milestone.key === 'impairment' && record.impairment_id) {
-        h += '<button class="view-report-btn" style="margin-top:6px;padding:4px 12px;background:#fff;border:1px solid #0d6efd;color:#0d6efd;border-radius:4px;font-size:12px;cursor:pointer" onclick="window.location.href=\'permanent-impairment.html?id=\'+encodeURIComponent(record.impairment_id)+\'&view=1\'">📋 View Full Report</button>';
+        h += '<button class="view-report-btn" style="margin-top:6px;padding:4px 12px;background:#fff;border:1px solid #0d6efd;color:#0d6efd;border-radius:4px;font-size:12px;cursor:pointer" onclick="window.location.href=\'permanent-impairment.html?id=\'+encodeURIComponent(record.impairment_id)+\'&view=1\'">View Full Report</button>';
       }
       h += '</div></div>';
       return h;

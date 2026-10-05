@@ -61,8 +61,8 @@ function renderForm19Table(entries) {
       '<td><span class="badge badge-' + statusSlug + '">' + esc(e.inv_status || 'Pending') + '</span></td>' +
       '<td>' + esc(e.lead_investigator || e.investigator_name || '\u2014') + '</td>' +
       '<td style="white-space:nowrap">' +
-        '<button class="action-btn" onclick="viewForm19(\'' + e.id + '\')">\U0001f4cb View</button>' +
-        (e.inv_ref_no ? '<a href="OHS_Form19_Full.html?id=' + e.id + '" class="action-btn" target="_blank">\U0001f4dd Open Form</a>' : '') +
+        '<button class="action-btn" onclick="viewForm19(\'' + e.id + '\')">View</button>' +
+        (e.inv_ref_no ? '<a href="OHS_Form19_Full.html?id=' + e.id + '" class="action-btn" target="_blank">Open Form</a>' : '') +
       '</td>' +
     '</tr>';
   }).join('');

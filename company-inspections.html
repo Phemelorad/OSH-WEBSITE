@@ -314,7 +314,7 @@
                 + '<td>' + esc(i.inspector_name || '—') + '</td>'
                 + '<td style="font-weight:600;color:' + compColor + '">' + (comp == null ? '—' : comp + '%') + '</td>'
                 + '<td><span class="badge ' + statusClass + '">' + esc(status.charAt(0).toUpperCase() + status.slice(1)) + '</span>' + followBadge + '</td>'
-                + '<td><button class="action-btn" onclick="viewReport(\'' + i.id + '\')">📋 View Report</button></td>'
+                + '<td><button class="action-btn" onclick="viewReport(\'' + i.id + '\')">View Report</button></td>'
                 + '</tr>';
         }).join('');
     }

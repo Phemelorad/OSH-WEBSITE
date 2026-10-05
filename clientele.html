@@ -532,7 +532,7 @@
             // Offer direct link to Form 43/11 pre-filled for this client
             const formUrl = build4311Url(worker, practitionerName);
             showToast(
-                `${worker.full_name} added. <a href="${formUrl}" style="color:#fff;font-weight:700;text-decoration:underline">📋 Fill Form 43/11 now</a>`,
+                `${worker.full_name} added. <a href="${formUrl}" style="color:#fff;font-weight:700;text-decoration:underline">Fill Form 43/11 now</a>`,
                 'success',
                 8000
             );
@@ -612,7 +612,7 @@
                     <div class="cc-reports-count">📋 Past reports available</div>
                     <div class="cc-actions">
                         ${client.worker_id_number ? `<button class="cc-view" onclick="window.location.href='worker-profile.html?id=${client.worker_id_number}'">👁 View</button>` : `<button class="cc-view" style="opacity:0.4;cursor:not-allowed" disabled>👁 View</button>`}
-                        <button class="btn-sm primary" title="Open Form 43/11 pre-filled for this client" onclick="window.location.href='${formUrl}'">📋 Form 43/11</button>
+                        <button class="btn-sm primary" title="Open Form 43/11 pre-filled for this client" onclick="window.location.href='${formUrl}'">Form 43/11</button>
                         <button class="cc-remove" onclick="removeClient('${client.id}', '${client.worker_name.replace(/'/g, "\\'")}')">✕ Remove</button>
                     </div>
                 </div>`;
