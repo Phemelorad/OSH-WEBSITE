@@ -393,6 +393,7 @@
                   + Add Another Injured Person
                 </button>
               </div>
+          </div>
 
 <div id="dangerousSection">
 <div class="section-title danger">7. Dangerous Occurrence</div>
@@ -452,11 +453,10 @@
               <textarea name="outside_persons_injured" id="outsidePersonsInjured"
                         placeholder="Names, addresses and injury descriptions of non-employees, or write NIL…"></textarea>
             </div>
-          </div>
-
-          <!-- ── SUBMISSION DETAILS ─────────────────────── -->
+          </div>          <!-- ── SUBMISSION DETAILS ─────────────────────── -->
           <div class="form-card">
-</div>
+
+
             <div class="section-title">Report Submission Details</div>
             <div class="form-row form-row-3">
               <div class="form-group">
@@ -616,7 +616,7 @@
                 try {
                     var { data: injuredPersons, error } = await window.supabaseClient
                         .from('accident_injured_persons')
-                        .select('full_name, age_years, sex, id_number, occupation_at_accident, usual_occupation, experience_level, email, injury_fatal, disabled_three_days, hourly_pay, medical_practitioner, sort_order')
+                        .select('full_name, age_years, sex, id_number, occupation_at_accident, usual_occupation, experience_level, email, injury_fatal, disabled_three_days, hourly_pay, medical_practitioner, sort_order, worker_registry_id')
                         .eq('accident_report_id', data.id)
                         .order('sort_order', { ascending: true });
                     if (!error && injuredPersons && injuredPersons.length > 0) {
@@ -624,6 +624,71 @@
                     }
                 } catch(e) {
                     console.warn('Failed to load injured persons:', e);
+                }
+
+                // Also load from accident_report_persons junction table
+                // (persons linked via worker_registry_id for many-to-many support)
+                try {
+                    var { data: junctionPersons, error: jpError } = await window.supabaseClient
+                        .from('accident_report_persons')
+                        .select('sort_order, worker_registry_id, workers_registry!inner(full_name, age_years, sex, id_number, occupation, usual_occupation, experience_level)')
+                        .eq('accident_report_id', data.id)
+                        .order('sort_order', { ascending: true });
+                    if (!jpError && junctionPersons && junctionPersons.length > 0) {
+                        var knownIds = new Set((persons.map(p => (p.id_number || p.worker_registry_id || '').toUpperCase())));
+                        junctionPersons.forEach(function(jp) {
+                            var wr = jp.workers_registry;
+                            if (wr) {
+                                var existing = persons.find(function(p) {
+                                    return (p.id_number || '').toUpperCase() === (wr.id_number || '').toUpperCase();
+                                });
+                                if (!existing) {
+                                    persons.push({
+                                        full_name: wr.full_name,
+                                        age_years: wr.age_years,
+                                        sex: wr.sex,
+                                        id_number: wr.id_number,
+                                        occupation_at_accident: wr.occupation,
+                                        usual_occupation: wr.usual_occupation,
+                                        experience_level: wr.experience_level,
+                                        sort_order: jp.sort_order,
+                                        worker_registry_id: jp.worker_registry_id
+                                    });
+                                }
+                            }
+                        });
+                        persons.sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
+                    }
+                } catch(e) {
+                    console.warn('Failed to load junction persons:', e);
+                }
+
+                // Load dangerous occurrence data from standalone table (if any)
+                try {
+                    var { data: dangerousData, error: dorError } = await window.supabaseClient
+                        .from('dangerous_occurrence_reports')
+                        .select('dangerous_date, dangerous_time, dangerous_place, dangerous_description, dangerous_damage, employees_injured, notification_submitted, outside_persons_injured')
+                        .eq('accident_report_id', data.id)
+                        .maybeSingle();
+                    if (!dorError && dangerousData && dangerousData.dangerous_date) {
+                        var dorFieldMap = {
+                            dangerousDate:          'dangerous_date',
+                            dangerousTime:          'dangerous_time',
+                            dangerousPlace:         'dangerous_place',
+                            dangerousDescription:   'dangerous_description',
+                            dangerousDamage:        'dangerous_damage',
+                            employeesInjured:       'employees_injured',
+                            notificationSubmitted:  'notification_submitted',
+                            outsidePersonsInjured:  'outside_persons_injured'
+                        };
+                        for (var dorId in dorFieldMap) {
+                            var el = document.getElementById(dorId);
+                            var col = dorFieldMap[dorId];
+                            if (el && dangerousData[col] != null) el.value = dangerousData[col];
+                        }
+                    }
+                } catch(e) {
+                    console.warn('Failed to load dangerous occurrence data:', e);
                 }
 
                 // First person: from accident_injured_persons if available, else from accident_reports
@@ -947,6 +1012,8 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
         if (error) throw error;
 
         // Insert all injured persons into their own table
+        // Also resolve worker_registry_id and build junction records for many-to-many linking
+        var junctionRecords = [];
         if (persons.length > 0) {
             var personRecords = persons.map(function(p) {
                 var rec = Object.assign({}, p);
@@ -957,10 +1024,56 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
                 delete rec.accident_description;
                 delete rec.machinery_involved;
                 rec.accident_report_id = insertedReport.id;
+                // worker_registry_id will be populated below via lookup
+                rec.worker_registry_id = null;
+                // Prepare junction record (to be populated after worker lookup)
+                junctionRecords.push({
+                    accident_report_id: insertedReport.id,
+                    worker_registry_id: null, // placeholder — updated after lookup
+                    role_in_accident: 'injured',
+                    sort_order: p.sort_order || 0
+                });
                 return rec;
             });
             const { error: personsError } = await window.supabaseClient.from('accident_injured_persons').insert(personRecords);
             if (personsError) throw personsError;
+        }
+
+        // Resolve worker_registry_id for each person and populate junction table
+        // This enables one person to be linked to multiple accident reports (many-to-many)
+        if (persons.length > 0) {
+            var populatedJunctions = [];
+            for (var pj = 0; pj < persons.length; pj++) {
+                var person = persons[pj];
+                var idNumber = (person.id_number || '').toUpperCase();
+                if (idNumber) {
+                    var { data: wrData } = await window.supabaseClient
+                        .from('workers_registry')
+                        .select('id')
+                        .ilike('id_number', idNumber)
+                        .maybeSingle();
+                    if (wrData) {
+                        var wrId = wrData.id;
+                        // Update accident_injured_persons with worker_registry_id
+                        await window.supabaseClient
+                            .from('accident_injured_persons')
+                            .update({ worker_registry_id: wrId })
+                            .eq('accident_report_id', insertedReport.id)
+                            .ilike('id_number', idNumber);
+                        // Add to junction records
+                        populatedJunctions.push({
+                            accident_report_id: insertedReport.id,
+                            worker_registry_id: wrId,
+                            role_in_accident: 'injured',
+                            sort_order: person.sort_order || 0
+                        });
+                    }
+                }
+            }
+            // Insert junction records for workers that were found in registry
+            if (populatedJunctions.length > 0) {
+                await window.supabaseClient.from('accident_report_persons').insert(populatedJunctions);
+            }
         }
         btn.disabled = false; btn.textContent = 'Submit Accident Report';
 
@@ -974,6 +1087,7 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
             injured_age: firstPerson.age_years,
             injured_sex: firstPerson.sex,
             injured_id_number: firstPerson.id_number,
+            injured_worker_registry_id: firstPerson.worker_registry_id || null,
             occupation_at_accident: firstPerson.occupation_at_accident,
             usual_occupation: firstPerson.usual_occupation,
             experience_level: firstPerson.experience_level,
@@ -982,6 +1096,40 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
             hourly_pay: firstPerson.hourly_pay,
             medical_practitioner: firstPerson.medical_practitioner
         } : payload;
+
+        // ── Create standalone dangerous_occurrence_reports when applicable ──
+        // Dangerous occurrences are decoupled from the accident report, allowing
+        // them to exist independently or be linked to multiple persons.
+        const reportType = payload.report_type;
+        if (reportType === 'dangerous_occurrence' || reportType === 'both') {
+            var dangerousPayload = {
+                accident_report_id: insertedReport.id, // Link to accident if 'both'
+                occupier_name: g('occupierName'),
+                premises_address: g('premisesAddress'),
+                nature_of_industry: g('natureOfIndustry'),
+                industry_sector: g('industrySector'),
+                outside_persons_injured: g('outsidePersonsInjured'),
+                dangerous_date: g('dangerousDate'),
+                dangerous_time: g('dangerousTime'),
+                dangerous_place: g('dangerousPlace'),
+                dangerous_description: g('dangerousDescription'),
+                dangerous_damage: g('dangerousDamage'),
+                employees_injured: g('employeesInjured'),
+                notification_submitted: g('notificationSubmitted'),
+                report_date: g('reportDate'),
+                reporter_name: g('reporterName'),
+                reporter_designation: g('reporterDesignation'),
+                causation_number: g('causationNumber'),
+                investigation_status: payload.investigation_status,
+                official_action: payload.official_action,
+                submitted_by: userResult.user.id,
+                status: 'submitted'
+            };
+            const { error: dorError } = await window.supabaseClient
+                .from('dangerous_occurrence_reports')
+                .insert([dangerousPayload]);
+            if (dorError) throw dorError;
+        }
         for (var pi = 0; pi < persons.length; pi++) { var p = persons[pi]; await window.createWorkerAccount(p.email, p.id_number, p.full_name); }
 
         window.hideLoading();

@@ -360,6 +360,12 @@ window.addEventListener('load', async function() {
         });
     }
 
+    // View-mode: if ?id=xxx&view=1, load and display record read-only
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') && urlParams.get('view') === '1') {
+        await window.initViewMode('medical_attendance_notifications');
+    }
+
     // ── Submit handler ────────────────────────────────────────
     var formEl = document.getElementById('attendanceForm');
     if (formEl) {

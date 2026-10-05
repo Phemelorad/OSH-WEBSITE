@@ -581,7 +581,7 @@ if (formEl) {
 
         // -- View mode --
         var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('view') === '1') {
+        if (urlParams.get('id') && urlParams.get('view') === '1') {
             await window.initViewMode('ohs_form_19');
         }
 });

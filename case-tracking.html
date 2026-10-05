@@ -331,7 +331,7 @@
 
     function getLink(type, id) {
         var map = { accident: 'accident-report.html', injury: 'injury-disease-report.html', claim: 'worker-claims.html', medical: 'medical-examination.html', impairment: 'permanent-impairment.html' };
-        return (map[type] || '') + '?id=' + id;
+        return (map[type] || '') + '?id=' + encodeURIComponent(id) + '&view=1';
     }
 
     function renderAll(cases) {

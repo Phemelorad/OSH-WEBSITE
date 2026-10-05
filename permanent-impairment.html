@@ -580,6 +580,83 @@
                     }
                 }
             } catch(e){ console.warn('Profile load error:',e); }
+
+            // ── View mode (read-only) ─────────────────────────────
+            // Opens with ?id=…&view=1 — loads the record, makes fields read-only,
+            // hides submit/reset buttons, and adds a Print / Back header.
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === '1') {
+                await window.initViewMode('permanent_impairment_reports', {
+                    afterPopulate: async function(data) {
+                        // (a) Restore medical_history JSONB nested radios + otherSourceDesc
+                        var mh = data.medical_history;
+                        if (mh) {
+                            if (typeof mh === 'string') { try { mh = JSON.parse(mh); } catch(e) { mh = null; } }
+                            if (mh) {
+                                var setRadio = function(name, val) {
+                                    if (val == null) return;
+                                    var radios = document.getElementsByName(name);
+                                    if (radios.length) radios.forEach(function(r) { r.checked = (r.value === val); });
+                                };
+                                if (mh.patient) { setRadio('hist_patient_reviewed', mh.patient.reviewed); setRadio('hist_patient_enclosed', mh.patient.enclosed); }
+                                if (mh.hospital) { setRadio('hist_hospital_reviewed', mh.hospital.reviewed); setRadio('hist_hospital_enclosed', mh.hospital.enclosed); }
+                                if (mh.doctor) { setRadio('hist_doctor_reviewed', mh.doctor.reviewed); setRadio('hist_doctor_enclosed', mh.doctor.enclosed); }
+                                var osd = document.getElementById('otherSourceDesc');
+                                if (osd && mh.other && mh.other.description) osd.value = mh.other.description;
+                            }
+                        }
+
+                        // (b) Rebuild incapacity table from incapacity_body_parts JSONB array
+                        var bp = data.incapacity_body_parts;
+                        if (typeof bp === 'string') { try { bp = JSON.parse(bp); } catch(e) { bp = []; } }
+                        if (!Array.isArray(bp)) bp = [];
+                        var tbody = document.getElementById('incapTableBody');
+                        if (tbody) {
+                            tbody.innerHTML = '';
+                            if (bp.length === 0) {
+                                tbody.innerHTML = '<tr><td><input type="text" class="bp-input" placeholder="e.g. Left arm, Cervical spine..."></td><td><input type="number" class="bp-pct" min="0" max="100" step="0.5" placeholder="0"></td><td style="text-align:center"><button type="button" class="remove-row-btn" onclick="rmRow(this)">✕</button></td></tr>';
+                            } else {
+                                bp.forEach(function(item) {
+                                    var tr = document.createElement('tr');
+                                    tr.innerHTML = '<td><input type="text" class="bp-input" placeholder="e.g. Left arm, Cervical spine..."></td><td><input type="number" class="bp-pct" min="0" max="100" step="0.5" placeholder="0"></td><td style="text-align:center"><button type="button" class="remove-row-btn" onclick="rmRow(this)">✕</button></td>';
+                                    var bi = tr.querySelector('.bp-input');
+                                    var pi = tr.querySelector('.bp-pct');
+                                    if (bi) bi.value = item.body_part || '';
+                                    if (pi) pi.value = item.percentage != null ? item.percentage : '';
+                                    tbody.appendChild(tr);
+                                });
+                            }
+                            document.querySelectorAll('.bp-pct').forEach(function(el) { el.addEventListener('input', updateTotal); });
+                            updateTotal();
+                        }
+
+                        // (c) Set radios by camelCase name (not matched by standard initViewMode)
+                        var setNamedRadio = function(name, val) {
+                            if (val == null) return;
+                            var radios = document.getElementsByName(name);
+                            if (radios.length) radios.forEach(function(r) { r.checked = (r.value === val); });
+                        };
+                        setNamedRadio('conditionBPermanent', data.condition_b_permanent);
+                        setNamedRadio('conditionCNotStabilized', data.condition_c_not_stabilized);
+                        setNamedRadio('unfitPreInjury', data.unfit_pre_injury_occupation);
+                        setNamedRadio('fitAlternativeDuty', data.fit_alternative_duty);
+                        setNamedRadio('furtherHarmPossible', data.further_harm_possible);
+                        setNamedRadio('restrictionsNeeded', data.restrictions_needed);
+                        setNamedRadio('notProvidedCare', data.not_provided_care ? 'Yes' : 'No');
+                        setNamedRadio('registeredBhpc', data.practitioner_registered_bhpc);
+
+                        // (d) Display total incapacity percentage
+                        var tp = document.getElementById('totalPct');
+                        if (tp && data.total_incapacity_pct != null) tp.textContent = data.total_incapacity_pct;
+
+                        // Non-standard ID mappings (DB column camelCase ≠ element ID)
+                        var sp = document.getElementById('specialProcedures');
+                        if (sp && data.special_therapeutic_procedures != null) sp.value = data.special_therapeutic_procedures;
+                        var ra = document.getElementById('registeredAs');
+                        if (ra && data.practitioner_registered_as != null) ra.value = data.practitioner_registered_as;
+                    }
+                });
+            }
         });
     </script>
 </body>

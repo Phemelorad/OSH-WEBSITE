@@ -284,6 +284,12 @@ window.addEventListener('load', async function() {
         if (el) el.addEventListener('input', syncCCFields);
     });
 
+    // View-mode: if ?id=xxx&view=1, load and display record read-only
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') && urlParams.get('view') === '1') {
+        await window.initViewMode('bl_form_43_04_incapacity');
+    }
+
     var formEl = document.getElementById('incapacityForm');
     if (formEl) {
         formEl.addEventListener('submit', async function(e) {

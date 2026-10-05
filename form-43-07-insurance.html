@@ -152,6 +152,12 @@ window.addEventListener('load', async function() {
     // Auto-fill stored details from profile/company record
     await window.autoFillCompanyFields();
 
+    // View-mode: if ?id=xxx&view=1, load and display record read-only
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') && urlParams.get('view') === '1') {
+        await window.initViewMode('certificate_of_insurance');
+    }
+
 var formEl = document.getElementById('insuranceForm');
 if (formEl) {
     formEl.addEventListener('submit', async function(e) {

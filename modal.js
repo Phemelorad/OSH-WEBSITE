@@ -17,7 +17,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 9999;
+        z-index: 100001;
         padding: 20px;
         animation: osh-fade-in 0.18s ease;
       }
@@ -163,7 +163,7 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        z-index: 10000;
+        z-index: 100002;
       }
 
       .osh-toast {

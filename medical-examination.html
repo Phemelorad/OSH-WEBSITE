@@ -1316,6 +1316,104 @@
 
         document.getElementById('reportDate').valueAsDate = new Date();
         // Claim lookup is now on-demand via search — no pre-loading of all claims
+
+        // ── View mode (read-only) ─────────────────────────────
+        // Opens with ?id=…&view=1 — loads the record, makes fields read-only,
+        // hides submit/reset buttons, and adds a Print / Back header.
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('view') === '1') {
+            await window.initViewMode('medical_examination_reports', {
+                afterPopulate: async function(data) {
+                    // (a) Set boolean checkboxes for per-type incapacity
+                    var setCheck = function(id, val) {
+                        var cb = document.getElementById(id);
+                        if (cb) {
+                            var isChecked = val === true || val === 'yes' || val === 'Yes';
+                            cb.checked = isChecked;
+                            var row = cb.closest('tr');
+                            if (row) {
+                                row.classList.toggle('checked', isChecked);
+                                var pctInput = row.querySelector('.incap-pct-input');
+                                if (pctInput) {
+                                    pctInput.disabled = !isChecked;
+                                }
+                            }
+                        }
+                    };
+                    setCheck('chkDeath', data.death_incapacity);
+                    setCheck('chkPermTotal', data.permanent_total_incapacity);
+                    setCheck('chkPermPartial', data.permanent_partial_incapacity);
+                    setCheck('chkTemporary', data.temporary_incapacity);
+
+                    // Show temporary duration row if temporary incapacity checked
+                    if (typeof toggleTempDuration === 'function') {
+                        toggleTempDuration();
+                    }
+
+                    // Set overall incapacity_percentage on first checked row
+                    if (data.incapacity_percentage != null) {
+                        var firstPct = document.querySelector('.incapacity-row.checked .incap-pct-input');
+                        if (firstPct) firstPct.value = data.incapacity_percentage;
+                    }
+
+                    // (b) Restore schedule_incapacities JSON
+                    var sched = data.schedule_incapacities;
+                    if (typeof sched === 'string') { try { sched = JSON.parse(sched); } catch(e) { sched = []; } }
+                    if (!Array.isArray(sched)) sched = [];
+                    sched.forEach(function(item) {
+                        if (!item || !item.code) return;
+                        var code = item.code;
+                        var pct = item.percentage || 0;
+                        var row = null;
+
+                        // Try classification option match first
+                        var opt = document.querySelector('.sched-row .sched-classification option[value="' + code + '"]');
+                        if (opt) {
+                            row = opt.closest('.sched-row');
+                            var sel = row.querySelector('.sched-classification');
+                            sel.disabled = false;
+                            sel.value = code;
+                            var selOpt = sel.options[sel.selectedIndex];
+                            var maxPct = parseFloat(selOpt?.dataset?.pct) || 0;
+                            row.dataset.code = code;
+                            row.dataset.pct = maxPct;
+                            var maxLabel = row.querySelector('.sched-max-label');
+                            if (maxLabel) maxLabel.textContent = 'Max ' + maxPct;
+                        } else {
+                            // Direct data-code match
+                            row = document.querySelector('.sched-row[data-code="' + code + '"]');
+                        }
+
+                        if (row) {
+                            var cb = row.querySelector('.sched-cb');
+                            if (cb) cb.checked = true;
+                            row.classList.add('checked');
+                            var pctInput = row.querySelector('.sched-pct');
+                            if (pctInput) { pctInput.disabled = false; pctInput.value = pct; }
+                        }
+                    });
+
+                    // (c) Restore note_incapacity_awards JSON
+                    var notes = data.note_incapacity_awards;
+                    if (typeof notes === 'string') { try { notes = JSON.parse(notes); } catch(e) { notes = []; } }
+                    if (!Array.isArray(notes)) notes = [];
+                    notes.forEach(function(item) {
+                        if (!item || !item.description) return;
+                        var noteItems = document.querySelectorAll('.note-item.has-award');
+                        noteItems.forEach(function(noteItem) {
+                            var noteText = noteItem.querySelector('.note-text')?.textContent?.trim() || '';
+                            if (noteText === item.description) {
+                                var cb = noteItem.querySelector('.note-cb');
+                                if (cb) cb.checked = true;
+                                noteItem.classList.add('checked');
+                                var pctInput = noteItem.querySelector('.note-pct');
+                                if (pctInput) { pctInput.disabled = false; pctInput.value = item.percentage || 0; }
+                            }
+                        });
+                    });
+                }
+            });
+        }
     });
     </script>
 </body>

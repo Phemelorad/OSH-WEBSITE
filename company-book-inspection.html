@@ -292,6 +292,12 @@
 
         // Set min date for preferred date to today
         document.getElementById('preferredDate').min = new Date().toISOString().split('T')[0];
+
+        // -- View mode (read-only): load record, disable inputs, hide actions --
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('id') && urlParams.get('view') === '1') {
+            await window.initViewMode('inspection_bookings');
+        }
     });
 
     // ── Validation ────────────────────────────────────────────
@@ -415,11 +421,6 @@
         }
     }
 
-    // -- View mode --
-    var urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('view') === '1') {
-        window.initViewMode('inspection_bookings');
-    }
     </script>
 </body>
 </html>
