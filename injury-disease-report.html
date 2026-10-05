@@ -331,7 +331,7 @@
                 <span class="yn-label">Permanent Incapacity</span>
                 <div class="yn-options">
                   <label><input type="radio" name="permanent_incapacity" value="Yes"> Yes</label>
-                  <label><input type="radio" name="permanent_incapacity" value="No"  No</label>
+                  <label><input type="radio" name="permanent_incapacity" value="No">No</label>
                 </div>
               </div>
 
@@ -339,7 +339,7 @@
                 <span class="yn-label">Temporary Incapacity</span>
                 <div class="yn-options">
                   <label><input type="radio" name="temporary_incapacity" value="Yes"> Yes</label>
-                  <label><input type="radio" name="temporary_incapacity" value="No"  No</label>
+                  <label><input type="radio" name="temporary_incapacity" value="No">No</label>
                 </div>
               </div>
 
@@ -759,7 +759,7 @@
     
         // -- View mode --
         var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('id') && urlParams.get('view') === '1') {
+        if (urlParams.get('view') === '1') {
             await window.initViewMode('injury_disease_reports');
         }
 });
