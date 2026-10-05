@@ -83,9 +83,17 @@
             background: #fff;
         }
         .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus { outline: none; border-color: #999; }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { outline: none; border-color: #999; }
+        /* Dropdown arrow indicator for company search */
+        #factoryName {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999' width='16' height='16'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
         .form-group input.error,
         .form-group select.error { border-color: #e74c3c; }
         .err-msg { color: #e74c3c; font-size: 11px; margin-top: 3px; display: none; }
@@ -951,6 +959,25 @@
       const factoryInput = document.getElementById('factoryName');
       const autocompleteList = document.getElementById('factoryAutocompleteList');
 
+      async function loadAllCompanies() {
+        autocompleteList.innerHTML = '<div style="padding:8px 12px;font-size:11px;color:#888;">Loading companies...</div>';
+        autocompleteList.style.display = 'block';
+        try {
+          const { data, error } = await window.supabaseClient
+            .from('companies')
+            .select('id, company_name, location')
+            .eq('is_active', true)
+            .order('company_name', { ascending: true })
+            .limit(50);
+          if (error) throw error;
+          showResults(data, '');
+        } catch (e) {
+          console.warn('Load companies failed:', e);
+          autocompleteList.innerHTML = '<div class="no-results">Failed to load companies</div>';
+          autocompleteList.style.display = 'block';
+        }
+      }
+
       async function searchCompanies(query) {
         if (!query || query.length < 2) {
           autocompleteList.style.display = 'none';
@@ -1011,6 +1038,8 @@
       factoryInput.addEventListener('focus', function() {
         if (this.value.trim().length >= 2) {
           searchCompanies(this.value.trim());
+        } else {
+          loadAllCompanies();
         }
       });
 
