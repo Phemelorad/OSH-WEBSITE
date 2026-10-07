@@ -729,6 +729,7 @@ CREATE TABLE IF NOT EXISTS public.ohs_form_19 (
     checklist_where TEXT, checklist_why TEXT, checklist_how TEXT,
     investigator_name TEXT, investigator_designation TEXT,
     investigator_signature TEXT, investigator_date DATE,
+    evidence_files JSONB DEFAULT '[]'::jsonb,
     status TEXT DEFAULT 'draft',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

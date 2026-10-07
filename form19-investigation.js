@@ -59,7 +59,7 @@ function renderForm19Table(entries) {
       '<td>' + (e.incident_date ? fmtDate(e.incident_date) : '\u2014') + '</td>' +
       '<td>' + esc(e.incident_location || '\u2014') + '</td>' +
       '<td><span class="badge badge-' + statusSlug + '">' + esc(e.inv_status || 'Pending') + '</span></td>' +
-      '<td>' + esc(e.lead_investigator || e.investigator_name || '\u2014') + '</td>' +
+      '<td>' + esc(e.lead_investigator || e.investigator_name || (e.accident_id ? '\u2014 (linked)' : '\u2014')) + '</td>' +
       '<td style="white-space:nowrap">' +
         '<button class="action-btn" onclick="viewForm19(\'' + e.id + '\')">View</button>' +
         (e.inv_ref_no ? '<a href="OHS_Form19_Full.html?id=' + e.id + '" class="action-btn" target="_blank">Open Form</a>' : '') +

@@ -76,7 +76,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <h3 class="section-title">1. Investigation Administration</h3>
 <div class="form-row">
 <div class="form-group"><label>Investigation Reference Number</label><input type="text" name="inv_ref_no" placeholder="e.g. INV-2024-001"></div>
-<div class="form-group"><label>Accident Case Number</label><input type="text" name="case_no" placeholder="Enter accident case number (e.g. ACC-2026-00007) or company name" style="width:100%"><div id="accidentLookupResults" style="position:relative"></div></div>
+<div class="form-group"><label>Accident Case Number</label><input type="text" name="case_no" placeholder="Search pending accidents… (case no., company, injured name)" style="width:100%"><div id="accidentLookupResults" style="position:relative"></div></div>
 </div>
 <div class="form-row">
 <div class="form-group"><label>District</label><input type="text" name="inv_district" placeholder="District where investigation is conducted"></div>
@@ -100,8 +100,57 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 </div>
 <div class="form-group full">
 <label>Investigation Team Members</label>
-<textarea name="inv_team" placeholder="List all team members involved in the investigation"></textarea>
+<div id="investigationTeamContainer"></div>
+<div class="form-group full" style="margin-top:8px">
+  <button type="button" id="addTeamMemberBtn"
+    onclick="addTeamMember()"
+    style="background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer">
+    + Add Team Member
+  </button>
 </div>
+<input type="hidden" name="inv_team" id="inv_team_json" value="[]">
+</div>
+
+<style>
+  .team-member-row {
+    background:#fafafa; border:1px solid #e0e0e0; border-radius:10px;
+    padding:14px 16px; margin-bottom:12px; position:relative;
+  }
+  .team-member-row .remove-team-btn {
+    position:absolute; top:8px; right:8px;
+    background:#fee2e2; color:#b91c1c; border:none; border-radius:6px;
+    padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .team-member-row .remove-team-btn:hover { background:#fecaca; }
+  .team-member-row .team-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .team-member-row .team-fields label {
+    font-size:12px; font-weight:600; color:#374151; margin-bottom:4px; display:block;
+  }
+  .team-member-row .team-fields input {
+    width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;
+  }
+  .team-member-row .team-fields input:focus { outline:none; border-color:#1e3a8a; }
+  .team-member-row .team-number {
+    font-size:11px; color:#999; margin-bottom:6px; font-weight:600;
+  }
+  @media (max-width:560px) { .team-member-row .team-fields { grid-template-columns:1fr; } }
+</style>
+<template id="teamMemberTemplate">
+  <div class="team-member-row">
+    <button type="button" class="remove-team-btn" onclick="removeTeamMemberRow(this)" title="Remove member">✕</button>
+    <div class="team-number">Team Member __TEAM_IDX__</div>
+    <div class="team-fields">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Full Name</label>
+        <input type="text" name="team_member_name" placeholder="Full name of team member">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Role / Designation</label>
+        <input type="text" name="team_member_role" placeholder="e.g. Safety Officer, Engineer">
+      </div>
+    </div>
+  </div>
+</template>
 <h3 class="section-title">2. Employer Information</h3>
 <div class="form-row">
 <div class="form-group"><label>Name of Employer / Enterprise</label><input type="text" name="employer_name" placeholder="Registered name"></div>
@@ -290,38 +339,68 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <div class="form-group full"><label>Addressing Personal Factors</label><textarea name="prevent_personal" placeholder="Recommended actions to address personal factors (e.g. training, supervision)"></textarea></div>
 <div class="form-group full"><label>Addressing Job Factors</label><textarea name="prevent_job" placeholder="Recommended actions to address job factors (e.g. engineering controls, procedure updates)"></textarea></div>
 <h3 class="section-title">14. Incident Details and Remedial Action Plan</h3>
-<table class="evidence-table">
+<table class="evidence-table" id="actionPlanTable">
 <thead>
-<tr><th style="width:50%">Remedial / Corrective Action Plan</th><th style="width:25%">Accountability</th><th style="width:25%">Date Completed</th></tr></thead>
-<tbody>
-<tr><td><input type="text" name="action_plan_1" placeholder="First corrective action"></td><td><input type="text" name="action_owner_1" placeholder="Person responsible"></td><td><input type="date" name="action_date_1"></td></tr>
-<tr><td><input type="text" name="action_plan_2" placeholder="Second corrective action"></td><td><input type="text" name="action_owner_2" placeholder="Person responsible"></td><td><input type="date" name="action_date_2"></td></tr>
-<tr><td><input type="text" name="action_plan_3" placeholder="Third corrective action"></td><td><input type="text" name="action_owner_3" placeholder="Person responsible"></td><td><input type="date" name="action_date_3"></td></tr>
-<tr><td><input type="text" name="action_plan_4" placeholder="Fourth corrective action"></td><td><input type="text" name="action_owner_4" placeholder="Person responsible"></td><td><input type="date" name="action_date_4"></td></tr>
-<tr><td><input type="text" name="action_plan_5" placeholder="Fifth corrective action"></td><td><input type="text" name="action_owner_5" placeholder="Person responsible"></td><td><input type="date" name="action_date_5"></td></tr>
-</tbody>
+<tr><th style="width:50%">Remedial / Corrective Action Plan</th><th style="width:25%">Accountability</th><th style="width:25%">Date Completed</th><th style="width:5%"></th></tr></thead>
+<tbody id="actionPlanBody"></tbody>
 </table>
+<div style="margin-top:6px">
+  <button type="button" class="btn btn-secondary" style="padding:7px 14px;font-size:12px" onclick="addActionPlanRow()">+ Add Action Plan Row</button>
+</div>
+
 <h3 class="section-title">15. Appendices &mdash; Evidence Logs</h3>
 <h4 style="font-size:14px;font-weight:600;color:#2c3e50;margin:16px 0 10px">Appendix 1: Witness Statement Register</h4>
-<table class="evidence-table">
+<table class="evidence-table" id="witnessTable">
 <thead>
-<tr><th style="width:8%">No.</th><th style="width:20%">Date Obtained</th><th style="width:30%">Witness Full Name</th><th style="width:26%">Role/Occupation</th><th style="width:16%">Attachment</th></tr></thead>
-<tbody>
-<tr><td>1</td><td><input type="date" name="witness_date_1"></td><td><input type="text" name="witness_name_1" placeholder="Full name of witness"></td><td><input type="text" name="witness_role_1" placeholder="Role or occupation"></td><td><input type="text" name="witness_attach_1" placeholder="Attachment reference"></td></tr>
-<tr><td>2</td><td><input type="date" name="witness_date_2"></td><td><input type="text" name="witness_name_2" placeholder="Full name of witness"></td><td><input type="text" name="witness_role_2" placeholder="Role or occupation"></td><td><input type="text" name="witness_attach_2" placeholder="Attachment reference"></td></tr>
-<tr><td>3</td><td><input type="date" name="witness_date_3"></td><td><input type="text" name="witness_name_3" placeholder="Full name of witness"></td><td><input type="text" name="witness_role_3" placeholder="Role or occupation"></td><td><input type="text" name="witness_attach_3" placeholder="Attachment reference"></td></tr>
-</tbody>
+<tr><th style="width:6%">No.</th><th style="width:14%">Date Obtained</th><th style="width:24%">Witness Full Name</th><th style="width:20%">Role/Occupation</th><th style="width:20%">Attachment / File Ref</th><th style="width:16%">Stored Upload</th><th style="width:5%"></th></tr></thead>
+<tbody id="witnessBody"></tbody>
 </table>
-<h4 style="font-size:14px;font-weight:600;color:#2c3e50;margin:16px 0 10px">Appendix 2: Photos &amp; Documentary Exhibits Log</h4>
-<table class="evidence-table">
+<div style="margin-top:6px">
+  <button type="button" class="btn btn-secondary" style="padding:7px 14px;font-size:12px" onclick="addWitnessRow()">+ Add Witness</button>
+</div>
+
+<h4 style="font-size:14px;font-weight:600;color:#2c3e50;margin:18px 0 10px">Appendix 2: Photos &amp; Documentary Exhibits Log</h4>
+<table class="evidence-table" id="exhibitTable">
 <thead>
-<tr><th style="width:8%">No.</th><th style="width:15%">Ref No.</th><th style="width:27%">Description of Exhibit</th><th style="width:30%">Obtained From (Person/Place/Date)</th><th style="width:20%">Attachment</th></tr></thead>
-<tbody>
-<tr><td>1</td><td><input type="text" name="exhibit_ref_1" placeholder="Reference number"></td><td><input type="text" name="exhibit_desc_1" placeholder="Description of exhibit"></td><td><input type="text" name="exhibit_source_1" placeholder="Person, place or date obtained from"></td><td><input type="text" name="exhibit_attach_1" placeholder="Attachment reference"></td></tr>
-<tr><td>2</td><td><input type="text" name="exhibit_ref_2" placeholder="Reference number"></td><td><input type="text" name="exhibit_desc_2" placeholder="Description of exhibit"></td><td><input type="text" name="exhibit_source_2" placeholder="Person, place or date obtained from"></td><td><input type="text" name="exhibit_attach_2" placeholder="Attachment reference"></td></tr>
-<tr><td>3</td><td><input type="text" name="exhibit_ref_3" placeholder="Reference number"></td><td><input type="text" name="exhibit_desc_3" placeholder="Description of exhibit"></td><td><input type="text" name="exhibit_source_3" placeholder="Person, place or date obtained from"></td><td><input type="text" name="exhibit_attach_3" placeholder="Attachment reference"></td></tr>
-</tbody>
+<tr><th style="width:6%">No.</th><th style="width:12%">Ref No.</th><th style="width:22%">Description of Exhibit</th><th style="width:24%">Obtained From (Person/Place/Date)</th><th style="width:14%">Stored Upload</th><th style="width:14%">Attachment Ref</th><th style="width:5%"></th></tr></thead>
+<tbody id="exhibitBody"></tbody>
 </table>
+<div style="margin-top:6px">
+  <button type="button" class="btn btn-secondary" style="padding:7px 14px;font-size:12px" onclick="addExhibitRow()">+ Add Exhibit</button>
+</div>
+
+<h4 style="font-size:13px;color:#555;margin:18px 0 6px">Uploaded Evidence (this investigation)</h4>
+<div id="uploadedEvidenceList" style="font-size:13px;color:#555"></div>
+<button type="button" class="btn btn-secondary" style="padding:7px 14px;font-size:12px" onclick="openEvidenceUploadDialog()">+ Upload Evidence</button>
+
+<template id="actionPlanRowTemplate">
+<tr>
+  <td><input type="text" name="__APLAN_DESCRIPTION__" placeholder="Corrective action"></td>
+  <td><input type="text" name="__APLAN_OWNER__" placeholder="Person responsible"></td>
+  <td><input type="date" name="__APLAN_DATE__"></td>
+  <td><button type="button" class="action-btn" onclick="removeActionPlanRow(this)" title="Remove row">✕</button></td>
+</tr>
+</template>
+<template id="witnessRowTemplate">
+<tr>
+  <td><input type="date" name="__WITNESS_DATE__"></td>
+  <td><input type="text" name="__WITNESS_NAME__" placeholder="Full name of witness"></td>
+  <td><input type="text" name="__WITNESS_ROLE__" placeholder="Role or occupation"></td>
+  <td><input type="text" name="__WITNESS_ATTACH__" placeholder="Attachment reference"></td>
+  <td><span class="__WITNESS_UPLOAD__" style="font-size:11px;color:#0c5460"></span></td>
+  <td><button type="button" class="action-btn" onclick="removeWitnessRow(this)" title="Remove row">✕</button></td>
+</tr>
+</template>
+<template id="exhibitRowTemplate">
+<tr>
+  <td><input type="text" name="__EXHIBIT_REF__" placeholder="Reference number"></td>
+  <td><input type="text" name="__EXHIBIT_DESC__" placeholder="Description of exhibit"></td>
+  <td><input type="text" name="__EXHIBIT_SOURCE__" placeholder="Person, place or date obtained from"></td>
+  <td><span class="__EXHIBIT_UPLOAD__" style="font-size:11px;color:#0c5460"></span></td>
+  <td><input type="text" name="__EXHIBIT_ATTACH__" placeholder="Attachment reference"></td>
+  <td><button type="button" class="action-btn" onclick="removeExhibitRow(this)" title="Remove row">✕</button></td>
+</tr>
+</template>
 <h3 class="section-title">16. Investigators Checklist (5W1H)</h3>
 <p style="font-size:13px;color:#555;margin:0 0 12px">Investigators should ensure their investigation answers these questions:</p>
 <div class="form-group full"><label><strong>WHO?</strong></label><textarea name="checklist_who" style="min-height:80px" placeholder="Who was injured? Who saw it? Who was working with the employee? Who instructed them? Who else was involved?"></textarea></div>
@@ -427,29 +506,133 @@ if (formEl) {
             payload.submitted_by = user.id;
             // Clear inv_ref_no so DB trigger assigns the real sequence number
             delete payload.inv_ref_no;
-            delete payload.accident_id;
+            // Persist the linked accident on the investigation so the assigned officer
+            // can be shown as lead investigator and on the investigation list.
+        var accidentIdEl = document.getElementById('accident_id');
+        if (accidentIdEl && accidentIdEl.value) {
+            payload.accident_id = accidentIdEl.value;
+            // Prefill lead_investigator from the assigned officer of the linked accident,
+            // so the investigation shows the assigned officer as Lead Investigator.
+            if (!payload.lead_investigator || !payload.date_assigned || !payload.date_opened) {
+                try {
+                    const { data: ar, error: arErr } = await supabaseClient
+                        .from('accident_reports')
+                        .select('assigned_inspector, reporter_name, report_date')
+                        .eq('id', accidentIdEl.value)
+                        .maybeSingle();
+                    if (!arErr && ar) {
+                        if (!payload.lead_investigator && ar.assigned_inspector) {
+                            payload.lead_investigator = ar.assigned_inspector;
+                        } else if (!payload.lead_investigator && ar.reporter_name) {
+                            payload.lead_investigator = ar.reporter_name;
+                        }
+                        var fmt = function(d) {
+                            if (!d) return null;
+                            try { return new Date(d).toISOString().slice(0,10); } catch(e) { return null; }
+                        };
+                        if (!payload.date_assigned && ar.report_date) payload.date_assigned = fmt(ar.report_date);
+                        if (!payload.date_opened && ar.report_date) payload.date_opened = fmt(ar.report_date);
+                    }
+                } catch (e) {
+                    console.warn('failed to fetch linked accident for prefill', e);
+                }
+            }
+            // Require basic investigation content before submit.
+            if (typeof validateForm19Content === 'function' && !validateForm19Content(formEl)) {
+                btn.disabled = false;
+                return;
+            }
+            // Persist investigation team members as a JSON array.
+            if (typeof collectTeamMembers === 'function') {
+                payload.inv_team = JSON.stringify(collectTeamMembers());
+            }
+            // Persist dynamic action plan rows.
+            if (typeof collectActionPlanRows === 'function') {
+                var plans = collectActionPlanRows();
+                for (var i = 0; i < plans.length; i++) {
+                    payload['action_plan_' + (i + 1)] = plans[i].description || '';
+                    payload['action_owner_' + (i + 1)]  = plans[i].owner || '';
+                    payload['action_date_' + (i + 1)]   = plans[i].date || null;
+                }
+            }
+            // Persist dynamic witness rows.
+            if (typeof collectWitnessRows === 'function') {
+                var w = collectWitnessRows();
+                for (var i = 0; i < w.length; i++) {
+                    payload['witness_date_' + (i + 1)]   = w[i].date || null;
+                    payload['witness_name_' + (i + 1)]   = w[i].name || '';
+                    payload['witness_role_' + (i + 1)]   = w[i].role || '';
+                    payload['witness_attach_' + (i + 1)] = w[i].attach || '';
+                }
+            }
+            // Persist dynamic exhibit rows.
+            if (typeof collectExhibitRows === 'function') {
+                var e = collectExhibitRows();
+                for (var i = 0; i < e.length; i++) {
+                    payload['exhibit_ref_' + (i + 1)]     = e[i].ref || '';
+                    payload['exhibit_desc_' + (i + 1)]    = e[i].description || '';
+                    payload['exhibit_source_' + (i + 1)]  = e[i].source || '';
+                    payload['exhibit_attach_' + (i + 1)]  = e[i].attach || '';
+                }
+            }
+            // Persist stored evidence files for this investigation.
+            if (typeof collectStoredEvidenceRefs === 'function') {
+                payload.evidence_files = JSON.stringify(collectStoredEvidenceRefs());
+            }
+
             var result = await supabaseClient.from('ohs_form_19').insert([payload]).select();
             if (result.error) throw result.error;
-            alert('Form 19 submitted successfully!');
+            if (typeof showToast === 'function') showToast('Form 19 submitted successfully', 'success');
+            else alert('Form 19 submitted successfully!');
             formEl.reset();
+            clearDynamicRows();
         } catch(err) {
-            alert('Error: ' + err.message);
+            if (typeof showToast === 'function') showToast('Error: ' + err.message, 'error');
+            else alert('Error: ' + err.message);
             console.error('Form submit error:', err);
         } finally {
             btn.textContent = 'Submit Report';
             btn.disabled = false;
         }
     });
-    // ── Company/accident search ─────────────────────────────
-    // Search by company name to find their accident cases
+    // ── Accident case lookup (pending investigations + searchable) ──
+    // Initialise the searchable accident dropdown (pending only) on the case_no field.
+    // The same helper is exposed on window.accidentLookupInit for reuse by other forms.
     var caseNoEl = formEl.querySelector('[name="case_no"]');
     var accidentIdEl = document.createElement('input');
     accidentIdEl.type = 'hidden';
-    accidentIdEl.name = 'accident_id';
-    accidentIdEl.id = 'accident_id';
-    formEl.appendChild(accidentIdEl);
+    accidentIdEl.name = 'accident_id';        accidentIdEl.id = 'accident_id';
+        formEl.appendChild(accidentIdEl);
 
-    if (caseNoEl) {
+        window.accidentLookupInit(formEl, caseNoEl, accidentIdEl);
+
+        // Attach a clear button to the case_no field so the user can reset the selection
+        caseNoEl.style.position = 'relative';
+        var clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.textContent = '×';
+        clearBtn.style =
+            'position:absolute;right:6px;top:50%;transform:translateY(-50%);'
+            + 'background:#e5e7eb;border:none;color:#6b7280;cursor:pointer;'
+            + 'font-size:16px;line-height:1;padding:2px 6px;border-radius:4px;';
+        clearBtn.title = 'Clear selected accident';
+        clearBtn.setAttribute('aria-label', 'Clear selected accident');
+        clearBtn.addEventListener('click', function() {
+            caseNoEl.value = '';
+            accidentIdEl.value = '';
+            var rd = document.getElementById('accidentLookupResults');
+            if (rd) rd.innerHTML = '';
+            var lock = document.getElementById('caseNoLock');
+            if (lock) lock.textContent = '';
+            if (typeof showToast === 'function') showToast('Accident selection cleared', 'info');
+        });
+        caseNoEl.parentNode.style.position = 'relative';
+        caseNoEl.parentNode.appendChild(clearBtn);
+
+
+
+
+
         var lookupTimer = null;
         caseNoEl.addEventListener('input', function() {
             if (lookupTimer) clearTimeout(lookupTimer);
@@ -461,45 +644,46 @@ if (formEl) {
                     return;
                 }
                 try {
+                    // Pending OR in-progress investigations only — these are the ones
+                    // still open for an investigator to pick up and complete.
                     var { data: accidents, error } = await supabaseClient
                         .from('accident_reports')
-                        .select('*')
-                        .or('accident_case_number.ilike.%' + val + '%,occupier_name.ilike.%' + val + '%')
+                        .select('id, accident_case_number, occupier_name, industry_sector, accident_date, accident_time, accident_place, accident_description, machinery_involved, reporter_name, reporter_designation, injured_name, injured_id_number, injured_sex, injured_age, occupation_at_accident, usual_occupation, experience_level, premises_address, injury_fatal, disabled_three_days, report_date, status, investigation_status, causation_number')
+                        .or('accident_case_number.ilike.%' + val + '%,occupier_name.ilike.%' + val + '%,injured_name.ilike.%' + val + '%,nature_of_industry.ilike.%' + val + '%')
+                        .in('investigation_status', ['Pending', 'In Progress'])
                         .neq('status', 'draft')
                         .order('accident_date', { ascending: false })
-                        .limit(10);
+                        .limit(12);
                     if (error) throw error;
                     var rd = document.getElementById('accidentLookupResults');
                     if (!accidents || accidents.length === 0) {
-                        if (rd) rd.innerHTML = '<div style="padding:8px 14px;font-size:12px;color:#888">No accidents found</div>';
+                        if (rd) rd.innerHTML = '<div style="padding:8px 14px;font-size:12px;color:#888">No pending investigations found</div>';
                         return;
                     }
-                    var h = '<div style="background:white;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:300px;overflow-y:auto">';
-                    h += '<div style="padding:8px 14px;font-size:11px;color:#888;background:#f8f8f8;border-bottom:1px solid #e0e0e0;font-weight:600">Select an accident to auto-fill:</div>';
+                    var h = '<div style="background:white;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:340px;overflow-y:auto">';
+                    h += '<div style="padding:8px 14px;font-size:11px;color:#888;background:#f8f8f8;border-bottom:1px solid #e0e0e0;font-weight:600">Select a pending accident to load its data:</div>';
                     accidents.forEach(function(a) {
-                        var st = a.status || 'submitted';
                         var inv = a.investigation_status || '';
-                        var bc = st === 'submitted' ? '#007bff' : st === 'under_review' ? '#ffc107' : st === 'investigated' ? '#28a745' : '#6c757d';
+                        var badgeColor = inv === 'In Progress' ? '#ffc107' : '#0d6efd';
                         h += '<div onclick="selectAccidentForForm19(\'' + a.id + '\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0" onmouseover="this.style.background=\'#f0f8ff\'" onmouseout="this.style.background=\'\'">' +
                             '<div style="display:flex;justify-content:space-between;align-items:center">' +
                                 '<div><strong style="font-size:13px;color:#0c5460">📋 ' + esc(a.accident_case_number || 'N/A') + '</strong>' +
                                 '<span style="font-size:12px;color:#555;margin-left:8px">' + esc(a.occupier_name || '') + '</span></div>' +
-                                '<span style="font-size:11px;background:' + bc + ';color:white;padding:2px 8px;border-radius:10px;font-weight:600">' + esc(st) + '</span>' +
+                                '<span style="font-size:11px;background:' + badgeColor + ';color:white;padding:2px 8px;border-radius:10px;font-weight:600">' + esc(inv || 'Pending') + '</span>' +
                             '</div>' +
                             '<div style="font-size:11px;color:#888;margin-top:4px">' +
-                                (a.accident_date ? esc(a.accident_date) + ' — ' : '') +
-                                (a.accident_place ? esc(a.accident_place) : '') +
-                                (inv ? ' | Investigation: ' + esc(inv) : '') +
+                                (a.accident_date ? '📅 ' + esc(a.accident_date) + ' — ' : '') +
+                                (a.accident_place ? '📍 ' + esc(a.accident_place) : '') +
+                                (a.injured_name ? ' | 👤 ' + esc(a.injured_name) : '') +
                             '</div>' +
-                            (a.injured_name ? '<div style="font-size:11px;color:#888;margin-top:2px">Injured: ' + esc(a.injured_name) + '</div>' : '') +
                         '</div>';
                     });
                     h += '</div>';
                     if (rd) rd.innerHTML = h;
                 } catch (e) {
-                    console.warn('Company search error:', e);
+                    console.warn('Accident lookup error:', e);
                 }
-            }, 400);
+            }, 350);
         });
     }
 
@@ -509,24 +693,48 @@ if (formEl) {
         if (rd) rd.innerHTML = '';
         document.getElementById('accident_id').value = acc.id || '';
         if (caseNoEl) caseNoEl.value = acc.accident_case_number || '';
+        // Map accident_reports fields onto the Form 19 inputs.
+        // Anything already filled by the user is left untouched.
         [
-            ['employer_name', acc.occupier_name],
-            ['employer_sector', acc.industry_sector],
-            ['contact_person', acc.reporter_name],
-            ['contact_position', acc.reporter_designation],
-            ['nature_of_work', acc.nature_of_industry],
-            ['injured_name', acc.injured_name],
-            ['injured_id', acc.injured_id_number],
-            ['injured_occupation', acc.occupation_at_accident],
-            ['injured_address', acc.premises_address],
-            ['incident_location', acc.accident_place],
-            ['incident_date', acc.accident_date],
-            ['incident_time', acc.accident_time],
-            ['incident_reported_date', acc.report_date],
-            ['work_experience', acc.experience_level],
-            ['equipment_used', acc.machinery_involved],
-            ['incident_summary', acc.accident_description],
-            ['incident_description', acc.accident_description],
+            ['employer_name',         acc.occupier_name],
+            ['company_reg_no',        null],
+            ['employer_district',     null],
+            ['employer_city',         null],
+            ['employer_plot',         null],
+            ['employer_street',       null],
+            ['employer_postal',       null],
+            ['employer_phone',        null],
+            ['inv_district',          null],
+            ['lead_investigator',     null],
+            ['inv_ref_no',            null],
+            ['case_no',               acc.accident_case_number],
+            ['sex',                  acc.injured_sex],
+            ['age_group',             null],
+            ['nature_of_work',        acc.nature_of_industry],
+            ['industry_sector',       acc.industry_sector],
+            ['contact_person',        acc.reporter_name],
+            ['contact_position',      acc.reporter_designation],
+            ['location',              acc.accident_place],
+            ['employer_address',      null],
+            ['injured_name',          acc.injured_name],
+            ['full_name',             acc.injured_name],
+            ['injured_id',            acc.injured_id_number],
+            ['id_number',             acc.injured_id_number],
+            ['injured_occupation',    acc.occupation_at_accident],
+            ['occupation_at_accident',acc.occupation_at_accident],
+            ['usual_occupation',      acc.usual_occupation],
+            ['injured_address',       acc.premises_address],
+            ['injured_ward',          acc.accident_place],
+            ['injured_city',          null],
+            ['injured_district',      null],
+            ['incident_location',     acc.accident_place],
+            ['incident_date',         acc.accident_date],
+            ['incident_time',         acc.accident_time],
+            ['incident_reported_date',acc.report_date],
+            ['work_experience',       acc.experience_level],
+            ['equipment_used',        acc.machinery_involved],
+            ['incident_summary',      acc.accident_description],
+            ['incident_description',  acc.accident_description],
         ].forEach(function(p) {
             var el = formEl.querySelector('[name="' + p[0] + '"]');
             if (el && p[1] && !el.value) el.value = p[1];
@@ -534,6 +742,21 @@ if (formEl) {
         if (acc.injured_sex) {
             var r = formEl.querySelector('[name="sex"][value="' + acc.injured_sex.toLowerCase() + '"]');
             if (r) r.checked = true;
+        }
+        if (acc.injury_fatal) {
+            if (acc.injury_fatal === 'Fatal') {
+                var cb = formEl.querySelector('[name="injury_result_fatal"]');
+                if (cb) cb.checked = true;
+            } else if (acc.injury_fatal === 'Non-fatal') {
+                var cb = formEl.querySelector('[name="injury_result_non_fatal"]');
+                if (cb) cb.checked = true;
+            }
+        }
+        if (acc.disabled_three_days) {
+            var sel = formEl.querySelector('[name="days_absent"]');
+            if (sel) {
+                sel.value = acc.disabled_three_days === 'Yes' ? '4-plus' : '0-3';
+            }
         }
         if (acc.injured_age) {
             var a = parseInt(acc.injured_age);
@@ -572,17 +795,619 @@ if (formEl) {
     }
 
     window.selectAccidentForForm19 = function(accidentId) {
-        supabaseClient.from('accident_reports').select('*').eq('id', accidentId).maybeSingle().then(function(res) {
-            if (res.data) fillFromAccident(res.data);
-        });
+        supabaseClient
+            .from('accident_reports')
+            .select('id, accident_case_number, occupier_name, industry_sector, accident_date, accident_time, accident_place, accident_description, machinery_involved, reporter_name, reporter_designation, injured_name, injured_id_number, injured_sex, injured_age, occupation_at_accident, usual_occupation, experience_level, premises_address, injury_fatal, disabled_three_days, report_date, status, investigation_status, causation_number, assigned_inspector')
+            .eq('id', accidentId)
+            .maybeSingle()
+            .then(function(res) {
+                if (res && res.data) {
+                    if (typeof fillFromAccident === 'function') fillFromAccident(res.data);
+                    if (typeof window.syncAssignedOfficerToLeadInvestigator === 'function') window.syncAssignedOfficerToLeadInvestigator(accidentId);
+                }
+            });
     };
+
+    window.clearAccidentSelection = function() {
+        var caseNoEl = formEl.querySelector('[name="case_no"]');
+        var accidentIdEl = document.getElementById('accident_id');
+        var rd = document.getElementById('accidentLookupResults');
+        if (caseNoEl) caseNoEl.value = '';
+        if (accidentIdEl) accidentIdEl.value = '';
+        if (rd) rd.innerHTML = '';
+        var lock = document.getElementById('caseNoLock');
+        if (lock) lock.textContent = '';
+        if (typeof showToast === 'function') showToast('Accident selection cleared', 'info');
+    };
+
+    // ── Investigation team members (add/remove rows) ──────────────────────────
+    var _teamCounter = 0;
+
+    window.addTeamMember = function() {
+        var container = document.getElementById('investigationTeamContainer');
+        var tmpl = document.getElementById('teamMemberTemplate');
+        if (!container || !tmpl) return;
+        _teamCounter++;
+        var idx = container.children.length;
+        var html = tmpl.innerHTML
+            .replace(/__TEAM_IDX__/g, idx + 1);
+        var div = document.createElement('div');
+        div.innerHTML = html;
+        var row = div.firstElementChild;
+        container.appendChild(row);
+        row.querySelector('[name="team_member_name"]')?.focus();
+    };
+
+    window.removeTeamMemberRow = function(btn) {
+        var row = btn.closest('.team-member-row');
+        if (!row) return;
+        var container = document.getElementById('investigationTeamContainer');
+        if (!container) return;
+        if (container.children.length <= 1) {
+            if (typeof showToast === 'function') showToast('At least one team member is required.', 'warning');
+            return;
+        }
+        row.remove();
+        renumberTeamMembers();
+    };
+
+    function renumberTeamMembers() {
+        var container = document.getElementById('investigationTeamContainer');
+        if (!container) return;
+        Array.from(container.children).forEach(function(row, i) {
+            var numEl = row.querySelector('.team-number');
+            if (numEl) numEl.textContent = 'Team Member ' + (i + 1);
+        });
+    }
+
+    function collectTeamMembers() {
+        var container = document.getElementById('investigationTeamContainer');
+        var jsonEl = document.getElementById('inv_team_json');
+        if (!container) {
+            if (jsonEl) jsonEl.value = '[]';
+            return [];
+        }
+        var members = [];
+        Array.from(container.children).forEach(function(row) {
+            var name = row.querySelector('[name="team_member_name"]')?.value?.trim() || '';
+            var role = row.querySelector('[name="team_member_role"]')?.value?.trim() || '';
+            if (name) {
+                members.push({ name: name, role: role });
+            }
+        });
+        if (jsonEl) jsonEl.value = JSON.stringify(members);
+        return members;
+    }
+
+    // Quick toggle: require at least one team member before submit
+    // (soft warning only; does not block submission)
+    function validateTeamMembers() {
+        var members = collectTeamMembers();
+        if (members.length === 0) {
+            if (typeof showToast === 'function') showToast('Please add at least one investigation team member.', 'warning');
+            return false;
+        }
+        return true;
+    }
+
+    // ── Dynamic action plan rows ──────────────────────────────────────────────────
+    var _actionPlanCounter = 0;
+
+    function addActionPlanRow() {
+        var tbody = document.getElementById('actionPlanBody');
+        var tmpl = document.getElementById('actionPlanRowTemplate');
+        if (!tbody || !tmpl) return;
+        _actionPlanCounter++;
+        var html = tmpl.innerHTML
+            .replace(/__APLAN_DESCRIPTION__/g, 'action_plan_' + _actionPlanCounter)
+            .replace(/__APLAN_OWNER__/g, 'action_owner_' + _actionPlanCounter)
+            .replace(/__APLAN_DATE__/g, 'action_date_' + _actionPlanCounter);
+        var tr = document.createElement('tr');
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+        tr.querySelector('input')?.focus();
+    }
+
+    window.removeActionPlanRow = function(btn) {
+        var tr = btn.closest('tr');
+        if (!tr || !btn.closest('#actionPlanBody')) return;
+        if (document.getElementById('actionPlanBody').children.length <= 1) {
+            if (typeof showToast === 'function') showToast('At least one action plan row is required.', 'warning');
+            return;
+        }
+        tr.remove();
+    };
+
+    function collectActionPlanRows() {
+        var rows = [];
+        var tbody = document.getElementById('actionPlanBody');
+        if (!tbody) return rows;
+        Array.from(tbody.children).forEach(function(tr) {
+            var desc = tr.querySelector('[name^="action_plan_"]')?.value?.trim() || '';
+            var owner = tr.querySelector('[name^="action_owner_"]')?.value?.trim() || '';
+            var date = tr.querySelector('[name^="action_date_"]')?.value || null;
+            if (desc || owner || date) {
+                rows.push({ description: desc, owner: owner, date: date });
+            }
+        });
+        return rows;
+    }
+
+    // ── Dynamic witness rows ─────────────────────────────────────────────────────
+    var _witnessCounter = 0;
+
+    function addWitnessRow() {
+        var tbody = document.getElementById('witnessBody');
+        var tmpl = document.getElementById('witnessRowTemplate');
+        if (!tbody || !tmpl) return;
+        _witnessCounter++;
+        var html = tmpl.innerHTML
+            .replace(/__WITNESS_DATE__/g, 'witness_date_' + _witnessCounter)
+            .replace(/__WITNESS_NAME__/g, 'witness_name_' + _witnessCounter)
+            .replace(/__WITNESS_ROLE__/g, 'witness_role_' + _witnessCounter)
+            .replace(/__WITNESS_ATTACH__/g, 'witness_attach_' + _witnessCounter)
+            .replace(/__WITNESS_UPLOAD__/g, 'witness_upload_' + _witnessCounter);
+        var tr = document.createElement('tr');
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+        tr.querySelector('[name^="witness_name_"]')?.focus();
+    }
+
+    window.removeWitnessRow = function(btn) {
+        var tr = btn.closest('tr');
+        if (!tr || !btn.closest('#witnessBody')) return;
+        tr.remove();
+    };
+
+    function collectWitnessRows() {
+        var rows = [];
+        var tbody = document.getElementById('witnessBody');
+        if (!tbody) return rows;
+        Array.from(tbody.children).forEach(function(tr) {
+            rows.push({
+                date:   tr.querySelector('[name^="witness_date_"]')?.value || null,
+                name:   tr.querySelector('[name^="witness_name_"]')?.value?.trim() || '',
+                role:   tr.querySelector('[name^="witness_role_"]')?.value?.trim() || '',
+                attach: tr.querySelector('[name^="witness_attach_"]')?.value?.trim() || ''
+            });
+        });
+        return rows;
+    }
+
+    // ── Dynamic exhibit rows ─────────────────────────────────────────────────────
+    var _exhibitCounter = 0;
+
+    function addExhibitRow() {
+        var tbody = document.getElementById('exhibitBody');
+        var tmpl = document.getElementById('exhibitRowTemplate');
+        if (!tbody || !tmpl) return;
+        _exhibitCounter++;
+        var html = tmpl.innerHTML
+            .replace(/__EXHIBIT_REF__/g, 'exhibit_ref_' + _exhibitCounter)
+            .replace(/__EXHIBIT_DESC__/g, 'exhibit_desc_' + _exhibitCounter)
+            .replace(/__EXHIBIT_SOURCE__/g, 'exhibit_source_' + _exhibitCounter)
+            .replace(/__EXHIBIT_ATTACH__/g, 'exhibit_attach_' + _exhibitCounter)
+            .replace(/__EXHIBIT_UPLOAD__/g, 'exhibit_upload_' + _exhibitCounter);
+        var tr = document.createElement('tr');
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+        tr.querySelector('[name^="exhibit_desc_"]')?.focus();
+    }
+
+    window.removeExhibitRow = function(btn) {
+        var tr = btn.closest('tr');
+        if (!tr || !btn.closest('#exhibitBody')) return;
+        tr.remove();
+    };
+
+    function collectExhibitRows() {
+        var rows = [];
+        var tbody = document.getElementById('exhibitBody');
+        if (!tbody) return rows;
+        Array.from(tbody.children).forEach(function(tr) {
+            rows.push({
+                ref:        tr.querySelector('[name^="exhibit_ref_"]')?.value?.trim() || '',
+                description:tr.querySelector('[name^="exhibit_desc_"]')?.value?.trim() || '',
+                source:     tr.querySelector('[name^="exhibit_source_"]')?.value?.trim() || '',
+                attach:     tr.querySelector('[name^="exhibit_attach_"]')?.value?.trim() || ''
+            });
+        });
+        return rows;
+    }
+
+    // ── Form content validation before submit ────────────────────────────────────
+    function validateForm19Content(formEl) {
+        var failed = false;
+        var required = [
+            { name: 'lead_investigator', label: 'Lead Investigator' },
+            { name: 'incident_description', label: 'Incident Description' },
+            { name: 'checklist_who', label: 'Checklist — WHO' },
+            { name: 'checklist_what', label: 'Checklist — WHAT' },
+            { name: 'checklist_when', label: 'Checklist — WHEN' },
+            { name: 'checklist_where', label: 'Checklist — WHERE' },
+            { name: 'checklist_why', label: 'Checklist — WHY' },
+            { name: 'checklist_how', label: 'Checklist — HOW' }
+        ];
+        required.forEach(function(r) {
+            var el = formEl.querySelector('[name="' + r.name + '"]');
+            if (!el) return;
+            if (el.type === 'radio') {
+                var checked = formEl.querySelector('[name="' + r.name + '"][checked]');
+                if (!checked) {
+                    if (typeof showToast === 'function') showToast('Please select ' + r.label + '.', 'warning');
+                    else el.focus();
+                    failed = true;
+                }
+                return;
+            }
+            if (!el.value || !el.value.trim()) {
+                if (typeof showToast === 'function') showToast('Please complete ' + r.label + '.', 'warning');
+                else el.focus();
+                failed = true;
+            }
+        });
+        if (failed) return false;
+        return true;
+    }
+
+    // ── Clear dynamically-added rows after a successful submit ───────────────────
+    function clearDynamicRows() {
+        var actionTbody = document.getElementById('actionPlanBody');
+        if (actionTbody) actionTbody.innerHTML = '';
+        var witnessTbody = document.getElementById('witnessBody');
+        if (witnessTbody) witnessTbody.innerHTML = '';
+        var exhibitTbody = document.getElementById('exhibitBody');
+        if (exhibitTbody) exhibitTbody.innerHTML = '';
+        var list = document.getElementById('uploadedEvidenceList');
+        if (list) list.innerHTML = '';
+        _actionPlanCounter = 0;
+        _witnessCounter = 0;
+        _exhibitCounter = 0;
+    }
+
+    // ── Evidence upload (Supabase Storage-backed) ────────────────────────────────
+    var _evidenceFiles = [];
+
+    // Bucket name for Form 19 evidence. Must exist in Supabase Storage before use.
+    var EVIDENCE_BUCKET = 'form-19-evidence';
+
+    // Current investigation id when editing/viewing an existing record.
+    var _currentInvestigationId = null;
+
+    window.openEvidenceUploadDialog = function() {
+        if (!window.supabaseClient) {
+            if (typeof showToast === 'function') showToast('Supabase client not ready yet.', 'error');
+            else alert('Supabase client not ready yet.');
+            return;
+        }
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/*,.pdf,.doc,.docx,.txt,.zip';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', function() {
+            var files = Array.from(input.files || []);
+            document.body.removeChild(input);
+            if (files.length === 0) return;
+            uploadEvidenceFiles(files);
+        });
+        input.click();
+    };
+
+    window.uploadEvidenceFiles = function(files) {
+        if (!files || files.length === 0) return;
+        if (typeof showToast === 'function') showToast('Uploading ' + files.length + ' file(s)...', 'info');
+        var pending = Array.from(files);
+        var uploaded = [];
+        var failed = [];
+
+        function next() {
+            if (pending.length === 0) {
+                finish(uploaded, failed);
+                return;
+            }
+            var file = pending.shift();
+            var sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            var path = 'investigation_' + (_currentInvestigationId || 'new') + '/' + Date.now() + '_' + sanitized;
+            window.supabaseClient.storage.from(EVIDENCE_BUCKET).upload(path, file, { upsert: false })
+                .then(function(uploadResult) {
+                    if (uploadResult.error) {
+                        failed.push({ name: file.name, error: uploadResult.error.message });
+                        next();
+                        return;
+                    }
+                    var publicResult = window.supabaseClient.storage.from(EVIDENCE_BUCKET).getPublicUrl(path);
+                    var publicUrl = publicResult && publicResult.publicUrl ? publicResult.publicUrl : path;
+                    uploaded.push({
+                        key: 'ev-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+                        name: file.name,
+                        storage_path: path,
+                        public_url: publicUrl,
+                        size: file.size,
+                        type: file.type || 'application/octet-stream'
+                    });
+                    next();
+                })
+                .catch(function(err) {
+                    failed.push({ name: file.name, error: err && err.message ? err.message : String(err) });
+                    next();
+                });
+        }
+        next();
+
+        function finish(uploaded, failed) {
+            if (typeof showToast === 'function') {
+                if (uploaded.length) showToast('Uploaded ' + uploaded.length + ' file(s).', 'success');
+                if (failed.length) showToast('Failed: ' + failed.length + ' file(s).', 'error');
+            }
+            uploaded.forEach(function(f) { window.renderEvidenceUpload(f); });
+            failed.forEach(function(f) {
+                var list = document.getElementById('uploadedEvidenceList');
+                if (!list) return;
+                var div = document.createElement('div');
+                div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #fca5a5;border-radius:6px;margin-bottom:6px;background:#fef2f2';
+                div.innerHTML = '<span style="font-size:14px">\u2716</span>' +
+                    '<span style="flex:1;font-size:13px;color:#b91c1c">' + esc(f.name) + '</span>' +
+                    '<span style="font-size:11px;color:#b91c1c">' + esc(f.error) + '</span>';
+                list.appendChild(div);
+            });
+            _evidenceFiles = _evidenceFiles.concat(uploaded);
+        }
+    };
+
+    // Load evidence already attached to the current investigation (edit/view mode).
+    window.loadEvidenceForInvestigation = function(investigationId) {
+        _currentInvestigationId = investigationId || null;
+        _evidenceFiles = [];
+        var list = document.getElementById('uploadedEvidenceList');
+        if (!list) return;
+        list.innerHTML = '';
+        if (!investigationId) return;
+        window.supabaseClient.from('ohs_form_19')
+            .select('evidence_files')
+            .eq('id', investigationId)
+            .maybeSingle()
+            .then(function(res) {
+                if (!res || !res.data) return;
+                var files = Array.isArray(res.data.evidence_files) ? res.data.evidence_files : [];
+                files.forEach(function(f) { window.renderEvidenceUpload(f); });
+                _evidenceFiles = files.slice();
+            })
+            .catch(function(err) { console.warn('failed to load evidence for investigation:', err); });
+    };
+
+    // Collect evidence refs to persist on submit.
+    function collectStoredEvidenceRefs() {
+        return _evidenceFiles.slice();
+    };
+
+    // Render a stored evidence file into the in-form list.
+    window.renderEvidenceUpload = function(file) {
+        if (!file || !file.name) return;
+        var list = document.getElementById('uploadedEvidenceList');
+        if (!list) return;
+        var div = document.createElement('div');
+        div.setAttribute('data-evidence-key', file.key || '');
+        div.setAttribute('data-evidence-path', file.storage_path || file.path || '');
+        div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;margin-bottom:6px;background:#fafafa';
+        var icon = file.type && file.type.indexOf('image/') === 0 ? '\u{1F5BC}' :
+            file.type && file.type.indexOf('pdf') === 0 ? '\u{1F4C4}' : '\u{1F4C1}';
+        var sizeText = file.size ? (Math.round(file.size / 1024) + ' KB') : '';
+        div.innerHTML =
+            '<span style="font-size:14px">' + icon + '</span>' +
+            '<span style="flex:1;font-size:13px">' + esc(file.name) + '</span>' +
+            (sizeText ? '<span style="font-size:11px;color:#666">' + sizeText + '</span>' : '') +
+            '<a href="' + esc(file.public_url || '') + '" target="_blank" style="font-size:11px;color:#0c5460;text-decoration:underline">' + esc(file.storage_path || file.path || '') + '</a>' +
+            '<button type="button" class="action-btn evidence-remove-btn" style="padding:2px 6px" title="Remove from list">\u2715</button>';
+        list.appendChild(div);
+        var rmBtn = div.querySelector('.evidence-remove-btn');
+        if (rmBtn) {
+            rmBtn.addEventListener('click', function() {
+                var key = div.getAttribute('data-evidence-key');
+                if (key) _evidenceFiles = _evidenceFiles.filter(function(x) { return x.key !== key; });
+                div.remove();
+            });
+        }
+    };
+
+
+    // When an accident is selected, also pull the assigned officer (if any)
+    // and show it as a suggested Lead Investigator on the Form 19.
+    window.syncAssignedOfficerToLeadInvestigator = function(accidentId, _formEl) {
+        if (!accidentId) return;
+        var el = _formEl || document.getElementById('form19');
+        if (!el) return;
+        supabaseClient
+            .from('accident_reports')
+            .select('assigned_inspector, reporter_name, reporter_designation')
+            .eq('id', accidentId)
+            .maybeSingle()
+            .then(function(res) {                if (!res || !res.data || !el) return;
+                var o = res.data;
+
+                // Lead Investigator: prefer the accident's assigned inspector, fall back to reporter
+                var leadEl = el.querySelector('[name="lead_investigator"]');
+                if (leadEl && !leadEl.value) {
+                    var name = o.assigned_inspector || o.reporter_name || '';
+                    if (name) {
+                        leadEl.value = name;
+                        if (typeof showToast === 'function') {
+                            showToast('Lead Investigator pre-filled from assigned officer', 'info');
+                        }
+                    }
+                }
+                // Contact person / position from the accident's reporter
+                var cpEl = el.querySelector('[name="contact_person"]');
+                if (cpEl && !cpEl.value && o.reporter_name) { cpEl.value = o.reporter_name; }
+                var posEl = el.querySelector('[name="contact_position"]');
+                if (posEl && !posEl.value && o.reporter_designation) { posEl.value = o.reporter_designation; }
+
+                // If an accident is linked, also seed investigation team members from the
+                // accident's assigned inspector / reporter as a starting suggestion (one row
+                // per person). Existing manually-added members are left untouched.
+                // (This block only runs in edit mode, not in view mode where rows are
+                // already rendered from stored JSON.)
+                if (accidentId && typeof collectTeamMembers === 'function' && window.location.search.indexOf('view=1') === -1) {
+            var existing = collectTeamMembers();
+            if (existing.length === 0) {
+                var teamEl = el.querySelector('[name="investigationTeamContainer"]');
+                if (teamEl && teamEl.children.length === 0 && typeof document !== 'undefined' && document.getElementById) {
+                    var tmpl = document.getElementById('teamMemberTemplate');
+                    var suggested = [];
+            var ai = o.assigned_inspector || null;
+            var rn = o.reporter_name || null;
+            var rd = o.reporter_designation || null;
+            if (ai) { suggested.push({ name: ai, role: 'Assigned Inspector' }); }
+            if (rn && (!ai || ai !== rn)) { suggested.push({ name: rn, role: rd || 'Reporter' }); }
+                    suggested.forEach(function(m) {
+                        _teamCounter++;
+                        var idx = teamEl.children.length;
+                        var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, idx + 1);
+                        var div = document.createElement('div');
+                        div.innerHTML = html;
+                        var row = div.firstElementChild;
+                        var nameEl = row.querySelector('[name="team_member_name"]');
+                        var roleEl = row.querySelector('[name="team_member_role"]');
+                        if (nameEl) nameEl.value = m.name;
+                        if (roleEl) roleEl.value = m.role;
+                        teamEl.appendChild(row);
+                    });
+                    var j = document.getElementById('inv_team_json');
+                    if (j) j.value = JSON.stringify(suggested);
+                    renumberTeamMembers();
+                }
+            }
+        }
+        // If an accident is linked, also seed investigation team members from the
+        // accident's assigned inspector / reporter as a starting suggestion (one row
+        // per person). Existing manually-added members are left untouched.
+        if (accidentId && typeof collectTeamMembers === 'function') {
+            var existing = collectTeamMembers();
+            if (existing.length === 0) {
+                var teamEl = el.querySelector('[name="investigationTeamContainer"]');
+                if (teamEl && teamEl.children.length === 0 && typeof document !== 'undefined' && document.getElementById) {
+                    var tmpl = document.getElementById('teamMemberTemplate');
+                    var suggested = [];
+            var ai = o.assigned_inspector || null;
+            var rn = o.reporter_name || null;
+            var rd = o.reporter_designation || null;
+            if (ai) { suggested.push({ name: ai, role: 'Assigned Inspector' }); }
+            if (rn && (!ai || ai !== rn)) { suggested.push({ name: rn, role: rd || 'Reporter' }); }
+                    suggested.forEach(function(m) {
+                        _teamCounter++;
+                        var idx = teamEl.children.length;
+                        var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, idx + 1);
+                        var div = document.createElement('div');
+                        div.innerHTML = html;
+                        var row = div.firstElementChild;
+                        var nameEl = row.querySelector('[name="team_member_name"]');
+                        var roleEl = row.querySelector('[name="team_member_role"]');
+                        if (nameEl) nameEl.value = m.name;
+                        if (roleEl) roleEl.value = m.role;
+                        teamEl.appendChild(row);
+                    });
+                    var j = document.getElementById('inv_team_json');
+                    if (j) j.value = JSON.stringify(suggested);
+                    renumberTeamMembers();
+                }
+            }
+        }
+
+        // ── View-mode: render investigation team members from stored JSON ─────
+        if (window.location.search.indexOf('view=1') !== -1) {
+            var teamJson = el.querySelector('[name="inv_team"]');
+            if (teamJson) {
+                try {
+                    var stored = JSON.parse(teamJson.value || '[]');
+                    if (Array.isArray(stored) && stored.length) {
+                        var container = document.getElementById('investigationTeamContainer');
+                        var tmpl = document.getElementById('teamMemberTemplate');
+                        if (container && tmpl) {
+                            container.innerHTML = '';
+                            stored.forEach(function(m, i) {
+                                _teamCounter++;
+                                var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, i + 1);
+                                var div = document.createElement('div');
+                                div.innerHTML = html;
+                                var row = div.firstElementChild;
+                                var nameEl = row.querySelector('[name="team_member_name"]');
+                                var roleEl = row.querySelector('[name="team_member_role"]');
+                                if (nameEl) nameEl.value = m.name || '';
+                                if (roleEl) roleEl.value = m.role || '';
+                                container.appendChild(row);
+                            });
+                            renumberTeamMembers();
+                            // Hide the add button in view mode
+                            var addBtn = document.getElementById('addTeamMemberBtn');
+                            if (addBtn) addBtn.style.display = 'none';
+                        }
+                    }
+                }
+            } catch(e) { console.warn('failed to render investigation team members in view mode:', e); }
+        }
+        // If an accident is linked, also sync investigation team members from the
+        // accident's reporter/assigned inspector as a starting suggestion (one row).
+        // This leaves existing manually-added members untouched.
+        if (accidentId && typeof collectTeamMembers === 'function') {
+            var existing = collectTeamMembers();
+            if (existing.length === 0) {
+                var teamEl = el.querySelector('[name="investigationTeamContainer"]');
+                if (teamEl && teamEl.children.length === 0) {
+                    var suggested = [];
+                    if (o.assigned_inspector) suggested.push({ name: o.assigned_inspector, role: 'Assigned Inspector' });
+                    if (o.reporter_name && o.assigned_inspector !== o.reporter_name) suggested.push({ name: o.reporter_name, role: o.reporter_designation || 'Reporter' });
+                    suggested.forEach(function(m) {
+                        _teamCounter++;
+                        var idx = teamEl.children.length;
+                        var html = document.getElementById('teamMemberTemplate').innerHTML
+                            .replace(/__TEAM_IDX__/g, idx + 1);
+                        var div = document.createElement('div');
+                        div.innerHTML = html;
+                        var row = div.firstElementChild;
+                        row.querySelector('[name="team_member_name"]').value = m.name;
+                        row.querySelector('[name="team_member_role"]').value = m.role;
+                        teamEl.appendChild(row);
+                    });
+                    var j = document.getElementById('inv_team_json');
+                    if (j) j.value = JSON.stringify(suggested);
+                    renumberTeamMembers();
+                }
+            }
+        }
+                    }
+                }
+                // If there's also a reporter designation, try to map to contact_position
+                var posEl = el.querySelector('[name="contact_position"]');
+                if (posEl && !posEl.value && o.reporter_designation) {
+                    posEl.value = o.reporter_designation;
+                }
+                var cpEl = el.querySelector('[name="contact_person"]');
+                if (cpEl && !cpEl.value && o.reporter_name) { cpEl.value = o.reporter_name; }
+                // Date Assigned / Date Opened inherit from the accident's report date
+                // so the investigation carries the date the case was assigned/opened.
+                var fmt = function(d) {
+                    if (!d) return '';
+                    try { return new Date(d).toISOString().slice(0,10); } catch(e) { return d; }
+                };
+                var daEl = el.querySelector('[name="date_assigned"]');
+                if (daEl && !daEl.value && o.report_date) daEl.value = fmt(o.report_date);
+                var doEl = el.querySelector('[name="date_opened"]');
+                if (doEl && !doEl.value && o.report_date) doEl.value = fmt(o.report_date);
+            });
+    };
+
 
 }
 
-        // -- View mode --
+        // -- View / edit mode --
         var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('id') && urlParams.get('view') === '1') {
+            var viewId = urlParams.get('id');
             await window.initViewMode('ohs_form_19');
+            if (typeof window.loadEvidenceForInvestigation === 'function') {
+                window.loadEvidenceForInvestigation(viewId);
+            }
         }
 });
 </script>

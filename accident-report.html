@@ -512,6 +512,22 @@
               </div>
             </div>
 
+            <!-- Investigator assignment (view mode / officer+) -->
+            <div class="form-group" id="investigatorAssignmentGroup" style="margin-bottom:16px">
+              <label>Assigned Investigator</label>
+              <div id="investigatorDisplay" style="padding:10px 14px;border:1px solid #dee2e6;border-radius:8px;background:#fafafa;font-size:14px;color:#374151">
+                <span style="color:#999">Loading…</span>
+              </div>
+              <button type="button" id="assignInvestigatorBtn"
+                      style="margin-top:10px;background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;display:none"
+                      onclick="assignInvestigatorToAccident('${data.id || ''}')">
+                Assign Investigator
+              </button>
+              <span id="investigatorHint" style="display:block;font-size:11px;color:#999;margin-top:6px">
+                Select an OSH officer to assign to this investigation.
+              </span>
+            </div>
+
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
               <button type="submit" class="btn btn-primary" id="submitBtn">
@@ -552,8 +568,8 @@
         setUserNameSafely(profile.first_name + ' ' + profile.surname);
         var deptEl = document.getElementById('userDepartment');
         if (deptEl) deptEl.textContent = getRoleDisplayName(profile.role) || 'Department of Occupational Health & Safety';
-    }
-    attachCompanyAutofill();
+    }    attachCompanyAutofill();
+
     // Auto-fill stored details (name, address, employer, industry) from profile
     await window.autoFillCompanyFields();
 
@@ -610,6 +626,28 @@
                     var fs = entry.querySelector('[data-person-field="injury_fatal"]')
                     if (fs) togglePerPersonFatalFields(fs);
                 };
+
+                // ── Investigator assignment: render current assignment + button ──
+                (function renderInvestigatorAssignment(data) {
+                    var display = document.getElementById('investigatorDisplay');
+                    var btn    = document.getElementById('assignInvestigatorBtn');
+                    if (!display) return;
+                    var current = data.assigned_inspector || '';
+                    var role     = (typeof currentUserRole !== 'undefined' ? currentUserRole : null) || '';
+                    var canAssign = role === 'admin' || role === 'super_admin' || role === 'officer';
+                    if (current) {
+                        display.innerHTML = '<strong>' + esc(current) + '</strong>' +
+                            ' <span style="color:#666;font-size:12px">(assigned)</span>';
+                    } else {
+                        display.innerHTML = '<span style="color:#999">Not assigned</span>';
+                    }
+                    if (btn) {
+                        btn.style.display = canAssign ? 'inline-block' : 'none';
+                        if (btn.getAttribute('onclick')) {
+                            btn.setAttribute('onclick', 'assignInvestigatorToAccident(\'' + esc(data.id) + '\')');
+                        }
+                    }
+                })(data);
 
                 // Load all injured persons from accident_injured_persons
                 var persons = [];
@@ -701,6 +739,28 @@
                     var e = addPersonEntry(buildPersonData(persons[i]));
                     showFatalFields(e);
                 }
+
+                // ── Investigator assignment render (view mode) ──
+                (function renderInvestigatorAssignment(data) {
+                    var display = document.getElementById('investigatorDisplay');
+                    var btn    = document.getElementById('assignInvestigatorBtn');
+                    if (!display) return;
+                    var current = data.assigned_inspector || '';
+                    var role     = (typeof currentUserRole !== 'undefined' ? currentUserRole : null) || '';
+                    var canAssign = role === 'admin' || role === 'super_admin' || role === 'officer';
+                    if (current) {
+                        display.innerHTML = '<strong>' + esc(current) + '</strong>' +
+                            ' <span style="color:#666;font-size:12px">(assigned)</span>';
+                    } else {
+                        display.innerHTML = '<span style="color:#999">Not assigned</span>';
+                    }
+                    if (btn) {
+                        btn.style.display = canAssign ? 'inline-block' : 'none';
+                        if (btn.getAttribute('onclick')) {
+                            btn.setAttribute('onclick', 'assignInvestigatorToAccident(\'' + esc(data.id) + '\')');
+                        }
+                    }
+                })(data);
             }
         });
     }
@@ -1143,6 +1203,104 @@ document.getElementById('accidentForm').addEventListener('submit', async functio
         window.showError(err.message);
     }
 });
+
+// ─────────────────────────────────────────────────────────────
+// Investigator assignment for accident reports (view mode)
+// Mirrors inspection-bookings.html assignInspector() pattern,
+// but writes to accident_reports.assigned_inspector.
+// ─────────────────────────────────────────────────────────────
+var _oshOfficersCache = null;
+
+async function loadOfficers() {
+    if (_oshOfficersCache) return _oshOfficersCache;
+    try {
+        const { data } = await window.supabaseClient
+            .from('user_profiles')
+            .select('first_name, surname, role, location')
+            .in('role', ['officer', 'admin', 'super_admin'])
+            .order('first_name');
+        _oshOfficersCache = data || [];
+        return _oshOfficersCache;
+    } catch (e) {
+        _oshOfficersCache = [];
+        return [];
+    }
+}
+
+async function assignInvestigatorToAccident(id) {
+    if (!id) return;
+    const canAssign = (typeof currentUserRole !== 'undefined' ? currentUserRole : null);
+    if (canAssign !== 'admin' && canAssign !== 'super_admin' && canAssign !== 'officer') {
+        await showAlert('Only OSH officers, admins, or super admins can assign investigators.', { type:'error', title:'Permission Denied' });
+        return;
+    }
+
+    const officers = await loadOfficers();
+    const currentName = (document.getElementById('userName') && document.getElementById('userName').textContent || '').trim();
+
+    const options = [
+        { value: '__unassign__', label: '— Clear assignment —' },
+        { value: '__myself__',   label: '👤 Myself — ' + (currentName || 'Current User') }
+    ];
+    officers.forEach(function(o) {
+        const name  = (o.first_name + ' ' + o.surname).trim();
+        const roleStr = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(o.role) : o.role) || '';
+        const loc = o.location ? ' (' + o.location + ')' : '';
+        options.push({ value: name, label: name + ' — ' + roleStr + loc });
+    });
+
+    var currentAssigned = '';
+    try {
+        const { data } = await window.supabaseClient
+            .from('accident_reports')
+            .select('assigned_inspector')
+            .eq('id', id)
+            .maybeSingle();
+        if (data && data.assigned_inspector) currentAssigned = data.assigned_inspector;
+    } catch(e) { console.warn('failed to load current assignment:', e); }
+
+    const selected = await showSelect(
+        'Assign investigator for this accident report',
+        options,
+        currentAssigned || '__myself__',
+        { title: 'Assign Investigator', icon: '👤', confirmText: 'Assign' }
+    );
+    if (selected === null || selected === undefined) return;
+
+    let inspectorName;
+    if (selected === '__myself__') {
+        inspectorName = currentName || 'Unknown';
+    } else if (selected === '__unassign__') {
+        inspectorName = null;
+    } else {
+        inspectorName = selected;
+    }
+
+    const { error } = await window.supabaseClient
+        .from('accident_reports')
+        .update({ assigned_inspector: inspectorName || null })
+        .eq('id', id);
+
+    if (error) {
+        await showAlert(error.message, { type:'error', title:'Assignment Failed' });
+        return;
+    }
+
+    showToast(inspectorName ? 'Assigned: ' + inspectorName : 'Investigator assignment cleared.', 'success');
+
+    // Refresh the display + re-render case list if open
+    var display = document.getElementById('investigatorDisplay');
+    if (display) {
+        display.innerHTML = '<strong>' + esc(inspectorName) + '</strong>' +
+            ' <span style="color:#666;font-size:12px">(assigned)</span>';
+    }
+    if (typeof allRecords !== 'undefined' && Array.isArray(allRecords)) {
+        allRecords = allRecords.map(function(r) { return r.id === id ? Object.assign({}, r, { assigned_inspector: inspectorName || null }) : r; });
+    }
+    if (typeof allCases !== 'undefined' && Array.isArray(allCases)) {
+        allCases = allCases.map(function(c) { return c.id === id ? Object.assign({}, c, { assigned_inspector: inspectorName || null }) : c; });
+    }
+}
 </script>
 
 </body>

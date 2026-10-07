@@ -333,7 +333,8 @@ margin-right: 6px;
         label: '<img src="ICONS/COMPANY.png" class="nav-icon"> Employer Details',
         hideFor: ['viewer', 'worker', 'officer', 'admin', 'super_admin', 'medical_practitioner'],
         children: [
-          { id: 'company-view', icon: '<img src="ICONS/COMPANY.png" class="dd-icon">', label: 'My Company', href: 'company-view.html' }
+          { id: 'company-view', icon: '<img src="ICONS/COMPANY.png" class="dd-icon">', label: 'My Company', href: 'company-view.html' },
+          { id: 'company-branches', icon: '<img src="ICONS/COMPANY.png" class="dd-icon">', label: 'Branches', href: 'company-branches.html' }
         ]
       },
       {

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+<title>My Branches - DOSH</title>
+<style>
+    /* ── Page chrome ──────────────────────────────────────────────────── */
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f4f7fa; color: #1f2937; margin: 0; padding: 0;
+    }
+    .navbar {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 20px; background: #fff; border-bottom: 1px solid #e5e7eb;
+        position: sticky; top: 0; z-index: 50;
+    }
+    .navbar h1 { margin: 0; font-size: 20px; font-weight: 700; color: #0f2544; }
+    .user-info { display: flex; align-items: center; gap: 14px; }
+    .user-name { font-weight: 600; color: #0f2544; }
+    .user-department { font-size: 13px; color: #6b7280; }
+    .logout-btn {
+        background: #fee2e2; color: #b91c1c; border: none; border-radius: 6px;
+        padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .logout-btn:hover { background: #fecaca; }
+    .loading {
+        display: flex; align-items: center; justify-content: center; min-height: 60vh;
+    }
+    .spinner {
+        width: 38px; height: 38px; border: 4px solid #e5e7eb; border-top-color: #0f2544;
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Layout ───────────────────────────────────────────────────────── */
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .page-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+    }
+    .page-header h2 { margin: 0; font-size: 22px; color: #0f2544; }
+    .page-header p { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
+
+    /* ── Buttons ──────────────────────────────────────────────────────── */
+    .btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;
+        border: none; cursor: pointer; text-decoration: none;
+    }
+    .btn-primary { background: #0f2544; color: #fff; }
+    .btn-primary:hover { background: #1a3a66; }
+    .btn-secondary { background: #fff; color: #1f2937; border: 1px solid #d1d5db; }
+    .btn-secondary:hover { background: #f9fafb; }
+    .btn-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-ghost { background: transparent; color: #6b7280; border: none; padding: 6px 10px; cursor: pointer; }
+    .btn-ghost:hover { background: #f3f4f6; color: #1f2937; }
+
+    /* ── Table ────────────────────────────────────────────────────────── */
+    .table-wrap { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+    th { background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    td { color: #1f2937; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: #f9fafb; }
+    .empty-state { padding: 48px 20px; text-align: center; color: #9ca3af; }
+    .empty-state .icon { font-size: 42px; margin-bottom: 10px; }
+    .empty-state p { margin: 0; font-size: 14px; }
+
+    /* ── Badge / status ─────────────────────────────────────────────── */
+    .badge {
+        display: inline-block; padding: 2px 10px; border-radius: 20px;
+        font-size: 12px; font-weight: 600;
+    }
+    .badge-active   { background: #dcfce7; color: #166534; }
+    .badge-inactive { background: #f3f4f6; color: #6b7280; }
+
+    /* ── Action buttons in row ──────────────────────────────────────── */
+    .row-actions { display: flex; gap: 4px; }
+
+    /* ── Modal ───────────────────────────────────────────────────────── */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+        display: none; align-items: center; justify-content: center; z-index: 100;
+        padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+        background: #fff; border-radius: 14px; width: 100%; max-width: 560px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 20px; border-bottom: 1px solid #e5e7eb;
+    }
+    .modal-header h3 { margin: 0; font-size: 18px; color: #0f2544; }
+    .modal-close {
+        background: none; border: none; font-size: 22px; color: #9ca3af;
+        cursor: pointer; line-height: 1; padding: 4px;
+    }
+    .modal-close:hover { color: #1f2937; }
+    .modal-body { padding: 20px; }
+    .modal-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 20px; border-top: 1px solid #e5e7eb;
+    }
+    .modal-footer .hint { font-size: 12px; color: #9ca3af; }
+
+    /* ── Form inside modal ──────────────────────────────────────────── */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+        display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+        font-size: 14px; background: #fff; color: #1f2937; transition: border-color 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none; border-color: #0f2544; box-shadow: 0 0 0 3px rgba(15,37,68,0.08);
+    }
+    .form-group .err-msg { color: #b91c1c; font-size: 12px; margin-top: 4px; display: none; }
+    .form-group.error input, .form-group.error select, .form-group.error textarea { border-color: #b91c1c; }
+    .form-group.error .err-msg { display: block; }
+    .checkbox-row {
+        display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4b5563; cursor: pointer;
+    }
+    .checkbox-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
+
+    /* ── Toast ───────────────────────────────────────────────────────── */
+    .toast {
+        position: fixed; bottom: 20px; right: 20px; z-index: 200;
+        padding: 12px 18px; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 500;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18); animation: slideUp 0.25s ease;
+        max-width: 340px;
+    }
+    .toast-success { background: #166534; }
+    .toast-error   { background: #b91c1c; }
+    .toast-info    { background: #0f2544; }
+    @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+    <h1>🏢 My Branches</h1>
+    <div class="user-info">
+        <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-department" id="userDept"></div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
+
+<div class="loading" id="loadingState"><div class="spinner"></div><p style="margin-top:10px;color:#6b7280;font-size:14px">Loading branches...</p></div>
+
+<div class="container" id="mainContent" style="display:none">
+    <div class="page-header">
+        <div>
+            <h2>My Branches</h2>
+            <p id="branchSubtitle">Managing branches for <strong id="companyNameLbl">—</strong></p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Add Branch</button>
+    </div>
+
+    <div class="table-wrap">
+        <table id="branchesTable">
+            <thead>
+                <tr>
+                    <th style="width:80px">Branch No.</th>
+                    <th>Branch Name</th>
+                    <th>Plot</th>
+                    <th>Street</th>
+                    <th>Physical Address</th>
+                    <th style="width:90px">Status</th>
+                    <th style="width:130px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="branchesBody"></tbody>
+        </table>
+        <div class="empty-state" id="branchesEmpty" style="display:none">
+            <div class="icon">🏢</div>
+            <p>No branches registered yet.</p>
+        </div>
+    </div>
+
+    <p style="margin-top:12px;font-size:12px;color:#9ca3af">
+        Branch records are linked to your company. Only your company's branches are shown.
+        Use <strong>Deactivate</strong> to hide a branch instead of deleting it.
+    </p>
+</div>
+
+<!-- ── Add / Edit modal ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="branchModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Branch</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="branchId">
+            <div class="form-group" id="fg-branchNo">
+                <label>Branch Number <span class="req" style="color:#b91c1c">*</span></label>
+                <input type="text" id="branchNo" placeholder="e.g. B001, HQ, Gaborone" required>
+                <div class="err-msg">Required</div>
+            </div>
+            <div class="form-group" id="fg-branchName">
+                <label>Branch Name <span class="req" style="color:#b91c1c">*</span></label>
+                <input type="text" id="branchName" placeholder="e.g. Gaborone Office, Francistown Depot" required>
+                <div class="err-msg">Required</div>
+            </div>
+            <div class="form-group" id="fg-plotNumber">
+                <label>Plot Number</label>
+                <input type="text" id="plotNumber" placeholder="e.g. Plot 47">
+            </div>
+            <div class="form-group" id="fg-streetName">
+                <label>Street Name</label>
+                <input type="text" id="streetName" placeholder="e.g. Francistown Road">
+            </div>
+            <div class="form-group" id="fg-physicalAddress">
+                <label>Physical Address</label>
+                <textarea id="physicalAddress" rows="2" placeholder="Full physical address of the branch"></textarea>
+            </div>
+            <div class="form-group" id="fg-isActive">
+                <label class="checkbox-row">
+                    <input type="checkbox" id="isActive" checked>
+                    Active branch
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="hint" id="modalHint"></span>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="modalSaveBtn" onclick="saveBranch()">Save Branch</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete confirm modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:420px">
+        <div class="modal-header">
+            <h3>Delete Branch</h3>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="deleteMsg" style="color:#374151;font-size:14px;line-height:1.5"></p>
+        </div>
+        <div class="modal-footer" style="padding:14px 20px;border-top:1px solid #e5e7eb">
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete Branch</button>
+            <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="constants.js"></script>
+<script src="role-permissions.js"></script>
+<script src="modal.js"></script>
+<script src="common.js"></script>
+<script src="header.js"></script>
+<script>window.OSH_ACTIVE_PAGE = 'company-branches';</script>
+<script src="nav.js"></script>
+
+<script>
+    const SB = window.supabaseClient;
+    let companyId = null;
+    let companyName = null;
+    let deletingBranchId = null;
+
+    // ── Page init ──────────────────────────────────────────────────────
+    window.addEventListener('load', async () => {
+        try {
+            let authenticated = false;
+            for (let i = 0; i < 5; i++) {
+                authenticated = await isAuthenticated();
+                if (authenticated) break;
+                if (i < 4) await new Promise(r => setTimeout(r, 400));
+            }
+            if (!authenticated) { window.location.href = 'index.html'; return; }
+
+            await initializeRoleSystem();
+            if (currentUserRole !== 'company') {
+                window.location.href = 'dashboard.html'; return;
+            }
+
+            // Resolve company id + name from the logged-in company user
+            const userResult = await getCurrentUser();
+            if (userResult.success && userResult.user) {
+                const profile = await getUserProfile(userResult.user.id);
+                if (profile.success && profile.data && profile.data.company_id) {
+                    companyId = profile.data.company_id;
+                    companyName = profile.data.company_name || null;
+                }
+            }
+
+            // Fallback: derive company name from the companies table
+            if (!companyName) {
+                const cf = await SB.from('companies')
+                    .select('id, company_name')
+                    .eq('id', companyId)
+                    .maybeSingle();
+                if (cf.data) companyName = cf.data.company_name;
+            }
+
+            document.getElementById('userName').textContent =
+                userResult.user?.email?.split('@')[0] || 'Company User';
+            document.getElementById('userDept').textContent = 'Company';
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('companyNameLbl').textContent = companyName || 'your company';
+
+            await loadBranches();
+        } catch (err) {
+            console.error('Init error:', err);
+            const ld = document.getElementById('loadingState');
+            ld.innerHTML =
+                '<p style="color:#b91c1c;padding:20px;text-align:center">' +
+                '<strong>Error loading page.</strong> ' + esc(err.message || 'Unknown error') +
+                '<br><br><button onclick="location.reload()" class="btn btn-primary" style="margin-top:10px">Retry</button></p>';
+        }
+    });
+
+    // ── Read branches ─────────────────────────────────────────────────
+    async function loadBranches() {
+        const tbody = document.getElementById('branchesBody');
+        const empty = document.getElementById('branchesEmpty');
+
+        if (!companyId) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            empty.innerHTML = '<div class="icon">⚠️</div><p>Company not identified.</p>';
+            return;
+        }
+
+        try {
+            const { data, error } = await SB
+                .from('company_branches')
+                .select('*')
+                .eq('company_id', companyId)
+                .order('branch_no', { ascending: true });
+
+            if (error) throw error;
+
+            const rows = data || [];
+            if (!rows.length) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            tbody.innerHTML = rows.map(b => {
+                const active = b.is_active !== false;
+                return '' +
+                    '<tr>' +
+                    '<td style="font-weight:600;color:#0f2544">' + esc(b.branch_no) + '</td>' +
+                    '<td>' + esc(b.branch_name) + '</td>' +
+                    '<td>' + esc(b.plot_number || '—') + '</td>' +
+                    '<td>' + esc(b.street_name || '—') + '</td>' +
+                    '<td>' + esc(b.physical_address || '—') + '</td>' +
+                    '<td><span class="badge ' + (active ? 'badge-active' : 'badge-inactive') + '">' +
+                    (active ? 'Active' : 'Inactive') + '</span></td>' +
+                    '<td><div class="row-actions">' +
+                        (active
+                            ? '<button class="btn-ghost" title="Edit" onclick="openEditModal(\'' + b.id + '\')">✏️</button>' +
+                              '<button class="btn-ghost" title="Deactivate" onclick="confirmDeactivate(\'' + b.id + '\')">⏸️</button>'
+                            : '<button class="btn-ghost" title="Reactivate" onclick="confirmReactivate(\'' + b.id + '\')">▶️</button>') +
+                    '</div></td>' +
+                    '</tr>';
+            }).join('');
+        } catch (err) {
+            console.error('loadBranches error:', err);
+            tbody.innerHTML =
+                '<tr><td colspan="7" style="text-align:center;color:#b91c1c;padding:20px">' +
+                esc(err.message || 'Could not load branches') + '</td></tr>';
+        }
+    }
+
+    // ── Modal: open add ──────────────────────────────────────────────
+    function openAddModal() {
+        document.getElementById('branchId').value = '';
+        document.getElementById('modalTitle').textContent = 'Add Branch';
+        document.getElementById('modalHint').textContent = 'Enter the details for the new branch.';
+        clearForm();
+        document.getElementById('branchModal').classList.add('show');
+    }
+
+    // ── Modal: open edit ─────────────────────────────────────────────
+    async function openEditModal(branchId) {
+        try {
+            const { data, error } = await SB
+                .from('company_branches')
+                .select('*')
+                .eq('id', branchId)
+                .eq('company_id', companyId)
+                .maybeSingle();
+            if (error) throw error;
+            if (!data) {
+                showToast('Branch not found or not yours.', 'error');
+                return;
+            }
+
+            document.getElementById('branchId').value = data.id;
+            document.getElementById('modalTitle').textContent = 'Edit Branch';
+            document.getElementById('modalHint').textContent = 'Update the branch details below.';
+            populateForm(data);
+            document.getElementById('branchModal').classList.add('show');
+        } catch (err) {
+            console.error('openEditModal error:', err);
+            showToast(esc(err.message || 'Could not load branch.'), 'error');
+        }
+    }
+
+    // ── Modal: close ─────────────────────────────────────────────────
+    function closeModal() {
+        document.getElementById('branchModal').classList.remove('show');
+    }
+
+    function clearForm() {
+        ['branchNo','branchName','plotNumber','streetName','physicalAddress'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('isActive').checked = true;
+        ['fg-branchNo','fg-branchName','fg-plotNumber','fg-streetName','fg-physicalAddress','fg-isActive']
+            .forEach(id => document.getElementById(id).classList.remove('error'));
+    }
+
+    function populateForm(b) {
+        document.getElementById('branchId').value = b.id;
+        document.getElementById('branchNo').value = b.branch_no || '';
+        document.getElementById('branchName').value = b.branch_name || '';
+        document.getElementById('plotNumber').value = b.plot_number || '';
+        document.getElementById('streetName').value = b.street_name || '';
+        document.getElementById('physicalAddress').value = b.physical_address || '';
+        document.getElementById('isActive').checked = b.is_active !== false;
+        ['fg-branchNo','fg-branchName','fg-plotNumber','fg-streetName','fg-physicalAddress','fg-isActive']
+            .forEach(id => document.getElementById(id).classList.remove('error'));
+    }
+
+    // ── Save (add or update) ─────────────────────────────────────────
+    async function saveBranch() {
+        const idEl = document.getElementById('branchId');
+        const isEdit = !!idEl.value;
+
+        // Validate required fields
+        let valid = true;
+        ['fg-branchNo','fg-branchName'].forEach(id => document.getElementById(id).classList.remove('error'));
+        const branchNo = (document.getElementById('branchNo').value || '').trim();
+        const branchName = (document.getElementById('branchName').value || '').trim();
+        if (!branchNo) { document.getElementById('fg-branchNo').classList.add('error'); valid = false; }
+        if (!branchName) { document.getElementById('fg-branchName').classList.add('error'); valid = false; }
+        if (!valid) {
+            showToast('Please fill in branch number and branch name.', 'error');
+            return;
+        }
+
+        const payload = {
+            company_id: companyId,
+            branch_no: branchNo,
+            branch_name: branchName,
+            plot_number: (document.getElementById('plotNumber').value || '').trim() || null,
+            street_name: (document.getElementById('streetName').value || '').trim() || null,
+            physical_address: (document.getElementById('physicalAddress').value || '').trim() || null,
+            is_active: document.getElementById('isActive').checked
+        };
+
+        const btn = document.getElementById('modalSaveBtn');
+        btn.disabled = true;
+        btn.textContent = isEdit ? 'Saving…' : 'Saving…';
+
+        try {
+            let error;
+            if (isEdit) {
+                const { error: e } = await SB
+                    .from('company_branches')
+                    .update(payload)
+                    .eq('id', idEl.value)
+                    .eq('company_id', companyId);
+                error = e;
+            } else {
+                const { error: e } = await SB
+                    .from('company_branches')
+                    .insert([payload]);
+                error = e;
+            }
+            if (error) throw error;
+
+            closeModal();
+            await loadBranches();
+            showToast(isEdit ? 'Branch updated.' : 'Branch added.', 'success');
+        } catch (err) {
+            console.error('saveBranch error:', err);
+            // Detect unique-constraint violation on branch_no
+            const msg = (err?.message || '').toLowerCase();
+            if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
+                showToast('A branch with that number already exists for your company. Choose a different branch number.', 'error');
+            } else {
+                showToast(esc(err.message || 'Could not save branch.'), 'error');
+            }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = isEdit ? 'Save Changes' : 'Save Branch';
+        }
+    }
+
+    // ── Soft-delete (deactivate) ─────────────────────────────────────
+    async function confirmDeactivate(branchId) {
+        deletingBranchId = branchId;
+        document.getElementById('deleteMsg').innerHTML =
+            'Deactivate this branch? It will no longer appear in your active branches list. You can reactivate it later. This does <strong>not</strong> delete inspection records.';
+        document.getElementById('confirmDeleteBtn').textContent = 'Deactivate';
+        document.getElementById('confirmDeleteBtn').className = 'btn btn-secondary';
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    async function confirmReactivate(branchId) {
+        deletingBranchId = branchId;
+        document.getElementById('deleteMsg').innerHTML =
+            'Reactivate this branch so it appears in your active branches list again?';
+        document.getElementById('confirmDeleteBtn').textContent = 'Reactivate';
+        document.getElementById('confirmDeleteBtn').className = 'btn btn-primary';
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+        deletingBranchId = null;
+    }
+
+    async function confirmBranchAction() {
+        if (!deletingBranchId) return;
+        const isDeactivate = document.getElementById('confirmDeleteBtn').textContent === 'Deactivate';
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true;
+
+        try {
+            if (isDeactivate) {
+                const { error } = await SB
+                    .from('company_branches')
+                    .update({ is_active: false })
+                    .eq('id', deletingBranchId)
+                    .eq('company_id', companyId);
+                if (error) throw error;
+                showToast('Branch deactivated.', 'info');
+            } else {
+                const { error } = await SB
+                    .from('company_branches')
+                    .update({ is_active: true })
+                    .eq('id', deletingBranchId)
+                    .eq('company_id', companyId);
+                if (error) throw error;
+                showToast('Branch reactivated.', 'success');
+            }
+            closeDeleteModal();
+            await loadBranches();
+        } catch (err) {
+            console.error('branch action error:', err);
+            showToast(esc(err.message || 'Could not update branch.'), 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmBranchAction);
+
+    // ── Modal click-outside to close ────────────────────────────────
+    document.getElementById('branchModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+
+    // ── Keyboard: Escape closes modals ──────────────────────────────
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeDeleteModal();
+        }
+    });
+
+    // ── Helpers ──────────────────────────────────────────────────────
+    function esc(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+    function showToast(msg, kind) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const t = document.createElement('div');
+        t.className = 'toast toast-' + (kind || 'info');
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => { if (t.parentNode) t.remove(); }, 3500);
+    }
+</script>
+</body>
+</html>
