@@ -615,7 +615,7 @@
                 <td style="white-space:nowrap">
                     <button class="action-btn" onclick="viewRecord('${r.id}')">View</button>
                     <button class="action-btn" onclick="editInvestigation('${r.id}','${r.investigation_status||'Pending'}','${r.submitted_by||''}')">Status</button>
-                    <button class="action-btn" onclick="assignInvestigator('${r.id}')">Assign</button>
+                    <button class="action-btn" onclick="assignInvestigatorToAccident('${r.id}')">Assign</button>
                 </td>
             </tr>`;
         }).join('');
@@ -625,6 +625,82 @@
     window.location.href = 'accident-report.html?id=' + id + '&view=1';
 }
 
+
+    // ── Assign investigator (mirrors accident-report.html implementation) ────────
+    async function assignInvestigatorToAccident(id) {
+        if (!id) return;
+        const canAssign = (typeof currentUserRole !== 'undefined' ? currentUserRole : null);
+        if (canAssign !== 'admin' && canAssign !== 'super_admin' && canAssign !== 'officer') {
+            if (typeof showAlert === 'function') await showAlert('Only OSH officers, admins, or super admins can assign investigators.', { type:'error', title:'Permission Denied' });
+            else alert('Permission denied.');
+            return;
+        }
+
+        const officers = await loadOfficers() || [];
+        const currentName = (document.getElementById('userName') && document.getElementById('userName').textContent || '').trim();
+
+        const options = [
+            { value: '__unassign__', label: '— Clear assignment —' },
+            { value: '__myself__',   label: '👤 Myself — ' + (currentName || 'Current User') }
+        ];
+        officers.forEach(function(o) {
+            const name  = (o.first_name + ' ' + o.surname).trim();
+            const roleStr = (typeof getRoleDisplayName === 'function' ? getRoleDisplayName(o.role) : o.role) || '';
+            const loc = o.location ? ' (' + o.location + ')' : '';
+            options.push({ value: name, label: name + ' — ' + roleStr + loc });
+        });
+
+        var currentAssigned = '';
+        try {
+            const { data } = await SB.from('accident_reports').select('assigned_inspector').eq('id', id).maybeSingle();
+            if (data && data.assigned_inspector) currentAssigned = data.assigned_inspector;
+        } catch(e) { console.warn('failed to load current assignment:', e); }
+
+        const selected = await showSelect(
+            'Assign investigator for this accident report',
+            options,
+            currentAssigned || '__myself__',
+            { title: 'Assign Investigator', icon: '👤', confirmText: 'Assign' }
+        );
+        if (selected === null || selected === undefined) return;
+
+        let inspectorName;
+        if (selected === '__myself__') {
+            inspectorName = currentName || 'Unknown';
+        } else if (selected === '__unassign__') {
+            inspectorName = null;
+        } else {
+            inspectorName = selected;
+        }
+
+        const { error } = await SB.from('accident_reports').update({ assigned_inspector: inspectorName || null }).eq('id', id);
+        if (error) {
+            if (typeof showAlert === 'function') await showAlert(error.message, { type:'error', title:'Assignment Failed' });
+            else alert('Assignment failed: ' + error.message);
+            return;
+        }
+
+        if (typeof showToast === 'function') showToast(inspectorName ? 'Assigned: ' + inspectorName : 'Investigator assignment cleared.', 'success');
+        else alert(inspectorName ? 'Assigned: ' + inspectorName : 'Investigator assignment cleared.');
+
+        // Refresh in-place
+        allRecords = allRecords.map(function(r) { return r.id === id ? Object.assign({}, r, { assigned_inspector: inspectorName || null }) : r; });
+        renderTable(allRecords.filter(function(r) {
+            const type   = document.getElementById('filterType').value;
+            const fatal  = document.getElementById('filterFatal').value;
+            const inv    = document.getElementById('filterInv').value;
+            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+            const company = document.getElementById('filterCompany').value;
+            return (!type   || r.report_type === type) &&
+                   (!fatal  || r.injury_fatal === fatal) &&
+                   (!inv    || r.investigation_status === inv) &&
+                   (!company || (r.occupier_name||'').toLowerCase().indexOf(company.toLowerCase()) >= 0) &&
+                   (!search || (r.injured_name||'').toLowerCase().includes(search) || (r.occupier_name||'').toLowerCase().includes(search));
+        }));
+    }
+
+    // Legacy alias: some pages reference window.assignInvestigator; route it to the real function.
+    window.assignInvestigator = function(id) { assignInvestigatorToAccident(id); };
 
     function exportCSV() {
         const headers = ['Occupier','Premises','Industry','Report Type','Injured Name','Age','Sex','ID No','Occupation','Accident Date','Place','Fatal','Disabled 3+ Days','Investigation','Reporter','Report Date','Causation No'];
