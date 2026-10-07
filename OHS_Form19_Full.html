@@ -49,6 +49,18 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 .btn-secondary { background: #ecf0f1; color: #2c3e50; }
 .btn-secondary:hover { background: #dfe6e9; }
 @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-row-3, .form-row-4 { grid-template-columns: 1fr 1fr; } }
+
+@media print {
+  body { background: #fff; }
+  .navbar, .btn-row, #addTeamMemberBtn, .action-btn, #accidentLookupResults, .remove-team-btn, .evidence-remove-btn { display: none !important; }
+  .form-card { box-shadow: none; border: 1px solid #ddd; padding: 0; }
+  .page-container { padding: 0; }
+  .container { max-width: 100%; padding: 0; }
+  .form-group input, .form-group select, .form-group textarea { border: none; border-bottom: 1px solid #999; background: transparent; padding: 4px 0; }
+  h3.section-title { break-after: avoid; }
+  table.evidence-table { break-inside: auto; }
+  tr { break-inside: avoid; page-break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -430,6 +442,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <script src="header.js"></script>
     
 <script src="nav.js"></script>
+<script src="autosave.js"></script>
 <script>window.OSH_ACTIVE_PAGE = 'form-19';</script>
 <script>
 window.addEventListener('load', async function() {
@@ -484,6 +497,30 @@ window.addEventListener('load', async function() {
 
 var formEl = document.getElementById('form19');
 if (formEl) {
+    // ── Ctrl+Enter to submit ──────────────────────────────────────────────────
+    formEl.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.key === 'Return')) {
+            var btn = formEl.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                e.preventDefault();
+                btn.click();
+            }
+        }
+    });
+
+    // ── Autosave (localStorage draft) ─────────────────────────────────────────
+    if (typeof enableAutosave === 'function') {
+        enableAutosave('form19', 'form19-draft', {
+            excludeFields: ['inv_team'], // exclude hidden team JSON; dynamic rows are re-collected on submit
+            onRestore: function() {
+                // Re-render dynamic rows is intentionally NOT done here; autosave only
+                // restores named fields. Dynamic rows are preserved by the browser's form
+                // restore only for static fields; dynamic rows are recreated on submit path.
+                if (typeof showToast === 'function') showToast('Draft restored. Re-enter any witness/exhibit rows if needed.', 'info');
+            }
+        });
+    }
+
     formEl.addEventListener('submit', async function(e) {
         e.preventDefault();
         var btn = formEl.querySelector('button[type="submit"]');
@@ -537,7 +574,8 @@ if (formEl) {
                     console.warn('failed to fetch linked accident for prefill', e);
                 }
             }
-            // Require basic investigation content before submit.
+        }
+        // Require basic investigation content before submit.
             if (typeof validateForm19Content === 'function' && !validateForm19Content(formEl)) {
                 btn.disabled = false;
                 return;
@@ -586,6 +624,9 @@ if (formEl) {
             else alert('Form 19 submitted successfully!');
             formEl.reset();
             clearDynamicRows();
+            if (typeof enableAutosave === 'function') {
+                try { localStorage.removeItem('osh_draft_form19-draft'); } catch(_) {}
+            }
         } catch(err) {
             if (typeof showToast === 'function') showToast('Error: ' + err.message, 'error');
             else alert('Error: ' + err.message);
@@ -1220,10 +1261,11 @@ if (formEl) {
         if (!el) return;
         supabaseClient
             .from('accident_reports')
-            .select('assigned_inspector, reporter_name, reporter_designation')
+            .select('assigned_inspector, reporter_name, reporter_designation, report_date')
             .eq('id', accidentId)
             .maybeSingle()
-            .then(function(res) {                if (!res || !res.data || !el) return;
+            .then(function(res) {
+                if (!res || !res.data || !el) return;
                 var o = res.data;
 
                 // Lead Investigator: prefer the accident's assigned inspector, fall back to reporter
@@ -1237,153 +1279,13 @@ if (formEl) {
                         }
                     }
                 }
+
                 // Contact person / position from the accident's reporter
                 var cpEl = el.querySelector('[name="contact_person"]');
                 if (cpEl && !cpEl.value && o.reporter_name) { cpEl.value = o.reporter_name; }
                 var posEl = el.querySelector('[name="contact_position"]');
                 if (posEl && !posEl.value && o.reporter_designation) { posEl.value = o.reporter_designation; }
 
-                // If an accident is linked, also seed investigation team members from the
-                // accident's assigned inspector / reporter as a starting suggestion (one row
-                // per person). Existing manually-added members are left untouched.
-                // (This block only runs in edit mode, not in view mode where rows are
-                // already rendered from stored JSON.)
-                if (accidentId && typeof collectTeamMembers === 'function' && window.location.search.indexOf('view=1') === -1) {
-            var existing = collectTeamMembers();
-            if (existing.length === 0) {
-                var teamEl = el.querySelector('[name="investigationTeamContainer"]');
-                if (teamEl && teamEl.children.length === 0 && typeof document !== 'undefined' && document.getElementById) {
-                    var tmpl = document.getElementById('teamMemberTemplate');
-                    var suggested = [];
-            var ai = o.assigned_inspector || null;
-            var rn = o.reporter_name || null;
-            var rd = o.reporter_designation || null;
-            if (ai) { suggested.push({ name: ai, role: 'Assigned Inspector' }); }
-            if (rn && (!ai || ai !== rn)) { suggested.push({ name: rn, role: rd || 'Reporter' }); }
-                    suggested.forEach(function(m) {
-                        _teamCounter++;
-                        var idx = teamEl.children.length;
-                        var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, idx + 1);
-                        var div = document.createElement('div');
-                        div.innerHTML = html;
-                        var row = div.firstElementChild;
-                        var nameEl = row.querySelector('[name="team_member_name"]');
-                        var roleEl = row.querySelector('[name="team_member_role"]');
-                        if (nameEl) nameEl.value = m.name;
-                        if (roleEl) roleEl.value = m.role;
-                        teamEl.appendChild(row);
-                    });
-                    var j = document.getElementById('inv_team_json');
-                    if (j) j.value = JSON.stringify(suggested);
-                    renumberTeamMembers();
-                }
-            }
-        }
-        // If an accident is linked, also seed investigation team members from the
-        // accident's assigned inspector / reporter as a starting suggestion (one row
-        // per person). Existing manually-added members are left untouched.
-        if (accidentId && typeof collectTeamMembers === 'function') {
-            var existing = collectTeamMembers();
-            if (existing.length === 0) {
-                var teamEl = el.querySelector('[name="investigationTeamContainer"]');
-                if (teamEl && teamEl.children.length === 0 && typeof document !== 'undefined' && document.getElementById) {
-                    var tmpl = document.getElementById('teamMemberTemplate');
-                    var suggested = [];
-            var ai = o.assigned_inspector || null;
-            var rn = o.reporter_name || null;
-            var rd = o.reporter_designation || null;
-            if (ai) { suggested.push({ name: ai, role: 'Assigned Inspector' }); }
-            if (rn && (!ai || ai !== rn)) { suggested.push({ name: rn, role: rd || 'Reporter' }); }
-                    suggested.forEach(function(m) {
-                        _teamCounter++;
-                        var idx = teamEl.children.length;
-                        var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, idx + 1);
-                        var div = document.createElement('div');
-                        div.innerHTML = html;
-                        var row = div.firstElementChild;
-                        var nameEl = row.querySelector('[name="team_member_name"]');
-                        var roleEl = row.querySelector('[name="team_member_role"]');
-                        if (nameEl) nameEl.value = m.name;
-                        if (roleEl) roleEl.value = m.role;
-                        teamEl.appendChild(row);
-                    });
-                    var j = document.getElementById('inv_team_json');
-                    if (j) j.value = JSON.stringify(suggested);
-                    renumberTeamMembers();
-                }
-            }
-        }
-
-        // ── View-mode: render investigation team members from stored JSON ─────
-        if (window.location.search.indexOf('view=1') !== -1) {
-            var teamJson = el.querySelector('[name="inv_team"]');
-            if (teamJson) {
-                try {
-                    var stored = JSON.parse(teamJson.value || '[]');
-                    if (Array.isArray(stored) && stored.length) {
-                        var container = document.getElementById('investigationTeamContainer');
-                        var tmpl = document.getElementById('teamMemberTemplate');
-                        if (container && tmpl) {
-                            container.innerHTML = '';
-                            stored.forEach(function(m, i) {
-                                _teamCounter++;
-                                var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, i + 1);
-                                var div = document.createElement('div');
-                                div.innerHTML = html;
-                                var row = div.firstElementChild;
-                                var nameEl = row.querySelector('[name="team_member_name"]');
-                                var roleEl = row.querySelector('[name="team_member_role"]');
-                                if (nameEl) nameEl.value = m.name || '';
-                                if (roleEl) roleEl.value = m.role || '';
-                                container.appendChild(row);
-                            });
-                            renumberTeamMembers();
-                            // Hide the add button in view mode
-                            var addBtn = document.getElementById('addTeamMemberBtn');
-                            if (addBtn) addBtn.style.display = 'none';
-                        }
-                    }
-                }
-            } catch(e) { console.warn('failed to render investigation team members in view mode:', e); }
-        }
-        // If an accident is linked, also sync investigation team members from the
-        // accident's reporter/assigned inspector as a starting suggestion (one row).
-        // This leaves existing manually-added members untouched.
-        if (accidentId && typeof collectTeamMembers === 'function') {
-            var existing = collectTeamMembers();
-            if (existing.length === 0) {
-                var teamEl = el.querySelector('[name="investigationTeamContainer"]');
-                if (teamEl && teamEl.children.length === 0) {
-                    var suggested = [];
-                    if (o.assigned_inspector) suggested.push({ name: o.assigned_inspector, role: 'Assigned Inspector' });
-                    if (o.reporter_name && o.assigned_inspector !== o.reporter_name) suggested.push({ name: o.reporter_name, role: o.reporter_designation || 'Reporter' });
-                    suggested.forEach(function(m) {
-                        _teamCounter++;
-                        var idx = teamEl.children.length;
-                        var html = document.getElementById('teamMemberTemplate').innerHTML
-                            .replace(/__TEAM_IDX__/g, idx + 1);
-                        var div = document.createElement('div');
-                        div.innerHTML = html;
-                        var row = div.firstElementChild;
-                        row.querySelector('[name="team_member_name"]').value = m.name;
-                        row.querySelector('[name="team_member_role"]').value = m.role;
-                        teamEl.appendChild(row);
-                    });
-                    var j = document.getElementById('inv_team_json');
-                    if (j) j.value = JSON.stringify(suggested);
-                    renumberTeamMembers();
-                }
-            }
-        }
-                    }
-                }
-                // If there's also a reporter designation, try to map to contact_position
-                var posEl = el.querySelector('[name="contact_position"]');
-                if (posEl && !posEl.value && o.reporter_designation) {
-                    posEl.value = o.reporter_designation;
-                }
-                var cpEl = el.querySelector('[name="contact_person"]');
-                if (cpEl && !cpEl.value && o.reporter_name) { cpEl.value = o.reporter_name; }
                 // Date Assigned / Date Opened inherit from the accident's report date
                 // so the investigation carries the date the case was assigned/opened.
                 var fmt = function(d) {
@@ -1394,21 +1296,89 @@ if (formEl) {
                 if (daEl && !daEl.value && o.report_date) daEl.value = fmt(o.report_date);
                 var doEl = el.querySelector('[name="date_opened"]');
                 if (doEl && !doEl.value && o.report_date) doEl.value = fmt(o.report_date);
+
+                // Seed investigation team members from the accident's assigned inspector /
+                // reporter as a starting suggestion (one row per person). Existing manually-
+                // added members are left untouched. In view mode the rows are already rendered
+                // from stored JSON, so only seed in edit mode.
+                if (accidentId && typeof collectTeamMembers === 'function' && window.location.search.indexOf('view=1') === -1) {
+                    var existing = collectTeamMembers();
+                    if (existing.length === 0) {
+                        var teamEl = el.querySelector('[name="investigationTeamContainer"]');
+                        if (teamEl && teamEl.children.length === 0) {
+                            var tmpl = document.getElementById('teamMemberTemplate');
+                            var suggested = [];
+                            var ai = o.assigned_inspector || null;
+                            var rn = o.reporter_name || null;
+                            var rd = o.reporter_designation || null;
+                            if (ai) { suggested.push({ name: ai, role: 'Assigned Inspector' }); }
+                            if (rn && (!ai || ai !== rn)) { suggested.push({ name: rn, role: rd || 'Reporter' }); }
+                            suggested.forEach(function(m) {
+                                _teamCounter++;
+                                var idx = teamEl.children.length;
+                                var html = (tmpl ? tmpl.innerHTML : '')
+                                    .replace(/__TEAM_IDX__/g, idx + 1);
+                                var div = document.createElement('div');
+                                div.innerHTML = html;
+                                var row = div.firstElementChild;
+                                if (!row) return;
+                                var nameEl = row.querySelector('[name="team_member_name"]');
+                                var roleEl = row.querySelector('[name="team_member_role"]');
+                                if (nameEl) nameEl.value = m.name;
+                                if (roleEl) roleEl.value = m.role;
+                                teamEl.appendChild(row);
+                            });
+                            var j = document.getElementById('inv_team_json');
+                            if (j) j.value = JSON.stringify(suggested);
+                            renumberTeamMembers();
+                        }
+                    }
+                }
+
+                // ── View-mode: render investigation team members from stored JSON ─────
+                if (window.location.search.indexOf('view=1') !== -1) {
+                    var teamJson = el.querySelector('[name="inv_team"]');
+                    if (teamJson) {
+                        try {
+                            var stored = JSON.parse(teamJson.value || '[]');
+                            if (Array.isArray(stored) && stored.length) {
+                                var container = document.getElementById('investigationTeamContainer');
+                                var tmpl = document.getElementById('teamMemberTemplate');
+                                if (container && tmpl) {
+                                    container.innerHTML = '';
+                                    stored.forEach(function(m, i) {
+                                        _teamCounter++;
+                                        var html = tmpl.innerHTML.replace(/__TEAM_IDX__/g, i + 1);
+                                        var div = document.createElement('div');
+                                        div.innerHTML = html;
+                                        var row = div.firstElementChild;
+                                        if (!row) return;
+                                        var nameEl = row.querySelector('[name="team_member_name"]');
+                                        var roleEl = row.querySelector('[name="team_member_role"]');
+                                        if (nameEl) nameEl.value = m.name || '';
+                                        if (roleEl) roleEl.value = m.role || '';
+                                        container.appendChild(row);
+                                    });
+                                    renumberTeamMembers();
+                                    var addBtn = document.getElementById('addTeamMemberBtn');
+                                    if (addBtn) addBtn.style.display = 'none';
+                                }
+                            }
+                        } catch(e) { console.warn('failed to render investigation team members in view mode:', e); }
+                    }
+                }
             });
     };
 
-
-}
-
-        // -- View / edit mode --
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('id') && urlParams.get('view') === '1') {
-            var viewId = urlParams.get('id');
-            await window.initViewMode('ohs_form_19');
-            if (typeof window.loadEvidenceForInvestigation === 'function') {
-                window.loadEvidenceForInvestigation(viewId);
-            }
+    // -- View / edit mode --
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') && urlParams.get('view') === '1') {
+        var viewId = urlParams.get('id');
+        await window.initViewMode('ohs_form_19');
+        if (typeof window.loadEvidenceForInvestigation === 'function') {
+            window.loadEvidenceForInvestigation(viewId);
         }
+    }
 });
 </script>
 </body>
