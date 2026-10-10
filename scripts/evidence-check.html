@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Form 19 evidence link check</title></head>
+<body>
+<pre id="out">running…</pre>
+<div id="uploadedEvidenceList" style="max-width:760px"></div>
+<script>
+(async function () {
+  const results = [];
+  const log = (name, pass, detail) => results.push({ name, pass, detail });
+  const out = document.getElementById('out');
+  const tick = () => new Promise(r => setTimeout(r, 0));
+
+  try {
+    // Pull the REAL function text out of the page and its shared esc() helper.
+    const pageSrc = await (await fetch('../OHS_Form19_Full.html?t=' + Date.now())).text();
+    const commonSrc = await (await fetch('../common.js?t=' + Date.now())).text();
+
+    const grab = (src, re, label) => {
+      const m = re.exec(src);
+      if (!m) throw new Error('could not extract ' + label);
+      return m[1];
+    };
+    const escSrc   = grab(commonSrc, /(function esc\(s\) \{[\s\S]*?\n\})/, 'esc from common.js');
+    const mintSrc  = grab(pageSrc, /(function mintEvidenceSignedUrl\(path\) \{[\s\S]*?\n    \})/, 'mintEvidenceSignedUrl');
+    const wireSrc  = grab(pageSrc, /(function wireEvidenceLink\(link, path\) \{[\s\S]*?\n    \})/, 'wireEvidenceLink');
+    const rendSrc  = grab(pageSrc, /window\.renderEvidenceUpload = (function\(file\) \{[\s\S]*?\n    \});/, 'renderEvidenceUpload');
+    log('extracted the real esc/mint/wire/render functions', true,
+      [escSrc, mintSrc, wireSrc, rendSrc].map(s => s.split('\n').length).join('+') + ' lines');
+
+    // ── sandbox: only the names the page's closure provided ────────────────
+    const mintCalls = [];
+    const opened = [];
+    let toast = null;
+    const fakeWindow = {
+      open: (...a) => opened.push(a),
+      supabaseClient: {
+        storage: { from: (bucket) => ({ createSignedUrl: (path, ttl) => {
+          mintCalls.push({ bucket, path, ttl });
+          return Promise.resolve({ data: { signedUrl: 'https://example/signed?sig=xyz' }, error: null });
+        } }) }
+      }
+    };
+    const esc = new Function('return (' + escSrc + ')')();
+    const build = (body, extraNames, extraValues) => new Function(
+      'document', 'window', 'esc', 'showToast', 'EVIDENCE_BUCKET',
+      'EVIDENCE_URL_TTL', 'EVIDENCE_URL_REFRESH', '_evidenceFiles', 'console',
+      ...(extraNames || []), 'return (' + body + ')'
+    )(document, fakeWindow, esc, (m, t) => { toast = { m, t }; }, 'form-19-evidence',
+      3600, 3000, [], console, ...(extraValues || []));
+
+    const mintEvidenceSignedUrl = build(mintSrc);
+    const wireEvidenceLink = build(wireSrc, ['mintEvidenceSignedUrl'], [mintEvidenceSignedUrl]);
+    const renderEvidenceUpload = build(rendSrc, ['wireEvidenceLink'], [wireEvidenceLink]);
+
+    const list = document.getElementById('uploadedEvidenceList');
+
+    // ── 1. a normal uploaded file ──────────────────────────────────────────
+    renderEvidenceUpload({ key: 'ev-1', name: 'photo.jpg', storage_path: 'investigation_new/1_photo.jpg', size: 2048, type: 'image/jpeg' });
+    const row = list.querySelector('[data-evidence-key="ev-1"]');
+    log('row is rendered', !!row, row ? 'yes' : 'no row');
+    const link = row && row.querySelector('.evidence-link');
+    log('row contains a .evidence-link anchor', !!link, link ? link.outerHTML.slice(0, 90) : 'none');
+    log('link shows the storage path', !!link && link.textContent === 'investigation_new/1_photo.jpg',
+      link ? link.textContent : '');
+    log('link has no permanent href', !!link && !link.hasAttribute('href'),
+      link ? String(link.getAttribute('href')) : '');
+    log('link advertises a temporary private link', !!link && /temporary/i.test(link.getAttribute('title') || ''),
+      link ? link.getAttribute('title') : '');
+    log('row keeps data-evidence-path',
+      !!row && row.getAttribute('data-evidence-path') === 'investigation_new/1_photo.jpg',
+      row ? row.getAttribute('data-evidence-path') : '');
+    log('row keeps its remove button', !!row && !!row.querySelector('.evidence-remove-btn'), '');
+
+    // ── 2. clicking mints a signed URL and opens THAT, not a public URL ─────
+    link.click();
+    await tick();
+    await tick();
+    log('click minted exactly one signed URL', mintCalls.length === 1, JSON.stringify(mintCalls));
+    log('mint used the evidence bucket, path and 1h TTL',
+      mintCalls[0] && mintCalls[0].bucket === 'form-19-evidence' &&
+      mintCalls[0].path === 'investigation_new/1_photo.jpg' && mintCalls[0].ttl === 3600,
+      JSON.stringify(mintCalls[0]));
+    log('click opened the signed URL in a new tab',
+      opened.length === 1 && opened[0][0] === 'https://example/signed?sig=xyz' && opened[0][1] === '_blank',
+      JSON.stringify(opened));
+    log('no error toast on a successful open', toast === null, JSON.stringify(toast));
+    log('label restored after opening', link.textContent === 'investigation_new/1_photo.jpg', link.textContent);
+
+    // ── 2b. blocked popup: a real browser returns null from window.open ────
+    const realOpen = fakeWindow.open;
+    fakeWindow.open = () => null;
+    toast = null;
+    renderEvidenceUpload({ key: 'ev-blocked', name: 'blocked.jpg', storage_path: 'investigation_new/blocked.jpg' });
+    const rowB = list.querySelector('[data-evidence-key="ev-blocked"]');
+    const linkB = rowB.querySelector('.evidence-link');
+    linkB.click();
+    await tick();
+    await tick();
+    fakeWindow.open = realOpen;
+    log('blocked popup falls back to a real href',
+      linkB.getAttribute('href') === 'https://example/signed?sig=xyz' && linkB.getAttribute('target') === '_blank',
+      linkB.getAttribute('href') + ' / ' + linkB.getAttribute('target'));
+    log('blocked popup warns the user and is recoverable',
+      !!toast && toast.t === 'info' && /blocked the new tab/.test(toast.m),
+      JSON.stringify(toast));
+
+    // ── 3. a record with no stored path degrades cleanly ───────────────────
+    renderEvidenceUpload({ key: 'ev-2', name: 'orphan.txt' });
+    const row2 = list.querySelector('[data-evidence-key="ev-2"]');
+    log('path-less row renders without an anchor', !!row2 && !row2.querySelector('.evidence-link'),
+      row2 ? row2.innerHTML.slice(0, 80) : 'no row');
+    log('path-less row explains itself', !!row2 && /no stored file/.test(row2.textContent),
+      row2 ? row2.textContent : '');
+
+    // ── 4. escaping: a hostile name/path must not create markup ────────────
+    const before = document.querySelectorAll('#uploadedEvidenceList img').length;
+    renderEvidenceUpload({ key: 'ev-3', name: '<img src=x onerror="window.__xss=1">.jpg', storage_path: 'a/<b>.jpg' });
+    await tick();
+    const after = document.querySelectorAll('#uploadedEvidenceList img').length;
+    log('hostile file name/path creates no elements', before === after && window.__xss === undefined,
+      'imgs ' + before + '->' + after + ', xss=' + String(window.__xss));
+    const row3 = list.querySelector('[data-evidence-key="ev-3"]');
+    const link3 = row3 && row3.querySelector('.evidence-link');
+    log('hostile path is shown as literal text', !!link3 && link3.textContent === 'a/<b>.jpg',
+      link3 ? link3.textContent : 'none');
+
+    // ── 5. remove button still detaches the row ────────────────────────────
+    row3.querySelector('.evidence-remove-btn').click();
+    log('remove button detaches the row', !list.querySelector('[data-evidence-key="ev-3"]'), '');
+
+    // ── 6. the page must not reference a public URL for evidence ───────────
+    log('page never calls getPublicUrl', !/getPublicUrl/.test(pageSrc), 'grep of the page source');
+    log('page never stores public_url on evidence', !/public_url\s*:/.test(pageSrc), 'grep of the page source');
+  } catch (e) {
+    log('harness error', false, e && e.message);
+  }
+
+  const failed = results.filter(r => !r.pass);
+  window.__results = { failed: failed.length, total: results.length };
+  out.textContent = results.map(r => (r.pass ? 'PASS ' : 'FAIL ') + r.name + (r.detail ? '  [' + r.detail + ']' : '')).join('\n')
+    + '\n\n' + failed.length + ' failed / ' + results.length + ' checks';
+})();
+</script>
+</body>
+</html>

@@ -231,7 +231,10 @@
                     <span class="company-meta-item">🏭 <strong>Industry:</strong> <span id="companyIndustry">&mdash;</span></span>
                     <span class="company-meta-item">📍 <strong>Plot:</strong> <span id="companyPlot">&mdash;</span></span>
                     <span class="company-meta-item">🛣️ <strong>Street:</strong> <span id="companyStreet">&mdash;</span></span>
+                    <span class="company-meta-item">🗺️ <strong>District:</strong> <span id="companyDistrict">&mdash;</span></span>
+                    <span class="company-meta-item">🏙️ <strong>City/Town/Village:</strong> <span id="companyCity">&mdash;</span></span>
                     <span class="company-meta-item">🏠 <strong>Address:</strong> <span id="companyAddress">&mdash;</span></span>
+                    <span class="company-meta-item">✉️ <strong>Postal Address:</strong> <span id="companyPostal">&mdash;</span></span>
                     <span class="company-meta-item">📞 <strong>Phone:</strong> <span id="companyPhone">&mdash;</span></span>
                     <span class="company-meta-item">📋 <strong>CIPA No:</strong> <span id="companyCipa">&mdash;</span></span>
                 </div>
@@ -354,7 +357,12 @@
                 document.getElementById('companyIndustry').textContent = companyProfile.industry || 'Not specified';
                 document.getElementById('companyPlot').textContent = companyProfile.plot_number || '—';
                 document.getElementById('companyStreet').textContent = companyProfile.street_name || '—';
+                // district / city_town / postal_address arrive with
+                // company-employer-details-migration.sql; fall back cleanly first.
+                document.getElementById('companyDistrict').textContent = companyProfile.district || '—';
+                document.getElementById('companyCity').textContent = companyProfile.city_town || companyProfile.location || '—';
                 document.getElementById('companyAddress').textContent = companyProfile.physical_address || '—';
+                document.getElementById('companyPostal').textContent = companyProfile.postal_address || '—';
                 document.getElementById('companyPhone').textContent = companyProfile.telephone || 'Not specified';
 
                 document.getElementById('companyCipa').textContent = companyProfile.cipa_number || 'Not provided';
@@ -520,7 +528,10 @@
             { id:'companyIndustry', key:'industry' },
             { id:'companyPlot', key:'plot_number' },
             { id:'companyStreet', key:'street_name' },
+            { id:'companyDistrict', key:'district' },
+            { id:'companyCity', key:'city_town' },
             { id:'companyAddress', key:'physical_address' },
+            { id:'companyPostal', key:'postal_address' },
             { id:'companyPhone', key:'telephone' },
             { id:'companyCipa', key:'cipa_number' },
         ];
@@ -542,7 +553,7 @@
                 html += '</select>';
                 span.outerHTML = html;
             } else {
-                const wide = f.id === 'companyAddress' ? ' edit-inline-wide' : '';
+                const wide = (f.id === 'companyAddress' || f.id === 'companyPostal') ? ' edit-inline-wide' : '';
                 span.outerHTML = `<input type="text" id="${f.id}" class="edit-inline${wide}" value="${esc(current)}">`;
             }
         });
@@ -559,6 +570,14 @@
         document.getElementById('updateBtn').style.display = '';
         document.getElementById('updateActions').style.display = 'none';
         showToast('Changes discarded.', 'info');
+    }
+
+    // True when the failure is an unknown column, i.e. a migration has not run.
+    function isMissingColumnError(error) {
+        if (!error) return false;
+        if (error.code === '42703' || error.code === 'PGRST204') return true;
+        return /column .* does not exist/i.test(error.message || '') ||
+               /could not find the .* column/i.test(error.message || '');
     }
 
     async function saveCompanyDetails() {
@@ -579,12 +598,26 @@
                 industry:          document.getElementById('companyIndustry')?.value?.trim() || null,
                 plot_number:       document.getElementById('companyPlot')?.value?.trim() || null,
                 street_name:       document.getElementById('companyStreet')?.value?.trim() || null,
+                district:          document.getElementById('companyDistrict')?.value?.trim() || null,
+                city_town:         document.getElementById('companyCity')?.value?.trim() || null,
                 physical_address:  document.getElementById('companyAddress')?.value?.trim() || null,
+                postal_address:    document.getElementById('companyPostal')?.value?.trim() || null,
                 telephone:         document.getElementById('companyPhone')?.value?.trim() || null,
                 cipa_number:       document.getElementById('companyCipa')?.value?.trim() || null,
             };
 
-            const { error } = await SB.from('companies').update(updates).eq('id', companyProfile.id);
+            // district / city_town / postal_address only exist after
+            // company-employer-details-migration.sql has been run. If it has not,
+            // a single broad update would fail and take the working fields down
+            // with it, so retry without the new columns and say what is pending.
+            let { error } = await SB.from('companies').update(updates).eq('id', companyProfile.id);
+            let pendingMigration = false;
+            if (error && isMissingColumnError(error)) {
+                const reduced = Object.assign({}, updates);
+                ['district', 'city_town', 'postal_address'].forEach(k => delete reduced[k]);
+                pendingMigration = true;
+                ({ error } = await SB.from('companies').update(reduced).eq('id', companyProfile.id));
+            }
 
             btn.disabled = false;
             btn.textContent = '💾 Save Changes';
@@ -596,7 +629,10 @@
                 companyIndustry: updates.industry || 'Not specified',
                 companyPlot:     updates.plot_number || '—',
                 companyStreet:   updates.street_name || '—',
+                companyDistrict: updates.district || '—',
+                companyCity:     updates.city_town || '—',
                 companyAddress:  updates.physical_address || '—',
+                companyPostal:   updates.postal_address || '—',
                 companyPhone:    updates.telephone || 'Not specified',
                 companyCipa:     updates.cipa_number || 'Not provided',
             };
@@ -610,7 +646,11 @@
             editState = {};
             document.getElementById('updateBtn').style.display = '';
             document.getElementById('updateActions').style.display = 'none';
-            showToast('Company details updated successfully!', 'success');
+            if (pendingMigration) {
+                showToast('Saved. District, City/Town and Postal Address need company-employer-details-migration.sql to be run.', 'error');
+            } else {
+                showToast('Company details updated successfully!', 'success');
+            }
 
         } catch (err) {
             btn.disabled = false;

@@ -166,7 +166,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <h3 class="section-title">2. Employer Information</h3>
 <div class="form-row">
 <div class="form-group"><label>Name of Employer / Enterprise</label><input type="text" name="employer_name" placeholder="Registered name"></div>
-<div class="form-group"><label>Company Registration No.</label><input type="text" name="company_reg_no" placeholder="Company/business registration number"></div>
+<div class="form-group"><label>CIPA Registration No.</label><input type="text" name="company_reg_no" placeholder="Filled from the employer&rsquo;s stored CIPA number"></div>
 </div>
 <div class="form-row form-row-4">
 <div class="form-group"><label>District</label><input type="text" name="employer_district" placeholder="District where employer is located"></div>
@@ -731,6 +731,124 @@ if (formEl) {
         });
     }
 
+    // ── Injured person's age group ───────────────────────────────────────────
+    // Form 19 records an age GROUP, not an age. The age is already captured -
+    // either on the accident report (injured_age) or on the person's standing
+    // record in workers_registry (age_years / date_of_birth) - so the matching
+    // range is selected for the officer instead of being picked by hand.
+    var AGE_GROUPS = ['under-25', '25-34', '35-44', '45-54', '55-64', '65-plus'];
+
+    function ageGroupForAge(age) {
+        var a = parseInt(age, 10);
+        // A non-numeric or negative age must select nothing: it would otherwise
+        // fall through every comparison and land on the last range ('65-plus').
+        if (isNaN(a) || a < 0) return null;
+        if (a < 25) return 'under-25';
+        if (a < 35) return '25-34';
+        if (a < 45) return '35-44';
+        if (a < 55) return '45-54';
+        if (a < 65) return '55-64';
+        return '65-plus';
+    }
+    window.ageGroupForAge = ageGroupForAge;
+
+    // Whole years between a date of birth and a reference date (today).
+    function ageFromDateOfBirth(dob, reference) {
+        var raw = String(dob == null ? '' : dob).slice(0, 10);
+        if (!raw) return null;
+        var born = new Date(raw + 'T00:00:00');
+        if (isNaN(born.getTime())) return null;
+        var ref = reference || new Date();
+        var years = ref.getFullYear() - born.getFullYear();
+        var monthDiff = ref.getMonth() - born.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && ref.getDate() < born.getDate())) years--;
+        if (years < 0 || years > 130) return null;
+        return years;
+    }
+    window.ageFromDateOfBirth = ageFromDateOfBirth;
+
+    function selectAgeGroup(group) {
+        if (!group || AGE_GROUPS.indexOf(group) === -1) return false;
+        var el = formEl.querySelector('[name="age_group"][value="' + group + '"]');
+        if (!el) return false;
+        el.checked = true;
+        return true;
+    }
+
+    function hasAgeGroupSelected() {
+        var radios = formEl.querySelectorAll('[name="age_group"]');
+        for (var i = 0; i < radios.length; i++) { if (radios[i].checked) return true; }
+        return false;
+    }
+
+    // The injured person's standing record, matched the way the rest of the app
+    // does it: by registry id first, then by Omang/passport number.
+    var INJURED_PERSON_COLUMNS = ['id', 'full_name', 'id_number', 'age_years', 'date_of_birth', 'sex'];
+
+    async function fetchInjuredPersonRecord(acc) {
+        if (!acc) return null;
+        try {
+            if (acc.worker_registry_id) {
+                var byId = await supabaseClient
+                    .from('workers_registry')
+                    .select(INJURED_PERSON_COLUMNS.join(','))
+                    .eq('id', acc.worker_registry_id)
+                    .limit(1);
+                if (byId && byId.error) {
+                    console.warn('Injured person lookup failed:', byId.error.message);
+                }
+                var idRow = byId && !byId.error ? (Array.isArray(byId.data) ? byId.data[0] : byId.data) : null;
+                if (idRow) return idRow;
+            }
+            var raw = String(acc.injured_id_number == null ? '' : acc.injured_id_number).trim();
+            if (!raw) return null;
+            var normId = (window.normalizeIdentityId || function(v) {
+                return v.trim().toUpperCase().replace(/\s+/g, '');
+            })(raw);
+            var res = await supabaseClient
+                .from('workers_registry')
+                .select(INJURED_PERSON_COLUMNS.join(','))
+                .ilike('id_number', normId)
+                .limit(1);
+            if (res && res.error) {
+                console.warn('Injured person lookup failed:', res.error.message);
+                return null;
+            }
+            return (Array.isArray(res.data) ? res.data[0] : res.data) || null;
+        } catch (e) {
+            console.warn('Injured person lookup failed:', e);
+            return null;
+        }
+    }
+    window.fetchInjuredPersonRecord = fetchInjuredPersonRecord;
+
+    // Select the range from the recorded age straight away; consult the person's
+    // record (when there is something to look them up by) to fill in the date of
+    // birth the form also asks for, and to supply the age if the report has none.
+    function applyInjuredAgeGroup(acc) {
+        if (!acc) return;
+        var directGroup = ageGroupForAge(acc.injured_age);
+        if (directGroup) selectAgeGroup(directGroup);
+        if (!acc.worker_registry_id && !acc.injured_id_number) return;
+        if (typeof fetchInjuredPersonRecord !== 'function') return;
+
+        fetchInjuredPersonRecord(acc).then(function(person) {
+            if (!person) return;
+            var dobEl = formEl.querySelector('[name="injured_dob"]');
+            if (dobEl && !dobEl.value && person.date_of_birth) {
+                dobEl.value = String(person.date_of_birth).slice(0, 10);
+            }
+            if (hasAgeGroupSelected()) return;
+            var fromRecord = ageGroupForAge(person.age_years);
+            if (!fromRecord) {
+                var derived = ageFromDateOfBirth(person.date_of_birth, new Date());
+                fromRecord = derived === null ? null : ageGroupForAge(derived);
+            }
+            if (fromRecord) selectAgeGroup(fromRecord);
+        });
+    }
+    window.applyInjuredAgeGroup = applyInjuredAgeGroup;
+
     function fillFromAccident(acc) {
         if (!acc) return;
         var rd = document.getElementById('accidentLookupResults');
@@ -739,15 +857,12 @@ if (formEl) {
         if (caseNoEl) caseNoEl.value = acc.accident_case_number || '';
         // Map accident_reports fields onto the Form 19 inputs.
         // Anything already filled by the user is left untouched.
+        // NOTE: the accident report carries no employer address details, so the
+        // rest of the Employer Information block (CIPA registration number,
+        // district, city, plot, street, postal address, phone, sector) is filled
+        // from the company register further down this function - not from here.
         [
             ['employer_name',         acc.occupier_name],
-            ['company_reg_no',        null],
-            ['employer_district',     null],
-            ['employer_city',         null],
-            ['employer_plot',         null],
-            ['employer_street',       null],
-            ['employer_postal',       null],
-            ['employer_phone',        null],
             ['inv_district',          null],
             ['lead_investigator',     null],
             ['inv_ref_no',            null],
@@ -783,8 +898,14 @@ if (formEl) {
             var el = formEl.querySelector('[name="' + p[0] + '"]');
             if (el && p[1] && !el.value) el.value = p[1];
         });
+        // The employer name is now on the form, so pull the rest of the employer
+        // block (registration number, address, plot, street, phone, sector) from
+        // the company register entry of the same name.
+        var employerElNow = formEl.querySelector('[name="employer_name"]');
+        fillEmployerFromCompanyRecord((employerElNow && employerElNow.value) || acc.occupier_name, true);
+
         if (acc.injured_sex) {
-            var r = formEl.querySelector('[name="sex"][value="' + acc.injured_sex.toLowerCase() + '"]');
+            var r = formEl.querySelector('[name="sex"][value="' + String(acc.injured_sex).trim().toLowerCase() + '"]');
             if (r) r.checked = true;
         }
         if (acc.injury_fatal) {
@@ -802,18 +923,9 @@ if (formEl) {
                 sel.value = acc.disabled_three_days === 'Yes' ? '4-plus' : '0-3';
             }
         }
-        if (acc.injured_age) {
-            var a = parseInt(acc.injured_age);
-            var g = '';
-            if (a < 25) g = 'under-25';
-            else if (a < 35) g = '25-34';
-            else if (a < 45) g = '35-44';
-            else if (a < 55) g = '45-54';
-            else if (a < 65) g = '55-64';
-            else g = '65-plus';
-            var el = formEl.querySelector('[name="age_group"][value="" + g + ""]');
-            if (el) el.checked = true;
-        }
+        // Age Group, pulled from the age already captured for the injured person.
+        applyInjuredAgeGroup(acc);
+
         // Injury result checkboxes
         if (acc.injury_fatal) {
             if (acc.injury_fatal === 'Fatal') {
@@ -884,12 +996,131 @@ if (formEl) {
             'disabled_three_days', 'report_date', 'status', 'investigation_status',
             'causation_number'
         ]).then(function(acc) {
-            if (acc) {
+            if (!acc) return;
+            // Isolate each step: one bad field must not abort the whole autofill
+            // (a throw here used to surface as an unhandled promise rejection).
+            try {
                 if (typeof fillFromAccident === 'function') fillFromAccident(acc);
-                if (typeof window.syncAssignedOfficerToLeadInvestigator === 'function') window.syncAssignedOfficerToLeadInvestigator(accidentId);
+            } catch (e) {
+                console.warn('Accident autofill failed:', e);
             }
+            try {
+                if (typeof window.syncAssignedOfficerToLeadInvestigator === 'function') window.syncAssignedOfficerToLeadInvestigator(accidentId);
+            } catch (e) {
+                console.warn('Lead investigator prefill failed:', e);
+            }
+        }).catch(function(e) {
+            console.warn('Accident selection failed:', e);
         });
     };
+
+    // ── Employer Information block, filled from the company register ────────
+    // Everything the form asks about the employer (CIPA registration number,
+    // district, city/town, plot, street, postal address, telephone, sector) is
+    // held against the company in `companies`, linked by company_name - the same
+    // match the rest of the app uses. So the block is looked up, not typed out.
+    var EMPLOYER_COMPANY_COLUMNS = [
+        'cipa_number', 'plot_number', 'street_name', 'telephone', 'industry',
+        'location', 'physical_address', 'district', 'city_town', 'postal_address'
+    ];
+    // Added by company-employer-details-migration.sql. Until that migration has
+    // been run the lookup retries without them, so autofill still works.
+    var EMPLOYER_COMPANY_OPTIONAL_COLUMNS = ['district', 'city_town', 'postal_address'];
+
+    async function fetchEmployerCompanyRecord(employerName) {
+        var name = String(employerName == null ? '' : employerName).trim();
+        if (!name) return null;
+        // Escape ilike wildcards so a name containing _ or % can't match a
+        // different company and put the wrong employer details on the form.
+        var pattern = name.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+        var attempt = function(cols) {
+            return supabaseClient
+                .from('companies')
+                .select(cols.join(','))
+                .ilike('company_name', pattern)
+                .limit(1);
+        };
+        try {
+            var res = await attempt(EMPLOYER_COMPANY_COLUMNS);
+            if (res && res.error) {
+                var reduced = EMPLOYER_COMPANY_COLUMNS.filter(function(c) {
+                    return EMPLOYER_COMPANY_OPTIONAL_COLUMNS.indexOf(c) === -1;
+                });
+                res = await attempt(reduced);
+            }
+            if (res && res.error) {
+                console.warn('Employer company lookup failed:', res.error.message);
+                return null;
+            }
+            var row = Array.isArray(res.data) ? res.data[0] : res.data;
+            return row || null;
+        } catch (e) {
+            console.warn('Employer company lookup failed:', e);
+            return null;
+        }
+    }
+    window.fetchEmployerCompanyRecord = fetchEmployerCompanyRecord;
+
+    // The company's industry is chosen from the register's own list, which does
+    // not match Form 19's sector options, so map it onto one of those options.
+    var EMPLOYER_SECTORS = ['agriculture', 'construction', 'manufacturing', 'mining',
+        'retail', 'services', 'transport', 'hospitality', 'healthcare', 'other'];
+
+    function normalizeEmploymentSector(industry) {
+        var v = String(industry == null ? '' : industry).trim().toLowerCase();
+        if (!v) return '';
+        if (v === 'government' || v === 'parastatal') return 'other';
+        if (EMPLOYER_SECTORS.indexOf(v) !== -1) return v;
+        for (var i = 0; i < EMPLOYER_SECTORS.length; i++) {
+            if (v.indexOf(EMPLOYER_SECTORS[i]) !== -1) return EMPLOYER_SECTORS[i];
+        }
+        return 'other';
+    }
+    window.normalizeEmploymentSector = normalizeEmploymentSector;
+
+    // Fill the Employer Information block. Never overwrites a value already on
+    // screen, so an officer's manual entries are not clobbered.
+    function fillEmployerFromCompanyRecord(employerName, notifyMissing) {
+        if (!employerName) return;
+        fetchEmployerCompanyRecord(employerName).then(function(company) {
+            if (!company) {
+                if (notifyMissing && typeof showToast === 'function') {
+                    showToast('No company record found for ' + employerName, 'info');
+                }
+                return;
+            }
+            var pairs = [
+                ['company_reg_no',    company.cipa_number],
+                ['employer_district', company.district],
+                ['employer_city',     company.city_town || company.location],
+                ['employer_plot',     company.plot_number],
+                ['employer_street',   company.street_name],
+                ['employer_postal',   company.postal_address],
+                ['employer_phone',    company.telephone],
+                ['employer_sector',   normalizeEmploymentSector(company.industry)]
+            ];
+            var filled = [];
+            pairs.forEach(function(p) {
+                var el = formEl.querySelector('[name="' + p[0] + '"]');
+                if (!el || el.value) return;
+                if (p[1] == null || p[1] === '') return;
+                el.value = p[1];
+                filled.push(p[0]);
+            });
+            if (filled.length && typeof showToast === 'function') {
+                showToast('Filled ' + filled.length + ' employer field(s) from the company record', 'info');
+            }
+        });
+    }
+    window.fillEmployerFromCompanyRecord = fillEmployerFromCompanyRecord;
+
+    // Typing the employer by hand (no accident selected) also pulls the details.
+    var employerNameEl = formEl.querySelector('[name="employer_name"]');
+    if (employerNameEl) {
+        employerNameEl.addEventListener('blur', function() {
+            fillEmployerFromCompanyRecord(employerNameEl.value, false);
+        });
+    }
 
     window.clearAccidentSelection = function() {
         var caseNoEl = formEl.querySelector('[name="case_no"]');
@@ -1154,8 +1385,16 @@ if (formEl) {
     // ── Evidence upload (Supabase Storage-backed) ────────────────────────────────
     var _evidenceFiles = [];
 
-    // Bucket name for Form 19 evidence. Must exist in Supabase Storage before use.
+    // Bucket name for Form 19 evidence. Must exist in Supabase Storage before use
+    // (see storage-form19-evidence.sql). The bucket is PRIVATE, so nothing here
+    // may rely on a permanent public URL.
     var EVIDENCE_BUCKET = 'form-19-evidence';
+
+    // Signed-URL settings. EVIDENCE_URL_TTL is what the server honours;
+    // EVIDENCE_URL_REFRESH re-mints before the link can go stale, because a
+    // signed URL that has expired opens as a 400 in a new tab.
+    var EVIDENCE_URL_TTL = 3600;      // seconds
+    var EVIDENCE_URL_REFRESH = 3000;  // seconds we trust a cached link
 
     // Current investigation id when editing/viewing an existing record.
     var _currentInvestigationId = null;
@@ -1181,6 +1420,54 @@ if (formEl) {
         input.click();
     };
 
+    // Mint a short-lived signed URL for a private evidence object.
+    // Resolves to null (never rejects) so callers can show a clean message.
+    function mintEvidenceSignedUrl(path) {
+        if (!path) return Promise.resolve(null);
+        return window.supabaseClient.storage.from(EVIDENCE_BUCKET)
+            .createSignedUrl(path, EVIDENCE_URL_TTL)
+            .then(function(res) {
+                if (res && res.error) {
+                    console.error('Signed URL failed for ' + path, res.error);
+                    return null;
+                }
+                return (res && res.data && res.data.signedUrl) ? res.data.signedUrl : null;
+            })
+            .catch(function(err) {
+                console.error('Signed URL threw for ' + path, err);
+                return null;
+            });
+    }
+    window.mintEvidenceSignedUrl = mintEvidenceSignedUrl;
+
+    // Turn a Storage API error into something actionable. Supabase returns a bare
+    // HTTP 400 for several very different problems (bucket missing, no storage
+    // policy, blocked mime type, size limit), and the request log alone can't
+    // tell them apart — so classify the server message and say what to do.
+    function describeStorageError(err, fileName) {
+        if (!err) return 'Upload failed (no error details returned)';
+        var message = err.message || String(err);
+        var detail = [];
+        if (err.statusCode) detail.push('HTTP ' + err.statusCode);
+        if (err.error) detail.push(err.error);
+        var low = String(message).toLowerCase();
+        var hint = '';
+        if (low.indexOf('bucket not found') !== -1) {
+            hint = 'The storage bucket "' + EVIDENCE_BUCKET + '" does not exist yet - create it in Supabase Storage (or run storage-form19-evidence.sql).';
+        } else if (low.indexOf('row-level security') !== -1 || low.indexOf('policy') !== -1) {
+            hint = 'No storage policy allows this upload - the bucket is missing its upload policies for signed-in users.';
+        } else if (low.indexOf('mime') !== -1 || low.indexOf('content type') !== -1) {
+            hint = 'The bucket rejects this file type (' + (fileName ? fileName.split('.').pop() : 'unknown') + ').';
+        } else if (low.indexOf('exceeded') !== -1 || low.indexOf('too large') !== -1 || low.indexOf('maximum') !== -1) {
+            hint = 'The file is larger than the bucket\u2019s size limit.';
+        } else if (low.indexOf('already exists') !== -1) {
+            hint = 'A file with this name already exists in the bucket.';
+        } else if (low.indexOf('invalid') !== -1) {
+            hint = 'The request was rejected as invalid - check the bucket name and that your session is still valid.';
+        }
+        return [message].concat(detail).join(' \u00b7 ') + (hint ? ' - ' + hint : '');
+    }
+
     window.uploadEvidenceFiles = function(files) {
         if (!files || files.length === 0) return;
         if (typeof showToast === 'function') showToast('Uploading ' + files.length + ' file(s)...', 'info');
@@ -1199,24 +1486,26 @@ if (formEl) {
             window.supabaseClient.storage.from(EVIDENCE_BUCKET).upload(path, file, { upsert: false })
                 .then(function(uploadResult) {
                     if (uploadResult.error) {
-                        failed.push({ name: file.name, error: uploadResult.error.message });
+                        // Full object to the console so the real cause is never lost.
+                        console.error('Evidence upload failed for ' + path, uploadResult.error);
+                        failed.push({ name: file.name, error: describeStorageError(uploadResult.error, file.name) });
                         next();
                         return;
                     }
-                    var publicResult = window.supabaseClient.storage.from(EVIDENCE_BUCKET).getPublicUrl(path);
-                    var publicUrl = publicResult && publicResult.publicUrl ? publicResult.publicUrl : path;
+                    // No public URL: the bucket is private, so we persist the
+                    // path only and mint a signed link whenever it is opened.
                     uploaded.push({
                         key: 'ev-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
                         name: file.name,
                         storage_path: path,
-                        public_url: publicUrl,
                         size: file.size,
                         type: file.type || 'application/octet-stream'
                     });
                     next();
                 })
                 .catch(function(err) {
-                    failed.push({ name: file.name, error: err && err.message ? err.message : String(err) });
+                    console.error('Evidence upload threw for ' + path, err);
+                    failed.push({ name: file.name, error: describeStorageError(err, file.name) });
                     next();
                 });
         }
@@ -1235,7 +1524,7 @@ if (formEl) {
                 div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #fca5a5;border-radius:6px;margin-bottom:6px;background:#fef2f2';
                 div.innerHTML = '<span style="font-size:14px">\u2716</span>' +
                     '<span style="flex:1;font-size:13px;color:#b91c1c">' + esc(f.name) + '</span>' +
-                    '<span style="font-size:11px;color:#b91c1c">' + esc(f.error) + '</span>';
+                    '<span style="max-width:60%;word-break:break-word;text-align:right;font-size:11px;color:#b91c1c">' + esc(f.error) + '</span>';
                 list.appendChild(div);
             });
             _evidenceFiles = _evidenceFiles.concat(uploaded);
@@ -1268,14 +1557,53 @@ if (formEl) {
         return _evidenceFiles.slice();
     };
 
+    // Open a private evidence object via a freshly minted signed URL.
+    function wireEvidenceLink(link, path) {
+        var label = link.textContent;
+        var cachedUrl = null;
+        var mintedAt = 0;
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (cachedUrl && (Date.now() - mintedAt) < EVIDENCE_URL_REFRESH * 1000) {
+                window.open(cachedUrl, '_blank', 'noopener');
+                return;
+            }
+            link.textContent = 'Preparing link\u2026';
+            mintEvidenceSignedUrl(path).then(function(url) {
+                link.textContent = label;
+                if (!url) {
+                    if (typeof showToast === 'function') {
+                        showToast('Could not open ' + path + ' - the file may have been removed.', 'error');
+                    }
+                    return;
+                }
+                cachedUrl = url;
+                mintedAt = Date.now();
+                // Minting is async, so the user gesture may have expired and the
+                // browser can block a programmatic tab. If it does, turn the label
+                // into a real link so the next click is an ordinary navigation.
+                var opened = window.open(url, '_blank', 'noopener');
+                if (!opened) {
+                    link.setAttribute('href', url);
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener');
+                    if (typeof showToast === 'function') {
+                        showToast('Your browser blocked the new tab \u2014 click the file name again to open it.', 'info');
+                    }
+                }
+            });
+        });
+    }
+
     // Render a stored evidence file into the in-form list.
     window.renderEvidenceUpload = function(file) {
         if (!file || !file.name) return;
         var list = document.getElementById('uploadedEvidenceList');
         if (!list) return;
+        var storedPath = file.storage_path || file.path || '';
         var div = document.createElement('div');
         div.setAttribute('data-evidence-key', file.key || '');
-        div.setAttribute('data-evidence-path', file.storage_path || file.path || '');
+        div.setAttribute('data-evidence-path', storedPath);
         div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;margin-bottom:6px;background:#fafafa';
         var icon = file.type && file.type.indexOf('image/') === 0 ? '\u{1F5BC}' :
             file.type && file.type.indexOf('pdf') === 0 ? '\u{1F4C4}' : '\u{1F4C1}';
@@ -1284,9 +1612,13 @@ if (formEl) {
             '<span style="font-size:14px">' + icon + '</span>' +
             '<span style="flex:1;font-size:13px">' + esc(file.name) + '</span>' +
             (sizeText ? '<span style="font-size:11px;color:#666">' + sizeText + '</span>' : '') +
-            '<a href="' + esc(file.public_url || '') + '" target="_blank" style="font-size:11px;color:#0c5460;text-decoration:underline">' + esc(file.storage_path || file.path || '') + '</a>' +
+            (storedPath
+                ? '<a class="evidence-link" role="button" title="Open a temporary private link" style="font-size:11px;color:#0c5460;text-decoration:underline;cursor:pointer">' + esc(storedPath) + '</a>'
+                : '<span style="font-size:11px;color:#888">no stored file</span>') +
             '<button type="button" class="action-btn evidence-remove-btn" style="padding:2px 6px" title="Remove from list">\u2715</button>';
         list.appendChild(div);
+        var link = div.querySelector('.evidence-link');
+        if (link) wireEvidenceLink(link, storedPath);
         var rmBtn = div.querySelector('.evidence-remove-btn');
         if (rmBtn) {
             rmBtn.addEventListener('click', function() {

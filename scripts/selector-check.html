@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Form 19 selector check</title></head>
+<body>
+<pre id="out">running…</pre>
+<script>
+(async function () {
+  const results = [];
+  const log = (name, pass, detail) => results.push({ name, pass, detail });
+  const out = document.getElementById('out');
+
+  try {
+    const src = await (await fetch('../OHS_Form19_Full.html?t=' + Date.now())).text();
+    const doc = new DOMParser().parseFromString(src, 'text/html');
+
+    // Pull the ACTUAL selector expressions out of the page source.
+    function extractExpr(lambda) {
+      const m = new RegExp(lambda + String.raw`\.querySelector\((['"][\s\S]*?)\);`).exec(src);
+      return m ? m[1] : null;
+    }
+    const ageExpr = extractExpr('formEl');
+    // age is the one whose expression mentions age_group
+    const ageM = /formEl\.querySelector\(('[^']*age_group[^']*'[\s\S]*?)\);/.exec(src);
+    const sexM = /formEl\.querySelector\(('[^']*name="sex"[^']*'[\s\S]*?)\);/.exec(src);
+    if (!sexM) throw new Error('could not find sex selector expression in source');
+    const sexSource = sexM[1];
+    log('extracted sex expression', true, sexSource);
+
+    // ── Sanity: the radios we expect to exist are really in the page ────────
+    const ageRadios = [...doc.querySelectorAll('input[name="age_group"]')].map(r => r.value);
+    const expectedAges = ['under-25', '25-34', '35-44', '45-54', '55-64', '65-plus'];
+    log('form has 6 age_group radios', ageRadios.length === 6, JSON.stringify(ageRadios));
+    log('age_group values match autofill buckets',
+      expectedAges.every(v => ageRadios.includes(v)), JSON.stringify(ageRadios));
+
+    // ── Negative control: the ORIGINAL expression really was invalid ────────
+    let oldThrew = null;
+    try {
+      doc.querySelector('[name="age_group"][value="" + g + ""]');
+    } catch (e) {
+      oldThrew = e.name + ': ' + e.message;
+    }
+    log('OLD expression is rejected by the browser (reproduces report)',
+      !!oldThrew && /is not a valid selector/.test(oldThrew), String(oldThrew));
+
+    // NOTE: the low-level probe that eval'd the age selector expression is gone.
+    // The page now builds that selector inside selectAgeGroup(), and the section
+    // below runs the real functions against the real radios - a strictly stronger
+    // check than evaluating the expression on its own.
+
+    // ── Age Group, from the recorded age, against the real form radios ──────
+    const grabAge = (re, label) => {
+      const m = re.exec(src);
+      if (!m) throw new Error('could not extract ' + label);
+      return m[1];
+    };
+    const ageGroupsSrc = grabAge(/(var AGE_GROUPS = \[[\s\S]*?\];)/, 'AGE_GROUPS');
+    const ageColsSrc = grabAge(/(var INJURED_PERSON_COLUMNS = \[[\s\S]*?\];)/, 'INJURED_PERSON_COLUMNS');
+    const ageGroupForSrc = grabAge(/(function ageGroupForAge\(age\) \{[\s\S]*?\n    \})/, 'ageGroupForAge');
+    const ageDobSrc = grabAge(/(function ageFromDateOfBirth\(dob, reference\) \{[\s\S]*?\n    \})/, 'ageFromDateOfBirth');
+    const ageSelectSrc = grabAge(/(function selectAgeGroup\(group\) \{[\s\S]*?\n    \})/, 'selectAgeGroup');
+    const ageHasSrc = grabAge(/(function hasAgeGroupSelected\(\) \{[\s\S]*?\n    \})/, 'hasAgeGroupSelected');
+    const agePersonSrc = grabAge(/(async function fetchInjuredPersonRecord\(acc\) \{[\s\S]*?\n    \})/, 'fetchInjuredPersonRecord');
+    const ageApplySrc = grabAge(/(function applyInjuredAgeGroup\(acc\) \{[\s\S]*?\n    \})/, 'applyInjuredAgeGroup');
+
+    const realFormEl = doc.querySelector('#form19') || doc.body;
+    const ageRadioEls = () => [...realFormEl.querySelectorAll('[name="age_group"]')];
+    const checkedAges = () => ageRadioEls().filter(r => r.checked).map(r => r.value);
+    const resetAges = () => ageRadioEls().forEach(r => { r.checked = false; });
+    log('the form offers all six age ranges', ageRadioEls().length === 6,
+      ageRadioEls().map(r => r.value).join(','));
+
+    let personResponses = [];
+    const ageClient = {
+      from: () => ({
+        select() { return this; },
+        eq() { return this; },
+        ilike(col, val) { this._ilike = { col, val }; return this; },
+        limit() { return Promise.resolve(personResponses.shift() || { data: [], error: null }); }
+      })
+    };
+    const ageApi = new Function('supabaseClient', 'formEl', 'window', 'console',
+      ageGroupsSrc + '\n' + ageColsSrc + '\n' + ageGroupForSrc + '\n' + ageDobSrc + '\n' + ageSelectSrc + '\n' + ageHasSrc +
+      '\n' + agePersonSrc + '\n' + ageApplySrc +
+      '\nreturn { ageGroupForAge, ageFromDateOfBirth, applyInjuredAgeGroup, AGE_GROUPS };')
+      (ageClient, realFormEl, {}, console);
+    log('extracted the real age functions', true,
+      [ageGroupForSrc, ageDobSrc, agePersonSrc, ageApplySrc].map(s => s.split('\n').length).join('+') + ' lines');
+    log('the page\u2019s range list matches the form radios',
+      JSON.stringify(ageApi.AGE_GROUPS) === JSON.stringify(ageRadioEls().map(r => r.value)),
+      JSON.stringify(ageApi.AGE_GROUPS));
+
+    for (const age of [17, 24, 25, 34, 44, 54, 64, 65, 91]) {
+      resetAges();
+      personResponses = [{ data: [], error: null }];
+      ageApi.applyInjuredAgeGroup({ injured_age: age, injured_id_number: 'x' });
+      const got = checkedAges();
+      log('recorded age ' + age + ' checks ' + JSON.stringify(got),
+        got.length === 1 && got[0] === ageApi.ageGroupForAge(age), 'got=' + JSON.stringify(got));
+    }
+
+    for (const bad of ['', 'unknown', 'N/A']) {
+      resetAges();
+      personResponses = [{ data: [], error: null }];
+      ageApi.applyInjuredAgeGroup({ injured_age: bad, injured_id_number: 'x' });
+      log('age ' + JSON.stringify(bad) + ' checks no range', checkedAges().length === 0, JSON.stringify(checkedAges()));
+    }
+
+    // record-only path: no age on the report, the person's record supplies it
+    resetAges();
+    personResponses = [{ data: [{ age_years: 47, date_of_birth: '1979-03-02' }], error: null }];
+    ageApi.applyInjuredAgeGroup({ injured_age: null, worker_registry_id: 'w-test' });
+    await new Promise(r => setTimeout(r, 0));
+    log('an age from the person\u2019s record selects the range',
+      JSON.stringify(checkedAges()) === JSON.stringify(['45-54']), JSON.stringify(checkedAges()));
+    const dobInput = realFormEl.querySelector('[name="injured_dob"]');
+    log('and the date of birth lands in the real date input',
+      !!dobInput && dobInput.value === '1979-03-02', dobInput ? dobInput.value : 'no field');
+
+    resetAges();
+    personResponses = [{ data: [{ age_years: 30, date_of_birth: '1996-01-01' }], error: null }];
+    ageApi.applyInjuredAgeGroup({ injured_age: 30, worker_registry_id: 'w-test' });
+    log('only ever one range is checked', checkedAges().length === 1, JSON.stringify(checkedAges()));
+
+    // ── CIPA registration number: real code against the real form markup ────
+    const regEl = doc.querySelector('[name="company_reg_no"]');
+    const empEl = doc.querySelector('[name="employer_name"]');
+    log('form has an employer name field', !!empEl, empEl ? empEl.outerHTML.slice(0, 60) : 'missing');
+    log('form has a company registration field', !!regEl, regEl ? 'name=company_reg_no' : 'missing');
+    const regGroup = regEl && regEl.closest ? regEl.closest('.form-group') : null;
+    const regLabel = regGroup ? (regGroup.querySelector('label') || {}).textContent : '';
+    log('the field is labelled as the CIPA registration number', /cipa/i.test(regLabel || ''), String(regLabel));
+    log('the field no longer invites a free-typed number',
+      !/placeholder="Company\/business/.test(src), 'placeholder changed');
+
+    // The employer block (CIPA number, district, city, plot, street, postal,
+    // phone, sector) must fill from the company register through the real code.
+    const grabPage = (re, label) => {
+      const m = re.exec(src);
+      if (!m) throw new Error('could not extract ' + label);
+      return m[1];
+    };
+    const colsSrc = grabPage(/(var EMPLOYER_COMPANY_COLUMNS = \[[\s\S]*?\];)/, 'EMPLOYER_COMPANY_COLUMNS');
+    const optSrc = grabPage(/(var EMPLOYER_COMPANY_OPTIONAL_COLUMNS = \[[^\]]*\];)/, 'EMPLOYER_COMPANY_OPTIONAL_COLUMNS');
+    const sectorsSrc = grabPage(/(var EMPLOYER_SECTORS = \[[\s\S]*?\];)/, 'EMPLOYER_SECTORS');
+    const fetchEmpSrc = grabPage(/(async function fetchEmployerCompanyRecord\(employerName\) \{[\s\S]*?\n    \})/, 'fetchEmployerCompanyRecord');
+    const sectorSrc = grabPage(/(function normalizeEmploymentSector\(industry\) \{[\s\S]*?\n    \})/, 'normalizeEmploymentSector');
+    const fillEmpSrc = grabPage(/(function fillEmployerFromCompanyRecord\(employerName, notifyMissing\) \{[\s\S]*?\n    \})/, 'fillEmployerFromCompanyRecord');
+    log('extracted the real employer fill functions', true,
+      [fetchEmpSrc, sectorSrc, fillEmpSrc].map(s => s.split('\n').length).join('+') + ' lines');
+
+    const empCalls = [];
+    const empClient = {
+      from: (table) => ({
+        select() { return this; },
+        ilike(col, pattern) { this._ilike = { col, pattern }; return this; },
+        limit(n) {
+          empCalls.push({ table, ilike: this._ilike, limit: n });
+          return Promise.resolve({ data: [{
+            cipa_number: 'cipa 000000012', district: 'South East', city_town: 'Gaborone',
+            plot_number: 'Plot 12345', street_name: 'Kgale View', postal_address: 'P.O. Box 123',
+            telephone: '+267 71234567', industry: 'Manufacturing', location: 'Gaborone'
+          }], error: null });
+        }
+      })
+    };
+    const realForm = doc.querySelector('#form19') || doc.body;
+    const clearEmployerFields = () => realForm.querySelectorAll(
+      '[name="company_reg_no"],[name="employer_district"],[name="employer_city"],' +
+      '[name="employer_plot"],[name="employer_street"],[name="employer_postal"],' +
+      '[name="employer_phone"],[name="employer_sector"]').forEach(el => { el.value = ''; });
+    clearEmployerFields();
+
+    const empApi = new Function('supabaseClient', 'formEl', 'showToast', 'console',
+      colsSrc + '\n' + optSrc + '\n' + sectorsSrc + '\n' + fetchEmpSrc + '\n' + sectorSrc + '\n' + fillEmpSrc +
+      '\nreturn { fetchEmployerCompanyRecord, normalizeEmploymentSector, fillEmployerFromCompanyRecord };')
+      (empClient, realForm, () => {}, console);
+
+    empApi.fillEmployerFromCompanyRecord('Acme Ltd', false);
+    await new Promise(r => setTimeout(r, 0));
+    const val = (name) => {
+      const el = realForm.querySelector('[name="' + name + '"]');
+      return el ? el.value : null;
+    };
+    log('the page\u2019s own code fills the real registration input', val('company_reg_no') === 'cipa 000000012',
+      'value=' + JSON.stringify(val('company_reg_no')));
+    log('and the real district / city inputs',
+      val('employer_district') === 'South East' && val('employer_city') === 'Gaborone',
+      JSON.stringify([val('employer_district'), val('employer_city')]));
+    log('and the real plot / street / postal inputs',
+      val('employer_plot') === 'Plot 12345' && val('employer_street') === 'Kgale View' &&
+      val('employer_postal') === 'P.O. Box 123',
+      JSON.stringify([val('employer_plot'), val('employer_street'), val('employer_postal')]));
+    log('and the real phone input and sector select',
+      val('employer_phone') === '+267 71234567' && val('employer_sector') === 'manufacturing',
+      JSON.stringify([val('employer_phone'), val('employer_sector')]));
+    log('every employer field on the real form was reachable',
+      ['company_reg_no','employer_district','employer_city','employer_plot','employer_street','employer_postal','employer_phone','employer_sector']
+        .every(n => realForm.querySelector('[name="' + n + '"]')),
+      'all 8 present in the markup');
+    log('the employer lookup hit companies by company_name',
+      empCalls.length === 1 && empCalls[0].table === 'companies' &&
+      empCalls[0].ilike.col === 'company_name' && empCalls[0].limit === 1,
+      JSON.stringify(empCalls));
+    log('the sector select received a value it actually offers',
+      [...doc.querySelectorAll('[name="employer_sector"] option')]
+        .some(o => o.value === 'manufacturing'), 'manufacturing is an option');
+
+    log('employer_name has a blur handler wired to the lookup',
+      /employerNameEl\.addEventListener\('blur'/.test(src) &&
+      /fillEmployerFromCompanyRecord\(employerNameEl\.value, false\)/.test(src), 'source wiring');
+    log('accident autofill also fills the employer block',
+      /fillEmployerFromCompanyRecord\(\(employerElNow && employerElNow\.value\) \|\| acc\.occupier_name, true\)/.test(src),
+      'source wiring');
+
+    const wpSrc = await (await fetch('../worker-portal.js?t=' + Date.now())).text();
+    log('worker portal reads cipa_number, not a phantom column',
+      /comp\.cipa_number/.test(wpSrc) && !/comp\.registration_number/.test(wpSrc),
+      'worker-portal.js');
+    log('worker portal no longer reads other non-existent columns',
+      !/comp\.(status|phone|email|postal_address)\b/.test(wpSrc), 'worker-portal.js');
+
+    // ── sex selector (same pattern, Male/Female from DB) ────────────────────
+    for (const dbVal of ['Male', 'Female', 'male', 'Female ']) {
+      const acc = { injured_sex: dbVal };
+      let sel, el = null, err = null;
+      try {
+        sel = eval(sexSource);
+        el = doc.querySelector(sel);
+      } catch (e) { err = e.message; }
+      const want = dbVal.trim().toLowerCase();
+      log('injured_sex "' + dbVal + '" -> radio ' + want,
+        !err && el && el.getAttribute('value') === want,
+        'sel=' + sel + ' err=' + (err || 'none') + ' matched=' + (el ? el.getAttribute('value') : 'null'));
+    }
+
+    // ── No other broken `querySelector(` concat literals in the file ────────
+    const bad = [];
+    const re = /querySelector\(\s*'([^']*)'/g;
+    let m;
+    while ((m = re.exec(src))) {
+      const s = m[1];
+      if (/"[^']*"\+|"\+|"\"\s*\+\s*g/.test(s) || /="" \+/.test(s)) bad.push(s);
+    }
+    log('no remaining broken selector literals', bad.length === 0, JSON.stringify(bad));
+  } catch (e) {
+    log('harness error', false, e && e.message);
+  }
+
+  const failed = results.filter(r => !r.pass);
+  window.__results = { results, failed: failed.length, total: results.length };
+  out.textContent = results.map(r => (r.pass ? 'PASS ' : 'FAIL ') + r.name + '  [' + r.detail + ']').join('\n')
+    + '\n\n' + failed.length + ' failed / ' + results.length + ' checks';
+})();
+</script>
+</body>
+</html>

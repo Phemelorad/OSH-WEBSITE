@@ -23,6 +23,20 @@
         return formRole;
     }
 
+    // True when a write failed because a column does not exist yet, i.e. one of
+    // the optional migrations has not been run. Lets callers retry without the
+    // new columns instead of failing the whole operation.
+    function isMissingColumnError(error) {
+        if (!error) return false;
+        if (error.code === '42703' || error.code === 'PGRST204') return true;
+        return /column .* does not exist/i.test(error.message || '') ||
+               /could not find the .* column/i.test(error.message || '');
+    }
+
+    // Columns added by company-employer-details-migration.sql. Kept in one place
+    // so the create path can drop them when that migration has not been run.
+    const OPTIONAL_COMPANY_COLUMNS = ['district', 'city_town', 'postal_address'];
+
     function handleError(error) {
         console.error('Error:', error);
         if (error.message) {
@@ -53,8 +67,11 @@
                         company_owner_name: userData.ownerName || null,
                         company_owner_email: userData.ownerEmail || null,
                         company_cipa_number: userData.cipaNumber || null,
+                        company_district: userData.district || null,
+                        company_city_town: userData.cityTown || null,
                         company_plot_number: userData.plotNumber || null,
                         company_street_name: userData.streetName || null,
+                        company_postal_address: userData.postalAddress || null,
                         company_physical_address: userData.physicalAddress || null,
                         practice_name: userData.practiceName || null,
                         med_reg_number: userData.medRegNumber || null,
@@ -139,15 +156,30 @@
                             owner_name: metadata.company_owner_name || null,
                             owner_email: metadata.company_owner_email || null,
                             cipa_number: metadata.company_cipa_number || null,
+                            district: metadata.company_district || null,
+                            city_town: metadata.company_city_town || null,
                             plot_number: metadata.company_plot_number || null,
                             street_name: metadata.company_street_name || null,
+                            postal_address: metadata.company_postal_address || null,
                             physical_address: metadata.company_physical_address || null
                         };
-                        const { data: newCompany, error: ce } = await supabaseClient
+                        let { data: newCompany, error: ce } = await supabaseClient
                             .from('companies')
                             .insert([companyFields])
                             .select('id')
                             .maybeSingle();
+
+                        // If the optional columns are not there yet, create the
+                        // company without them rather than failing signup.
+                        if (ce && isMissingColumnError(ce)) {
+                            const reduced = Object.assign({}, companyFields);
+                            OPTIONAL_COMPANY_COLUMNS.forEach(function(col) { delete reduced[col]; });
+                            ({ data: newCompany, error: ce } = await supabaseClient
+                                .from('companies')
+                                .insert([reduced])
+                                .select('id')
+                                .maybeSingle());
+                        }
 
                         if (ce) {
                             console.warn('Company creation failed:', ce);

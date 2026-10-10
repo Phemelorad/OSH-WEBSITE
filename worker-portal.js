@@ -361,11 +361,14 @@ async function loadCompany() {
       if (comp) {
         companyInfo.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
           '<div><div style="font-size:12px;color:#5f6368">Company Name</div><div style="font-weight:500">'+esc(comp.company_name)+'</div></div>' +
-          '<div><div style="font-size:12px;color:#5f6368">Registration #</div><div style="font-weight:500">'+esc(comp.registration_number||'N/A')+'</div></div>' +
+// Registration number = the company's stored CIPA number (companies.cipa_number).
+          // There is no companies.registration_number / status / phone / email /
+          // postal_address column, so the previous field names always rendered N/A.
+          '<div><div style="font-size:12px;color:#5f6368">CIPA No.</div><div style="font-weight:500">'+esc(comp.cipa_number||'N/A')+'</div></div>' +
           '<div><div style="font-size:12px;color:#5f6368">Industry</div><div style="font-weight:500">'+esc(comp.industry||'N/A')+'</div></div>' +
-          '<div><div style="font-size:12px;color:#5f6368">Status</div><div style="font-weight:500"><span class="badge bg-green">'+esc(comp.status||'Active')+'</span></div></div>' +
-          '<div style="grid-column:1/-1"><div style="font-size:12px;color:#5f6368">Address</div><div style="font-weight:500">'+esc(comp.physical_address||comp.postal_address||'N/A')+'</div></div>' +
-          '<div style="grid-column:1/-1"><div style="font-size:12px;color:#5f6368">Contact</div><div style="font-weight:500">'+esc(comp.phone||'')+' '+(comp.email?'| '+esc(comp.email):'')+'</div></div>' +
+          '<div><div style="font-size:12px;color:#5f6368">Status</div><div style="font-weight:500"><span class="badge '+(comp.is_active === false ? 'bg-red' : 'bg-green')+'">'+esc(comp.is_active === false ? 'Inactive' : 'Active')+'</span></div></div>' +
+          '<div style="grid-column:1/-1"><div style="font-size:12px;color:#5f6368">Address</div><div style="font-weight:500">'+esc(comp.physical_address||'N/A')+'</div></div>' +
+          '<div style="grid-column:1/-1"><div style="font-size:12px;color:#5f6368">Contact</div><div style="font-weight:500">'+esc(comp.telephone||'')+' '+(comp.owner_email?'| '+esc(comp.owner_email):'')+'</div></div>' +
           '</div>';
       } else {
         companyInfo.innerHTML = '<div class="es">Employer not found in registry. Contact OSH for assistance.</div>';
