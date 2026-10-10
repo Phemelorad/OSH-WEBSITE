@@ -1301,6 +1301,19 @@ async function assignInvestigatorToAccident(id) {
         allCases = allCases.map(function(c) { return c.id === id ? Object.assign({}, c, { assigned_inspector: inspectorName || null }) : c; });
     }
 }
+
+// ── Form reset (used by the Reset button + any inline resetForm() calls) ──
+window.resetForm = function() {
+    var form = document.getElementById('accidentForm');
+    if (form && typeof form.reset === 'function') {
+        form.reset();
+    }
+    // Re-apply any read-only / prefill behavior that form.reset() would clear
+    if (typeof toggleSections === 'function') toggleSections();
+    if (typeof removeAllInjuredPersons === 'function') try { removeAllInjuredPersons(); } catch(_) {}
+    if (typeof renderInvestigatorAssignment === 'function') try { renderInvestigatorAssignment(); } catch(_) {}
+    if (typeof clearErrorMessages === 'function') try { clearErrorMessages(); } catch(_) {}
+};
 </script>
 
 </body>

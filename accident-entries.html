@@ -626,6 +626,25 @@
 }
 
 
+    // ── Officers cache + loader (mirrors accident-report.html) ────────────────
+    var _oshOfficersCache = null;
+    async function loadOfficers() {
+        if (_oshOfficersCache !== null) return _oshOfficersCache;
+        try {
+            const { data } = await window.supabaseClient
+                .from('user_profiles')
+                .select('first_name, surname, role, location')
+                .in('role', ['officer', 'admin', 'super_admin'])
+                .order('first_name');
+            _oshOfficersCache = data || [];
+            return _oshOfficersCache;
+        } catch (e) {
+            _oshOfficersCache = [];
+            console.warn('failed to load officers:', e);
+            return [];
+        }
+    }
+
     // ── Assign investigator (mirrors accident-report.html implementation) ────────
     async function assignInvestigatorToAccident(id) {
         if (!id) return;
@@ -636,7 +655,7 @@
             return;
         }
 
-        const officers = await loadOfficers() || [];
+        const officers = await loadOfficers();
         const currentName = (document.getElementById('userName') && document.getElementById('userName').textContent || '').trim();
 
         const options = [
