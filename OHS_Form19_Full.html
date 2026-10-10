@@ -552,12 +552,11 @@ if (formEl) {
             // so the investigation shows the assigned officer as Lead Investigator.
             if (!payload.lead_investigator || !payload.date_assigned || !payload.date_opened) {
                 try {
-                    const { data: ar, error: arErr } = await supabaseClient
-                        .from('accident_reports')
-                        .select('assigned_inspector, reporter_name, report_date')
-                        .eq('id', accidentIdEl.value)
-                        .maybeSingle();
-                    if (!arErr && ar) {
+                    const ar = await fetchAccidentRow(
+                        accidentIdEl.value,
+                        ['reporter_name', 'report_date', 'assigned_inspector']
+                    );
+                    if (ar) {
                         if (!payload.lead_investigator && ar.assigned_inspector) {
                             payload.lead_investigator = ar.assigned_inspector;
                         } else if (!payload.lead_investigator && ar.reporter_name) {
@@ -839,18 +838,57 @@ if (formEl) {
         }
     }
 
+    // ── Accident fetch that tolerates a missing assigned_inspector column ────
+    // Some databases have not had accident_reports.assigned_inspector added yet.
+    // PostgREST rejects an unknown column in `select` with HTTP 400 (code 42703),
+    // which would fail the WHOLE row fetch and break accident data autofill.
+    // So try with the column and retry without it instead of failing outright.
+    async function fetchAccidentRow(id, cols) {
+        if (!id) return null;
+        var list = Array.isArray(cols) ? cols.slice() : String(cols).split(',');
+        list = list.map(function(c) { return String(c).trim(); }).filter(Boolean);
+        if (list.indexOf('assigned_inspector') === -1) list.push('assigned_inspector');
+        try {
+            var withCol = await supabaseClient
+                .from('accident_reports')
+                .select(list.join(','))
+                .eq('id', id)
+                .maybeSingle();
+            if (!withCol.error) return withCol.data || null;
+            var without = list.filter(function(c) { return c !== 'assigned_inspector'; });
+            if (!without.length) return null;
+            var plain = await supabaseClient
+                .from('accident_reports')
+                .select(without.join(','))
+                .eq('id', id)
+                .maybeSingle();
+            if (plain.error) {
+                console.warn('accident lookup failed:', plain.error.message);
+                return null;
+            }
+            return plain.data || null;
+        } catch (e) {
+            console.warn('accident lookup failed:', e);
+            return null;
+        }
+    }
+    window.fetchAccidentRow = fetchAccidentRow;
+
     window.selectAccidentForForm19 = function(accidentId) {
-        supabaseClient
-            .from('accident_reports')
-            .select('id, accident_case_number, occupier_name, industry_sector, accident_date, accident_time, accident_place, accident_description, machinery_involved, reporter_name, reporter_designation, injured_name, injured_id_number, injured_sex, injured_age, occupation_at_accident, usual_occupation, experience_level, premises_address, injury_fatal, disabled_three_days, report_date, status, investigation_status, causation_number, assigned_inspector')
-            .eq('id', accidentId)
-            .maybeSingle()
-            .then(function(res) {
-                if (res && res.data) {
-                    if (typeof fillFromAccident === 'function') fillFromAccident(res.data);
-                    if (typeof window.syncAssignedOfficerToLeadInvestigator === 'function') window.syncAssignedOfficerToLeadInvestigator(accidentId);
-                }
-            });
+        fetchAccidentRow(accidentId, [
+            'id', 'accident_case_number', 'occupier_name', 'industry_sector',
+            'accident_date', 'accident_time', 'accident_place', 'accident_description',
+            'machinery_involved', 'reporter_name', 'reporter_designation', 'injured_name',
+            'injured_id_number', 'injured_sex', 'injured_age', 'occupation_at_accident',
+            'usual_occupation', 'experience_level', 'premises_address', 'injury_fatal',
+            'disabled_three_days', 'report_date', 'status', 'investigation_status',
+            'causation_number'
+        ]).then(function(acc) {
+            if (acc) {
+                if (typeof fillFromAccident === 'function') fillFromAccident(acc);
+                if (typeof window.syncAssignedOfficerToLeadInvestigator === 'function') window.syncAssignedOfficerToLeadInvestigator(accidentId);
+            }
+        });
     };
 
     window.clearAccidentSelection = function() {
@@ -1266,14 +1304,9 @@ if (formEl) {
         if (!accidentId) return;
         var el = _formEl || document.getElementById('form19');
         if (!el) return;
-        supabaseClient
-            .from('accident_reports')
-            .select('assigned_inspector, reporter_name, reporter_designation, report_date')
-            .eq('id', accidentId)
-            .maybeSingle()
-            .then(function(res) {
-                if (!res || !res.data || !el) return;
-                var o = res.data;
+        fetchAccidentRow(accidentId, ['reporter_name', 'reporter_designation', 'report_date'])
+            .then(function(o) {
+                if (!o || !el) return;
 
                 // Lead Investigator: prefer the accident's assigned inspector, fall back to reporter
                 var leadEl = el.querySelector('[name="lead_investigator"]');
