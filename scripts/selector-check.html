@@ -143,11 +143,21 @@
     const colsSrc = grabPage(/(var EMPLOYER_COMPANY_COLUMNS = \[[\s\S]*?\];)/, 'EMPLOYER_COMPANY_COLUMNS');
     const optSrc = grabPage(/(var EMPLOYER_COMPANY_OPTIONAL_COLUMNS = \[[^\]]*\];)/, 'EMPLOYER_COMPANY_OPTIONAL_COLUMNS');
     const sectorsSrc = grabPage(/(var EMPLOYER_SECTORS = \[[\s\S]*?\];)/, 'EMPLOYER_SECTORS');
+    const legalSrc = grabPage(/(var COMPANY_LEGAL_TOKENS = \[[^\]]*\];)/, 'COMPANY_LEGAL_TOKENS');
+    const escSrc = grabPage(/(function ilikeEscape\(s\) \{[\s\S]*?\n    \})/, 'ilikeEscape');
+    const normSrc = grabPage(/(function normalizeCompanyName\(name\) \{[\s\S]*?\n    \})/, 'normalizeCompanyName');
+    const lookupSrc = grabPage(/(async function lookupEmployerCompany\(employerName\) \{[\s\S]*?\n    \})/, 'lookupEmployerCompany');
     const fetchEmpSrc = grabPage(/(async function fetchEmployerCompanyRecord\(employerName\) \{[\s\S]*?\n    \})/, 'fetchEmployerCompanyRecord');
     const sectorSrc = grabPage(/(function normalizeEmploymentSector\(industry\) \{[\s\S]*?\n    \})/, 'normalizeEmploymentSector');
-    const fillEmpSrc = grabPage(/(function fillEmployerFromCompanyRecord\(employerName, notifyMissing\) \{[\s\S]*?\n    \})/, 'fillEmployerFromCompanyRecord');
+    const fillEmpSrc = grabPage(/(function fillEmployerFromCompanyRecord\(employerName, notifyMissing, overwrite\) \{[\s\S]*?\n    \})/, 'fillEmployerFromCompanyRecord');
+    const regFieldsSrc = grabPage(/(var EMPLOYER_REGISTER_FIELDS = \[[\s\S]*?\];)/, 'EMPLOYER_REGISTER_FIELDS');
+    const pickerLimitSrc = grabPage(/(var EMPLOYER_PICKER_LIMIT = \d+;)/, 'EMPLOYER_PICKER_LIMIT');
+    const pickerSrc = grabPage(/(async function loadEmployerCompanyOptions\(\) \{[\s\S]*?\n    \})/, 'loadEmployerCompanyOptions');
+    const optHtmlSrc = grabPage(/(function companyOptionHtml\(name\) \{[\s\S]*?\n    \})/, 'companyOptionHtml');
+    const attachSrc = grabPage(/(function attachEmployerRegisterPicker\(\) \{[\s\S]*?\n    \})/, 'attachEmployerRegisterPicker');
     log('extracted the real employer fill functions', true,
-      [fetchEmpSrc, sectorSrc, fillEmpSrc].map(s => s.split('\n').length).join('+') + ' lines');
+      [legalSrc, escSrc, normSrc, lookupSrc, fetchEmpSrc, sectorSrc, regFieldsSrc, fillEmpSrc, pickerLimitSrc, pickerSrc, optHtmlSrc, attachSrc]
+        .map(s => s.split('\n').length).join('+') + ' lines');
 
     const empCalls = [];
     const empClient = {
@@ -171,10 +181,13 @@
       '[name="employer_phone"],[name="employer_sector"]').forEach(el => { el.value = ''; });
     clearEmployerFields();
 
-    const empApi = new Function('supabaseClient', 'formEl', 'showToast', 'console',
-      colsSrc + '\n' + optSrc + '\n' + sectorsSrc + '\n' + fetchEmpSrc + '\n' + sectorSrc + '\n' + fillEmpSrc +
-      '\nreturn { fetchEmployerCompanyRecord, normalizeEmploymentSector, fillEmployerFromCompanyRecord };')
-      (empClient, realForm, () => {}, console);
+    const empBody = legalSrc + '\n' + colsSrc + '\n' + optSrc + '\n' + sectorsSrc + '\n' +
+      escSrc + '\n' + normSrc + '\n' + lookupSrc + '\n' + fetchEmpSrc + '\n' + sectorSrc + '\n' + regFieldsSrc + '\n' +
+      fillEmpSrc + '\n' + pickerLimitSrc + '\n' + pickerSrc + '\n' + optHtmlSrc + '\n' + attachSrc +
+      '\nreturn { fetchEmployerCompanyRecord, lookupEmployerCompany, normalizeCompanyName, normalizeEmploymentSector, fillEmployerFromCompanyRecord, loadEmployerCompanyOptions, attachEmployerRegisterPicker };';
+    const mkEmpApi = (client, sink) => new Function('supabaseClient', 'formEl', 'showToast', 'console', empBody)(
+      client, realForm, (m, t) => sink.push({ m, t }), console);
+    const empApi = mkEmpApi(empClient, []);
 
     empApi.fillEmployerFromCompanyRecord('Acme Ltd', false);
     await new Promise(r => setTimeout(r, 0));
@@ -205,6 +218,130 @@
     log('the sector select received a value it actually offers',
       [...doc.querySelectorAll('[name="employer_sector"] option')]
         .some(o => o.value === 'manufacturing'), 'manufacturing is an option');
+
+    // ── the reported bug: the register spells the company differently ────────
+    // "ACME (PTY) LTD" in the register vs "Acme Ltd" on the report used to match
+    // nothing, so the block stayed empty with no explanation.
+    clearEmployerFields();
+    const spellingCalls = [];
+    const spellingToasts = [];
+    const spellingClient = {
+      from: () => ({
+        select() { return this; },
+        ilike(col, pattern) { this._pattern = pattern; return this; },
+        limit() {
+          spellingCalls.push(this._pattern);
+          const exact = this._pattern.indexOf('%') === -1;
+          return Promise.resolve({ error: null, data: exact ? [] : [{
+            company_name: 'ACME (PTY) LTD', cipa_number: 'cipa 999', district: 'South East',
+            city_town: 'Gaborone', plot_number: 'Plot 7', street_name: 'Kgale View',
+            postal_address: 'P.O. Box 7', telephone: '+267 70000000', industry: 'Retail', location: 'Gaborone'
+          }] });
+        }
+      })
+    };
+    mkEmpApi(spellingClient, spellingToasts).fillEmployerFromCompanyRecord('Acme Ltd', true);
+    await new Promise(r => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
+    log('a differently-spelled register entry fills the real inputs',
+      val('company_reg_no') === 'cipa 999' && val('employer_district') === 'South East' &&
+      val('employer_phone') === '+267 70000000' && val('employer_sector') === 'retail',
+      JSON.stringify([val('company_reg_no'), val('employer_district'), val('employer_phone'), val('employer_sector')]));
+    log('the real page tried the exact spelling, then the leading word',
+      spellingCalls.length === 2 && spellingCalls[0] === 'Acme Ltd' && spellingCalls[1] === '%ACME%',
+      JSON.stringify(spellingCalls));
+    log('and never claimed nothing was found',
+      !spellingToasts.some(t => /No company record found/.test(t.m)) &&
+      spellingToasts.some(t => /Filled 8 employer field/.test(t.m)),
+      JSON.stringify(spellingToasts));
+
+    // A similar but DIFFERENT company must never reach an official form.
+    clearEmployerFields();
+    const similarToasts = [];
+    const similarClient = {
+      from: () => ({
+        select() { return this; },
+        ilike(col, pattern) { this._pattern = pattern; return this; },
+        limit() {
+          const exact = this._pattern.indexOf('%') === -1;
+          return Promise.resolve({ error: null, data: exact ? [] : [{ company_name: 'Acme Holdings (Pty) Ltd', cipa_number: 'WRONG' }] });
+        }
+      })
+    };
+    mkEmpApi(similarClient, similarToasts).fillEmployerFromCompanyRecord('Acme Ltd', true);
+    await new Promise(r => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
+    log('a merely similar company never fills the real inputs',
+      val('company_reg_no') === '' && val('employer_district') === '', JSON.stringify([val('company_reg_no'), val('employer_district')]));
+    log('and the officer is told why the block is empty',
+      similarToasts.length === 1 && /No company record found/.test(similarToasts[0].m), JSON.stringify(similarToasts));
+
+    // ── the register picker: the officer can always choose the right company ──
+    // The picker makes two different queries, so the stub answers both: the list
+    // query (company_name only, no name filter) and a lookup (filtered by name).
+    const registerNames = ['Acme Ltd', 'Radipodi Enterprices (Pty) Ltd'];
+    const registerCalls = [];
+    const registerClient = {
+      from: (table) => ({
+        select(cols) { this._cols = cols; return this; },
+        eq() { return this; },
+        or(filter) { this._or = filter; return this; },
+        order() { return this; },
+        ilike(col, pattern) { this._ilike = pattern; return this; },
+        limit() {
+          registerCalls.push({ table, cols: this._cols, ilike: this._ilike || null, or: this._or || null });
+          if (!this._ilike) {
+            return Promise.resolve({ error: null, data: registerNames.map(n => ({ company_name: n })) });
+          }
+          return Promise.resolve({ error: null, data: [{
+            company_name: 'Acme Ltd', cipa_number: 'cipa 000000012', plot_number: 'Plot 12345',
+            street_name: 'Kgale View', telephone: '+267 71234567', industry: 'Manufacturing'
+          }] });
+        }
+      })
+    };
+    const pickerApi = mkEmpApi(registerClient, []);
+    const list = pickerApi.attachEmployerRegisterPicker();
+    log('the employer name field gets a register list',
+      !!list && list.tagName === 'DATALIST' && empEl.getAttribute('list') === 'employerCompanyOptions',
+      list ? list.tagName : 'no list');
+    log('the register list starts empty, so no query runs for readers of the page',
+      list && list.childElementCount === 0 && registerCalls.length === 0, String(list && list.childElementCount));
+    empEl.dispatchEvent(new Event('focus'));
+    await new Promise(r => setTimeout(r, 0));
+    log('focusing the field loads the register names into the list',
+      list && list.childElementCount === registerNames.length &&
+      list.innerHTML.indexOf(registerNames[0]) !== -1,
+      list ? list.innerHTML.slice(0, 80) : 'none');
+    log('the register list is fetched once, not on every focus',
+      registerCalls.length === 1 && 'company_name' === registerCalls[0].cols,
+      JSON.stringify(registerCalls));
+    empEl.dispatchEvent(new Event('focus'));
+    await new Promise(r => setTimeout(r, 0));
+    log('a second focus adds no further query',
+      registerCalls.length === 1, String(registerCalls.length));
+    log('attaching twice does not add a second list',
+      pickerApi.attachEmployerRegisterPicker() === null, 'idempotent');
+
+    clearEmployerFields();
+    realForm.querySelector('[name="company_reg_no"]').value = 'OLD-COMPANY';
+    empEl.value = 'Acme Ltd';
+    empEl.dispatchEvent(new Event('change'));
+    await new Promise(r => setTimeout(r, 0));
+    log('picking a company off the list replaces the block on the real form',
+      val('company_reg_no') === 'cipa 000000012' && val('employer_plot') === 'Plot 12345',
+      JSON.stringify([val('company_reg_no'), val('employer_plot')]));
+
+    log('the register list is loaded from the companies table, including rows with no is_active flag',
+      registerCalls.some(c => c.cols === 'company_name' && c.or === 'is_active.is.null,is_active.eq.true') &&
+      /from\('companies'\)[\s\S]{0,200}is_active\.is\.null/.test(src),
+      'source wiring');
+
+    log('the injured person\u2019s recorded employer is a second lookup key',
+      /if \(person\.employer_name\) fillEmployerFromCompanyRecord\(person\.employer_name, false\)/.test(src),
+      'source wiring');
+    log('the injured person lookup asks the register for the employer columns',
+      /INJURED_PERSON_COLUMNS = \[[\s\S]{0,220}employer_name/.test(src), 'source wiring');
 
     log('employer_name has a blur handler wired to the lookup',
       /employerNameEl\.addEventListener\('blur'/.test(src) &&
