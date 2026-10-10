@@ -166,7 +166,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <h3 class="section-title">2. Employer Information</h3>
 <div class="form-row">
 <div class="form-group"><label>Name of Employer / Enterprise</label><input type="text" name="employer_name" placeholder="Registered name"></div>
-<div class="form-group"><label>CIPA Registration No.</label><input type="text" name="company_reg_no" placeholder="Filled from the employer&rsquo;s stored CIPA number"></div>
+<div class="form-group"><label>Company Registration No.</label><input type="text" name="company_reg_no" placeholder="Company/business registration number"></div>
 </div>
 <div class="form-row form-row-4">
 <div class="form-group"><label>District</label><input type="text" name="employer_district" placeholder="District where employer is located"></div>
@@ -422,7 +422,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 
 <div class="form-group full"><label><strong>WHY?</strong></label><textarea name="checklist_why" style="min-height:100px" placeholder="Why was the employee injured? Why was protective equipment not used? Why were instructions not given? Why was the employee in that position?"></textarea></div>
 <div class="form-group full"><label><strong>HOW?</strong></label><textarea name="checklist_how" style="min-height:80px" placeholder="How did the employee get injured? How could it have been avoided? How could fellow workers or the supervisor have prevented it?"></textarea></div>
 <h3 class="section-title">17. Investigator Declaration</h3>
-<div class="form-row"><div class="form-group"><label>Investigator Full Name</label><input type="text" name="investigator_name" placeholder="Full name of lead investigator">required></div><div class="form-group"><label>Designation</label><input type="text" name="investigator_designation" placeholder="Title or designation"></div></div>
+<div class="form-row"><div class="form-group"><label>Investigator Full Name</label><input type="text" name="investigator_name" placeholder="Full name of lead investigator" required></div><div class="form-group"><label>Designation</label><input type="text" name="investigator_designation" placeholder="Title or designation"></div></div>
 <div class="form-row"><div class="form-group"><label>Signature</label><input type="text" name="investigator_signature" placeholder="Electronic signature"></div><div class="form-group"><label>Date</label><input type="date" name="investigator_date"></div></div>
 <div class="btn-row">
 <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
@@ -731,124 +731,6 @@ if (formEl) {
         });
     }
 
-    // ── Injured person's age group ───────────────────────────────────────────
-    // Form 19 records an age GROUP, not an age. The age is already captured -
-    // either on the accident report (injured_age) or on the person's standing
-    // record in workers_registry (age_years / date_of_birth) - so the matching
-    // range is selected for the officer instead of being picked by hand.
-    var AGE_GROUPS = ['under-25', '25-34', '35-44', '45-54', '55-64', '65-plus'];
-
-    function ageGroupForAge(age) {
-        var a = parseInt(age, 10);
-        // A non-numeric or negative age must select nothing: it would otherwise
-        // fall through every comparison and land on the last range ('65-plus').
-        if (isNaN(a) || a < 0) return null;
-        if (a < 25) return 'under-25';
-        if (a < 35) return '25-34';
-        if (a < 45) return '35-44';
-        if (a < 55) return '45-54';
-        if (a < 65) return '55-64';
-        return '65-plus';
-    }
-    window.ageGroupForAge = ageGroupForAge;
-
-    // Whole years between a date of birth and a reference date (today).
-    function ageFromDateOfBirth(dob, reference) {
-        var raw = String(dob == null ? '' : dob).slice(0, 10);
-        if (!raw) return null;
-        var born = new Date(raw + 'T00:00:00');
-        if (isNaN(born.getTime())) return null;
-        var ref = reference || new Date();
-        var years = ref.getFullYear() - born.getFullYear();
-        var monthDiff = ref.getMonth() - born.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && ref.getDate() < born.getDate())) years--;
-        if (years < 0 || years > 130) return null;
-        return years;
-    }
-    window.ageFromDateOfBirth = ageFromDateOfBirth;
-
-    function selectAgeGroup(group) {
-        if (!group || AGE_GROUPS.indexOf(group) === -1) return false;
-        var el = formEl.querySelector('[name="age_group"][value="' + group + '"]');
-        if (!el) return false;
-        el.checked = true;
-        return true;
-    }
-
-    function hasAgeGroupSelected() {
-        var radios = formEl.querySelectorAll('[name="age_group"]');
-        for (var i = 0; i < radios.length; i++) { if (radios[i].checked) return true; }
-        return false;
-    }
-
-    // The injured person's standing record, matched the way the rest of the app
-    // does it: by registry id first, then by Omang/passport number.
-    var INJURED_PERSON_COLUMNS = ['id', 'full_name', 'id_number', 'age_years', 'date_of_birth', 'sex'];
-
-    async function fetchInjuredPersonRecord(acc) {
-        if (!acc) return null;
-        try {
-            if (acc.worker_registry_id) {
-                var byId = await supabaseClient
-                    .from('workers_registry')
-                    .select(INJURED_PERSON_COLUMNS.join(','))
-                    .eq('id', acc.worker_registry_id)
-                    .limit(1);
-                if (byId && byId.error) {
-                    console.warn('Injured person lookup failed:', byId.error.message);
-                }
-                var idRow = byId && !byId.error ? (Array.isArray(byId.data) ? byId.data[0] : byId.data) : null;
-                if (idRow) return idRow;
-            }
-            var raw = String(acc.injured_id_number == null ? '' : acc.injured_id_number).trim();
-            if (!raw) return null;
-            var normId = (window.normalizeIdentityId || function(v) {
-                return v.trim().toUpperCase().replace(/\s+/g, '');
-            })(raw);
-            var res = await supabaseClient
-                .from('workers_registry')
-                .select(INJURED_PERSON_COLUMNS.join(','))
-                .ilike('id_number', normId)
-                .limit(1);
-            if (res && res.error) {
-                console.warn('Injured person lookup failed:', res.error.message);
-                return null;
-            }
-            return (Array.isArray(res.data) ? res.data[0] : res.data) || null;
-        } catch (e) {
-            console.warn('Injured person lookup failed:', e);
-            return null;
-        }
-    }
-    window.fetchInjuredPersonRecord = fetchInjuredPersonRecord;
-
-    // Select the range from the recorded age straight away; consult the person's
-    // record (when there is something to look them up by) to fill in the date of
-    // birth the form also asks for, and to supply the age if the report has none.
-    function applyInjuredAgeGroup(acc) {
-        if (!acc) return;
-        var directGroup = ageGroupForAge(acc.injured_age);
-        if (directGroup) selectAgeGroup(directGroup);
-        if (!acc.worker_registry_id && !acc.injured_id_number) return;
-        if (typeof fetchInjuredPersonRecord !== 'function') return;
-
-        fetchInjuredPersonRecord(acc).then(function(person) {
-            if (!person) return;
-            var dobEl = formEl.querySelector('[name="injured_dob"]');
-            if (dobEl && !dobEl.value && person.date_of_birth) {
-                dobEl.value = String(person.date_of_birth).slice(0, 10);
-            }
-            if (hasAgeGroupSelected()) return;
-            var fromRecord = ageGroupForAge(person.age_years);
-            if (!fromRecord) {
-                var derived = ageFromDateOfBirth(person.date_of_birth, new Date());
-                fromRecord = derived === null ? null : ageGroupForAge(derived);
-            }
-            if (fromRecord) selectAgeGroup(fromRecord);
-        });
-    }
-    window.applyInjuredAgeGroup = applyInjuredAgeGroup;
-
     function fillFromAccident(acc) {
         if (!acc) return;
         var rd = document.getElementById('accidentLookupResults');
@@ -857,12 +739,15 @@ if (formEl) {
         if (caseNoEl) caseNoEl.value = acc.accident_case_number || '';
         // Map accident_reports fields onto the Form 19 inputs.
         // Anything already filled by the user is left untouched.
-        // NOTE: the accident report carries no employer address details, so the
-        // rest of the Employer Information block (CIPA registration number,
-        // district, city, plot, street, postal address, phone, sector) is filled
-        // from the company register further down this function - not from here.
         [
             ['employer_name',         acc.occupier_name],
+            ['company_reg_no',        null],
+            ['employer_district',     null],
+            ['employer_city',         null],
+            ['employer_plot',         null],
+            ['employer_street',       null],
+            ['employer_postal',       null],
+            ['employer_phone',        null],
             ['inv_district',          null],
             ['lead_investigator',     null],
             ['inv_ref_no',            null],
@@ -898,12 +783,6 @@ if (formEl) {
             var el = formEl.querySelector('[name="' + p[0] + '"]');
             if (el && p[1] && !el.value) el.value = p[1];
         });
-        // The employer name is now on the form, so pull the rest of the employer
-        // block (registration number, address, plot, street, phone, sector) from
-        // the company register entry of the same name.
-        var employerElNow = formEl.querySelector('[name="employer_name"]');
-        fillEmployerFromCompanyRecord((employerElNow && employerElNow.value) || acc.occupier_name, true);
-
         if (acc.injured_sex) {
             var r = formEl.querySelector('[name="sex"][value="' + String(acc.injured_sex).trim().toLowerCase() + '"]');
             if (r) r.checked = true;
@@ -923,9 +802,22 @@ if (formEl) {
                 sel.value = acc.disabled_three_days === 'Yes' ? '4-plus' : '0-3';
             }
         }
-        // Age Group, pulled from the age already captured for the injured person.
-        applyInjuredAgeGroup(acc);
-
+        if (acc.injured_age) {
+            var a = parseInt(acc.injured_age, 10);
+            // Only map a real number: a non-numeric age would fall through every
+            // comparison and land on the last bucket ('65-plus').
+            if (!isNaN(a) && a >= 0) {
+                var g = '';
+                if (a < 25) g = 'under-25';
+                else if (a < 35) g = '25-34';
+                else if (a < 45) g = '35-44';
+                else if (a < 55) g = '45-54';
+                else if (a < 65) g = '55-64';
+                else g = '65-plus';
+                var el = formEl.querySelector('[name="age_group"][value="' + g + '"]');
+                if (el) el.checked = true;
+            }
+        }
         // Injury result checkboxes
         if (acc.injury_fatal) {
             if (acc.injury_fatal === 'Fatal') {
@@ -1013,114 +905,6 @@ if (formEl) {
             console.warn('Accident selection failed:', e);
         });
     };
-
-    // ── Employer Information block, filled from the company register ────────
-    // Everything the form asks about the employer (CIPA registration number,
-    // district, city/town, plot, street, postal address, telephone, sector) is
-    // held against the company in `companies`, linked by company_name - the same
-    // match the rest of the app uses. So the block is looked up, not typed out.
-    var EMPLOYER_COMPANY_COLUMNS = [
-        'cipa_number', 'plot_number', 'street_name', 'telephone', 'industry',
-        'location', 'physical_address', 'district', 'city_town', 'postal_address'
-    ];
-    // Added by company-employer-details-migration.sql. Until that migration has
-    // been run the lookup retries without them, so autofill still works.
-    var EMPLOYER_COMPANY_OPTIONAL_COLUMNS = ['district', 'city_town', 'postal_address'];
-
-    async function fetchEmployerCompanyRecord(employerName) {
-        var name = String(employerName == null ? '' : employerName).trim();
-        if (!name) return null;
-        // Escape ilike wildcards so a name containing _ or % can't match a
-        // different company and put the wrong employer details on the form.
-        var pattern = name.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
-        var attempt = function(cols) {
-            return supabaseClient
-                .from('companies')
-                .select(cols.join(','))
-                .ilike('company_name', pattern)
-                .limit(1);
-        };
-        try {
-            var res = await attempt(EMPLOYER_COMPANY_COLUMNS);
-            if (res && res.error) {
-                var reduced = EMPLOYER_COMPANY_COLUMNS.filter(function(c) {
-                    return EMPLOYER_COMPANY_OPTIONAL_COLUMNS.indexOf(c) === -1;
-                });
-                res = await attempt(reduced);
-            }
-            if (res && res.error) {
-                console.warn('Employer company lookup failed:', res.error.message);
-                return null;
-            }
-            var row = Array.isArray(res.data) ? res.data[0] : res.data;
-            return row || null;
-        } catch (e) {
-            console.warn('Employer company lookup failed:', e);
-            return null;
-        }
-    }
-    window.fetchEmployerCompanyRecord = fetchEmployerCompanyRecord;
-
-    // The company's industry is chosen from the register's own list, which does
-    // not match Form 19's sector options, so map it onto one of those options.
-    var EMPLOYER_SECTORS = ['agriculture', 'construction', 'manufacturing', 'mining',
-        'retail', 'services', 'transport', 'hospitality', 'healthcare', 'other'];
-
-    function normalizeEmploymentSector(industry) {
-        var v = String(industry == null ? '' : industry).trim().toLowerCase();
-        if (!v) return '';
-        if (v === 'government' || v === 'parastatal') return 'other';
-        if (EMPLOYER_SECTORS.indexOf(v) !== -1) return v;
-        for (var i = 0; i < EMPLOYER_SECTORS.length; i++) {
-            if (v.indexOf(EMPLOYER_SECTORS[i]) !== -1) return EMPLOYER_SECTORS[i];
-        }
-        return 'other';
-    }
-    window.normalizeEmploymentSector = normalizeEmploymentSector;
-
-    // Fill the Employer Information block. Never overwrites a value already on
-    // screen, so an officer's manual entries are not clobbered.
-    function fillEmployerFromCompanyRecord(employerName, notifyMissing) {
-        if (!employerName) return;
-        fetchEmployerCompanyRecord(employerName).then(function(company) {
-            if (!company) {
-                if (notifyMissing && typeof showToast === 'function') {
-                    showToast('No company record found for ' + employerName, 'info');
-                }
-                return;
-            }
-            var pairs = [
-                ['company_reg_no',    company.cipa_number],
-                ['employer_district', company.district],
-                ['employer_city',     company.city_town || company.location],
-                ['employer_plot',     company.plot_number],
-                ['employer_street',   company.street_name],
-                ['employer_postal',   company.postal_address],
-                ['employer_phone',    company.telephone],
-                ['employer_sector',   normalizeEmploymentSector(company.industry)]
-            ];
-            var filled = [];
-            pairs.forEach(function(p) {
-                var el = formEl.querySelector('[name="' + p[0] + '"]');
-                if (!el || el.value) return;
-                if (p[1] == null || p[1] === '') return;
-                el.value = p[1];
-                filled.push(p[0]);
-            });
-            if (filled.length && typeof showToast === 'function') {
-                showToast('Filled ' + filled.length + ' employer field(s) from the company record', 'info');
-            }
-        });
-    }
-    window.fillEmployerFromCompanyRecord = fillEmployerFromCompanyRecord;
-
-    // Typing the employer by hand (no accident selected) also pulls the details.
-    var employerNameEl = formEl.querySelector('[name="employer_name"]');
-    if (employerNameEl) {
-        employerNameEl.addEventListener('blur', function() {
-            fillEmployerFromCompanyRecord(employerNameEl.value, false);
-        });
-    }
 
     window.clearAccidentSelection = function() {
         var caseNoEl = formEl.querySelector('[name="case_no"]');
