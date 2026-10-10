@@ -645,7 +645,11 @@ if (formEl) {
     accidentIdEl.name = 'accident_id';        accidentIdEl.id = 'accident_id';
         formEl.appendChild(accidentIdEl);
 
-        window.accidentLookupInit(formEl, caseNoEl, accidentIdEl);
+        // Optional shared initialiser: a missing helper must NOT throw here, or the
+        // rest of this load handler (row buttons, accident autofill) never runs.
+        if (typeof window.accidentLookupInit === 'function') {
+            window.accidentLookupInit(formEl, caseNoEl, accidentIdEl);
+        }
 
         // Attach a clear button to the case_no field so the user can reset the selection
         caseNoEl.style.position = 'relative';
@@ -948,6 +952,7 @@ if (formEl) {
         tbody.appendChild(tr);
         tr.querySelector('input')?.focus();
     }
+    window.addActionPlanRow = addActionPlanRow;
 
     window.removeActionPlanRow = function(btn) {
         var tr = btn.closest('tr');
@@ -993,6 +998,7 @@ if (formEl) {
         tbody.appendChild(tr);
         tr.querySelector('[name^="witness_name_"]')?.focus();
     }
+    window.addWitnessRow = addWitnessRow;
 
     window.removeWitnessRow = function(btn) {
         var tr = btn.closest('tr');
@@ -1034,6 +1040,7 @@ if (formEl) {
         tbody.appendChild(tr);
         tr.querySelector('[name^="exhibit_desc_"]')?.focus();
     }
+    window.addExhibitRow = addExhibitRow;
 
     window.removeExhibitRow = function(btn) {
         var tr = btn.closest('tr');

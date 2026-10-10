@@ -575,6 +575,28 @@
     function viewRecord(id) {
     window.location.href = 'injury-disease-report.html?id=' + id + '&view=1';
 }
+
+    function exportCSV() {
+        var headers = ['Worker','ID Number','Occupation','Employer','Type','Incident Date','Place','Nature of Injury/Disease','Death','Permanent Incapacity','Temporary Incapacity','Status','Report Date'];
+        var rows = (allRecords || []).map(function(r) {
+            return [
+                r.worker_name, r.worker_id_number, r.occupation, r.employer_name,
+                r.incident_type, r.incident_date, r.place_of_accident, r.nature_of_injuries,
+                r.resulted_death, r.permanent_incapacity, r.temporary_incapacity,
+                r.status, r.report_date
+            ];
+        });
+        var csv = [headers].concat(rows).map(function(row) {
+            return row.map(function(c) {
+                return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"';
+            }).join(',');
+        }).join('\n');
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = 'injury_disease_reports_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
 </script>
 </body>
 </html>

@@ -599,6 +599,37 @@
         applyPagination(filtered);
     };
 
+    // ── CSV export ────────────────────────────────────────────
+    function exportCSV() {
+        var headers = ['File Number','Factory','Industry','Registration','Inspection Type','Inspector','Contraventions','Compliance %','Action Taken','Follow-up Required','Follow-up Date','Inspection Date','Booking','Status'];
+        var rows = (allRecords || []).map(function(r) {
+            var contravCount = r.total_contraventions
+                || (Array.isArray(r.contraventions) ? r.contraventions.length : 0)
+                || 0;
+            var compLevel = r.compliance_level != null
+                ? r.compliance_level
+                : (100 - Math.round((contravCount / 17) * 100));
+            return [
+                r.file_number, r.factory_name, r.industry_type, r.registration_status,
+                r.inspection_type, r.inspector_name, contravCount, compLevel,
+                r.action_taken, r.follow_up_required ? 'Yes' : 'No', r.follow_up_date,
+                r.inspection_date,
+                r.inspection_bookings && r.inspection_bookings.booking_number,
+                r.status
+            ];
+        });
+        var csv = [headers].concat(rows).map(function(row) {
+            return row.map(function(c) {
+                return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"';
+            }).join(',');
+        }).join('\n');
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = 'workplace_inspections_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
 </script>
 </body>
 </html>
