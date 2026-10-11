@@ -259,6 +259,21 @@
     </div>
 </div>
 
+<!-- ── Branch compliance detail ────────────────────────────────────── -->
+<div class="modal-overlay" id="branchComplianceModal">
+    <div class="modal" style="max-width:780px">
+        <div class="modal-header">
+            <h3 id="complianceModalTitle">Branch compliance</h3>
+            <button class="modal-close" onclick="closeComplianceModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="complianceModalBody"></div>
+        <div class="modal-footer">
+            <span class="hint">A branch's rating is the average of the inspections carried out at it.</span>
+            <button class="btn btn-secondary" onclick="closeComplianceModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 <script src="supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="constants.js"></script>
@@ -275,6 +290,8 @@
     let companyName = null;
     let deletingBranchId = null;
     let branchScores = {};      // branch id -> { compliance, inspection_count }
+    let branchesById = {};      // branch id -> raw branch row, for the detail view
+    let companyInspections = []; // every non-draft inspection of this company
     let companyCompliance = null;
     let inspectedBranchCount = 0;
     let generalInspectionCount = 0;
@@ -368,6 +385,9 @@
             }
             empty.style.display = 'none';
 
+            branchesById = {};
+            rows.forEach(function (b) { branchesById[b.id] = b; });
+
             tbody.innerHTML = rows.map(b => {
                 const active = b.is_active !== false;
                 const score  = branchScores[b.id] || { compliance: null, inspection_count: 0 };
@@ -384,10 +404,14 @@
                     '<td>' + esc(b.plot_number || '—') + '</td>' +
                     '<td>' + esc(b.street_name || '—') + '</td>' +
                     '<td>' + esc(b.physical_address || '—') + '</td>' +
-                    '<td style="font-weight:600">' + compText + '</td>' +
+                    '<td style="font-weight:600">' +
+                        '<button class="btn-ghost" style="padding:4px 6px;font-weight:600" ' +
+                        'title="View this branch’s compliance" onclick="openComplianceModal(\'' + b.id + '\')">' +
+                        compText + '</button></td>' +
                     '<td><span class="badge ' + (active ? 'badge-active' : 'badge-inactive') + '">' +
                     (active ? 'Active' : 'Inactive') + '</span></td>' +
                     '<td><div class="row-actions">' +
+                        '<button class="btn-ghost" title="View compliance details" onclick="openComplianceModal(\'' + b.id + '\')">👁️ View</button>' +
                         (active
                             ? '<button class="btn-ghost" title="Edit" onclick="openEditModal(\'' + b.id + '\')">✏️</button>' +
                               '<button class="btn-ghost" title="Deactivate" onclick="confirmDeactivate(\'' + b.id + '\')">⏸️</button>'
@@ -420,6 +444,7 @@
             result.branches.forEach(function (b) {
                 branchScores[b.id] = { compliance: b.compliance, inspection_count: b.inspection_count };
             });
+            companyInspections = result.inspections || [];
             companyCompliance = result.company_compliance;
             inspectedBranchCount = result.inspected_branch_count;
             generalInspectionCount = result.general.inspection_count;
@@ -649,14 +674,93 @@
     document.getElementById('deleteModal').addEventListener('click', function(e) {
         if (e.target === this) closeDeleteModal();
     });
+    document.getElementById('branchComplianceModal').addEventListener('click', function(e) {
+        if (e.target === this) closeComplianceModal();
+    });
 
     // ── Keyboard: Escape closes modals ──────────────────────────────
     window.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeModal();
             closeDeleteModal();
+            closeComplianceModal();
         }
     });
+
+    // ── Branch compliance detail ────────────────────────────────────
+    // Shows one branch's rating and the inspections behind it, so the number
+    // in the table can be traced back to the records that produced it.
+    function openComplianceModal(branchId) {
+        const body  = document.getElementById('complianceModalBody');
+        const title = document.getElementById('complianceModalTitle');
+        if (!body) return;
+
+        const branch = branchesById[branchId] || null;
+        const score  = branchScores[branchId] || { compliance: null, inspection_count: 0 };
+        const rows   = window.branchInspections(companyInspections, branchId);
+        const comp   = score.compliance;
+        const colour = comp == null ? '#6b7280' : (comp >= 75 ? '#166534' : comp >= 50 ? '#856404' : '#b91c1c');
+        const addr   = branch ? window.branchAddress(branch) : '';
+        const active = branch ? branch.is_active !== false : true;
+
+        title.textContent = branch
+            ? 'Compliance — ' + window.branchDisplayName(branch)
+            : 'Branch compliance';
+
+        let html = '<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-bottom:16px">' +
+            '<div style="text-align:center;padding:12px 22px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb">' +
+                '<div style="font-size:30px;font-weight:700;color:' + colour + '">' +
+                    (comp == null ? '—' : comp + '%') + '</div>' +
+                '<div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.04em">Branch compliance</div>' +
+            '</div>' +
+            '<div style="font-size:13px;color:#374151;line-height:1.7">' +
+                '<div><strong>' + esc(branch ? branch.branch_no : '') + '</strong>' +
+                    (branch && branch.branch_name ? ' — ' + esc(branch.branch_name) : '') + '</div>' +
+                (addr ? '<div>' + esc(addr) + '</div>' : '') +
+                '<div>' + (active ? 'Active' : 'Inactive') + ' · ' + score.inspection_count +
+                    ' inspection' + (score.inspection_count === 1 ? '' : 's') + ' on record</div>' +
+            '</div>' +
+        '</div>';
+
+        if (!rows.length) {
+            html += '<div class="empty-state" style="padding:24px">' +
+                '<div class="icon">📋</div>' +
+                '<p>No inspections recorded at this branch yet.</p>' +
+                '<p style="font-size:12px;color:#9ca3af;margin-top:6px">Inspections recorded without a branch count as general inspections of the whole business.</p>' +
+                '</div>';
+        } else {
+            html += '<div style="overflow-x:auto"><table><thead><tr>' +
+                '<th>Date</th><th>File No.</th><th>Type</th><th>Inspector</th><th>Compliance</th><th>Status</th><th></th>' +
+                '</tr></thead><tbody>' +
+                rows.map(function (r) {
+                    const c  = r.compliance_level;
+                    const cc = c == null ? '#6b7280' : (c >= 75 ? '#166534' : c >= 50 ? '#856404' : '#b91c1c');
+                    const statusBadge = r.follow_up_required
+                        ? '<span class="badge" style="background:#fff3cd;color:#856404">⚠ Follow-up</span>'
+                        : '<span class="badge" style="background:#dcfce7;color:#166534">Completed</span>';
+                    return '<tr>' +
+                        '<td style="white-space:nowrap">' + esc(r.inspection_date || '—') + '</td>' +
+                        '<td style="font-weight:600;color:#0f2544">' + esc(r.file_number || '—') + '</td>' +
+                        '<td>' + esc(r.inspection_type || '—') + '</td>' +
+                        '<td>' + esc(r.inspector_name || '—') + '</td>' +
+                        '<td style="font-weight:600;color:' + cc + '">' + (c == null ? '—' : c + '%') + '</td>' +
+                        '<td>' + statusBadge + '</td>' +
+                        '<td><a class="btn btn-secondary" style="padding:4px 10px;font-size:12px" ' +
+                            'target="_blank" rel="noopener" ' +
+                            'href="OHS_Form_36_Factories_Inspection.html?id=' + encodeURIComponent(r.id) + '&view=1">View Report</a></td>' +
+                        '</tr>';
+                }).join('') +
+                '</tbody></table></div>';
+        }
+
+        body.innerHTML = html;
+        document.getElementById('branchComplianceModal').classList.add('show');
+    }
+
+    function closeComplianceModal() {
+        const el = document.getElementById('branchComplianceModal');
+        if (el) el.classList.remove('show');
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────
     function esc(s) {

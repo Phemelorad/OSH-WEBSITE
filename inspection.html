@@ -709,6 +709,25 @@
       return result;
     }
 
+    // Clears the booking link: banner, hidden id, and the dropdown. Shared by
+    // the post-submit reset, the reset button, and the refused-link path.
+    function clearBookingLinkUI() {
+      const bkDropdown = document.getElementById('bookingLinkDropdown');
+      if (bkDropdown) {
+        bkDropdown.innerHTML = '';
+        bkDropdown.insertAdjacentHTML('afterbegin', '<option value="">— Select a booking —</option>');
+        bkDropdown.classList.remove('booking-pulse');
+      }
+      const bkRow = document.getElementById('bookingLinkRow');
+      if (bkRow) bkRow.style.display = 'none';
+      const bkHidden = document.getElementById('bookingLinkId');
+      if (bkHidden) bkHidden.value = '';
+      const bkMain = document.getElementById('bookingId');
+      if (bkMain) bkMain.value = '';
+      const banner = document.getElementById('bookingLinkBanner');
+      if (banner) banner.style.display = 'none';
+    }
+
     // Collect checked contraventions
     function collectContraventions() {
       return [...document.querySelectorAll('input[name="contraventions[]"]:checked')]
@@ -786,7 +805,30 @@
           status:             'completed'
         };
 
-        const bookingId = document.getElementById('bookingId').value.trim();
+        // ── Booking link ──────────────────────────────────────────────
+        // A booking that is already completed or cancelled is never attached to
+        // a new inspection — that is what produced several inspections hanging
+        // off one booking. The dropdown filters these out; this catches the
+        // deep-link and stale-tab cases.
+        let bookingId = document.getElementById('bookingId').value.trim();
+        let bookingRefused = '';
+        if (bookingId) {
+          try {
+            const { data: bk } = await window.supabaseClient
+              .from('inspection_bookings')
+              .select('id, status, booking_number')
+              .eq('id', bookingId)
+              .maybeSingle();
+            const verdict = window.bookingAttachable(bk);
+            if (!verdict.attachable) {
+              bookingRefused = (bk && bk.booking_number ? bk.booking_number : 'The linked booking') +
+                ' is already ' + verdict.reason;
+              bookingId = '';
+            }
+          } catch (e) {
+            console.warn('booking status check:', e);
+          }
+        }
         if (bookingId) payload.booking_id = bookingId;
 
         // Branch link (branch-inspections-migration.sql). Only sent when a
@@ -805,37 +847,40 @@
 
         if (error) throw error;
 
-        // Linked booking: mark it completed (only advances if currently
-        // 'scheduled' — the DB guard rejects any other state, and we ignore
-        // failures here so they never block the inspection itself).
+        // ── Auto-complete the linked booking ──────────────────────────
+        // The inspection is the record that the visit happened, so the booking
+        // closes now — from any open state, not only 'scheduled'. If it cannot
+        // be closed we say so: an open booking keeps reappearing in the "link a
+        // booking" dropdown for the next inspection.
+        let bookingNote = '';
         if (bookingId) {
-          try {
-            await window.supabaseClient
-              .from('inspection_bookings')
-              .update({ status: 'completed' })
-              .eq('id', bookingId)
-              .eq('status', 'scheduled');
-          } catch (e) { console.warn('booking auto-complete:', e); }
+          const done = await window.completeLinkedBooking(window.supabaseClient, bookingId);
+          if (done.ok) {
+            const bkNo = (done.booking && done.booking.booking_number) ? ' ' + done.booking.booking_number : '';
+            bookingNote = ' Booking' + bkNo + ' marked completed.';
+          } else if (done.reason === 'already-closed') {
+            bookingNote = ' The linked booking was already closed.';
+          } else {
+            await showAlert(
+              'The inspection was saved, but the booking could not be marked <strong>completed</strong>.' +
+              (done.error && done.error.message
+                ? '<br><br><span style="font-size:12px;color:#6b7280">' + done.error.message + '</span>'
+                : '') +
+              '<br><br>Mark it completed on the <strong>Inspection Bookings</strong> page so it stops ' +
+              'appearing as an open booking. If this keeps happening, run ' +
+              '<strong>booking-completion-migration.sql</strong>.',
+              { type: 'warning', title: 'Booking not completed' });
+          }
         }
 
         window.hideLoading();
-        window.showSuccess('Inspection Report submitted successfully!');
+        window.showSuccess('Inspection Report submitted successfully!' +
+          (bookingNote ? bookingNote : '') +
+          (bookingRefused ? ' (' + bookingRefused + ' — no booking link recorded.)' : ''));
         document.getElementById('inspectionForm').reset();
         document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
-        // Reset booking link dropdown
-        const bkDropdown = document.getElementById('bookingLinkDropdown');
-        if (bkDropdown) {
-          bkDropdown.innerHTML = '';
-          bkDropdown.insertAdjacentHTML('afterbegin', '<option value="">— Select a booking —</option>');
-          bkDropdown.classList.remove('booking-pulse');
-        }
-        const bkRow = document.getElementById('bookingLinkRow');
-        if (bkRow) bkRow.style.display = 'none';
-        const bkHidden = document.getElementById('bookingLinkId');
-        if (bkHidden) bkHidden.value = '';
-        const bkMain = document.getElementById('bookingId');
-        if (bkMain) bkMain.value = '';
-        if (typeof loadBranchOptions === 'function') await loadBranchOptions(null);
+        clearBookingLinkUI();
+        await loadBranchOptions(null);
         updateCompliance();
         updateEmpTotals();
 
@@ -854,20 +899,8 @@
       if (ok) {
         document.getElementById('inspectionForm').reset();
         document.querySelectorAll('.contravention-item').forEach(i => i.classList.remove('checked'));
-        // Reset booking link dropdown
-        const bkDropdown = document.getElementById('bookingLinkDropdown');
-        if (bkDropdown) {
-          bkDropdown.innerHTML = '';
-          bkDropdown.insertAdjacentHTML('afterbegin', '<option value="">— Select a booking —</option>');
-          bkDropdown.classList.remove('booking-pulse');
-        }
-        const bkRow = document.getElementById('bookingLinkRow');
-        if (bkRow) bkRow.style.display = 'none';
-        const bkHidden = document.getElementById('bookingLinkId');
-        if (bkHidden) bkHidden.value = '';
-        const bkMain = document.getElementById('bookingId');
-        if (bkMain) bkMain.value = '';
-        if (typeof loadBranchOptions === 'function') await loadBranchOptions(null);
+        clearBookingLinkUI();
+        await loadBranchOptions(null);
         // Reset plant rows to one blank row
         document.getElementById('plantBody').innerHTML = `
           <tr>
@@ -952,14 +985,10 @@
             .maybeSingle();
           if (bkErr) throw bkErr;
           if (bk) {
-            document.getElementById('bookingId').value = bk.id;
-            const banner = document.getElementById('bookingLinkBanner');
-            document.getElementById('bookingLinkText').textContent =
-              (bk.booking_number || 'Booking') + ' — ' + (bk.company_name || '')
-              + (bk.scheduled_date ? ' (scheduled ' + bk.scheduled_date + ')' : '');
-            document.getElementById('bookingLinkView').href =
-              'company-book-inspection.html?id=' + bk.id + '&view=1';
-            banner.style.display = 'block';
+            // A completed or cancelled booking already had its inspection, so it
+            // must never be attached to a new one. The company details are still
+            // prefilled, so the officer can record a fresh (unlinked) inspection.
+            const verdict = window.bookingAttachable(bk);
 
             // Prefill from booking (only fill empty fields)
             const fill = (id, val) => {
@@ -970,12 +999,6 @@
             fill('location',    bk.location);
             fill('natureOfWork', bk.nature_of_work);
 
-            // Branches of the booked company, with the booked branch preselected
-            // so the inspection inherits the branch the company chose.
-            if (typeof loadBranchOptions === 'function') {
-              await loadBranchOptions(bk.company_id, bk.branch_id);
-              if (typeof onBranchSelected === 'function') onBranchSelected();
-            }
             if (bk.industry_type) {
               const sel = document.getElementById('industryType');
               if (sel && !sel.value) {
@@ -993,7 +1016,30 @@
               }
             }
             if (bk.scheduled_date) document.getElementById('inspDate').value = bk.scheduled_date;
-            showToast('Booking ' + (bk.booking_number || '') + ' linked to this inspection.', 'success');
+
+            if (verdict.attachable) {
+              document.getElementById('bookingId').value = bk.id;
+              const banner = document.getElementById('bookingLinkBanner');
+              document.getElementById('bookingLinkText').textContent =
+                (bk.booking_number || 'Booking') + ' — ' + (bk.company_name || '')
+                + (bk.scheduled_date ? ' (scheduled ' + bk.scheduled_date + ')' : '');
+              document.getElementById('bookingLinkView').href =
+                'company-book-inspection.html?id=' + bk.id + '&view=1';
+              banner.style.display = 'block';
+
+              // Branches of the booked company, with the booked branch preselected
+              // so the inspection inherits the branch the company chose.
+              if (typeof loadBranchOptions === 'function') {
+                await loadBranchOptions(bk.company_id, bk.branch_id);
+                if (typeof onBranchSelected === 'function') onBranchSelected();
+              }
+              showToast('Booking ' + (bk.booking_number || '') + ' linked to this inspection.', 'success');
+            } else {
+              document.getElementById('bookingId').value = '';
+              if (typeof loadBranchOptions === 'function') await loadBranchOptions(bk.company_id);
+              showToast('Booking ' + (bk.booking_number || '') + ' is already ' + verdict.reason +
+                ' — this inspection will be recorded without a booking link.', 'warning');
+            }
           } else {
             showToast('Booking not found for the supplied link.', 'warning');
           }

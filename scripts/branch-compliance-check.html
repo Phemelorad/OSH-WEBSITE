@@ -147,9 +147,107 @@
     log('both the company_id and the employer-name queries were used',
       calls.length === 2 && calls.includes('company_id') && calls.includes('factory_name'), calls.join('+'));
 
+    // branchInspections: the records behind one branch's rating.
+    const branchRows = window.branchInspections(inspections, 'b-a');
+    log('branchInspections returns only that branch’s inspections, newest first',
+      branchRows.map(r => r.id).join(',') === 'i2,i1', branchRows.map(r => r.id).join(','));
+    log('branchInspections is safe for an unknown branch or missing input',
+      window.branchInspections(inspections, 'nope').length === 0 &&
+      window.branchInspections(null, 'b-a').length === 0 &&
+      window.branchInspections(inspections, null).length === 0,
+      'empty results, no throw');
+
+    // getCompanyCompliance returns the figures *and* the rows behind them, so a
+    // page can show a branch's records without querying the database twice.
+    let probedTable = null;
+    window.__case.query = {
+      select: function () { return this; },
+      eq: function () { return this; },
+      order: function () {
+        return Promise.resolve(probedTable === 'company_branches'
+          ? { data: [BRANCH_A], error: null } : { data: [], error: null });
+      },
+      neq: function () {
+        return Promise.resolve({ data: [{ id: 'z', branch_id: 'b-a', compliance_level: 70, inspection_date: '2026-05-05' }], error: null });
+      }
+    };
+    const sbBoth = { from: function (t) { probedTable = t; return window.__case.query; } };
+    const full = await window.getCompanyCompliance(sbBoth, { companyId: 'cid', companyName: 'ACME' });
+    log('getCompanyCompliance returns the figures and the inspection rows together',
+      full.company_compliance === 70 && full.branches[0].compliance === 70 &&
+      Array.isArray(full.inspections) && full.inspections.length === 1,
+      'company ' + full.company_compliance + '%, ' + full.inspections.length + ' row(s)');
+
+    // ── Booking link rules ────────────────────────────────────────────────
+    // A closed booking must never be attached to a new inspection.
+    log('an open booking may still be linked',
+      ['pending', 'assigned', 'scheduled'].every(s => window.bookingAttachable({ status: s }).attachable === true),
+      'pending/assigned/scheduled open');
+    log('a completed booking may not be linked again',
+      window.bookingAttachable({ status: 'completed' }).attachable === false &&
+      window.bookingAttachable({ status: 'completed' }).reason === 'completed',
+      'completed is closed to new inspections');
+    log('a cancelled booking may not be linked either',
+      window.bookingAttachable({ status: 'cancelled' }).attachable === false,
+      'cancelled is closed');
+    log('status matching is case-insensitive and a missing status is not a blocker',
+      window.bookingAttachable({ status: 'COMPLETED' }).attachable === false &&
+      window.bookingAttachable({}).attachable === true &&
+      window.bookingAttachable(null).attachable === true,
+      'robust to whatever the row looks like');
+
+    function bookingWriteStub(response, capture) {
+      return {
+        from: function (t) { capture.table = t; return this; },
+        update: function (patch) { capture.patch = patch; return this; },
+        eq: function (col, val) { capture.eq = [col, val]; return this; },
+        in: function (col, vals) { capture.in = [col, vals]; return this; },
+        select: function (cols) { capture.select = cols; return Promise.resolve(response); }
+      };
+    }
+
+    const cap1 = {};
+    const done1 = await window.completeLinkedBooking(
+      bookingWriteStub({ data: [{ id: 'bk1', booking_number: 'OHS/BK/26/00012', status: 'completed' }], error: null }, cap1), 'bk1');
+    log('attaching an inspection completes the booking from any open state',
+      done1.ok === true && cap1.patch.status === 'completed' && cap1.eq[0] === 'id' &&
+      cap1.in[0] === 'status' &&
+      JSON.stringify(cap1.in[1]) === JSON.stringify(['pending', 'assigned', 'scheduled']),
+      'patch ' + JSON.stringify(cap1.patch) + ' when ' + JSON.stringify(cap1.in[1]));
+    log('the completion reports which booking number was closed',
+      done1.booking.booking_number === 'OHS/BK/26/00012', done1.booking.booking_number);
+
+    const done2 = await window.completeLinkedBooking(bookingWriteStub({ data: [], error: null }, {}), 'bk2');
+    log('a booking that was already closed is reported, not resurrected',
+      done2.ok === false && done2.reason === 'already-closed', done2.reason);
+
+    const done3 = await window.completeLinkedBooking(
+      bookingWriteStub({ data: null, error: { message: 'Invalid transition: scheduled -> completed' } }, {}), 'bk3');
+    log('a rejected completion comes back as a result instead of throwing',
+      done3.ok === false && done3.reason === 'error' && /Invalid transition/.test(done3.error.message),
+      done3.reason + ': ' + done3.error.message);
+
+    const done4 = await window.completeLinkedBooking(bookingWriteStub({ data: [], error: null }, {}), '');
+    log('no booking id means no write is attempted',
+      done4.ok === false && done4.reason === 'no-booking', done4.reason);
+
     // ── 3. What the pages actually do ─────────────────────────────────────
     const page = async (p) => (await fetch('../' + p + '?t=' + Date.now())).text();
     const mig = await page('branch-inspections-migration.sql');
+    const completionMig = await page('booking-completion-migration.sql');
+
+    log('migration widens the guard to complete from any open state',
+      /CREATE OR REPLACE FUNCTION public\.guard_inspection_booking_transition/.test(completionMig) &&
+      /OLD\.status NOT IN \('pending', 'assigned', 'scheduled'\)/.test(completionMig),
+      'completed allowed from pending/assigned/scheduled');
+    log('migration keeps closed bookings closed and new bookings pending-only',
+      /NEW\.status NOT IN \('pending'\)/.test(completionMig) &&
+      /OLD\.status IN \('completed', 'cancelled'\)/.test(completionMig),
+      'terminal states still terminal');
+    log('migration is transactional and documents how to verify it',
+      /BEGIN;/.test(completionMig) && /COMMIT;/.test(completionMig) &&
+      /Verification/.test(completionMig),
+      'BEGIN/COMMIT + verification queries');
 
     log('migration adds branch_id to both tables, idempotently',
       (mig.match(/ADD COLUMN IF NOT EXISTS branch_id uuid;/g) || []).length === 2, 'ADD COLUMN statements found');
@@ -175,6 +273,30 @@
       bookForm.indexOf('id="branchId"') < bookForm.indexOf('id="location"'),
       'dropdown sits between Company Name and Location');
 
+    log('completed and cancelled bookings are kept out of the link dropdown',
+      /\.in\('status', \['pending', 'assigned', 'scheduled'\]\)/.test(inspForm),
+      'dropdown only offers open bookings');
+    log('the form refuses a booking that is already closed, even via a deep link',
+      inspForm.includes('window.bookingAttachable(bk)') &&
+      inspForm.includes('this inspection will be recorded without a booking link'),
+      'closed bookings cannot be attached');
+    log('the submitted inspection drops the link rather than sending a closed booking',
+      /bookingRefused[\s\S]{0,400}bookingId = '';/.test(inspForm) &&
+      /if \(bookingId\) payload\.booking_id = bookingId;/.test(inspForm),
+      'payload link is guarded');
+    log('a booking that cannot be completed is surfaced, not swallowed',
+      !/booking auto-complete:[\s\S]{0,80}catch \(e\) \{ console\.warn/.test(inspForm) &&
+      inspForm.includes('Booking not completed') &&
+      inspForm.includes('booking-completion-migration.sql'),
+      'officer is told and the fix is named');
+    log('the confirmation reports the booking that was completed',
+      /marked completed\./.test(inspForm) && inspForm.includes('window.completeLinkedBooking(window.supabaseClient, bookingId)'),
+      'completion is reported back');
+    log('the booking link reset is shared, not duplicated four times',
+      inspForm.includes('function clearBookingLinkUI()') &&
+      (inspForm.match(/clearBookingLinkUI\(\);/g) || []).length >= 2,
+      'single reset helper');
+
     log('inspection form only sends branch_id when a branch is chosen',
       /if \(branchSel && branchSel\.value\) payload\.branch_id = branchSel\.value;/.test(inspForm),
       'guarded payload field');
@@ -199,6 +321,122 @@
       branchPage.includes('average of ') && branchPage.includes('branchSubtitle'),
       'subtitle shows the basis');
 
+    log('My Branches offers a View action and a modal for one branch’s compliance',
+      branchPage.includes('function openComplianceModal(branchId)') &&
+      branchPage.includes('id="branchComplianceModal"') &&
+      branchPage.includes('id="complianceModalBody"') &&
+      branchPage.includes('title="View compliance details"') &&
+      branchPage.includes('onclick="openComplianceModal('),
+      'view button + modal wired');
+    log('the compliance figure in the table is itself clickable',
+      /compText \+ '<\/button><\/td>/.test(branchPage), 'rating opens the detail view');
+    log('the branch detail lists that branch’s inspections with a full-report link',
+      branchPage.includes('window.branchInspections(companyInspections, branchId)') &&
+      branchPage.includes("OHS_Form_36_Factories_Inspection.html?id=' + encodeURIComponent(r.id)"),
+      'records + View Report');
+    log('the branch detail states what a rating is made of',
+      branchPage.includes("A branch's rating is the average of the inspections carried out at it"),
+      'modal footer note');
+
+    // ── The detail view, executed for real ────────────────────────────────
+    // Pull openComplianceModal()/closeComplianceModal()/esc() straight out of
+    // company-branches.html and run them against a DOM, so the test drives the
+    // shipped function rather than reading its source.
+    function extractFunction(src, name) {
+      const start = src.indexOf('function ' + name + '(');
+      if (start === -1) return null;
+      const open = src.indexOf('{', start);
+      let depth = 0;
+      for (let i = open; i < src.length; i++) {
+        const ch = src[i];
+        if (ch === '{') depth++;
+        else if (ch === '}') {
+          depth--;
+          if (depth === 0) return src.slice(start, i + 1);
+        }
+      }
+      return null;
+    }
+
+    const openSrc = extractFunction(branchPage, 'openComplianceModal');
+    const closeSrc = extractFunction(branchPage, 'closeComplianceModal');
+    const escSrc = extractFunction(branchPage, 'esc');
+    log('extracted the real detail-view functions from the page',
+      !!openSrc && !!closeSrc && !!escSrc,
+      [openSrc, closeSrc, escSrc].map(s => s ? s.split('\n').length : 0).join('+') + ' lines');
+
+    // Each run gets its own mini-document (getElementById) and its own state, so
+    // one case can never leak into the next.
+    function makeView(branchesById, branchScores, companyInspections) {
+      const doc = new DOMParser().parseFromString(
+        '<!DOCTYPE html><html><body>' +
+        '<div id="branchComplianceModal"><h3 id="complianceModalTitle"></h3>' +
+        '<div class="modal-body" id="complianceModalBody"></div></div>' +
+        '</body></html>', 'text/html');
+      const api = new Function(
+        'branchesById', 'branchScores', 'companyInspections', 'document',
+        openSrc + '\n' + closeSrc + '\n' + escSrc +
+        '\nreturn { openComplianceModal: openComplianceModal, closeComplianceModal: closeComplianceModal };'
+      )(branchesById, branchScores, companyInspections, doc);
+      return { doc, api };
+    }
+
+    const INSPECTIONS = [
+      { id: 'i1', branch_id: 'b-a', compliance_level: 80, inspection_date: '2026-01-10', file_number: 'INSP-2026-0001', inspection_type: 'Routine', inspector_name: 'J. Officer' },
+      { id: 'i2', branch_id: 'b-a', compliance_level: 90, inspection_date: '2026-03-02', file_number: 'INSP-2026-0009', inspection_type: 'Follow-up', inspector_name: 'K. Naledi' },
+      { id: 'i3', branch_id: 'b-b', compliance_level: 60, inspection_date: '2026-02-01', file_number: 'INSP-2026-0004', inspection_type: 'Routine', inspector_name: 'J. Officer' },
+      { id: 'i4', compliance_level: 100, inspection_date: '2026-02-15', file_number: 'INSP-2026-0005' }
+    ];
+    const view = makeView(
+      { 'b-a': BRANCH_A, 'b-b': BRANCH_B },
+      { 'b-a': { compliance: 85, inspection_count: 2 }, 'b-b': { compliance: 60, inspection_count: 1 } },
+      INSPECTIONS
+    );
+    log('the extracted detail view evaluates', typeof view.api.openComplianceModal === 'function',
+      typeof view.api.openComplianceModal);
+
+    view.api.openComplianceModal('b-a');
+    const titleText = view.doc.getElementById('complianceModalTitle').textContent;
+    const bodyHtml = view.doc.getElementById('complianceModalBody').innerHTML;
+    log('the detail view names the branch and shows its rating',
+      titleText.includes('B001') && titleText.includes('Gaborone Depot') && bodyHtml.includes('85%'),
+      titleText + ' / 85% present: ' + bodyHtml.includes('85%'));
+    log('the detail view lists that branch\u2019s records, newest first',
+      bodyHtml.includes('INSP-2026-0009') && bodyHtml.includes('INSP-2026-0001') &&
+      bodyHtml.indexOf('INSP-2026-0009') < bodyHtml.indexOf('INSP-2026-0001'),
+      'both of branch A\u2019s inspections, newest first');
+    log('the detail view excludes other branches and general inspections',
+      !bodyHtml.includes('INSP-2026-0004') && !bodyHtml.includes('INSP-2026-0005'),
+      'branch B and general records absent');
+    log('each record links to its full report',
+      bodyHtml.includes('OHS_Form_36_Factories_Inspection.html?id=i2&amp;view=1') ||
+      bodyHtml.includes('OHS_Form_36_Factories_Inspection.html?id=i2&view=1'),
+      'View Report href carries the record id');
+    log('the modal is actually shown, and closes again',
+      view.doc.getElementById('branchComplianceModal').classList.contains('show'),
+      'class="show" set');
+    view.api.closeComplianceModal();
+    log('closing removes the modal from view',
+      !view.doc.getElementById('branchComplianceModal').classList.contains('show'), 'class="show" cleared');
+
+    view.api.openComplianceModal('b-a');
+    view.api.openComplianceModal('b-b');
+    const bBody = view.doc.getElementById('complianceModalBody').innerHTML;
+    log('switching branches replaces the detail, not appends to it',
+      bBody.includes('60%') && !bBody.includes('INSP-2026-0001'),
+      'branch B shown, branch A records gone');
+
+    const empty = makeView({ 'b-b': BRANCH_B }, { 'b-b': { compliance: null, inspection_count: 0 } }, []);
+    empty.api.openComplianceModal('b-b');
+    const emptyBody = empty.doc.getElementById('complianceModalBody').innerHTML;
+    log('an uninspected branch says so instead of showing a fake 0%',
+      emptyBody.includes('No inspections recorded at this branch yet') && !emptyBody.includes('0%'),
+      'empty state rendered');
+    log('a general-only company still yields an honest branch view',
+      makeView({ 'b-b': BRANCH_B }, { 'b-b': { compliance: null, inspection_count: 0 } }, INSPECTIONS)
+        .api.openComplianceModal('b-b') === undefined,
+      'opens without throwing when every inspection is general');
+
     const viewPage = await page('company-view.html');
     log('company dashboard compliance uses the branch average',
       viewPage.includes('window.getCompanyCompliance(SB, {') &&
@@ -209,6 +447,185 @@
     log('inspection list shows the branch each inspection belongs to',
       /<th>Branch \/ Premises<\/th>/.test(inspPage) && inspPage.includes('branchesById[i.branch_id]'),
       'Branch / Premises column');
+
+    // ── The record view IS the form ───────────────────────────────────────
+    // OHS_Form_36_Factories_Inspection.html keeps no second copy of the form:
+    // it fetches inspection.html and renders that form, filled and locked. The
+    // checks below therefore compare the view's output with the form file
+    // itself, and run the view's real builder and its real lock.
+    const viewSrc = await page('OHS_Form_36_Factories_Inspection.html');
+    const formSrc = await page('inspection.html');
+    const formEl = new DOMParser().parseFromString(formSrc, 'text/html').querySelector('#inspectionForm');
+
+    log('the record view renders the form out of inspection.html, not a copy',
+      /fetch\('inspection\.html'/.test(viewSrc) && /querySelector\('#inspectionForm'\)/.test(viewSrc) &&
+      !/<form\s+id="inspectionForm"/.test(viewSrc),
+      'no duplicated form markup in the view');
+    log('the view keeps no copy of the form’s field labels',
+      !/Summary of Findings/.test(viewSrc) && !/id="fileNumber"/.test(viewSrc),
+      'labels and field ids come from the form file');
+    log('the view does not eval — the page’s own CSP forbids it',
+      !/\bnew Function\b/.test(viewSrc) && !/\beval\s*\(/.test(viewSrc),
+      'no eval / new Function');
+
+    const vStart = viewSrc.indexOf('var TOTAL_SECTIONS = 17');
+    const vEnd = viewSrc.indexOf('// ── Page wiring', vStart);
+    const region = vStart !== -1 && vEnd !== -1 ? viewSrc.slice(vStart, vEnd) : '';
+    const viewWindow = {};
+    const buildView = region.includes('window.buildInspectionFormView')
+      ? new Function('window', 'DOMParser', region + '\nreturn window.buildInspectionFormView;')(viewWindow, DOMParser)
+      : null;
+    log('extracted and evaluated the view’s real builder',
+      typeof buildView === 'function', region ? region.split('\n').length + ' lines' : 'not found');
+
+    const RECORD = {
+      id: 'i-1', file_number: 'INSP-2026-0007', inspection_date: '2026-02-03T00:00:00+00:00',
+      date_report_sent: '2026-02-10', days_to_respond: 5, factory_name: 'Kgalagadi Breweries',
+      inspector_name: 'J. Officer', location: 'Plot 47', nature_of_work: 'Brewing',
+      industry_type: 'Manufacturing', registration_status: 'Registered', inspection_type: 'Routine',
+      employees_male: 40, employees_female: 12, employees_foreign_male: 3, employees_foreign_female: 2,
+      contraventions: ['S9', 's57'], total_contraventions: 2, non_compliance_pct: 12, compliance_level: 88,
+      s9: true, s57: true,
+      plant_machinery: JSON.stringify([{ desc: 'Air Receiver', sn: 'AR-77', status: 'Examined', notes: 'ok' }]),
+      action_taken: 'Warned', follow_up_required: true, follow_up_date: '2026-03-01',
+      summary_findings: 'Housekeeping poor.', non_compliances: 'S9, S57.', recommendations: 'Reinstate log.',
+      branch_id: 'b-1', status: 'completed'
+    };
+    const built = buildView(formSrc, RECORD, { branchLabel: 'B001 — Gaborone Depot' });
+    const builtForm = new DOMParser().parseFromString(built.html, 'text/html').querySelector('#inspectionForm');
+    const norm = s => s.replace(/\s+/g, ' ').trim();
+    const texts = (root, sel) => [...root.querySelectorAll(sel)].map(e => norm(e.textContent));
+    const val = sel => { const e = builtForm.querySelector(sel); return e ? (e.tagName === 'TEXTAREA' ? e.textContent : e.value) : null; };
+
+    log('the record keeps every section of the form, in order',
+      JSON.stringify(texts(builtForm, '.section-title')) === JSON.stringify(texts(formEl, '.section-title')),
+      texts(builtForm, '.section-title').length + ' sections, identical to the form');
+    log('the record keeps the form’s own stylesheet',
+      built.css.includes('.form-card') && built.css.includes('.contravention-item'),
+      built.css.length + ' characters of the form’s CSS');
+
+    const formNames = [...formEl.querySelectorAll('input,select,textarea')].map(e => e.getAttribute('name'));
+    const builtNames = [...builtForm.querySelectorAll('input,select,textarea')].map(e => e.getAttribute('name'));
+    const missingNames = formNames.filter(n => n !== 'booking_link' && !builtNames.includes(n));
+    const extraNames = builtNames.filter(n => !formNames.includes(n));
+    log('every named field of the form is on the record (minus the booking-link row)',
+      missingNames.length === 0 && extraNames.every(n => n === 'contraventions[]') && extraNames.length === 31,
+      missingNames.length ? 'missing: ' + missingNames.join(', ') : extraNames.length + ' grid checkboxes');
+    log('the controls for filling the form in are gone',
+      !builtForm.querySelector('#submitBtn, .form-actions, .add-row-btn, .remove-row-btn, #bookingLinkRow') &&
+      !builtForm.querySelector('button'),
+      'no submit, reset, add/remove row or booking link');
+    log('no inline handler survives into the record',
+      !/\son[a-z]+\s*=/i.test(built.html), 'handler attributes stripped');
+
+    log('the record shows the saved values',
+      val('#fileNumber') === 'INSP-2026-0007' && val('#inspectorName') === 'J. Officer' &&
+      val('#factoryName') === 'Kgalagadi Breweries' && val('#actionTaken') === 'Warned',
+      [val('#fileNumber'), val('#inspectorName'), val('#actionTaken')].join(' / '));
+    log('the record shows the saved narrative',
+      val('#summaryFindings') === 'Housekeeping poor.' && val('#nonCompliances') === 'S9, S57.' &&
+      val('#recommendations') === 'Reinstate log.', 'all three text areas');
+    log('a timestamped inspection date is shown as a date',
+      val('#inspDate') === '2026-02-03', RECORD.inspection_date + ' → ' + val('#inspDate'));
+    log('the employee figures are shown as the form shows them',
+      val('#empMale') === '40' && builtForm.querySelector('#empTotalLocal').textContent === '52' &&
+      builtForm.querySelector('#empTotalForeign').textContent === '5' &&
+      builtForm.querySelector('#empTotalAll').textContent === '57', '52 local / 5 foreign / 57 all');
+
+    const gridItems = builtForm.querySelectorAll('#commonGrid .contravention-item').length;
+    const otherItems = builtForm.querySelectorAll('#otherGrid .contravention-item').length;
+    log('the contravention grid is filled from the form’s own section list',
+      gridItems === 17 && otherItems === 14 &&
+      builtForm.querySelectorAll('input[name="contraventions[]"]').length === 31,
+      gridItems + ' common + ' + otherItems + ' other');
+    const s9 = formSrc.match(/id\s*:\s*'S9'[\s\S]{0,80}?desc\s*:\s*'([^']+)'/);
+    log('grid items carry the form’s own section text',
+      !!s9 && norm(builtForm.querySelector('#item_S9 .section-desc').textContent) === s9[1] &&
+      norm(builtForm.querySelector('#item_S9 label').textContent) === 'S9' &&
+      builtForm.querySelector('#chk_S9').getAttribute('value') === 'S9',
+      'S9 = ' + (s9 && s9[1]));
+    const ticked = [...builtForm.querySelectorAll('input[name="contraventions[]"]:checked')].map(c => c.value);
+    log('the ticked sections come from the record, from both columns and the array, case-insensitively',
+      ticked.length === 2 && ticked.includes('S9') && ticked.includes('S57'), 'ticked: ' + ticked.join(', '));
+    log('the ticked items carry the form’s own highlight',
+      builtForm.querySelectorAll('.contravention-item.checked').length === 2 &&
+      builtForm.querySelector('#item_S9').classList.contains('checked'), '2 highlighted');
+    log('an unticked section stays unticked',
+      !builtForm.querySelector('#chk_S13').hasAttribute('checked') &&
+      !builtForm.querySelector('#item_S13').classList.contains('checked'), 'S13 clean');
+    log('the compliance summary shows the stored figures',
+      builtForm.querySelector('#totalContraventions').textContent === '2' &&
+      builtForm.querySelector('#nonCompliancePct').textContent === '12%' &&
+      builtForm.querySelector('#compliancePct').textContent === '88%', '2 / 12% / 88%');
+
+    const computed = new DOMParser().parseFromString(buildView(formSrc, { s9: true, s57: true }, {}).html, 'text/html');
+    log('with no stored totals the view computes them the way the form does (2 of 17 → 12%)',
+      computed.querySelector('#nonCompliancePct').textContent === '12%' &&
+      computed.querySelector('#compliancePct').textContent === '88%',
+      computed.querySelector('#nonCompliancePct').textContent);
+
+    const plantRows = [...builtForm.querySelectorAll('#plantBody tr')];
+    log('plant rows come from the record',
+      plantRows.length === 1 &&
+      plantRows[0].querySelector('[name="plant_desc[]"]').value === 'Air Receiver' &&
+      plantRows[0].querySelector('[name="plant_sn[]"]').value === 'AR-77' &&
+      plantRows[0].querySelector('[name="plant_status[]"]').value === 'Examined',
+      'Air Receiver / AR-77 / Examined');
+
+    const blank = new DOMParser().parseFromString(buildView(formSrc, {}, {}).html, 'text/html');
+    log('a record with no plant keeps the form’s single blank row',
+      blank.querySelectorAll('#plantBody tr').length === 1 && blank.querySelector('[name="plant_desc[]"]').value === '',
+      'one empty row');
+    log('a plant row keeps the form’s shape without the remove button',
+      blank.querySelectorAll('#plantBody td').length === 5 && !blank.querySelector('#plantBody .remove-row-btn'),
+      '5 cells, no ✕');
+    log('a record with no branch is left as a general inspection',
+      blank.querySelector('#branchId').value === '', 'no premises chosen');
+
+    const branchSel = builtForm.querySelector('#branchId');
+    log('the record names the premises it was carried out at',
+      branchSel.value === 'b-1' && [...branchSel.options].some(o => o.textContent === 'B001 — Gaborone Depot'),
+      'branch option appended to the form’s list');
+
+    const fuRow = builtForm.querySelector('#followUpDateRow');
+    log('a follow-up is revealed, as the form reveals it',
+      fuRow && !fuRow.hasAttribute('style') && val('#followUpDate') === '2026-03-01',
+      'row shown, date ' + val('#followUpDate'));
+    const noFu = new DOMParser().parseFromString(buildView(formSrc, { action_taken: 'Warned' }, {}).html, 'text/html');
+    log('no follow-up leaves the row exactly as the form has it',
+      /display:\s*none/.test(noFu.querySelector('#followUpDateRow').getAttribute('style') || ''),
+      'form default kept');
+
+    const retired = new DOMParser().parseFromString(buildView(formSrc, { action_taken: 'Warning Letter Sent' }, {}).html, 'text/html');
+    const retiredSel = retired.querySelector('#actionTaken');
+    log('an action the form no longer offers is still shown, not blanked',
+      retiredSel.value === 'Warning Letter Sent' &&
+      [...retiredSel.options].some(o => o.textContent === 'Warning Letter Sent'), 'option appended');
+    log('an action the form still offers selects that option',
+      new DOMParser().parseFromString(buildView(formSrc, { action_taken: 'Prosecution Recommended' }, {}).html, 'text/html')
+        .querySelector('#actionTaken').value === 'Prosecution Recommended', 'existing option selected');
+
+    const lockSrc = extractFunction(viewSrc, 'lockForm');
+    log('extracted the view’s real lock', !!lockSrc, lockSrc ? lockSrc.split('\n').length + ' lines' : 'not found');
+    const holder = document.createElement('div');
+    holder.innerHTML = built.html;
+    const coldForm = holder.querySelector('#inspectionForm');
+    new Function(lockSrc + '\nreturn lockForm;')()(coldForm);
+    log('the record is locked, not merely styled',
+      coldForm.querySelectorAll('[readonly]').length >= 20 &&
+      [...coldForm.querySelectorAll('input,select,textarea')].every(e => e.getAttribute('tabindex') === '-1') &&
+      coldForm.getAttribute('novalidate') === 'novalidate',
+      coldForm.querySelectorAll('[readonly]').length + ' read-only fields, none focusable');
+
+    log('the record prints as the form, without the page chrome',
+      /@media print/.test(viewSrc) && /#oshRecordBar, #oshRecordNote \{ display: none !important; \}/.test(viewSrc) &&
+      /@page/.test(viewSrc) && /break-inside: avoid/.test(viewSrc),
+      'print rules present');
+    log('a form whose section list changed fails loudly instead of showing an empty grid',
+      buildView('<html><body><form id="inspectionForm"><div id="commonGrid"></div><div id="otherGrid"></div></form></body></html>', {}, {}) === null,
+      'builder returns null');
+    log('a source without the form yields null, not a half-rendered record',
+      buildView('<html><body><p>nothing here</p></body></html>', {}, {}) === null, 'null');
 
     // A missing branch_id column can only be tolerated if nothing selects it.
     const allFiles = ['common.js', 'inspection.html', 'company-book-inspection.html', 'company-branches.html',

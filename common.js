@@ -436,12 +436,82 @@ async function handleLogout() {
   /**
    * Branch list + compliance for a company in one call.
    * opts: { companyId, companyName } — pass what you have.
+   *
+   * The raw `inspections` are returned alongside the figures so a page can list
+   * one branch's records (see branchInspections) without querying twice.
    */
   window.getCompanyCompliance = async function (supabaseClient, opts) {
     var options = opts || {};
     var branches = await window.getCompanyBranches(supabaseClient, options.companyId);
     var inspections = await window.getCompanyInspections(supabaseClient, options);
-    return window.computeComplianceByBranch(branches, inspections);
+    var result = window.computeComplianceByBranch(branches, inspections);
+    result.inspections = inspections;
+    return result;
+  };
+
+  /**
+   * The inspections carried out at one branch, newest first.
+   * Used to show a branch's own compliance behind its rating.
+   */
+  window.branchInspections = function (inspections, branchId) {
+    if (!Array.isArray(inspections) || !branchId) return [];
+    return inspections
+      .filter(function (r) { return r && r.branch_id === branchId; })
+      .sort(function (a, b) {
+        return String(b.inspection_date || '').localeCompare(String(a.inspection_date || ''));
+      });
+  };
+
+  // ============================================
+  // BOOKING <-> INSPECTION LINK
+  // ============================================
+
+  /**
+   * May this booking still be attached to a NEW inspection?
+   *
+   * A completed booking already has the inspection that fulfils it, and a
+   * cancelled one is not going to be inspected, so neither may be linked again
+   * — that is what produced duplicate inspections hanging off one booking.
+   * Pure, so the rule can be tested without a database.
+   */
+  window.bookingAttachable = function (booking) {
+    if (!booking) return { attachable: true, reason: '' };
+    var status = String(booking.status || '').toLowerCase();
+    if (status === 'completed') return { attachable: false, reason: 'completed' };
+    if (status === 'cancelled') return { attachable: false, reason: 'cancelled' };
+    return { attachable: true, reason: '' };
+  };
+
+  /**
+   * Mark the booking behind an inspection as completed.
+   *
+   * Completion is attempted from any open status (pending, assigned or
+   * scheduled) — the inspection is the record that the visit happened, so an
+   * unscheduled booking must still close. The status filter means an already
+   * completed or cancelled booking is left untouched rather than resurrected.
+   *
+   * Resolves to { ok, booking } on success and
+   * { ok: false, reason } otherwise, where reason is
+   * 'already-closed' (nothing was open to complete) or 'error' (the write was
+   * rejected — e.g. the transition guard has not been widened yet, see
+   * booking-completion-migration.sql). Never throws.
+   */
+  window.completeLinkedBooking = async function (supabaseClient, bookingId) {
+    var sb = supabaseClient || window.supabaseClient;
+    if (!sb || !bookingId) return { ok: false, reason: 'no-booking' };
+    try {
+      var { data, error } = await sb
+        .from('inspection_bookings')
+        .update({ status: 'completed' })
+        .eq('id', bookingId)
+        .in('status', ['pending', 'assigned', 'scheduled'])
+        .select('id, booking_number, status');
+      if (error) return { ok: false, reason: 'error', error: error };
+      if (!data || !data.length) return { ok: false, reason: 'already-closed' };
+      return { ok: true, booking: data[0] };
+    } catch (e) {
+      return { ok: false, reason: 'error', error: e };
+    }
   };
 
   // ============================================

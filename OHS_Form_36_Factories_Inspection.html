@@ -3,370 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspection Record – OHS Form 36</title>
 <link rel="stylesheet" href="styles.css">
-    <title>OHS Form 36 – Factories Inspection Form</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Arial", sans-serif; font-size: 10.5pt; background: #fff; color: #000; }
-
-  .page {
-    width: 210mm; min-height: 297mm;
-    margin: 0 auto; padding: 14mm 18mm 14mm 18mm;
-    background: #fff;
+  /* ── View chrome only ─────────────────────────────────────────────────
+     The form's own stylesheet is fetched from inspection.html and injected
+     at runtime, so the record below is styled by the form itself, not by a
+     copy of it. Everything here concerns the bar above it and printing. */
+  #oshRecordBar {
+    position: sticky; top: 0; z-index: 1000;
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 20px; background: #fff;
+    border-bottom: 2px solid #e6e6e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  #oshRecordBar h1 { font-size: 15px; color: #222; margin: 0; font-weight: 700; white-space: nowrap; }
+  #oshRecordBar .osh-chip {
+    font-size: 12px; font-weight: 600; color: #555;
+    background: #f2f2f2; border-radius: 10px; padding: 3px 10px;
+  }
+  #oshRecordBar .osh-meta { font-size: 12px; color: #777; }
+  #oshRecordBar .osh-spacer { flex: 1; }
+  #oshRecordBar button {
+    padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; border: 1px solid #ddd; background: #fff; color: #333;
+  }
+  #oshRecordBar button:hover { background: #f5f5f5; }
+  #oshRecordBar button.primary { background: #222; color: #fff; border-color: #222; }
+  #oshRecordBar button.primary:hover { background: #444; }
+  #oshRecordNote {
+    display: none; margin: 12px 20px 0; padding: 10px 14px;
+    border-radius: 8px; font-size: 13px; line-height: 1.5;
+    background: #fff8e1; border: 1px solid #ffe08a; color: #7a5c00;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 
-  /* ── Header ── */
-  .header-center { text-align: center; margin-bottom: 5mm; }
-  .crest-placeholder {
-    display: inline-block; width: 22mm; height: 22mm;
-    border: 1px solid #000; line-height: 22mm; font-size: 7.5pt;
-    color: #666; text-align: center; margin-bottom: 2mm;
-  }
-  .republic { font-weight: bold; font-size: 13pt; letter-spacing: 0.05em; margin-bottom: 3mm; }
-  .form-number-block { text-align: right; margin-bottom: 1mm; }
-  .form-number-block .fn { font-weight: bold; font-size: 11.5pt; }
-  .form-number-block .rev { font-size: 9.5pt; color: #444; }
-
-  .dept-block { font-size: 10.5pt; line-height: 1.6; margin-bottom: 3mm; }
-  .dept-block .ministry { font-style: italic; }
-
-  .main-title {
-    font-size: 17pt; font-weight: bold; text-align: center;
-    margin-bottom: 5mm; letter-spacing: 0.01em;
+  /* The record is the form, locked. Nothing may look interactive. */
+  #oshRecordHost form [name] { pointer-events: none; caret-color: transparent; }
+  #oshRecordHost form input, #oshRecordHost form select, #oshRecordHost form textarea { cursor: default; }
+  #oshRecordHost form input:focus, #oshRecordHost form select:focus, #oshRecordHost form textarea:focus {
+    outline: none; border-color: #e0e0e0;
   }
 
-  /* ── Field lines ── */
-  .dline {
-    border-bottom: 1px solid #000; display: block;
-    min-height: 5.5mm; width: 100%; margin-bottom: 1.5mm;
-  }
-  .dline-inline {
-    border-bottom: 1px solid #000; display: inline-block;
-    min-height: 4.5mm;
-  }
-
-  /* ── Top info fields ── */
-  .info-row {
-    display: flex; gap: 4mm; align-items: flex-end;
-    margin-bottom: 2mm; font-size: 10.5pt;
-  }
-  .info-row > span { white-space: nowrap; }
-  .info-row .stretch { flex: 1; border-bottom: 1px solid #000; min-height: 4.5mm; }
-
-  .persons-row {
-    display: flex; align-items: flex-end; gap: 6mm;
-    margin-bottom: 2mm; font-size: 10.5pt;
-  }
-  .persons-row > span { white-space: nowrap; }
-  .persons-row .pline { border-bottom: 1px solid #000; min-width: 28mm; min-height: 4.5mm; display: inline-block; }
-
-  /* ── Inspection items ── */
-  .item {
-    margin-bottom: 3mm; font-size: 10.5pt; line-height: 1.5;
-  }
-  .item .item-label {
-    font-weight: normal; margin-bottom: 1mm;
-  }
-  .item .item-label .num { font-weight: bold; }
-
-  /* items with 2 lines */
-  .item .dline { margin-top: 0.5mm; }
-
-  /* ── Footer rule ── */
-  .footer {
-    border-top: 1px solid #000; margin-top: 5mm;
-    padding-top: 2mm; text-align: center;
-    font-size: 9pt; font-variant: small-caps;
-    letter-spacing: 0.05em; color: #333;
-  }
-
-  .page-break { page-break-before: always; }
-
-  /* ── Signature / date area ── */
-  .sig-section { margin-top: 2mm; }
-
+  /* ── Printing: the page *is* the form, so print the form and nothing else ── */
+  @page { size: A4; margin: 12mm; }
   @media print {
-    body { background: #fff; }
-    .page { margin: 0; width: 100%; }
+    #oshRecordBar, #oshRecordNote { display: none !important; }
+    html, body { background: #fff !important; }
+    body { margin: 0 !important; }
+    .page-container { padding: 0 !important; }
+    .container { max-width: none !important; width: auto !important; padding: 0 !important; margin: 0 !important; }
+    .form-card {
+      box-shadow: none !important; border: 1px solid #ddd !important;
+      margin: 0 0 10px !important; break-inside: avoid; page-break-inside: avoid;
+    }
+    .form-header { break-after: avoid; page-break-after: avoid; }
+    .section-title { break-after: avoid; page-break-after: avoid; }
+    .contravention-item, .plant-table tr, .summary-box { break-inside: avoid; page-break-inside: avoid; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
 
-<!-- ═══════════ PAGE 1 ═══════════ -->
-<div class="page">
+<div id="oshRecordBar">
+  <h1>OHS Form 36 — Inspection Report</h1>
+  <span class="osh-chip" id="oshRecordRef">—</span>
+  <span class="osh-meta" id="oshRecordMeta"></span>
+  <span class="osh-spacer"></span>
+  <button type="button" class="primary" id="oshPrintBtn">🖨️ Print</button>
+  <button type="button" id="oshBackBtn">← Back</button>
+</div>
+<div id="oshRecordNote"></div>
 
-  <!-- Form number top right + crest -->
-  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4mm;">
-    <div style="flex:1;"></div>
-    <div style="text-align:center; flex:2;">
-      <div><span class="crest-placeholder">[ Coat of Arms ]</span></div>
-      <div class="republic">REPUBLIC OF BOTSWANA</div>
-    </div>
-    <div style="flex:1; text-align:right;">
-      <div style="font-weight:bold; font-size:11.5pt;">OHS Form 36</div>
-      <div style="font-size:9.5pt;">(Revised 2017)</div>
-    </div>
+<div class="page-container">
+  <div class="container" id="oshRecordHost">
+    <!-- filled at runtime with the form from inspection.html -->
   </div>
-
-  <div class="dept-block" style="text-align:center;">
-    <div>Department of Occupational Health and Safety</div>
-    <div class="ministry">Ministry of Employment, Labour Productivity and Skills Development</div>
-    <div>The Factories Act, 1973</div>
-  </div>
-
-  <div class="main-title">FACTORIES INSPECTION FORM</div>
-
-  <!-- Top info fields -->
-  <div class="info-row">
-    <span>Name of Factory</span><span class="stretch"></span>
-  </div>
-  <span class="dline"></span>
-
-  <div class="info-row">
-    <span>Registration No.</span><span class="stretch" style="max-width:55mm;"></span>
-    <span style="margin-left:4mm;">Region</span><span class="stretch"></span>
-  </div>
-
-  <div class="info-row">
-    <span>Nature of Work carried out</span><span class="stretch"></span>
-  </div>
-
-  <div class="persons-row" style="margin-bottom:1.5mm;">
-    <span>Number of Persons Employed:</span>
-    <span>Male:</span><span class="pline"></span>
-    <span>Female:</span><span class="pline"></span>
-    <span>Total:</span><span class="pline"></span>
-  </div>
-  <span class="dline"></span>
-
-  <div class="info-row">
-    <span>Stand/Plot Number</span><span class="stretch"></span>
-  </div>
-
-  <div class="info-row">
-    <span>Postal Address</span><span class="stretch"></span>
-  </div>
-  <span class="dline"></span>
-
-  <div class="info-row">
-    <span>Date of Inspection:</span><span class="stretch"></span>
-  </div>
-
-  <div class="info-row">
-    <span>Name of Person/Position of Person seen during Inspection:</span><span class="stretch"></span>
-  </div>
-  <span class="dline"></span>
-
-  <div class="info-row" style="margin-bottom:4mm;">
-    <span><em>INSPECTOR:</em></span><span class="stretch"></span>
-  </div>
-
-  <!-- Inspection items 1–6 -->
-  <div class="item">
-    <div class="item-label"><span class="num">1.00:</span> Cleanliness/Housekeeping:</div>
-    <span class="dline-inline" style="min-width:100%; display:block; border-bottom:1px solid #000; min-height:5mm; margin-bottom:1.5mm;"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">2.00:</span> Ventilation:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">3.00:</span> Water Supply/Drinking Water:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">4.00:</span> Protective Clothing/Equipment:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">5.00:</span> Changerooms/Canteen:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">6.00:</span> First Aid Equipment/Room/First Aider:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
 </div>
 
-
-<!-- ═══════════ PAGE 2 ═══════════ -->
-<div class="page page-break">
-
-  <div class="item">
-    <div class="item-label"><span class="num">7.00:</span> Showers:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">8.00:</span> Toilets:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">9.00:</span> Fire Precautions/Equipment:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">10.00:</span> Lighting: Natural/Artificial:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">11.00:</span> Wash-Hand Basins:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">12.00:</span> Dangerous Substances/Dust/Fumes:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">13.00:</span> Accidents/Notification:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">14.00:</span> Industrial Diseases/Notification:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">15.00:</span> Stacking/Storage Arrangements:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">16.00:</span> Overcrowding/Congestion:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">17.00:</span> Spray Painting:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">18.00:</span> Notices/Posters, etc:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">19.00:</span> Medical Examinations:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">20.00:</span> Noise/Vibration:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">21.00:</span> Machinery/Pressure Vessels/Lifting Equipment:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">22.00:</span> Electrical Safety:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">23.00:</span> Construction Safety:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">24.00:</span> Further observations/Remarks</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
-</div>
-
-
-<!-- ═══════════ PAGE 3 ═══════════ -->
-<div class="page page-break">
-
-  <!-- Continuation lines for item 24 -->
-  <span class="dline"></span>
-  <span class="dline"></span>
-  <span class="dline"></span>
-
-  <div class="item" style="margin-top:3mm;">
-    <div class="item-label"><span class="num">25.00:</span> Referral to other Organisations, etc:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">26.00:</span> Signature of Inspector:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">27.00:</span> Reinspections:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item">
-    <div class="item-label"><span class="num">28.00:</span> Name/Signature of Inspector:</div>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-    <span class="dline"></span>
-  </div>
-
-  <div class="item" style="margin-top:3mm;">
-    <div class="item-label">Date:</div>
-    <span class="dline"></span>
-  </div>
-
-  <div class="footer">Our Common Goal: Safety, Health and Welfare at Work</div>
-</div>
-
-
-<!-- View-mode scripts -->
 <script src="supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script src="constants.js"></script>
@@ -374,213 +93,384 @@
 <script src="modal.js"></script>
 <script src="common.js"></script>
 <script>
-window.addEventListener('load', async function() {
-  var p = new URLSearchParams(window.location.search);
-  if (!p.get('id') || p.get('view') !== '1') return;
+(function () {
+  'use strict';
 
-  try {
-    var { data, error } = await window.supabaseClient
-      .from('workplace_inspections')
-      .select('*')
-      .eq('id', p.get('id'))
-      .maybeSingle();
+  /* ────────────────────────────────────────────────────────────────────
+     Read-only inspection record — the view *is* the form.
 
-    if (error || !data) {
-      console.error('View mode: Failed to load inspection record', error || 'Not found');
-      document.querySelectorAll('.dline').forEach(function(el){ el.style.borderBottom='1px solid #999'; });
+     There is only one OHS Form 36 in this project: the one officers fill in
+     (inspection.html). This page does not keep a second copy of it — it
+     fetches that file, keeps its stylesheet and its #inspectionForm, fills
+     the form from the saved record and locks it. So the view and the printed
+     version are the form itself, and they follow the form whenever it changes.
+
+     buildInspectionFormView() is pure — source text in, { css, html } out — so
+     scripts/branch-compliance-check.html can execute it against the real form.
+     ──────────────────────────────────────────────────────────────────── */
+
+  var TOTAL_SECTIONS = 17;   // the form's own denominator for non-compliance %
+
+  // Slice of a top-level `const NAME = [ ... ];` literal, so the contravention
+  // lists can be reused from the form instead of copied here.
+  function extractArrayLiteral(src, name) {
+    var at = src.indexOf('const ' + name);
+    if (at === -1) return null;
+    var open = src.indexOf('[', at);
+    if (open === -1) return null;
+    var depth = 0, quote = null;
+    for (var i = open; i < src.length; i++) {
+      var ch = src[i];
+      if (quote) {
+        if (ch === '\\') { i++; continue; }
+        if (ch === quote) quote = null;
+        continue;
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue; }
+      if (ch === '[') depth++;
+      else if (ch === ']') { depth--; if (depth === 0) return src.slice(open, i + 1); }
+    }
+    return null;
+  }
+
+  // The `{ id:'S9', label:'S9', desc:'…' }` entries of a list literal.
+  // Deliberately no eval — this page's CSP forbids it — and it refuses to guess:
+  // if the literal holds entries this cannot read, it returns null so the page
+  // says the form changed rather than showing an empty grid.
+  function parseSections(literal) {
+    if (!literal) return null;
+    var out = [];
+    var entry = /\{\s*id\s*:\s*'([^']*)'\s*,\s*label\s*:\s*'([^']*)'\s*,\s*desc\s*:\s*'([^']*)'\s*\}/g;
+    var m;
+    while ((m = entry.exec(literal))) out.push({ id: m[1], label: m[2], desc: m[3] });
+    var braces = (literal.match(/\{/g) || []).length;
+    if (!out.length || out.length !== braces) return null;
+    return out;
+  }
+
+  // The form's own COMMON_SECTIONS / OTHER_SECTIONS, read from its source.
+  function sectionLists(sourceHtml) {
+    return {
+      common: parseSections(extractArrayLiteral(sourceHtml, 'COMMON_SECTIONS')),
+      other: parseSections(extractArrayLiteral(sourceHtml, 'OTHER_SECTIONS'))
+    };
+  }
+
+  // Sections ticked on the saved record: the boolean columns (s9…s58) and the
+  // contraventions array, keyed by upper-case section id.
+  function tickedSections(record, lists) {
+    var ticked = {};
+    var all = (lists.common || []).concat(lists.other || []);
+    all.forEach(function (s) {
+      if (record[s.id.toLowerCase()]) ticked[String(s.id).toUpperCase()] = true;
+    });
+    var stored = record.contraventions || [];
+    if (typeof stored === 'string') { try { stored = JSON.parse(stored); } catch (e) { stored = []; } }
+    (Array.isArray(stored) ? stored : []).forEach(function (v) {
+      if (v) ticked[String(v).toUpperCase()] = true;
+    });
+    return ticked;
+  }
+
+  // Same item markup the form's buildGrid() produces, ticked and inert.
+  function gridHtml(sections, ticked) {
+    return (sections || []).map(function (s) {
+      var hit = !!ticked[String(s.id).toUpperCase()];
+      return '<div class="contravention-item' + (hit ? ' checked' : '') + '" id="item_' + s.id + '">' +
+        '<input type="checkbox" id="chk_' + s.id + '" name="contraventions[]" value="' + s.id + '"' +
+        (hit ? ' checked' : '') + '>' +
+        '<label for="chk_' + s.id + '">' + s.label + '</label>' +
+        '<span class="section-desc">' + s.desc + '</span></div>';
+    }).join('');
+  }
+
+  function setValue(el, value) {
+    if (!el || value === null || value === undefined || value === '') return false;
+    if (el.tagName === 'TEXTAREA') { el.textContent = String(value); return true; }
+    if (el.getAttribute('type') === 'date') {
+      // a timestamptz column arrives with a time part; a date input wants YYYY-MM-DD
+      var day = String(value).slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
+      el.setAttribute('value', day);
+      return true;
+    }
+    el.setAttribute('value', String(value));
+    return true;
+  }
+
+  // Select a stored value, even one the form no longer offers (a retired action,
+  // or a branch list that has not loaded) — an empty select would hide data.
+  function selectValue(sel, value, label) {
+    if (!sel || value === null || value === undefined || value === '') return false;
+    var want = String(value), match = null;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      if (!match && o.value.toLowerCase() === want.toLowerCase()) match = o;
+    });
+    if (!match) {
+      match = sel.ownerDocument.createElement('option');
+      match.value = want;
+      match.textContent = label || want;   // escaped by the DOM
+      sel.appendChild(match);
+    }
+    Array.prototype.forEach.call(sel.options, function (o) { o.removeAttribute('selected'); });
+    match.setAttribute('selected', 'selected');
+    sel.value = match.value;
+    return true;
+  }
+
+  function plantRows(record) {
+    var raw = record.plant_machinery, rows = [];
+    if (typeof raw === 'string') { try { rows = JSON.parse(raw); } catch (e) { rows = []; } }
+    else if (Array.isArray(raw)) rows = raw;
+    return (Array.isArray(rows) ? rows : []).filter(function (r) {
+      return r && (r.desc || r.sn || r.status || r.notes);
+    });
+  }
+
+  // The form's plant row markup, minus the remove button. A record with no
+  // plant keeps the form's single blank row, exactly as the form opens.
+  function rebuildPlant(form, rows) {
+    var body = form.querySelector('#plantBody');
+    if (!body) return;
+    var list = rows.length ? rows : [{}];
+    body.innerHTML = '';
+    list.forEach(function (r) {
+      var tr = form.ownerDocument.createElement('tr');
+      tr.innerHTML =
+        '<td><input type="text" name="plant_desc[]" placeholder="e.g. Air Receiver"></td>' +
+        '<td><input type="text" name="plant_sn[]" placeholder="S/N or NIL"></td>' +
+        '<td><select name="plant_status[]">' +
+          '<option value="">— Status —</option>' +
+          '<option>Examined</option><option>Not Examined</option><option>N/A</option>' +
+        '</select></td>' +
+        '<td><input type="text" name="plant_notes[]" placeholder="Notes"></td>' +
+        '<td></td>';
+      setValue(tr.querySelector('[name="plant_desc[]"]'), r.desc);
+      setValue(tr.querySelector('[name="plant_sn[]"]'), r.sn);
+      selectValue(tr.querySelector('[name="plant_status[]"]'), r.status);
+      setValue(tr.querySelector('[name="plant_notes[]"]'), r.notes);
+      body.appendChild(tr);
+    });
+  }
+
+  // Every named control is a column of the same name, which is how the form
+  // submits itself. Arrays (plant rows, contraventions) are handled above.
+  function fillFields(form, record, opts) {
+    Array.prototype.forEach.call(form.querySelectorAll('[name]'), function (el) {
+      var name = el.getAttribute('name');
+      if (!name || name.slice(-2) === '[]') return;
+      if (name === 'booking_link') return;
+      if (!Object.prototype.hasOwnProperty.call(record, name)) return;
+      var value = record[name];
+      if (value === null || value === undefined || value === '') return;
+      if (name === 'follow_up_required') { selectValue(el, value ? 'Yes' : 'No'); return; }
+      if (name === 'branch_id') { selectValue(el, value, opts.branchLabel || value); return; }
+      if (el.tagName === 'SELECT') { selectValue(el, value); return; }
+      setValue(el, value);
+    });
+  }
+
+  // The form's live summary figures, recomputed the way the form computes them.
+  function fillDerived(form, record, ticked) {
+    var num = function (v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; };
+    var male = num(record.employees_male), female = num(record.employees_female);
+    var foreignMale = num(record.employees_foreign_male), foreignFemale = num(record.employees_foreign_female);
+
+    var total = record.total_contraventions != null ? record.total_contraventions : Object.keys(ticked).length;
+    var nonPct = record.non_compliance_pct != null ? record.non_compliance_pct : Math.round((total / TOTAL_SECTIONS) * 100);
+    var compliance = record.compliance_level != null ? record.compliance_level : (100 - nonPct);
+
+    var set = function (selector, text) {
+      var el = form.querySelector(selector);
+      if (el) el.textContent = String(text);
+    };
+    set('#totalContraventions', total);
+    set('#nonCompliancePct', nonPct + '%');
+    set('#compliancePct', compliance + '%');
+    set('#empTotalLocal', male + female);
+    set('#empTotalForeign', foreignMale + foreignFemale);
+    set('#empTotalAll', male + female + foreignMale + foreignFemale);
+  }
+
+  /**
+   * Pure: inspection.html source + a saved record → the form, filled, inert.
+   * Returns { css, html }; html is the form's own #inspectionForm markup, so
+   * anything the form shows (sections, labels, layout) is what the record
+   * shows. Returns null if the source carries no form.
+   */
+  window.buildInspectionFormView = function (sourceHtml, record, opts) {
+    record = record || {};
+    opts = opts || {};
+    var doc;
+    try { doc = new DOMParser().parseFromString(String(sourceHtml || ''), 'text/html'); }
+    catch (e) { return null; }
+    if (!doc || !doc.querySelector) return null;
+    var form = doc.querySelector('#inspectionForm');
+    if (!form) return null;
+
+    var style = doc.querySelector('style');
+    var css = style ? style.textContent : '';
+
+    // 1. Drop what only makes sense while filling the form in: the actions,
+    //    the add/remove-row buttons, and the booking-link row (linking a
+    //    booking happens on the way in, it is not part of the record).
+    ['#bookingLinkRow', '#bookingLinkBanner', '.form-actions', '.add-row-btn'].forEach(function (sel) {
+      Array.prototype.forEach.call(form.querySelectorAll(sel), function (el) { el.remove(); });
+    });
+    Array.prototype.forEach.call(form.querySelectorAll('*'), function (el) {
+      Array.prototype.slice.call(el.attributes).forEach(function (attr) {
+        if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+      });
+    });
+
+    // 2. The contravention grids are empty in the markup — the form fills them
+    //    from its own section lists, so the same lists fill them here.
+    var lists = sectionLists(sourceHtml);
+    if (!lists.common || !lists.other) return null;   // the form's section lists changed shape
+    var ticked = tickedSections(record, lists);
+    var commonGrid = form.querySelector('#commonGrid');
+    if (commonGrid) commonGrid.innerHTML = gridHtml(lists.common, ticked);
+    var otherGrid = form.querySelector('#otherGrid');
+    if (otherGrid) otherGrid.innerHTML = gridHtml(lists.other, ticked);
+
+    // 3. Plant rows, and the values.
+    rebuildPlant(form, plantRows(record));
+    fillFields(form, record, opts);
+    if (record.follow_up_required) {
+      var followUpRow = form.querySelector('#followUpDateRow');
+      if (followUpRow) followUpRow.removeAttribute('style');   // the form reveals it on "Yes"
+    }
+    fillDerived(form, record, ticked);
+
+    return { css: css, html: form.outerHTML };
+  };
+
+  // ── Page wiring ──────────────────────────────────────────────────────
+  function showNote(message) {
+    var note = document.getElementById('oshRecordNote');
+    if (!note) return;
+    note.textContent = message;
+    note.style.display = message ? 'block' : 'none';
+  }
+
+  function useFormStyles(css) {
+    if (!css) return;
+    var style = document.getElementById('osh-form-styles');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'osh-form-styles';
+      document.head.appendChild(style);
+    }
+    style.textContent = css;
+  }
+
+  // Look, but do not touch: no focus, no clicks, no submit.
+  function lockForm(form) {
+    Array.prototype.forEach.call(form.querySelectorAll('input, select, textarea, button'), function (el) {
+      el.setAttribute('tabindex', '-1');
+      var kind = (el.getAttribute('type') || '').toLowerCase();
+      if (el.tagName !== 'SELECT' && kind !== 'checkbox' && kind !== 'radio' && kind !== 'button') {
+        el.setAttribute('readonly', 'readonly');
+      }
+    });
+    form.setAttribute('novalidate', 'novalidate');
+    form.addEventListener('submit', function (e) { e.preventDefault(); });
+  }
+
+  function describeRecord(record, problem, branchLabel) {
+    var ref = document.getElementById('oshRecordRef');
+    var meta = document.getElementById('oshRecordMeta');
+    if (ref) ref.textContent = (record && record.file_number) || '—';
+    if (!meta) return;
+    var bits = [];
+    if (record) {
+      if (record.inspection_date) bits.push('Inspected ' + String(record.inspection_date).slice(0, 10));
+      if (record.inspector_name) bits.push('by ' + record.inspector_name);
+      if (record.factory_name) bits.push(record.factory_name);
+      if (branchLabel) bits.push('Premises: ' + branchLabel);
+      bits.push('Read only · ' + (record.status || 'completed'));
+    } else {
+      bits.push('Blank form — no record loaded');
+    }
+    meta.textContent = bits.join(' · ');
+    document.title = 'Inspection Record ' + ((record && record.file_number) || '') + ' – OHS Form 36';
+    if (problem) showNote('This record could not be loaded (' + problem + '). The blank form is shown below.');
+  }
+
+  window.renderInspectionRecord = async function () {
+    var id = new URLSearchParams(window.location.search).get('id');
+    var host = document.getElementById('oshRecordHost');
+    if (!host) return;
+
+    var record = null, problem = '';
+    if (id && window.supabaseClient) {
+      try {
+        var res = await window.supabaseClient
+          .from('workplace_inspections')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        if (res && res.error) problem = res.error.message || String(res.error);
+        else if (res && res.data) record = res.data;
+        else problem = 'no inspection with that id';
+      } catch (e) {
+        problem = (e && (e.message || String(e))) || 'request failed';
+      }
+    }
+
+    var source = '';
+    try {
+      var fetched = await fetch('inspection.html', { cache: 'no-store' });
+      if (!fetched.ok) throw new Error('inspection.html → HTTP ' + fetched.status);
+      source = await fetched.text();
+    } catch (e) {
+      showNote('The form itself could not be loaded, so the record cannot be shown: ' +
+        ((e && e.message) || e));
       return;
     }
 
-    // ── Statutory sections (mirrors inspection.html buildGrid) ──
-    var COMMON_SECTIONS = [
-      { id:'s9',  desc:'Registration of Factories' },
-      { id:'s13', desc:'Fencing of Machinery' },
-      { id:'s14', desc:'Construction & Maintenance of Fencing' },
-      { id:'s15', desc:'Operations near unfenced machinery' },
-      { id:'s16', desc:'Cleaning moving machinery' },
-      { id:'s18', desc:'Safe working on machinery' },
-      { id:'s41', desc:'General safety of buildings' },
-      { id:'s42', desc:'Floors, passages & stairs' },
-      { id:'s46', desc:'Precautions in case of fire' },
-      { id:'s47', desc:'Fire equipment' },
-      { id:'s48', desc:'Means of escape' },
-      { id:'s49', desc:'Fire drills & notices' },
-      { id:'s52', desc:'Welfare facilities' },
-      { id:'s53', desc:'Washing facilities' },
-      { id:'s62', desc:'First aid' },
-      { id:'s66', desc:'Protective clothing & equipment' },
-      { id:'s67', desc:'Safety officer & committee' }
-    ];
-    var OTHER_SECTIONS = [
-      { id:'s17', desc:'Explosive / Highly flammable substances' },
-      { id:'s23', desc:'Chain, ropes & lifting gear' },
-      { id:'s29', desc:'Lifting machines' },
-      { id:'s30', desc:'Cranes & hoists' },
-      { id:'s31', desc:'Boilers & steam receivers' },
-      { id:'s32', desc:'Air receivers' },
-      { id:'s34', desc:'Electrical installations' },
-      { id:'s37', desc:'Dangerous substances' },
-      { id:'s38', desc:'Reporting of accidents' },
-      { id:'s39', desc:'Notification of occupational diseases' },
-      { id:'s51', desc:'Sanitary conveniences' },
-      { id:'s54', desc:'Accommodation for clothing' },
-      { id:'s57', desc:'Lighting' },
-      { id:'s58', desc:'Ventilation' }
-    ];
-    var SECTIONS = COMMON_SECTIONS.concat(OTHER_SECTIONS);
-    var contravened = SECTIONS.filter(function(s){ return data[s.id]; });
-
-    // ── Header: title + read-only badge + Print / Back ──
-    var header = document.createElement('div');
-    header.className = 'view-mode-header';
-    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:#f8f9fa;border-bottom:2px solid #dee2e6;position:sticky;top:0;z-index:1000;';
-    header.innerHTML = '<div style="display:flex;align-items:center;gap:12px">'+
-      '<span style="font-size:22px">📄</span>'+
-      '<span style="font-weight:600;color:#333;font-size:16px">Inspection Record — OHS Form 36 (Read Only)</span>'+
-      '<span style="font-size:12px;color:#888;background:#e9ecef;padding:2px 10px;border-radius:10px;margin-left:8px">Ref: '+(data.file_number||'—')+'</span>'+
-      '<span style="font-size:12px;color:#888;background:#e9ecef;padding:2px 10px;border-radius:10px;margin-left:auto">'+
-      (data.status||'completed')+'</span></div>'+
-      '<div style="display:flex;gap:8px">'+
-      '<button class="view-mode-print" style="padding:8px 18px;background:#222;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🖨️ Print</button>'+
-      '<button class="view-mode-back" style="padding:8px 18px;background:#fff;color:#333;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">← Back to My Inspections</button></div>';
-    header.querySelector('.view-mode-print').addEventListener('click', function(){ window.print(); });
-    header.querySelector('.view-mode-back').addEventListener('click', function(){
-      var ref = sessionStorage.getItem('osh-inspection-back') || 'company-inspections.html';
-      window.location.href = ref;
-    });
-    document.body.insertBefore(header, document.body.firstChild);
-
-    // Print CSS: keep data, hide chrome
-    var ps = document.createElement('style');
-    ps.textContent = '@media print { .view-mode-header { display:none !important; } .navbar { display:none !important; } body { background:#fff !important; } .page { margin:0; page-break-after:always; } .page:last-child { page-break-after:auto; } }';
-    document.head.appendChild(ps);
-
-    // Disable all dline spans (read-only look)
-    document.querySelectorAll('.dline').forEach(function(el) { el.style.borderBottom = '1px solid #999'; });
-
-    // ── Info rows ──
-    function fillRow(labelPrefix, value) {
-      document.querySelectorAll('.info-row').forEach(function(row) {
-        var label = row.querySelector('span:first-child');
-        if (!label) return;
-        if (label.textContent.trim().indexOf(labelPrefix) === 0) {
-          var stretch = row.querySelector('.stretch');
-          if (stretch) stretch.textContent = ' ' + (value || '');
-        }
-      });
-    }
-    fillRow('Name of Factory', data.factory_name);
-    fillRow('Registration No.', data.file_number);
-    fillRow('Nature of Work', data.nature_of_work);
-    fillRow('Stand/Plot', data.location);
-    fillRow('Date of Inspection', data.inspection_date ? new Date(data.inspection_date).toLocaleDateString('en-ZA') : '');
-    fillRow('Name of Person', '');
-    fillRow('INSPECTOR', data.inspector_name);
-
-    // Which branch / premises the inspection was carried out at, when it was
-    // linked to one. Shown as a banner above the form so the statutory layout
-    // itself is untouched. Branches arrive with the branch migrations; an
-    // unlinked inspection is simply a general inspection of the business.
-    if (data.branch_id) {
+    var branchLabel = '';
+    if (record && record.branch_id && window.supabaseClient) {
       try {
-        var brRes = await window.supabaseClient
+        var branch = await window.supabaseClient
           .from('company_branches')
           .select('branch_no, branch_name')
-          .eq('id', data.branch_id)
+          .eq('id', record.branch_id)
           .maybeSingle();
-        if (brRes && brRes.data) {
-          var branchBanner = document.createElement('div');
-          branchBanner.textContent = 'Premises: ' + window.branchDisplayName(brRes.data);
-          branchBanner.style.cssText = 'padding:8px 24px;background:#eef4fb;border-bottom:1px solid #dee2e6;font-size:13px;color:#0f2544;font-weight:600;';
-          header.insertAdjacentElement('afterend', branchBanner);
+        if (branch && branch.data && window.branchDisplayName) {
+          branchLabel = window.branchDisplayName(branch.data);
         }
-      } catch (e) {
-        console.warn('branch label:', e);
-      }
+      } catch (e) { /* a branch label is a nicety; the record still renders */ }
     }
 
-    // Persons row (employees)
-    document.querySelectorAll('.persons-row').forEach(function(row) {
-      var plines = row.querySelectorAll('.pline');
-      if (plines.length >= 3) {
-        plines[0].textContent = ' ' + (data.employees_male || 0);
-        plines[1].textContent = ' ' + (data.employees_female || 0);
-        plines[2].textContent = ' ' + ((data.employees_male || 0) + (data.employees_female || 0));
-      }
-    });
-
-    // ── Statutory sections panel (read-only checkbox grid) ──
-    var panel = document.createElement('div');
-    panel.className = 'view-mode-sections';
-    panel.style.cssText = 'margin:4mm 0;';
-    var sh = '<div style="font-size:10pt;font-weight:bold;margin-bottom:2mm;border-bottom:1px solid #666;padding-bottom:1mm">Statutory Contraventions — The Factories Act, 1973 (read only)</div>';
-    sh += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1mm 3mm;font-size:9pt">';
-    SECTIONS.forEach(function(s) {
-      var hit = !!data[s.id];
-      sh += '<label style="display:flex;align-items:flex-start;gap:2mm;padding:0.5mm 0">'+
-        '<input type="checkbox"'+ (hit ? ' checked' : '') +' disabled style="margin-top:1mm">'+
-        '<span style="margin-left:1mm"><span style="font-weight:bold">'+ s.id.toUpperCase() +'</span> — '+ (s.desc||'') +
-        (hit ? ' <span style="color:#c0392b;font-weight:bold">✓ Contravened</span>' : '') +'</span></label>';
-    });
-    sh += '</div>';
-    panel.innerHTML = sh;
-    var firstItem = document.querySelector('.item');
-    if (firstItem) firstItem.parentNode.insertBefore(panel, firstItem);
-
-    // ── Item 24: Further observations / Remarks ──
-    var item24 = null;
-    document.querySelectorAll('.item').forEach(function(it) {
-      var lbl = it.querySelector('.item-label');
-      if (lbl && lbl.textContent.indexOf('24.00') !== -1) item24 = it;
-    });
-    if (item24) {
-      var remarks = document.createElement('div');
-      remarks.style.cssText = 'margin-top:1.5mm;font-size:9.5pt;line-height:1.6';
-      var parts = [];
-      parts.push('<div style="font-weight:bold;margin-bottom:1mm">Recorded Findings</div>');
-      var line = function(label, val) { if (val) parts.push('<div><span style="font-weight:bold">'+label+':</span> '+ val +'</div>'); };
-      line('Compliance Level', (data.compliance_level||0) + '%');
-      line('Non-compliance %', (data.non_compliance_pct||0) + '%');
-      line('Total Contraventions', data.total_contraventions||0);
-      line('Action Taken', data.action_taken || '');
-      if (data.follow_up_required) {
-        line('Follow-up Required', 'Yes' + (data.follow_up_date ? ' — due ' + new Date(data.follow_up_date).toLocaleDateString('en-ZA') : ''));
-      }
-      if (contravened.length) {
-        parts.push('<div style="margin-top:1mm"><span style="font-weight:bold">Statutory Sections Contravened:</span></div>');
-        parts.push('<ul style="margin:1mm 0 1mm 4mm;padding:0">'+
-          contravened.map(function(s){ return '<li>'+ s.id.toUpperCase() +' — '+ (s.desc||'') +'</li>'; }).join('') +'</ul>');
-      }
-      if (data.contraventions && data.contraventions.length) {
-        parts.push('<div><span style="font-weight:bold">Detailed Contraventions:</span></div>');
-        parts.push('<ul style="margin:1mm 0 1mm 4mm;padding:0">'+
-          data.contraventions.map(function(c){ return '<li>'+ c +'</li>'; }).join('') +'</ul>');
-      }
-      line('Summary Findings', data.summary_findings || '');
-      line('Non-compliances', data.non_compliances || '');
-      line('Recommendations', data.recommendations || '');
-      remarks.innerHTML = parts.join('');
-      item24.appendChild(remarks);
+    var built = window.buildInspectionFormView(source, record || {}, { branchLabel: branchLabel });
+    if (!built) {
+      showNote('The inspection form could not be read from inspection.html, so this record cannot be displayed until that is fixed.');
+      return;
     }
 
-    // ── Item 26 & 28: Signature / Inspector ──
-    function fillItem(labelPrefix, value) {
-      document.querySelectorAll('.item').forEach(function(it) {
-        var lbl = it.querySelector('.item-label');
-        if (lbl && lbl.textContent.indexOf(labelPrefix) !== -1) {
-          var dline = it.querySelector('.dline');
-          if (dline) dline.textContent = ' ' + (value || '');
-        }
-      });
-    }
-    fillItem('26.00', (data.inspector_name || '') + ' (Inspector)');
-    fillItem('28.00', (data.inspector_name || '') + ' — ' + (data.inspection_date ? new Date(data.inspection_date).toLocaleDateString('en-ZA') : ''));
+    useFormStyles(built.css);
+    host.innerHTML = built.html;
+    var form = host.querySelector('#inspectionForm');
+    if (form) lockForm(form);
+    describeRecord(record, problem, branchLabel);
+  };
 
-    console.log('View mode: Inspection record loaded successfully');
-  } catch(e) {
-    console.error('View mode error:', e);
+  function init() {
+    var printBtn = document.getElementById('oshPrintBtn');
+    if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+    var backBtn = document.getElementById('oshBackBtn');
+    if (backBtn) backBtn.addEventListener('click', function () {
+      var target = 'company-inspections.html';
+      try { target = sessionStorage.getItem('osh-inspection-back') || target; } catch (e) { /* private mode */ }
+      window.location.href = target;
+    });
+    window.renderInspectionRecord();
   }
-});
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 
 </body>
