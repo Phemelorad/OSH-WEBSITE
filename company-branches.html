@@ -292,11 +292,15 @@
 
             // Resolve company id + name from the logged-in company user
             const userResult = await getCurrentUser();
+            let personName = '';
             if (userResult.success && userResult.user) {
                 const profile = await getUserProfile(userResult.user.id);
-                if (profile.success && profile.data && profile.data.company_id) {
-                    companyId = profile.data.company_id;
-                    companyName = profile.data.company_name || null;
+                if (profile.success && profile.data) {
+                    personName = ((profile.data.first_name || '') + ' ' + (profile.data.surname || '')).trim();
+                    if (profile.data.company_id) {
+                        companyId = profile.data.company_id;
+                        companyName = profile.data.company_name || null;
+                    }
                 }
             }
 
@@ -309,8 +313,9 @@
                 if (cf.data) companyName = cf.data.company_name;
             }
 
-            document.getElementById('userName').textContent =
-                userResult.user?.email?.split('@')[0] || 'Company User';
+            // The header shows the employer's name, not the account holder's
+            // (setUserNameSafely substitutes it for company accounts).
+            setUserNameSafely(personName || companyName);
             document.getElementById('userDept').textContent = 'Company';
 
             document.getElementById('loadingState').style.display = 'none';

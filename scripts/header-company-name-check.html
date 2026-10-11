@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Header company-name check</title></head>
+<body>
+<!-- The header elements the real code writes to (mirrors header.js markup) -->
+<div id="userName">Loading...</div>
+<div id="userDesignation"></div>
+<span id="userCompanyName" style="display:none"></span>
+<span id="userPersonName" style="display:none"></span>
+
+<pre id="out">running…</pre>
+
+<script src="../constants.js"></script>
+<script>
+  // ── Stubs: the surface supabase-config.js normally provides, driven per case ──
+  window.__case = {};
+  window.supabaseClient = {
+    from: function () {
+      return {
+        select: function () { return this; },
+        eq: function () { return this; },
+        ilike: function () { return this; },
+        maybeSingle: function () {
+          return Promise.resolve(window.__case.companyRow || { data: null, error: null });
+        }
+      };
+    },
+    auth: {
+      onAuthStateChange: function () {},
+      getUser: function () { return Promise.resolve({ data: { user: window.__case.user } }); }
+    }
+  };
+  window.getCurrentUser = function () { return Promise.resolve({ success: true, user: window.__case.user }); };
+  window.getUserProfile  = function () { return Promise.resolve({ success: true, data: window.__case.profile }); };
+  window.getCachedUserProfile  = function () { return window.__case.cached || null; };
+  window.cacheUserProfile      = function (p) { window.__case.cached = p; };
+  window.clearCachedUserProfile = function () { window.__case.cached = null; };
+  // Stands in for common.js getUserCompanyName() — the real employer lookup.
+  window.getUserCompanyName = function () {
+    window.__case.lookups = (window.__case.lookups || 0) + 1;
+    return Promise.resolve(window.__case.employerName || null);
+  };
+</script>
+<script>
+(async function () {
+  const results = [];
+  const log = (name, pass, detail) => results.push({ name, pass: !!pass, detail });
+  const out = document.getElementById('out');
+  const nameEl  = document.getElementById('userName');
+  const desigEl = document.getElementById('userDesignation');
+  const personEl = document.getElementById('userPersonName');
+
+  // role-permissions.js keeps its state in an IIFE closure, so each case gets a
+  // fresh copy of the real file (fetched, not extracted) to start clean.
+  async function freshRoleModule() {
+    const old = document.getElementById('rp-script');
+    if (old) old.remove();
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.id = 'rp-script';
+      s.src = '../role-permissions.js?t=' + Date.now();
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('role-permissions.js failed to load'));
+      document.head.appendChild(s);
+    });
+  }
+
+  function boot(opts) {
+    nameEl.textContent = 'Loading...';
+    desigEl.textContent = '';
+    desigEl.style.display = '';
+    personEl.textContent = '';
+    window.__case = {
+      user: { id: 'u-company', email: 'jane.doe@acme.co.bw', user_metadata: {} },
+      profile: Object.assign({
+        user_id: 'u-company', first_name: 'Jane', surname: 'Doe',
+        role: 'company', designation: 'HR Manager', company_id: null
+      }, opts.profile || {}),
+      cached: opts.cached || null,
+      employerName: opts.employerName === undefined ? 'ACME (PTY) LTD' : opts.employerName,
+      companyRow: opts.companyRow || { data: null, error: null },
+      lookups: 0
+    };
+  }
+
+  const COMPANY = 'ACME (PTY) LTD';
+
+  try {
+    // ── 1. The report: company account, user_profiles.company_id set ────────
+    // The live schema has NO user_profiles.company_name column, so the profile
+    // arrives without one and the old code fell back to the account holder.
+    await freshRoleModule();
+    boot({
+      profile: { company_id: '11111111-1111-1111-1111-111111111111' }, // no company_name, like the DB
+      companyRow: { data: { company_name: COMPANY }, error: null }
+    });
+    await window.initializeRoleSystem();
+    window.setUserNameSafely('Jane Doe');
+    log('company account (company_id set): header shows the company, not the person',
+      nameEl.textContent === COMPANY, 'header = ' + JSON.stringify(nameEl.textContent));
+    log('  …and the account holder is still available to page scripts',
+      personEl.textContent === 'Jane Doe', 'userPersonName = ' + JSON.stringify(personEl.textContent));
+    log('  …with no job title under the company name',
+      desigEl.style.display === 'none', 'display = ' + JSON.stringify(desigEl.style.display));
+
+    // ── 2. Worst case: company_id is null, so enrichment cannot help ────────
+    await freshRoleModule();
+    boot({ profile: { company_id: null }, companyRow: { data: null, error: null } });
+    await window.initializeRoleSystem();
+    window.setUserNameSafely('Jane Doe');
+    await new Promise(r => setTimeout(r, 50)); // let the async company lookup land
+    log('company account without company_id: still resolves the company name',
+      nameEl.textContent === COMPANY, 'header = ' + JSON.stringify(nameEl.textContent) +
+      ', lookups = ' + window.__case.lookups);
+    log('  …and it never leaves the person\u2019s name in the header',
+      nameEl.textContent !== 'Jane Doe', 'header = ' + JSON.stringify(nameEl.textContent));
+
+    // ── 3. Order independence: page writes the name before roles load ───────
+    await freshRoleModule();
+    boot({ profile: { company_id: null } });
+    window.setUserNameSafely('Jane Doe');           // pre-init write
+    await window.initializeRoleSystem();            // then roles resolve
+    await new Promise(r => setTimeout(r, 50));
+    log('company account: a pre-initialize write is corrected once roles load',
+      nameEl.textContent === COMPANY, 'header = ' + JSON.stringify(nameEl.textContent));
+
+    // ── 4. Cache-hit path (subsequent page loads in the same session) ───────
+    await freshRoleModule();
+    boot({
+      profile: { company_id: null, company_name: undefined },
+      cached: { user_id: 'u-company', role: 'company', first_name: 'Jane', surname: 'Doe',
+                company_id: null, company_name: COMPANY, cached_at: Date.now() }
+    });
+    await window.initializeRoleSystem();
+    window.setUserNameSafely('Jane Doe');
+    log('company account on a cached page load: company name is preserved',
+      nameEl.textContent === COMPANY, 'header = ' + JSON.stringify(nameEl.textContent));
+
+    // ── 5. Non-company roles are untouched ─────────────────────────────────
+    await freshRoleModule();
+    boot({ profile: { role: 'officer', first_name: 'John', surname: 'Officer',
+                      designation: 'OSH Officer', company_id: null } });
+    await window.initializeRoleSystem();
+    window.setUserNameSafely('John Officer');
+    log('officer: header still shows the person and their designation',
+      nameEl.textContent === 'John Officer' && desigEl.textContent === 'OSH Officer' &&
+      desigEl.style.display !== 'none',
+      'header = ' + JSON.stringify(nameEl.textContent) + ', designation = ' + JSON.stringify(desigEl.textContent));
+
+    await freshRoleModule();
+    boot({ profile: { role: 'worker', first_name: 'Sara', surname: 'Worker', company_id: null } });
+    await window.initializeRoleSystem();
+    window.setUserNameSafely('Sara Worker');
+    log('worker: header still shows the person',
+      nameEl.textContent === 'Sara Worker', 'header = ' + JSON.stringify(nameEl.textContent));
+
+    // ── 6. Every company page goes through the shared path ─────────────────
+    const pages = ['company-view.html', 'company-branches.html', 'company-bookings.html',
+      'company-book-inspection.html', 'company-accidents-view.html', 'company-injuries-view.html',
+      'company-inspections.html', 'company-monitoring.html', 'company-register.html'];
+    const directWriters = [];
+    const missingShared = [];
+    const badOrder = [];
+    for (const p of pages) {
+      const src = await (await fetch('../' + p + '?t=' + Date.now())).text();
+      if (/getElementById\(\s*['"]userName['"]\s*\)\.textContent\s*=/.test(src)) directWriters.push(p);
+      if (!/initializeRoleSystem\s*\(\)/.test(src)) missingShared.push(p);
+      if (src.includes('setUserNameSafely(')) {
+        const initAt = src.indexOf('initializeRoleSystem()');
+        const safeAt = src.indexOf('setUserNameSafely(');
+        if (initAt === -1 || safeAt < initAt) badOrder.push(p);
+      }
+    }
+    log('no company page writes the account holder\u2019s name straight into #userName',
+      directWriters.length === 0, directWriters.join(', ') || 'none');
+    log('every company page resolves roles through initializeRoleSystem()',
+      missingShared.length === 0, missingShared.join(', ') || 'none');
+    log('every company page sets the header name after roles resolve',
+      badOrder.length === 0, badOrder.join(', ') || 'none');
+
+    // ── 7. The dashboard greeting uses the real extracted snippet ───────────
+    const dash = await (await fetch('../dashboard.html?t=' + Date.now())).text();
+    const m = /(let greetingName = profile\?\.first_name[\s\S]*?catch \(e\) \{[\s\S]*?\n        \})/.exec(dash);
+    if (!m) {
+      log('dashboard: found the greeting snippet to test', false, 'snippet not found');
+    } else {
+      log('dashboard: found the greeting snippet to test', true, m[1].split('\n').length + ' lines');
+      const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+      const run = new AsyncFunction('profile', 'userResult', 'role', 'SB', 'window',
+        m[1] + '\nreturn greetingName;');
+      const employer = { first_name: 'Jane', surname: 'Doe', role: 'company' };
+      const user = { email: 'jane.doe@acme.co.bw' };
+      const got = await run(employer, { user }, 'company', {}, window);
+      log('dashboard: a company account is greeted by its company name',
+        got === COMPANY, 'greeting = ' + JSON.stringify(got));
+      const officerGot = await run({ first_name: 'John', surname: 'Officer', role: 'officer' },
+        { user }, 'officer', {}, window);
+      log('dashboard: other roles are greeted by their own name',
+        officerGot === 'John', 'greeting = ' + JSON.stringify(officerGot));
+      log('dashboard: the welcome heading renders that greeting',
+        /\$\{greetingName \|\| profile\?\.first_name/.test(dash), 'h1 binding present');
+    }
+  } catch (e) {
+    log('harness completed without throwing', false, e && (e.stack || e.message || String(e)));
+  }
+
+  const failed = results.filter(r => !r.pass);
+  out.textContent =
+    results.map(r => (r.pass ? 'PASS  ' : 'FAIL  ') + r.name + (r.detail ? '  [' + r.detail + ']' : '')).join('\n') +
+    '\n\n' + results.length + ' checks, ' + failed.length + ' failed';
+  window.__RESULT__ = { total: results.length, failed: failed.length, results };
+})();
+</script>
+</body>
+</html>

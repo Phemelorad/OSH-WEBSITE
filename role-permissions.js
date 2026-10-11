@@ -140,16 +140,68 @@
     }
   }
 
+  // ── Header identity ───────────────────────────────────
+  // An employer account is identified by the registered company name, never
+  // by the individual acting on its behalf. `user_profiles` has no
+  // company_name column (it is not in the schema), so the name has to come
+  // from the companies table and is cached here for the life of the page.
+  var currentCompanyName = '';
+  var currentPersonName = '';
+  var _companyNameLookup = null;
+
+  function isCompanyContext() {
+    if (currentUserRole) return currentUserRole === 'company';
+    // Before initializeRoleSystem() runs, fall back to the cached profile.
+    var cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
+    return !!(cached && cached.role === 'company');
+  }
+
+  function resolveCompanyName(profile) {
+    if (profile && profile.company_name) return profile.company_name;
+    if (currentCompanyName) return currentCompanyName;
+    var cached = window.getCachedUserProfile ? window.getCachedUserProfile() : null;
+    if (cached && cached.company_name) return cached.company_name;
+    return '';
+  }
+
+  function syncIdentitySpans() {
+    var c = document.getElementById('userCompanyName');
+    if (c && currentCompanyName) c.textContent = currentCompanyName;
+    var p = document.getElementById('userPersonName');
+    if (p && currentPersonName) p.textContent = currentPersonName;
+  }
+
+  // Look the employer name up in the companies table when none is known yet
+  // (e.g. user_profiles.company_id was never set). Never rejects.
+  function lookupCompanyName() {
+    if (currentCompanyName || _companyNameLookup) return;
+    if (typeof window.getUserCompanyName !== 'function' || !window.supabaseClient) return;
+    _companyNameLookup = Promise.resolve(window.getUserCompanyName(window.supabaseClient))
+      .then(function (name) {
+        _companyNameLookup = null;
+        if (!name || !isCompanyContext()) return;
+        currentCompanyName = name;
+        var el = document.getElementById('userName');
+        if (el) el.textContent = name;
+        syncIdentitySpans();
+      })
+      .catch(function () { _companyNameLookup = null; });
+  }
+
   // ── Header display ─────────────────────────────────────
   function updateHeaderDisplay(profile) {
     if (!profile) return;
     var nameEl = document.getElementById('userName');
     var desigEl = document.getElementById('userDesignation');
-    var fullName = (profile.first_name + ' ' + profile.surname).trim();
+    var fullName = ((profile.first_name || '') + ' ' + (profile.surname || '')).trim();
+    if (fullName) currentPersonName = fullName;
 
     if (profile.role === 'company') {
+      var company = resolveCompanyName(profile);
+      if (company) currentCompanyName = company;
+      else lookupCompanyName();
       if (nameEl) {
-        nameEl.textContent = profile.company_name || fullName || 'Company';
+        nameEl.textContent = currentCompanyName || fullName || 'Company';
       }
       if (desigEl) {
         desigEl.textContent = '';
@@ -164,6 +216,7 @@
         desigEl.textContent = profile.designation || '';
       }
     }
+    syncIdentitySpans();
   }
 
   // ── Company name enrichment ────────────────────────────
@@ -337,11 +390,23 @@
     }
   }
 
+  // Pages call this with the account holder's own name. For employer accounts
+  // that would put a person where the company belongs, so the company name is
+  // substituted here — the single place every page goes through.
   function setUserNameSafely(name) {
+    if (name) currentPersonName = name;
     var el = document.getElementById("userName");
-    if (el && name) {
-      el.textContent = name;
+    if (!el) return;
+
+    var display = name;
+    if (isCompanyContext()) {
+      var company = resolveCompanyName();
+      if (company) currentCompanyName = company;
+      else lookupCompanyName();
+      display = company || name;
     }
+    if (display) el.textContent = display;
+    syncIdentitySpans();
   }
 
   function checkPageAccess() {

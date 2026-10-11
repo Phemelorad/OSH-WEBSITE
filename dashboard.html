@@ -438,20 +438,29 @@
         const role = profile?.role || 'viewer';
         const content = document.getElementById('dashContent');
 
+        // Employer accounts are addressed by their registered company name,
+        // not by the individual holding the account.
+        let greetingName = profile?.first_name || userResult.user.email.split('@')[0];
+        if (role === 'company') {
+            try {
+                greetingName = (await window.getUserCompanyName(SB)) || greetingName;
+            } catch (e) { /* keep the account holder's name as a last resort */ }
+        }
+
         if (role === 'medical_practitioner') {
             renderMedPractDashboard(content, userResult.user.id);
         } else {
-            renderGenericDashboard(content, profile, userResult);
+            renderGenericDashboard(content, profile, userResult, greetingName);
         }
     });
 
     // ── Generic dashboard ─────────────────────────────────
-        function renderGenericDashboard(container, profile, userResult) {
+        function renderGenericDashboard(container, profile, userResult, greetingName) {
         container.innerHTML = `
           <div class="dash-header">
             <div>
-              <h1>👋 Welcome, ${profile?.first_name || userResult.user.email.split('@')[0]}</h1>
-              <div class="dash-sub">Your personal dashboard — manage claims and view your information.</div>
+              <h1>👋 Welcome, ${greetingName || profile?.first_name || userResult.user.email.split('@')[0]}</h1>
+              <div class="dash-sub">${profile?.role === 'company' ? "Manage your company's claims, inspections and worker records." : 'Your personal dashboard — manage claims and view your information.'}</div>
             </div>
             <span class="dash-role-badge">${getRoleDisplayName(profile?.role || 'viewer')}</span>
           </div>

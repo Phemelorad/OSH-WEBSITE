@@ -248,7 +248,10 @@
             <!-- Hidden fallback IDs for backward compatibility with page scripts -->
             <span id="userDept" style="display:none"></span>
             <span id="userDepartment" style="display:none"></span>
+            <!-- Employers: the registered company name (what #userName shows
+                 for a company account) and the account holder's own name. -->
             <span id="userCompanyName" style="display:none"></span>
+            <span id="userPersonName" style="display:none"></span>
           </div>
         </div>
       </div>
