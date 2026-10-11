@@ -252,7 +252,7 @@
             <div class="stat-card red"><h3>Total Accidents</h3><div class="stat-value" id="statAccidents">&mdash;</div><div class="stat-sub">Accident reports</div></div>
             <div class="stat-card amber"><h3>Total Injuries</h3><div class="stat-value" id="statInjuries">&mdash;</div><div class="stat-sub">Injury &amp; disease reports</div></div>
             <div class="stat-card blue"><h3>Inspections</h3><div class="stat-value" id="statInspections">&mdash;</div><div class="stat-sub">Total conducted</div></div>
-            <div class="stat-card green"><h3>Compliance</h3><div class="stat-value" id="statCompliance">&mdash;</div><div class="stat-sub">Average score</div></div>
+            <div class="stat-card green"><h3>Compliance</h3><div class="stat-value" id="statCompliance">&mdash;</div><div class="stat-sub" id="statComplianceSub">Average score</div></div>
             <div class="stat-card purple"><h3>Claims</h3><div class="stat-value" id="statClaims">&mdash;</div><div class="stat-sub">Compensation claims</div></div>
             <div class="stat-card orange"><h3>Employees</h3><div class="stat-value" id="statEmployees">&mdash;</div><div class="stat-sub">Across inspections</div></div>
         </div>
@@ -390,7 +390,30 @@
             const { count: totalInjuries, error: injErr } = await SB
               .from('injury_disease_reports').select('*', { count: 'exact', head: true }).or(buildWordMatch('employer_name', companyName));
             const totalInspections = viewData ? (viewData.inspection_count || 0) : inspections.length;
-            const avgCompliance = inspections.length ? inspections[0].compliance_level : null;
+
+            // Company compliance = average of the branch ratings: each branch
+            // that has been inspected counts once, and a general (branch-less)
+            // inspection counts once each. Needs every inspection of the
+            // company, not just the 5 shown on this page — see common.js.
+            const ownerId = (companyProfile && companyProfile.id) || (viewData && viewData.id) || null;
+            let branchCompliance = null;
+            try {
+                branchCompliance = await window.getCompanyCompliance(SB, {
+                    companyId: ownerId,
+                    companyName: companyName
+                });
+            } catch (e) {
+                console.warn('branch compliance:', e);
+            }
+
+            const inspectedBranches = branchCompliance ? branchCompliance.inspected_branch_count : 0;
+            const generalInspections = branchCompliance ? branchCompliance.general.inspection_count : 0;
+            const avgCompliance = (branchCompliance && branchCompliance.company_compliance != null)
+                ? branchCompliance.company_compliance
+                : (inspections.length ? inspections[0].compliance_level : null);
+            const complianceBasis = inspectedBranches
+                ? 'Average of ' + inspectedBranches + ' branch' + (inspectedBranches === 1 ? '' : 'es')
+                : (generalInspections ? 'Average of general inspections' : 'Average score');
             const totalClaims = viewData ? (viewData.claim_count || 0) : claims.length;
             let totalEmployees = viewData?.total_employees || 0;
             // Fallback: sum from the inspections already loaded (handles cases
@@ -406,6 +429,11 @@
             document.getElementById('statInjuries').textContent = totalInjuries ?? 0;
             document.getElementById('statInspections').textContent = totalInspections;
             document.getElementById('statCompliance').textContent = avgCompliance != null ? avgCompliance + '%' : 'N/A';
+            const compSubEl = document.getElementById('statComplianceSub');
+            if (compSubEl) {
+                compSubEl.textContent = complianceBasis +
+                    (generalInspections && inspectedBranches ? ' + ' + generalInspections + ' general' : '');
+            }
             document.getElementById('statClaims').textContent = totalClaims;
             document.getElementById('statEmployees').textContent = totalEmployees || '—';
 

@@ -175,6 +175,7 @@
                     <th>Plot</th>
                     <th>Street</th>
                     <th>Physical Address</th>
+                    <th style="width:140px">Compliance</th>
                     <th style="width:90px">Status</th>
                     <th style="width:130px">Actions</th>
                 </tr>
@@ -273,6 +274,10 @@
     let companyId = null;
     let companyName = null;
     let deletingBranchId = null;
+    let branchScores = {};      // branch id -> { compliance, inspection_count }
+    let companyCompliance = null;
+    let inspectedBranchCount = 0;
+    let generalInspectionCount = 0;
 
     // ── Page init ──────────────────────────────────────────────────────
     window.addEventListener('load', async () => {
@@ -322,6 +327,7 @@
             document.getElementById('mainContent').style.display = 'block';
             document.getElementById('companyNameLbl').textContent = companyName || 'your company';
 
+            await loadBranchCompliance();
             await loadBranches();
         } catch (err) {
             console.error('Init error:', err);
@@ -364,6 +370,13 @@
 
             tbody.innerHTML = rows.map(b => {
                 const active = b.is_active !== false;
+                const score  = branchScores[b.id] || { compliance: null, inspection_count: 0 };
+                const comp   = score.compliance;
+                const compColor = comp == null ? '#6b7280' : (comp >= 75 ? '#166534' : comp >= 50 ? '#856404' : '#b91c1c');
+                const compText  = comp == null
+                    ? '<span style="color:#9ca3af">Not inspected</span>'
+                    : '<span style="color:' + compColor + '">' + comp + '%</span>' +
+                      (score.inspection_count > 1 ? ' <span style="color:#9ca3af;font-size:11px">(' + score.inspection_count + ')</span>' : '');
                 return '' +
                     '<tr>' +
                     '<td style="font-weight:600;color:#0f2544">' + esc(b.branch_no) + '</td>' +
@@ -371,6 +384,7 @@
                     '<td>' + esc(b.plot_number || '—') + '</td>' +
                     '<td>' + esc(b.street_name || '—') + '</td>' +
                     '<td>' + esc(b.physical_address || '—') + '</td>' +
+                    '<td style="font-weight:600">' + compText + '</td>' +
                     '<td><span class="badge ' + (active ? 'badge-active' : 'badge-inactive') + '">' +
                     (active ? 'Active' : 'Inactive') + '</span></td>' +
                     '<td><div class="row-actions">' +
@@ -384,9 +398,61 @@
         } catch (err) {
             console.error('loadBranches error:', err);
             tbody.innerHTML =
-                '<tr><td colspan="7" style="text-align:center;color:#b91c1c;padding:20px">' +
+                '<tr><td colspan="8" style="text-align:center;color:#b91c1c;padding:20px">' +
                 esc(err.message || 'Could not load branches') + '</td></tr>';
         }
+    }
+
+    // ── Branch compliance ─────────────────────────────────────────────
+    // Reads this company's branches and its inspections, then applies the
+    // shared rule in common.js: a branch's rating is the average of its own
+    // inspections, and the company's rating is the average of the branch
+    // ratings (general, branch-less inspections count once each).
+    async function loadBranchCompliance() {
+        if (!companyId) return;
+        try {
+            const result = await window.getCompanyCompliance(SB, {
+                companyId: companyId,
+                companyName: companyName
+            });
+
+            branchScores = {};
+            result.branches.forEach(function (b) {
+                branchScores[b.id] = { compliance: b.compliance, inspection_count: b.inspection_count };
+            });
+            companyCompliance = result.company_compliance;
+            inspectedBranchCount = result.inspected_branch_count;
+            generalInspectionCount = result.general.inspection_count;
+
+            renderCompanyCompliance();
+        } catch (e) {
+            console.warn('loadBranchCompliance:', e);
+        }
+    }
+
+    function renderCompanyCompliance() {
+        const el = document.getElementById('branchSubtitle');
+        if (!el) return;
+        const branchesPart = companyName
+            ? 'Managing branches for <strong>' + esc(companyName) + '</strong>'
+            : 'Managing your branches';
+
+        if (companyCompliance == null) {
+            el.innerHTML = branchesPart +
+                ' — <span style="color:#6b7280">company compliance not yet rated' +
+                (generalInspectionCount ? ' (only general inspections on record)' : '') + '</span>';
+            return;
+        }
+
+        const basis = inspectedBranchCount
+            ? 'average of ' + inspectedBranchCount + ' branch' + (inspectedBranchCount === 1 ? '' : 'es')
+            : 'average of general inspections';
+        const colour = companyCompliance >= 75 ? '#166534' : companyCompliance >= 50 ? '#856404' : '#b91c1c';
+
+        el.innerHTML = branchesPart +
+            ' — company compliance <strong style="color:' + colour + '">' + companyCompliance + '%</strong>' +
+            ' <span style="color:#9ca3af">(' + basis +
+            (generalInspectionCount ? ' + ' + generalInspectionCount + ' general' : '') + ')</span>';
     }
 
     // ── Modal: open add ──────────────────────────────────────────────

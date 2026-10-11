@@ -238,6 +238,211 @@ async function handleLogout() {
   };
 
 
+  // ============================================
+  // BRANCHES & BRANCH COMPLIANCE
+  // ============================================
+
+  /** Readable label for a branch row: "B001 — Gaborone Depot". */
+  window.branchDisplayName = function (branch) {
+    if (!branch) return '';
+    var no   = (branch.branch_no   || '').trim();
+    var name = (branch.branch_name || '').trim();
+    if (no && name && no.toLowerCase() !== name.toLowerCase()) return no + ' — ' + name;
+    return name || no || 'Branch';
+  };
+
+  /** Address line for a branch, used to prefill a premises/location field. */
+  window.branchAddress = function (branch) {
+    if (!branch) return '';
+    return [branch.plot_number, branch.street_name, branch.physical_address]
+      .map(function (p) { return (p || '').trim(); })
+      .filter(Boolean)
+      .join(', ');
+  };
+
+  /**
+   * Does `table.column` exist in the live database?
+   *
+   * Columns that arrive with a migration (branch_id) must never be sent to the
+   * database before that migration has been run: PostgREST rejects the whole
+   * insert with PGRST204/42703. This probes once per page and caches the answer,
+   * so a form can offer a branch only when the column behind it exists.
+   * An inconclusive probe returns false — failing closed, never breaking a
+   * submission.
+   */
+  var _columnProbeCache = {};
+
+  window.columnExists = async function (supabaseClient, table, column) {
+    var key = table + '.' + column;
+    if (Object.prototype.hasOwnProperty.call(_columnProbeCache, key)) {
+      return _columnProbeCache[key];
+    }
+    var sb = supabaseClient || window.supabaseClient;
+    if (!sb || !table || !column) return false;
+    try {
+      var { error } = await sb.from(table).select(column).limit(1);
+      var exists = !error;
+      if (error) {
+        var msg = (error.message || '') + ' ' + (error.code || '');
+        if (!/does not exist|Could not find|42703|PGRST204|PGRST205/i.test(msg)) {
+          // Unexpected failure (network/permissions): stay unresolved so a later
+          // page load can probe again, and fail closed for this call.
+          console.warn('columnExists(' + key + '):', error.message || error);
+          return false;
+        }
+      }
+      _columnProbeCache[key] = exists;
+      return exists;
+    } catch (e) {
+      console.warn('columnExists(' + key + '):', (e && e.message) || e);
+      return false;
+    }
+  };
+
+  /**
+   * A company's registered branches, newest-safe (ordered by branch_no).
+   * company_branches arrives with company-branches-table.sql; if that has not
+   * been run the query fails and we return [] so every caller degrades to
+   * "no branch" instead of throwing.
+   */
+  window.getCompanyBranches = async function (supabaseClient, companyId) {
+    var sb = supabaseClient || window.supabaseClient;
+    if (!sb || !companyId) return [];
+    try {
+      var { data, error } = await sb
+        .from('company_branches')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('branch_no', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn('getCompanyBranches:', (e && e.message) || e);
+      return [];
+    }
+  };
+
+  /**
+   * Compliance per branch, plus the company figure.
+   *
+   * Rule:
+   *   • A branch's own rating is the average of that branch's submitted
+   *     inspections, rounded to a whole percent.
+   *   • The company rating is the average of the branch ratings — each branch
+   *     with at least one inspection counts once.
+   *   • An inspection with no branch is a general inspection of the whole
+   *     business and counts once each in the company figure, so general
+   *     inspections are never silently dropped.
+   *
+   * Anything with no inspections behind it is null, never 0 — "not inspected"
+   * must not read as "0% compliant".
+   */
+  window.computeComplianceByBranch = function (branches, inspections) {
+    var list = Array.isArray(branches) ? branches : [];
+    var rows = Array.isArray(inspections) ? inspections : [];
+    var knownIds = {};
+    list.forEach(function (b) { knownIds[b.id] = true; });
+
+    var perBranchScores = {};
+    var general = [];
+
+    rows.forEach(function (r) {
+      if (!r) return;
+      // A missing score must be skipped, never read as 0%: Number(null) is 0.
+      if (r.compliance_level === null || r.compliance_level === undefined || r.compliance_level === '') return;
+      var score = Number(r.compliance_level);
+      if (!isFinite(score)) return;              // no usable score
+      var key = r.branch_id || '';
+      if (key && knownIds[key]) {
+        (perBranchScores[key] = perBranchScores[key] || []).push(score);
+      } else {
+        general.push(score);                   // general business inspection
+      }
+    });
+
+    function average(scores) {
+      if (!scores.length) return null;
+      var sum = scores.reduce(function (a, b) { return a + b; }, 0);
+      return Math.round(sum / scores.length);
+    }
+
+    var branchesOut = list.map(function (b) {
+      var scores = perBranchScores[b.id] || [];
+      var dates = rows
+        .filter(function (r) { return r && r.branch_id === b.id && r.inspection_date; })
+        .map(function (r) { return r.inspection_date; })
+        .sort();
+      return {
+        id: b.id,
+        branch_no: b.branch_no,
+        branch_name: b.branch_name,
+        is_active: b.is_active !== false,
+        label: window.branchDisplayName(b),
+        inspection_count: scores.length,
+        compliance: average(scores),
+        last_inspection_date: dates.length ? dates[dates.length - 1] : null
+      };
+    });
+
+    var inspected = branchesOut.filter(function (b) { return b.inspection_count > 0; });
+    var pool = inspected.map(function (b) { return b.compliance; }).concat(general);
+
+    return {
+      branches: branchesOut,
+      general: { inspection_count: general.length, compliance: average(general) },
+      company_compliance: average(pool),
+      company_inspection_count: rows.length,
+      inspected_branch_count: inspected.length
+    };
+  };
+
+  /**
+   * Every non-draft inspection belonging to a company, matched by company_id
+   * (records created after the inspection form started stamping it) and by
+   * employer name (older records), merged by id.
+   *
+   * select('*') is deliberate: an explicit branch_id would fail with 42703
+   * before branch-inspections-migration.sql is applied, whereas '*' simply
+   * omits the column — so compliance reporting keeps working either way.
+   */
+  window.getCompanyInspections = async function (supabaseClient, opts) {
+    var sb = supabaseClient || window.supabaseClient;
+    var companyId = opts && opts.companyId;
+    var companyName = opts && opts.companyName;
+    if (!sb) return [];
+
+    var queries = [];
+    if (companyId) {
+      queries.push(sb.from('workplace_inspections').select('*')
+        .eq('company_id', companyId).neq('status', 'draft'));
+    }
+    if (companyName) {
+      queries.push(sb.from('workplace_inspections').select('*')
+        .eq('factory_name', companyName).neq('status', 'draft'));
+    }
+    if (!queries.length) return [];
+
+    var results = await Promise.all(queries.map(function (q) {
+      return q.then(function (r) { return r; }, function () { return { data: [] }; });
+    }));
+
+    var byId = {};
+    results.forEach(function (r) {
+      (r.data || []).forEach(function (row) { byId[row.id] = row; });
+    });
+    return Object.keys(byId).map(function (k) { return byId[k]; });
+  };
+
+  /**
+   * Branch list + compliance for a company in one call.
+   * opts: { companyId, companyName } — pass what you have.
+   */
+  window.getCompanyCompliance = async function (supabaseClient, opts) {
+    var options = opts || {};
+    var branches = await window.getCompanyBranches(supabaseClient, options.companyId);
+    var inspections = await window.getCompanyInspections(supabaseClient, options);
+    return window.computeComplianceByBranch(branches, inspections);
+  };
 
   // ============================================
   // MID-SCREEN POPUP SYSTEM

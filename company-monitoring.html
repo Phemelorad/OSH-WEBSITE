@@ -212,6 +212,7 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Branch / Premises</th>
                                 <th>Inspector</th>
                                 <th>Type</th>
                                 <th>Compliance</th>
@@ -308,6 +309,8 @@
 <script src="claim-service.js"></script>
 <script>
     const SB = window.supabaseClient;
+    let companyId = null;
+    let branchesById = {};   // branch id -> branch row, for the Branch / Premises columns
     let companyName = null;
 
     window.addEventListener('load', async () => {
@@ -330,6 +333,7 @@
             const profile = await getUserProfile(userResult.user.id);
             if (profile.success) {
                 setUserNameSafely(profile.data.first_name + ' ' + profile.data.surname);
+                if (profile.data.company_id) companyId = profile.data.company_id;
             }
         }
 
@@ -390,6 +394,16 @@
                     .limit(50),
                 loadClaims({ nameOfEmployer: companyName, excludeDrafts: true, orderBy: 'created_at', limit: 50 })
             ]);
+
+            // Branch names for the Branch / Premises columns (empty until the
+            // company registers branches).
+            try {
+                const branches = await window.getCompanyBranches(SB, companyId);
+                branchesById = {};
+                branches.forEach(function (b) {
+                    branchesById[b.id] = { id: b.id, label: window.branchDisplayName(b) };
+                });
+            } catch (e) { console.warn('branches:', e); }
 
             const bookings     = bookRes.data || [];
             const inspections  = insRes.data || [];
@@ -478,8 +492,13 @@
             const comp = i.compliance_level || 0;
             const compColor = comp >= 75 ? '#155724' : comp >= 50 ? '#856404' : '#721c24';
             const statusClass = i.follow_up_required ? 'badge-amber' : 'badge-completed';
+            const branch = i.branch_id ? branchesById[i.branch_id] : null;
+            const branchCell = branch
+                ? esc(branch.label)
+                : '<span style="color:#9ca3af">General</span>';
             return '<tr>'
                 + '<td>' + fmtDate(i.inspection_date) + '</td>'
+                + '<td>' + branchCell + '</td>'
                 + '<td>' + esc(i.inspector_name || '—') + '</td>'
                 + '<td>' + esc(i.inspection_type || '—') + '</td>'
                 + '<td style="font-weight:600;color:' + compColor + '">' + comp + '%</td>'

@@ -137,6 +137,20 @@
                 <span class="err-msg">Required</span>
               </div>
             </div>
+
+            <!-- Which branch this inspection is for. Optional: leaving it blank
+                 books a general inspection of the whole business. -->
+            <div class="form-row form-row-2">
+              <div class="form-group col-span-2">
+                <label>Branch / Premises</label>
+                <select name="branch_id" id="branchId" onchange="onBranchSelected()">
+                  <option value="">— Whole business (no specific branch) —</option>
+                </select>
+                <span id="branchHint" style="display:block;font-size:12px;color:#6b7280;margin-top:4px">
+                  Optional. Choosing a branch fills the premises address below and reports the inspection's compliance against that branch.
+                </span>
+              </div>
+            </div>
             <div class="form-row form-row-3">
               <div class="form-group">
                 <label>Contact Name<span class="req">*</span></label>
@@ -287,6 +301,9 @@
                         document.getElementById('contactEmail').value = companyData.owner_email;
                     }
                 }
+
+                // Branch picker for this company (optional, empty if none registered)
+                await loadCompanyBranchOptions((companyData && companyData.id) || profile.data.company_id);
             }
         }
 
@@ -346,6 +363,9 @@
             const payload = {
                 company_name:        g('companyName'),
                 company_id:          companyId,
+                // Branch link (branch-inspections-migration.sql). Omitted when no
+                // branch is chosen, so bookings still submit before that
+                // migration is applied (an unknown column rejects the insert).
                 contact_name:        g('contactName'),
                 contact_email:       g('contactEmail'),
                 contact_phone:       g('contactPhone'),
@@ -359,6 +379,8 @@
                 submitted_by:        userResult.user.id,
                 status:              'pending'
             };
+            const branchChoice = g('branchId');
+            if (branchChoice) payload.branch_id = branchChoice;
 
             const { data: inserted, error } = await window.supabaseClient
                 .from('inspection_bookings').insert([payload]).select('booking_number, id').single();
@@ -387,14 +409,16 @@
 
     async function reFillCompanyData() {
         const companyName = await window.getUserCompanyName(window.supabaseClient);
+        let companyId = null;
         if (companyName) {
             document.getElementById('companyName').value = companyName;
             const { data: companyData } = await window.supabaseClient
                 .from('companies')
-                .select('location, industry, telephone')
+                .select('id, location, industry, telephone')
                 .eq('company_name', companyName)
                 .maybeSingle();
             if (companyData) {
+                companyId = companyData.id;
                 if (companyData.location) document.getElementById('location').value = companyData.location;
                 if (companyData.industry) document.getElementById('industryType').value = companyData.industry;
                 if (companyData.telephone) document.getElementById('contactPhone').value = companyData.telephone;
@@ -406,7 +430,82 @@
             if (profile.success) {
                 document.getElementById('contactName').value = profile.data.first_name + ' ' + profile.data.surname;
                 document.getElementById('contactEmail').value = profile.data.email || '';
+                if (!companyId && profile.data.company_id) companyId = profile.data.company_id;
             }
+        }
+        // Reset the branch picker with the rest of the form
+        await loadCompanyBranchOptions(companyId);
+    }
+
+    // ── Branch picker ─────────────────────────────────────────
+    // Registered branches of the signed-in company. A blank selection books a
+    // general inspection of the whole business.
+    let branchAddresses = {};
+    // null until probed: does inspection_bookings.branch_id exist yet?
+    let branchColumnReady = null;
+
+    async function loadCompanyBranchOptions(companyId, preselectId) {
+        const sel  = document.getElementById('branchId');
+        const hint = document.getElementById('branchHint');
+        if (!sel) return;
+
+        // A branch may only be offered once the column that stores it exists,
+        // otherwise PostgREST would reject the whole booking (PGRST204).
+        if (branchColumnReady === null) {
+            branchColumnReady = await window.columnExists(
+                window.supabaseClient, 'inspection_bookings', 'branch_id');
+        }
+        if (!branchColumnReady) {
+            branchAddresses = {};
+            sel.innerHTML = '<option value="">— Whole business (no specific branch) —</option>';
+            sel.disabled = true;
+            if (hint) hint.textContent =
+                'Branch selection needs branch-inspections-migration.sql to be applied first. Bookings still work and record the whole business.';
+            return;
+        }
+        sel.disabled = false;
+
+        branchAddresses = {};
+        const keep = preselectId || sel.value || '';
+        sel.innerHTML = '<option value="">— Whole business (no specific branch) —</option>';
+
+        const branches = await window.getCompanyBranches(window.supabaseClient, companyId);
+        if (!branches.length) {
+            if (hint) hint.textContent =
+                'No branches registered yet. Add them under My Branches if this inspection is for a specific site, or leave this blank.';
+            return;
+        }
+
+        branches.forEach(function (b) {
+            const addr = window.branchAddress(b);
+            branchAddresses[b.id] = addr;
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = window.branchDisplayName(b)
+                + (b.is_active === false ? ' (inactive)' : '')
+                + (addr ? ' — ' + addr : '');
+            sel.appendChild(opt);
+        });
+
+        if (hint) hint.textContent = 'Optional. ' + branches.length +
+            ' branch(es) registered for your company; leave blank for a general inspection.';
+
+        if (keep && branches.some(function (b) { return b.id === keep; })) {
+            sel.value = keep;
+        }
+    }
+
+    // Fills the premises address from the chosen branch (never overwrites an
+    // address that is already filled in).
+    function onBranchSelected() {
+        const sel = document.getElementById('branchId');
+        const loc = document.getElementById('location');
+        if (!sel || !loc) return;
+        const addr = branchAddresses[sel.value];
+        if (!sel.value || !addr) return;
+        if (!loc.value.trim() || loc.dataset.fromBranch === 'true') {
+            loc.value = addr;
+            loc.dataset.fromBranch = 'true';
         }
     }
 

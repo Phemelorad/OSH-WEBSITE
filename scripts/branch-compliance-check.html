@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Branch inspections &amp; compliance check</title></head>
+<body>
+<pre id="out">running…</pre>
+
+<script>
+  // Minimal stand-in for supabase-config.js, replaced per case.
+  window.__case = {};
+  window.supabaseClient = { from: function () { return window.__case.query; } };
+</script>
+<script src="../common.js"></script>
+<script>
+(async function () {
+  const results = [];
+  const log = (name, pass, detail) => results.push({ name, pass: !!pass, detail });
+  const out = document.getElementById('out');
+  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+  const BRANCH_A = { id: 'b-a', branch_no: 'B001', branch_name: 'Gaborone Depot', plot_number: 'Plot 47', street_name: 'Francistown Road', is_active: true };
+  const BRANCH_B = { id: 'b-b', branch_no: 'B002', branch_name: 'Francistown Office', is_active: true };
+  const BRANCH_C = { id: 'b-c', branch_no: 'HQ',   branch_name: 'Head Office', is_active: false };
+
+  try {
+    // ── 1. The compliance rule (pure maths) ────────────────────────────────
+    const inspections = [
+      { id: 'i1', branch_id: 'b-a', compliance_level: 80, inspection_date: '2026-01-10' },
+      { id: 'i2', branch_id: 'b-a', compliance_level: 90, inspection_date: '2026-03-02' },
+      { id: 'i3', branch_id: 'b-b', compliance_level: 60, inspection_date: '2026-02-01' },
+      { id: 'i4', compliance_level: 100, inspection_date: '2026-02-15' },   // general
+      { id: 'i5', branch_id: null, compliance_level: 0, inspection_date: '2026-02-20' } // general
+    ];
+    const r1 = window.computeComplianceByBranch([BRANCH_A, BRANCH_B, BRANCH_C], inspections);
+
+    const a = r1.branches.find(b => b.id === 'b-a');
+    const b = r1.branches.find(x => x.id === 'b-b');
+    const c = r1.branches.find(x => x.id === 'b-c');
+    log('branch rating = average of that branch\u2019s inspections (80,90 → 85)',
+      a.compliance === 85, 'branch A = ' + a.compliance);
+    log('branch rating carries its inspection count',
+      a.inspection_count === 2 && b.inspection_count === 1, 'counts = ' + a.inspection_count + ',' + b.inspection_count);
+    log('a branch with no inspections is unrated, not 0%',
+      c.compliance === null && c.inspection_count === 0, 'branch C = ' + c.compliance);
+    log('company = average of branch ratings + general inspections (85,60,100,0 → 61)',
+      r1.company_compliance === 61, 'company = ' + r1.company_compliance);
+    log('only inspected branches are counted as branches',
+      r1.inspected_branch_count === 2, 'inspected branches = ' + r1.inspected_branch_count);
+    log('general (branch-less) inspections are reported separately',
+      r1.general.inspection_count === 2 && r1.general.compliance === 50,
+      'general = ' + r1.general.compliance + ' over ' + r1.general.inspection_count);
+    log('branch detail carries its label and last inspection date',
+      a.label === 'B001 — Gaborone Depot' && a.last_inspection_date === '2026-03-02',
+      a.label + ' / ' + a.last_inspection_date);
+
+    // Inspections linked to a branch that is not in the list (e.g. deleted or
+    // belonging to another company) must not vanish.
+    const r2 = window.computeComplianceByBranch([BRANCH_A], [
+      { id: 'x', branch_id: 'b-a', compliance_level: 100 },
+      { id: 'y', branch_id: 'unknown', compliance_level: 0 }
+    ]);
+    log('an inspection whose branch is unknown still counts (as general)',
+      r2.company_compliance === 50 && r2.general.inspection_count === 1,
+      'company = ' + r2.company_compliance + ', general = ' + r2.general.inspection_count);
+
+    // Rows without a score must be ignored rather than counted as zero.
+    const r3 = window.computeComplianceByBranch([BRANCH_A], [
+      { id: 'p', branch_id: 'b-a', compliance_level: 80 },
+      { id: 'q', branch_id: 'b-a', compliance_level: null },
+      { id: 'r', branch_id: 'b-a' }
+    ]);
+    log('inspections with no score are ignored, not counted as 0%',
+      r3.branches[0].compliance === 80 && r3.branches[0].inspection_count === 1,
+      'branch = ' + r3.branches[0].compliance + ' from ' + r3.branches[0].inspection_count);
+
+    // Nothing on record → null everywhere, never 0.
+    const r4 = window.computeComplianceByBranch([BRANCH_A], []);
+    log('no inspections at all leaves the company unrated (null, not 0%)',
+      r4.company_compliance === null && r4.branches[0].compliance === null,
+      'company = ' + r4.company_compliance);
+    const r5 = window.computeComplianceByBranch(null, null);
+    log('missing inputs do not throw', r5.company_compliance === null && r5.branches.length === 0,
+      'company = ' + r5.company_compliance);
+
+    // ── 2. Helpers that talk to the database ──────────────────────────────
+    function stubQuery(handler) { return { select: () => ({ eq: () => ({ order: handler, limit: handler }), limit: handler, order: handler, maybeSingle: handler, eq2: handler }) }; }
+
+    // getCompanyBranches: rows on success, [] when the table is missing.
+    window.__case.query = {
+      select: function () { return this; }, eq: function () { return this; },
+      order: function () { return Promise.resolve({ data: [BRANCH_A, BRANCH_B], error: null }); },
+      limit: function () { return Promise.resolve({ data: [BRANCH_A, BRANCH_B], error: null }); }
+    };
+    const branchesRows = await window.getCompanyBranches(window.supabaseClient, '11111111-1111-1111-1111-111111111111');
+    log('getCompanyBranches returns the company\u2019s branches',
+      branchesRows.length === 2, 'rows = ' + branchesRows.length);
+
+    window.__case.query = {
+      select: function () { return this; }, eq: function () { return this; },
+      order: function () { return Promise.resolve({ data: null, error: { code: 'PGRST205', message: "Could not find the table 'public.company_branches'" } }); },
+      limit: function () { return Promise.resolve({ data: null, error: { code: 'PGRST205', message: 'missing' } }); }
+    };
+    const branchesMissing = await window.getCompanyBranches(window.supabaseClient, '11111111-1111-1111-1111-111111111111');
+    log('getCompanyBranches returns [] (no throw) when branches are not provisioned',
+      eq(branchesMissing, []), 'rows = ' + JSON.stringify(branchesMissing));
+
+    // columnExists: true / false / cached.
+    let probes = 0;
+    window.__case.query = {
+      select: function () { return this; }, limit: function () { probes++; return Promise.resolve({ error: null }); }
+    };
+    const hasCol = await window.columnExists(window.supabaseClient, 'inspection_bookings', 'branch_id');
+    await window.columnExists(window.supabaseClient, 'inspection_bookings', 'branch_id');
+    log('columnExists is true when the column is present', hasCol === true, 'exists = ' + hasCol);
+    log('columnExists probes the database once and then caches', probes === 1, 'probes = ' + probes);
+
+    window.__case.query = {
+      select: function () { return this; }, limit: function () {
+        return Promise.resolve({ error: { code: '42703', message: 'column workplace_inspections.branch_id does not exist' } });
+      }
+    };
+    const missingCol = await window.columnExists(window.supabaseClient, 'workplace_inspections', 'branch_id');
+    log('columnExists is false for a column the migration has not added yet',
+      missingCol === false, 'exists = ' + missingCol);
+
+    window.__case.query = {
+      select: function () { return this; }, limit: function () {
+        return Promise.resolve({ error: { code: '57014', message: 'network hiccup' } });
+      }
+    };
+    const inconclusive = await window.columnExists(window.supabaseClient, 'some_table', 'some_column');
+    log('an unexpected error fails closed (a branch is never offered on a guess)',
+      inconclusive === false, 'exists = ' + inconclusive);
+
+    // getCompanyInspections: merges the company_id and name queries by id, and
+    // survives one of them failing.
+    const calls = [];
+    window.__case.query = {
+      select: function () { return this; },
+      eq: function (col, val) { this._col = col; return this; },
+      neq: function () { return Promise.resolve(calls.push(this._col) && { data: this._col === 'company_id'
+        ? [{ id: 'a', branch_id: 'b-a', compliance_level: 70 }, { id: 'b', compliance_level: 90 }]
+        : [{ id: 'b', compliance_level: 90 }, { id: 'c', branch_id: 'b-b', compliance_level: 50 }], error: null }); }
+    };
+    const merged = await window.getCompanyInspections(window.supabaseClient, { companyId: 'cid', companyName: 'ACME' });
+    log('company inspections are merged from both matches, de-duplicated (a,b,c)',
+      merged.map(r => r.id).sort().join(',') === 'a,b,c', merged.map(r => r.id).join(','));
+    log('both the company_id and the employer-name queries were used',
+      calls.length === 2 && calls.includes('company_id') && calls.includes('factory_name'), calls.join('+'));
+
+    // ── 3. What the pages actually do ─────────────────────────────────────
+    const page = async (p) => (await fetch('../' + p + '?t=' + Date.now())).text();
+    const mig = await page('branch-inspections-migration.sql');
+
+    log('migration adds branch_id to both tables, idempotently',
+      (mig.match(/ADD COLUMN IF NOT EXISTS branch_id uuid;/g) || []).length === 2, 'ADD COLUMN statements found');
+    log('migration creates both foreign keys with ON DELETE SET NULL',
+      (mig.match(/ON DELETE SET NULL/g) || []).length >= 2 &&
+      mig.includes('workplace_inspections_branch_id_fkey') &&
+      mig.includes('inspection_bookings_branch_id_fkey'), 'FKs present');
+    log('migration is wrapped in a transaction and indexes the new columns',
+      /BEGIN;/.test(mig) && /COMMIT;/.test(mig) && /idx_wi_branch_id/.test(mig) && /idx_ib_branch_id/.test(mig),
+      'BEGIN/COMMIT + indexes');
+
+    const inspForm = await page('inspection.html');
+    const bookForm = await page('company-book-inspection.html');
+
+    log('inspection form has a Branch / Premises dropdown under the business name',
+      inspForm.includes('id="branchId"') &&
+      inspForm.indexOf('id="branchId"') > inspForm.indexOf('id="factoryName"') &&
+      inspForm.indexOf('id="branchId"') < inspForm.indexOf('id="location"'),
+      'dropdown sits between Factory/Employer Name and Location');
+    log('booking form has a Branch / Premises dropdown under the company name',
+      bookForm.includes('id="branchId"') &&
+      bookForm.indexOf('id="branchId"') > bookForm.indexOf('id="companyName"') &&
+      bookForm.indexOf('id="branchId"') < bookForm.indexOf('id="location"'),
+      'dropdown sits between Company Name and Location');
+
+    log('inspection form only sends branch_id when a branch is chosen',
+      /if \(branchSel && branchSel\.value\) payload\.branch_id = branchSel\.value;/.test(inspForm),
+      'guarded payload field');
+    log('booking form only sends branch_id when a branch is chosen',
+      /if \(branchChoice\) payload\.branch_id = branchChoice;/.test(bookForm),
+      'guarded payload field');
+    log('neither form can be broken by an un-migrated branch_id column',
+      /columnExists\([\s\S]{0,80}workplace_inspections[\s\S]{0,30}branch_id/.test(inspForm) &&
+      /columnExists\([\s\S]{0,80}inspection_bookings[\s\S]{0,30}branch_id/.test(bookForm),
+      'both forms probe the column before offering a branch');
+    log('choosing a branch fills the premises address',
+      inspForm.includes('function onBranchSelected()') && bookForm.includes('function onBranchSelected()'),
+      'onBranchSelected in both forms');
+
+    const branchPage = await page('company-branches.html');
+    log('My Branches shows a compliance rating per branch',
+      /<th[^>]*>Compliance<\/th>/.test(branchPage) &&
+      branchPage.includes('window.getCompanyCompliance(SB, {') &&
+      branchPage.includes('branchScores[b.id]'),
+      'Compliance column wired to the shared rule');
+    log('My Branches reports the company figure as the branch average',
+      branchPage.includes('average of ') && branchPage.includes('branchSubtitle'),
+      'subtitle shows the basis');
+
+    const viewPage = await page('company-view.html');
+    log('company dashboard compliance uses the branch average',
+      viewPage.includes('window.getCompanyCompliance(SB, {') &&
+      /avgCompliance[\s\S]{0,200}branchCompliance\.company_compliance/.test(viewPage),
+      'statCompliance fed by the branch figure');
+
+    const inspPage = await page('company-inspections.html');
+    log('inspection list shows the branch each inspection belongs to',
+      /<th>Branch \/ Premises<\/th>/.test(inspPage) && inspPage.includes('branchesById[i.branch_id]'),
+      'Branch / Premises column');
+
+    // A missing branch_id column can only be tolerated if nothing selects it.
+    const allFiles = ['common.js', 'inspection.html', 'company-book-inspection.html', 'company-branches.html',
+      'company-view.html', 'company-inspections.html', 'company-monitoring.html', 'company-bookings.html',
+      'OHS_Form_36_Factories_Inspection.html'];
+    const explicitSelects = [];
+    for (const f of allFiles) {
+      const src = await page(f);
+      if (/\.select\([^)]*branch_id/.test(src)) explicitSelects.push(f);
+    }
+    log('no page selects branch_id explicitly (select("*") is migration-safe)',
+      explicitSelects.length === 0, explicitSelects.join(', ') || 'none');
+  } catch (e) {
+    log('harness completed without throwing', false, e && (e.stack || e.message || String(e)));
+  }
+
+  const failed = results.filter(r => !r.pass);
+  out.textContent =
+    results.map(r => (r.pass ? 'PASS  ' : 'FAIL  ') + r.name + (r.detail ? '  [' + r.detail + ']' : '')).join('\n') +
+    '\n\n' + results.length + ' checks, ' + failed.length + ' failed';
+  window.__RESULT__ = { total: results.length, failed: failed.length, results };
+})();
+</script>
+</body>
+</html>

@@ -477,6 +477,28 @@ window.addEventListener('load', async function() {
     fillRow('Name of Person', '');
     fillRow('INSPECTOR', data.inspector_name);
 
+    // Which branch / premises the inspection was carried out at, when it was
+    // linked to one. Shown as a banner above the form so the statutory layout
+    // itself is untouched. Branches arrive with the branch migrations; an
+    // unlinked inspection is simply a general inspection of the business.
+    if (data.branch_id) {
+      try {
+        var brRes = await window.supabaseClient
+          .from('company_branches')
+          .select('branch_no, branch_name')
+          .eq('id', data.branch_id)
+          .maybeSingle();
+        if (brRes && brRes.data) {
+          var branchBanner = document.createElement('div');
+          branchBanner.textContent = 'Premises: ' + window.branchDisplayName(brRes.data);
+          branchBanner.style.cssText = 'padding:8px 24px;background:#eef4fb;border-bottom:1px solid #dee2e6;font-size:13px;color:#0f2544;font-weight:600;';
+          header.insertAdjacentElement('afterend', branchBanner);
+        }
+      } catch (e) {
+        console.warn('branch label:', e);
+      }
+    }
+
     // Persons row (employees)
     document.querySelectorAll('.persons-row').forEach(function(row) {
       var plines = row.querySelectorAll('.pline');

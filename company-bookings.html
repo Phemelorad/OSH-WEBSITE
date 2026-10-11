@@ -246,6 +246,7 @@
                             <th>Booking ID</th>
                             <th>Date Requested</th>
                             <th>Type</th>
+                            <th>Branch / Premises</th>
                             <th>Location</th>
                             <th>Preferred</th>
                             <th>Inspector</th>
@@ -279,7 +280,9 @@
 <script>
     const SB = window.supabaseClient;
     let companyName = null;
+    let companyId = null;
     let allBookings = [];
+    let branchesById = {};   // branch id -> { id, label } for the Branch column
 
     // ── Auth & init ───────────────────────────────────────────
     window.addEventListener('load', async () => {
@@ -306,9 +309,19 @@
             const profile = await getUserProfile(userResult.user.id);
             if (profile.success) {
                 setUserNameSafely(profile.data.first_name + ' ' + profile.data.surname);
+                if (profile.data.company_id) companyId = profile.data.company_id;
             }
         }
         document.getElementById('userCompanyName').textContent = companyName;
+
+        // Branch names for the Branch / Premises column (empty until this
+        // company registers branches — see company-branches.html).
+        try {
+            const branches = await window.getCompanyBranches(SB, companyId);
+            branches.forEach(function (b) {
+                branchesById[b.id] = { id: b.id, label: window.branchDisplayName(b) };
+            });
+        } catch (e) { console.warn('branches:', e); }
 
         await loadBookings();
   } catch (loadError) {
@@ -409,10 +422,16 @@
             const prefTime = b.preferred_time || '';
             const prefStr = prefTime ? `${prefDate} (${prefTime})` : prefDate;
 
+            const branch = b.branch_id ? branchesById[b.branch_id] : null;
+            const branchCell = branch
+                ? esc(branch.label)
+                : '<span style="color:#9ca3af">Whole business</span>';
+
             return '<tr>'
                 + '<td style="white-space:nowrap;font-weight:600">' + esc(b.booking_number || '—') + '</td>'
                 + '<td style="white-space:nowrap">' + fmtDate(b.created_at) + '</td>'
                 + '<td>' + esc(b.inspection_type || '—') + '</td>'
+                + '<td>' + branchCell + '</td>'
                 + '<td>' + esc(b.location || '—') + '</td>'
                 + '<td style="white-space:nowrap">' + prefStr + '</td>'
                 + '<td>' + (b.assigned_inspector ? esc(b.assigned_inspector) : '<span style="color:#bbb">Not assigned</span>') + '</td>'

@@ -161,6 +161,7 @@
                         <tr>
                             <th>File No.</th>
                             <th>Date</th>
+                            <th>Branch / Premises</th>
                             <th>Type</th>
                             <th>Location</th>
                             <th>Inspector</th>
@@ -194,7 +195,11 @@
 <script>
     const SB = window.supabaseClient;
     let companyName = null;
+    let companyId = null;
     let allInspections = [];
+    let branchesById = {};   // branch id -> branch row
+    let companyCompliance = null;
+    let inspectedBranchCount = 0;
 
     // ── Auth & init ───────────────────────────────────────────
     window.addEventListener('load', async () => {
@@ -224,6 +229,13 @@
                 }
             }
             document.getElementById('userCompanyName').textContent = companyName;
+
+            // Branch names for the Branch / Premises column, plus the
+            // branch-level company rating.
+            try {
+                const profile2 = await getUserProfile(userResult.user.id);
+                companyId = (profile2.success && profile2.data && profile2.data.company_id) || null;
+            } catch (e) { /* company_id column missing — name matching still works */ }
 
             await loadInspections();
         } catch (loadError) {
@@ -256,6 +268,22 @@
             if (error) throw error;
 
             allInspections = data || [];
+
+            // Branch column + company rating (see common.js for the rule).
+            // Degrades to empty/None until the branch migrations are applied.
+            try {
+                const compliance = await window.getCompanyCompliance(SB, {
+                    companyId: companyId,
+                    companyName: companyName
+                });
+                branchesById = {};
+                compliance.branches.forEach(function (b) { branchesById[b.id] = b; });
+                companyCompliance = compliance.company_compliance;
+                inspectedBranchCount = compliance.inspected_branch_count;
+            } catch (e) {
+                console.warn('branch compliance:', e);
+            }
+
             updateStats(allInspections);
             renderTable(allInspections);
 
@@ -275,14 +303,19 @@
             r.action_taken === 'Prohibition Notice Issued' ||
             r.action_taken === 'Improvement Notice Issued'
         ).length;
-        const avg = rows.length
+        // Compliance: the company figure is the average of the branch ratings
+        // once any branch is linked; before that it stays the flat average of
+        // this company's inspections.
+        const flatAvg = rows.length
             ? Math.round(rows.reduce((sum, r) => sum + (r.compliance_level || 0), 0) / rows.length)
             : 0;
+        const avg = companyCompliance != null ? companyCompliance : flatAvg;
+        const hasRating = companyCompliance != null || rows.length > 0;
 
         document.getElementById('statTotal').textContent      = rows.length;
         document.getElementById('statFollowUp').textContent   = followUps;
         document.getElementById('statNotices').textContent    = notices;
-        document.getElementById('statCompliance').textContent = rows.length ? avg + '%' : '—';
+        document.getElementById('statCompliance').textContent = hasRating ? avg + '%' : '—';
     }
 
     // ── Render table ──────────────────────────────────────────
@@ -306,9 +339,15 @@
                 ? ' <span class="badge badge-amber">⚠ Follow-up' + (i.follow_up_date ? ' ' + fmtDate(i.follow_up_date) : '') + '</span>'
                 : '';
 
+            const branch = i.branch_id ? branchesById[i.branch_id] : null;
+            const branchCell = branch
+                ? esc(branch.label)
+                : '<span style="color:#9ca3af">General (whole business)</span>';
+
             return '<tr>'
                 + '<td style="white-space:nowrap;font-weight:600">' + esc(i.file_number || '—') + '</td>'
                 + '<td style="white-space:nowrap">' + fmtDate(i.inspection_date) + '</td>'
+                + '<td>' + branchCell + '</td>'
                 + '<td>' + esc(i.inspection_type || '—') + '</td>'
                 + '<td>' + esc(i.location || '—') + '</td>'
                 + '<td>' + esc(i.inspector_name || '—') + '</td>'
@@ -323,12 +362,17 @@
     function applySearch() {
         const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
         if (!q) { renderTable(allInspections); return; }
+        const branchLabel = i => {
+            const b = i.branch_id ? branchesById[i.branch_id] : null;
+            return b ? String(b.label || '').toLowerCase() : 'general';
+        };
         const filtered = allInspections.filter(i =>
             String(i.file_number || '').toLowerCase().includes(q) ||
             String(i.inspector_name || '').toLowerCase().includes(q) ||
             String(i.inspection_type || '').toLowerCase().includes(q) ||
             String(i.location || '').toLowerCase().includes(q) ||
-            String(i.factory_name || '').toLowerCase().includes(q)
+            String(i.factory_name || '').toLowerCase().includes(q) ||
+            branchLabel(i).includes(q)
         );
         renderTable(filtered);
     }
